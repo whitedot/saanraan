@@ -62,6 +62,7 @@ function sr_member_withdrawal_asset_balances(PDO $pdo, int $accountId): array
         $assets[$assetKey] = [
             'asset_key' => $assetKey,
             'label' => (string) $definition['label'],
+            'unit_label' => (string) ($definition['unit_label'] ?? ''),
             'balance' => $balance,
             'process_label' => (string) $definition['process_label'],
         ];

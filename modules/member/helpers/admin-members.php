@@ -371,6 +371,145 @@ function sr_admin_member_status_transition_errors(array $targetAccount, string $
     return [];
 }
 
+function sr_admin_member_withdrawal_asset_warning(PDO $pdo, int $accountId): array
+{
+    $lookupFailed = false;
+    try {
+        $assets = sr_member_withdrawal_asset_balances($pdo, $accountId);
+    } catch (Throwable $exception) {
+        $assets = [];
+        $lookupFailed = true;
+        sr_log_exception($exception, 'admin_member_withdrawal_asset_warning');
+    }
+
+    $lines = [];
+    foreach ($assets as $asset) {
+        if (!is_array($asset)) {
+            continue;
+        }
+
+        $label = trim((string) ($asset['label'] ?? ''));
+        $unitLabel = trim((string) ($asset['unit_label'] ?? ''));
+        $processLabel = trim((string) ($asset['process_label'] ?? ''));
+        $line = trim($label . ' ' . number_format((int) ($asset['balance'] ?? 0)) . ($unitLabel !== '' ? ' ' . $unitLabel : ''));
+        if ($processLabel !== '') {
+            $line = trim($line . ' ' . $processLabel);
+        }
+        if ($line !== '') {
+            $lines[] = $line;
+        }
+    }
+
+    return [
+        'assets' => $assets,
+        'lookup_failed' => $lookupFailed,
+        'lines' => $lines,
+        'summary' => $lookupFailed ? '자산 조회 실패' : ($lines !== [] ? implode(', ', $lines) : '없음'),
+    ];
+}
+
+function sr_admin_member_terminal_status_confirm_message(string $nextStatus, array $assetWarning): string
+{
+    $lines = isset($assetWarning['lines']) && is_array($assetWarning['lines']) ? $assetWarning['lines'] : [];
+    $summary = trim((string) ($assetWarning['summary'] ?? ''));
+    if ($summary === '') {
+        $summary = $lines !== [] ? implode(', ', $lines) : '없음';
+    }
+    $message = $nextStatus === 'anonymized'
+        ? '이 회원을 익명화할까요?' . "\n" . '계정 식별 정보가 되돌릴 수 없는 익명값으로 바뀌고 세션, 2차 인증, 소셜 로그인 연결이 해제됩니다.'
+        : '이 회원을 탈퇴 처리할까요?' . "\n" . '세션, 2차 인증, 소셜 로그인 연결이 해제되고 privacy cleanup이 실행됩니다.';
+
+    $message .= "\n\n" . '현재 조회된 보유 자산: ' . $summary;
+    $message .= "\n" . '관리자 탈퇴/익명화는 현재 보유 자산을 자동 정산하지 않습니다.';
+    $message .= "\n" . '처리 후에도 계정 ID 또는 공개 해시로 자산 관리자 화면에서 조회해 후속 처리하세요.';
+
+    return $message;
+}
+
+function sr_admin_member_asset_followup_link(PDO $pdo, int $actorAccountId, string $path, string $label, array $params = []): array
+{
+    if ($path === '' || $label === '') {
+        return [];
+    }
+    if (function_exists('sr_admin_get_route_exists') && !sr_admin_get_route_exists($path)) {
+        return [];
+    }
+    if (function_exists('sr_admin_has_permission') && !sr_admin_has_permission($pdo, $actorAccountId, $path, 'view')) {
+        return [];
+    }
+
+    $query = $params !== [] ? http_build_query($params, '', '&', PHP_QUERY_RFC3986) : '';
+
+    return [
+        'label' => $label,
+        'url' => $path . ($query !== '' ? '?' . $query : ''),
+    ];
+}
+
+function sr_admin_member_terminal_asset_followup(PDO $pdo, array $actorAccount, int $accountId, string $nextStatus, array $assetWarning): array
+{
+    if ($accountId < 1 || !in_array($nextStatus, sr_admin_member_terminal_statuses(), true)) {
+        return [];
+    }
+
+    $lines = isset($assetWarning['lines']) && is_array($assetWarning['lines']) ? $assetWarning['lines'] : [];
+    if ($lines === [] && empty($assetWarning['lookup_failed'])) {
+        return [];
+    }
+
+    $runtimeConfig = sr_runtime_config();
+    $publicHash = sr_admin_member_public_hash($runtimeConfig, $accountId);
+    $actorAccountId = (int) ($actorAccount['id'] ?? 0);
+    $assets = isset($assetWarning['assets']) && is_array($assetWarning['assets']) ? $assetWarning['assets'] : [];
+    $links = [];
+    $assetLinkMap = [
+        'point' => [
+            ['/admin/points/balances', '포인트 잔액', ['account_identifier' => $publicHash]],
+            ['/admin/points/transactions', '포인트 거래', ['account_identifier' => $publicHash]],
+        ],
+        'reward' => [
+            ['/admin/rewards/balances', '적립금 잔액', ['account_identifier' => $publicHash]],
+            ['/admin/rewards/transactions', '적립금 거래', ['account_identifier' => $publicHash]],
+        ],
+        'deposit' => [
+            ['/admin/deposits/balances', '예치금 잔액', ['account_identifier' => $publicHash]],
+            ['/admin/deposits/transactions', '예치금 거래', ['account_identifier' => $publicHash]],
+        ],
+        'coupon' => [
+            ['/admin/coupons/issues', '쿠폰 지급', ['field' => 'hash', 'q' => $publicHash]],
+            ['/admin/coupons/redemptions', '쿠폰 사용', ['field' => 'hash', 'q' => $publicHash]],
+        ],
+    ];
+
+    foreach (array_keys($assets) as $assetKey) {
+        foreach ($assetLinkMap[(string) $assetKey] ?? [] as $linkSpec) {
+            $link = sr_admin_member_asset_followup_link($pdo, $actorAccountId, (string) $linkSpec[0], (string) $linkSpec[1], (array) $linkSpec[2]);
+            if ($link !== []) {
+                $links[] = $link;
+            }
+        }
+    }
+
+    foreach ([
+        ['/admin/assets/recovery-failures', '미회수 관리', ['q' => $publicHash]],
+        ['/admin/content/payments', '콘텐츠 결제', ['account_id' => $publicHash]],
+        ['/admin/community/payments', '커뮤니티 결제', ['account_id' => $publicHash]],
+    ] as $linkSpec) {
+        $link = sr_admin_member_asset_followup_link($pdo, $actorAccountId, (string) $linkSpec[0], (string) $linkSpec[1], (array) $linkSpec[2]);
+        if ($link !== []) {
+            $links[] = $link;
+        }
+    }
+
+    return [
+        'account_id' => $accountId,
+        'account_public_hash' => $publicHash,
+        'status' => $nextStatus,
+        'asset_summary' => (string) ($assetWarning['summary'] ?? ($lines !== [] ? implode(', ', $lines) : '자산 조회 실패')),
+        'links' => $links,
+    ];
+}
+
 function sr_admin_member_apply_status_effects(PDO $pdo, array $config, int $accountId, string $beforeStatus, string $afterStatus): array
 {
     $result = [
@@ -598,6 +737,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
     $errors = [];
     $notice = '';
     $resultExtra = [];
+    $resultData = [];
     $intent = sr_post_string('intent', 40);
 
     if ($intent === 'create') {
@@ -662,6 +802,9 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
 
         if (!in_array($intent, ['revoke_sessions', 'evaluate_groups'], true)) {
             $errors = array_merge($errors, sr_admin_member_status_transition_errors($targetAccount, $status));
+        }
+        if ($intent === 'evaluate_groups' && in_array((string) ($targetAccount['status'] ?? ''), sr_admin_member_terminal_statuses(), true)) {
+            $errors[] = '탈퇴/익명화 회원은 그룹 규칙을 재평가하지 않습니다.';
         }
     }
 
@@ -809,6 +952,9 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             }
 
             $statusEffects = [];
+            $terminalAssetWarning = in_array($status, sr_admin_member_terminal_statuses(), true) && (string) $targetAccount['status'] !== $status
+                ? sr_admin_member_withdrawal_asset_warning($pdo, $targetAccountId)
+                : [];
             $pdo->beginTransaction();
             try {
                 $stmt = $pdo->prepare(
@@ -877,10 +1023,17 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 ],
             ]);
             $notice = sr_t('member::action.admin.updated');
+            $followup = sr_admin_member_terminal_asset_followup($pdo, $account, $targetAccountId, $status, $terminalAssetWarning);
+            if ($followup !== []) {
+                $resultData['terminal_asset_followup'] = $followup;
+            }
         }
     } elseif ($errors === []) {
         $runtimeConfig = sr_runtime_config();
         $statusEffects = [];
+        $terminalAssetWarning = in_array($status, sr_admin_member_terminal_statuses(), true) && (string) $targetAccount['status'] !== $status
+            ? sr_admin_member_withdrawal_asset_warning($pdo, $targetAccountId)
+            : [];
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
@@ -934,10 +1087,14 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
             ]);
 
             $notice = sr_t('member::action.admin.status_saved');
+            $followup = sr_admin_member_terminal_asset_followup($pdo, $account, $targetAccountId, $status, $terminalAssetWarning);
+            if ($followup !== []) {
+                $resultData['terminal_asset_followup'] = $followup;
+            }
         }
     }
 
-    return sr_admin_action_result($errors, $notice) + $resultExtra;
+    return sr_admin_action_result($errors, $notice, $resultData) + $resultExtra;
 }
 
 function sr_admin_handle_member_batch_revoke_sessions_post(PDO $pdo, array $account): array

@@ -902,6 +902,60 @@ if ($adminMembersHelper !== '') {
             && strpos($adminMembersHelper, "sr_member_run_privacy_cleanup_contracts(\$pdo, \$accountId, 'member.status_' . \$afterStatus)") !== false,
         'Admin member status changes to withdrawn/anonymized should remove member-owned private data before module privacy cleanup.'
     );
+    sr_member_auth_policy_assert(
+        strpos($adminMembersHelper, 'function sr_admin_member_withdrawal_asset_warning(') !== false
+            && strpos($adminMembersHelper, 'sr_member_withdrawal_asset_balances($pdo, $accountId)') !== false
+            && strpos($adminMembersHelper, 'function sr_admin_member_terminal_asset_followup(') !== false
+            && strpos($adminMembersHelper, "'terminal_asset_followup'") !== false
+            && strpos($adminMembersHelper, 'sr_member_process_asset_withdrawal(') === false,
+        'Admin member status warnings should show withdrawal asset balances and provide follow-up lookup links without processing assets.'
+    );
+}
+
+$adminMembersAction = sr_member_auth_policy_read('modules/member/actions/admin-members.php');
+$adminMembersView = sr_member_auth_policy_read('modules/member/views/admin-members.php');
+if ($adminMembersAction !== '' && $adminMembersView !== '') {
+    sr_member_auth_policy_assert(
+        strpos($adminMembersAction, '$memberWithdrawalAssetWarnings[$memberAccountId] = sr_admin_member_withdrawal_asset_warning($pdo, $memberAccountId);') !== false
+            && strpos($adminMembersAction, '$memberEditWithdrawalAssetWarning = sr_admin_member_withdrawal_asset_warning($pdo, (int) $editMember[\'id\']);') !== false
+            && strpos($adminMembersAction, '$postResultData = isset($postResult[\'data\']) && is_array($postResult[\'data\']) ? $postResult[\'data\'] : [];') !== false
+            && strpos($adminMembersView, '현재 조회된 보유 자산:') !== false
+            && strpos($adminMembersView, '관리자 탈퇴/익명화는 현재 보유 자산을 자동 정산하지 않습니다.') !== false
+            && strpos($adminMembersView, 'admin-member-terminal-followup') !== false
+            && strpos($adminMembersView, 'name="intent" value="evaluate_groups"') !== false
+            && strpos($adminMembersView, "\$memberEditHasActionContext = \$memberAdminPage === 'edit_form'") !== false
+            && strpos($adminMembersView, 'admin-member-edit-actions') !== false
+            && strpos($adminMembersView, 'admin-member-edit-action-group-normal') !== false
+            && strpos($adminMembersView, 'admin-member-edit-action-group-risk') !== false
+            && strpos($adminMembersView, '$memberEditCanEvaluateGroups = $memberEditHasActionContext && !in_array($memberEditStatus, $memberTerminalStatuses, true);') !== false
+            && strpos($adminMembersView, '<span>회원 차단</span>') !== false
+            && strpos($adminMembersView, 'form="<?php echo sr_e($memberEditActionFormPrefix . \'evaluate-groups\'); ?>"') !== false
+            && strpos($adminMembersHelper, "탈퇴/익명화 회원은 그룹 규칙을 재평가하지 않습니다.") !== false
+            && strpos($adminMembersView, 'data-member-withdraw-confirm') !== false
+            && strpos($adminMembersView, 'data-member-anonymize-confirm') !== false,
+        'Admin member withdrawn/anonymized confirmations should show current asset balances, hide terminal group reevaluation on list/edit screens, and successful terminal updates should keep follow-up lookup data.'
+    );
+}
+
+$messagePrivacyCleanup = sr_member_auth_policy_read('modules/message/privacy-cleanup.php');
+if ($messagePrivacyCleanup !== '') {
+    sr_member_auth_policy_assert(
+        strpos($messagePrivacyCleanup, 'sender_account_id = :sender_account_id') !== false
+            && strpos($messagePrivacyCleanup, 'recipient_account_id = :recipient_account_id') !== false
+            && strpos($messagePrivacyCleanup, "'sender_account_id' => \$accountId") !== false
+            && strpos($messagePrivacyCleanup, "'recipient_account_id' => \$accountId") !== false,
+        'Message privacy cleanup should use distinct PDO placeholders for sender and recipient account id.'
+    );
+}
+
+$adminAssetLedgersHelper = sr_member_auth_policy_read('modules/admin/helpers/asset-ledgers.php');
+if ($adminAssetLedgersHelper !== '') {
+    sr_member_auth_policy_assert(
+        strpos($adminAssetLedgersHelper, 'SELECT id, email, display_name, status FROM sr_member_accounts WHERE id = :id LIMIT 1') !== false
+            && strpos($adminAssetLedgersHelper, 'INNER JOIN sr_member_accounts a ON a.id = b.account_id') !== false
+            && strpos($adminAssetLedgersHelper, "a.status = 'active'") === false,
+        'Admin asset ledgers should remain searchable for withdrawn/anonymized member accounts by account id/public hash.'
+    );
 }
 
 $privacyExportAction = sr_member_auth_policy_read('modules/privacy/actions/account-privacy-export.php');

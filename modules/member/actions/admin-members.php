@@ -49,16 +49,17 @@ if (sr_request_method() === 'POST') {
     }
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
+    $postResultData = isset($postResult['data']) && is_array($postResult['data']) ? $postResult['data'] : [];
     if ($intent === 'batch_revoke_sessions') {
-        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice, $postResultData));
         sr_redirect(sr_admin_post_return_url('/admin/members'));
     }
     if (in_array($intent, ['status', 'revoke_sessions', 'evaluate_groups'], true)) {
-        sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice, $postResultData));
         sr_redirect(sr_admin_post_return_url('/admin/members'));
     }
     if ($errors === [] && (int) ($postResult['created_account_id'] ?? 0) > 0) {
-        sr_admin_flash_result(sr_admin_action_result([], $notice));
+        sr_admin_flash_result(sr_admin_action_result([], $notice, $postResultData));
         sr_redirect('/admin/members');
     }
     if (isset($postResult['create_values']) && is_array($postResult['create_values'])) {
@@ -79,7 +80,7 @@ if (sr_request_method() === 'POST') {
         $editAccountId = (int) ($memberEditValues['id'] ?? (preg_match('/\A[1-9][0-9]*\z/', $postedAccountId) === 1 ? $postedAccountId : 0));
         $redirectPath = $editAccountId > 0 ? '/admin/members/edit?id=' . (string) $editAccountId : '/admin/members';
     }
-    sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+    sr_admin_flash_result(sr_admin_action_result($errors, $notice, $postResultData));
     sr_redirect($redirectPath);
 }
 
@@ -92,7 +93,15 @@ $memberPagination = sr_admin_pagination_from_total($pdo, $memberAdminPage === 'm
 $members = $memberAdminPage === 'members'
     ? sr_admin_member_rows_with_public_hash($runtimeConfig, sr_admin_members($pdo, $statusFilter, $searchFilter, (int) $memberPagination['per_page'], sr_admin_pagination_offset($memberPagination), $memberSort))
     : [];
+$memberWithdrawalAssetWarnings = [];
+foreach ($members as $member) {
+    $memberAccountId = (int) ($member['id'] ?? 0);
+    if ($memberAccountId > 0) {
+        $memberWithdrawalAssetWarnings[$memberAccountId] = sr_admin_member_withdrawal_asset_warning($pdo, $memberAccountId);
+    }
+}
 $editMember = null;
+$memberEditWithdrawalAssetWarning = ['assets' => [], 'lines' => [], 'summary' => ''];
 if ($memberAdminPage === 'edit_form') {
     $editMemberIdValue = sr_get_string('edit_id', 20);
     if ($editMemberIdValue === '') {
@@ -105,6 +114,9 @@ if ($memberAdminPage === 'edit_form') {
     }
     if (is_array($editMember) && $memberAdminProfileExtraValues === []) {
         $memberAdminProfileExtraValues = sr_member_profile_extra_field_plain_values($pdo, (int) $editMember['id']);
+    }
+    if (is_array($editMember)) {
+        $memberEditWithdrawalAssetWarning = sr_admin_member_withdrawal_asset_warning($pdo, (int) $editMember['id']);
     }
     if (!is_array($editMember) && $errors === []) {
         $errors[] = sr_t('member::action.admin.member_edit_not_found');

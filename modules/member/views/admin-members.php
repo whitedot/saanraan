@@ -30,6 +30,29 @@ foreach ($memberAdminProfileExtraFieldDefinitions as $memberAdminProfileExtraDef
 }
 $memberAdminProfileOrderItems = sr_member_profile_field_order_items($memberSettings ?? [], $memberAdminProfileExtraFieldDefinitions);
 $memberTerminalStatuses = sr_admin_member_terminal_statuses();
+$memberWithdrawalAssetWarnings = isset($memberWithdrawalAssetWarnings) && is_array($memberWithdrawalAssetWarnings) ? $memberWithdrawalAssetWarnings : [];
+$memberEditWithdrawalAssetWarning = isset($memberEditWithdrawalAssetWarning) && is_array($memberEditWithdrawalAssetWarning) ? $memberEditWithdrawalAssetWarning : ['assets' => [], 'lines' => [], 'summary' => ''];
+$memberTerminalAssetFollowup = [];
+if (isset($flashResult['data']['terminal_asset_followup']) && is_array($flashResult['data']['terminal_asset_followup'])) {
+    $memberTerminalAssetFollowup = $flashResult['data']['terminal_asset_followup'];
+}
+$memberEditWithdrawalAssetSummary = trim((string) ($memberEditWithdrawalAssetWarning['summary'] ?? ''));
+if ($memberEditWithdrawalAssetSummary === '') {
+    $memberEditWithdrawalAssetSummary = '없음';
+}
+$memberEditWithdrawConfirmMessage = sr_admin_member_terminal_status_confirm_message('withdrawn', $memberEditWithdrawalAssetWarning);
+$memberEditAnonymizeConfirmMessage = sr_admin_member_terminal_status_confirm_message('anonymized', $memberEditWithdrawalAssetWarning);
+$memberEditHasActionContext = $memberAdminPage === 'edit_form' && is_array($editMember ?? null);
+$memberEditAccountId = $memberEditHasActionContext ? (int) ($editMember['id'] ?? 0) : 0;
+$memberEditStatus = $memberEditHasActionContext ? (string) ($editMember['status'] ?? '') : '';
+$memberEditPublicHash = $memberEditHasActionContext ? sr_admin_member_public_hash($runtimeConfig, $memberEditAccountId) : '';
+$memberEditReturnTo = $memberEditHasActionContext ? sr_admin_current_get_url('/admin/members/edit?id=' . rawurlencode((string) $memberEditAccountId)) : '';
+$memberEditActionFormPrefix = $memberEditHasActionContext ? 'member-edit-action-' . $memberEditAccountId . '-' : '';
+$memberEditCanMessage = $memberEditHasActionContext && $memberMessageWriteAvailable && $memberEditStatus === 'active' && $memberEditPublicHash !== '';
+$memberEditCanSuspend = $memberEditHasActionContext && !in_array($memberEditStatus, $memberTerminalStatuses, true) && $memberEditStatus !== 'suspended';
+$memberEditCanWithdraw = $memberEditHasActionContext && !in_array($memberEditStatus, $memberTerminalStatuses, true);
+$memberEditCanAnonymize = $memberEditHasActionContext && $memberEditStatus !== 'anonymized';
+$memberEditCanEvaluateGroups = $memberEditHasActionContext && !in_array($memberEditStatus, $memberTerminalStatuses, true);
 $memberAdminProfileExtraFieldHtml = static function (array $definition, array $values): string {
     $key = (string) ($definition['key'] ?? '');
     if ($key === '') {
@@ -135,7 +158,61 @@ $memberAdminHelp = [
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
+<?php if ($memberEditHasActionContext) { ?>
+    <div class="admin-member-edit-actions" aria-label="회원 관리">
+        <div class="admin-member-edit-action-group admin-member-edit-action-group-normal" aria-label="일반 작업">
+            <?php if ($memberEditCanMessage) { ?>
+                <a href="<?php echo sr_e(sr_url('/message/write?to_account=' . rawurlencode($memberEditPublicHash))); ?>" class="btn btn-sm btn-outline-secondary" aria-label="쪽지 발송" title="쪽지 발송"><?php echo sr_material_icon_html('mail'); ?><span>쪽지 발송</span></a>
+            <?php } ?>
+            <?php if ($memberEditCanEvaluateGroups) { ?>
+                <button type="submit" form="<?php echo sr_e($memberEditActionFormPrefix . 'evaluate-groups'); ?>" class="btn btn-sm btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>" title="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>"><?php echo sr_material_icon_html('rule'); ?><span><?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?></span></button>
+            <?php } ?>
+        </div>
+        <div class="admin-member-edit-action-group admin-member-edit-action-group-risk" aria-label="위험 작업">
+            <?php if ($memberEditCanSuspend) { ?>
+                <button type="submit" form="<?php echo sr_e($memberEditActionFormPrefix . 'suspend'); ?>" class="btn btn-sm btn-outline-warning" aria-label="회원 차단" title="회원 차단"><?php echo sr_material_icon_html('block'); ?><span>회원 차단</span></button>
+            <?php } ?>
+            <?php if ($memberEditCanWithdraw) { ?>
+                <button type="submit" form="<?php echo sr_e($memberEditActionFormPrefix . 'withdraw'); ?>" class="btn btn-sm btn-outline-danger" aria-label="회원 탈퇴 처리" title="회원 탈퇴 처리"><?php echo sr_material_icon_html('person_remove'); ?><span>회원 탈퇴 처리</span></button>
+            <?php } ?>
+            <?php if ($memberEditCanAnonymize) { ?>
+                <button type="submit" form="<?php echo sr_e($memberEditActionFormPrefix . 'anonymize'); ?>" class="btn btn-sm btn-outline-danger" aria-label="회원 익명화" title="회원 익명화"><?php echo sr_material_icon_html('no_accounts'); ?><span>회원 익명화</span></button>
+            <?php } ?>
+            <button type="submit" form="<?php echo sr_e($memberEditActionFormPrefix . 'revoke-sessions'); ?>" class="btn btn-sm btn-outline-danger" aria-label="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>" title="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>"><?php echo sr_material_icon_html('delete'); ?><span><?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?></span></button>
+        </div>
+    </div>
+<?php } ?>
+
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
+
+<?php if ($memberTerminalAssetFollowup !== []) { ?>
+    <?php
+    $memberTerminalAssetFollowupLinks = isset($memberTerminalAssetFollowup['links']) && is_array($memberTerminalAssetFollowup['links']) ? $memberTerminalAssetFollowup['links'] : [];
+    ?>
+    <div class="alert alert-info admin-member-terminal-followup" role="status">
+        <strong>보유 자산 후속 확인</strong>
+        <p>
+            계정 #<?php echo sr_e((string) (int) ($memberTerminalAssetFollowup['account_id'] ?? 0)); ?>
+            · 공개 해시 <code><?php echo sr_e((string) ($memberTerminalAssetFollowup['account_public_hash'] ?? '')); ?></code>
+            · 처리 전 보유 자산: <?php echo sr_e((string) ($memberTerminalAssetFollowup['asset_summary'] ?? '')); ?>
+        </p>
+        <p>탈퇴/익명화 처리는 자산을 자동 정산하지 않았습니다. 필요한 화면에서 이 계정을 바로 조회해 후속 처리하세요.</p>
+        <?php if ($memberTerminalAssetFollowupLinks !== []) { ?>
+            <div class="admin-row-actions admin-member-terminal-followup-actions">
+                <?php foreach ($memberTerminalAssetFollowupLinks as $memberTerminalAssetFollowupLink) { ?>
+                    <?php
+                    $followupLinkUrl = (string) ($memberTerminalAssetFollowupLink['url'] ?? '');
+                    $followupLinkLabel = (string) ($memberTerminalAssetFollowupLink['label'] ?? '');
+                    if ($followupLinkUrl === '' || $followupLinkLabel === '') {
+                        continue;
+                    }
+                    ?>
+                    <a class="btn btn-sm btn-outline-info" href="<?php echo sr_e(sr_url($followupLinkUrl)); ?>"><?php echo sr_e($followupLinkLabel); ?></a>
+                <?php } ?>
+            </div>
+        <?php } ?>
+    </div>
+<?php } ?>
 
 <?php if ($memberAdminPage === 'create_form') { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
@@ -222,16 +299,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
 <?php } elseif ($memberAdminPage === 'edit_form') { ?>
     <?php if (is_array($editMember)) { ?>
-        <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form data-member-status-edit-form>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/members/save')); ?>" class="admin-form ui-form-theme" data-sr-validate-form data-member-status-edit-form data-member-withdraw-confirm="<?php echo sr_e($memberEditWithdrawConfirmMessage); ?>" data-member-anonymize-confirm="<?php echo sr_e($memberEditAnonymizeConfirmMessage); ?>">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="edit">
-            <input type="hidden" name="account_id" value="<?php echo sr_e((string) ($memberEditValues['id'] ?? $editMember['id'])); ?>">
+            <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberEditAccountId); ?>">
             <section class="card">
                 <h2><?php echo sr_e(sr_t('member::ui.member.edit.7eaadfda')); ?></h2>
                 <div class="form-row">
                     <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.text.4ca2f9ab'), $memberAdminHelp['public_hash']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></span></span>
                     <div class="form-field">
-                        <code><?php echo sr_e(sr_admin_member_public_hash($runtimeConfig, (int) $editMember['id'])); ?></code>
+                        <code><?php echo sr_e($memberEditPublicHash); ?></code>
                     </div>
                 </div>
                 <div class="form-row">
@@ -277,6 +354,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </option>
                             <?php } ?>
                         </select>
+                        <small class="form-help">현재 조회된 보유 자산: <?php echo sr_e($memberEditWithdrawalAssetSummary); ?></small>
+                        <small class="form-help">관리자 탈퇴/익명화는 현재 보유 자산을 자동 정산하지 않습니다. 처리 후에도 계정 ID 또는 공개 해시로 자산 관리자 화면에서 조회해 후속 처리하세요.</small>
                     </div>
                 </div>
                 <div class="form-row">
@@ -304,6 +383,47 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('member::ui.list.f07b3200')); ?></a>
                 <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>
             </div>
+        </form>
+        <?php if ($memberEditCanSuspend) { ?>
+            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'suspend'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다.');" hidden>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
+                <input type="hidden" name="intent" value="status">
+                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberEditAccountId); ?>">
+                <input type="hidden" name="status" value="suspended">
+            </form>
+        <?php } ?>
+        <?php if ($memberEditCanWithdraw) { ?>
+            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'withdraw'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberEditWithdrawConfirmMessage)); ?>);" hidden>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
+                <input type="hidden" name="intent" value="status">
+                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberEditAccountId); ?>">
+                <input type="hidden" name="status" value="withdrawn">
+            </form>
+        <?php } ?>
+        <?php if ($memberEditCanAnonymize) { ?>
+            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'anonymize'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberEditAnonymizeConfirmMessage)); ?>);" hidden>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
+                <input type="hidden" name="intent" value="status">
+                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberEditAccountId); ?>">
+                <input type="hidden" name="status" value="anonymized">
+            </form>
+        <?php } ?>
+        <?php if ($memberEditCanEvaluateGroups) { ?>
+            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'evaluate-groups'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form hidden>
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
+                <input type="hidden" name="intent" value="evaluate_groups">
+                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberEditAccountId); ?>">
+            </form>
+        <?php } ?>
+        <form id="<?php echo sr_e($memberEditActionFormPrefix . 'revoke-sessions'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form hidden>
+            <?php echo sr_csrf_field(); ?>
+            <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
+            <input type="hidden" name="intent" value="revoke_sessions">
+            <input type="hidden" name="account_id" value="<?php echo sr_e((string) $memberEditAccountId); ?>">
         </form>
     <?php } else { ?>
         <div class="form-sticky-actions form-actions form-actions-split">
@@ -416,6 +536,14 @@ foreach ($allowedStatuses as $status) {
                 <?php foreach ($members as $member) { ?>
                     <?php
                     $memberStatus = (string) $member['status'];
+                    $memberWithdrawalAssetWarning = $memberWithdrawalAssetWarnings[(int) ($member['id'] ?? 0)] ?? ['assets' => [], 'lines' => [], 'summary' => ''];
+                    $memberWithdrawalAssetLines = isset($memberWithdrawalAssetWarning['lines']) && is_array($memberWithdrawalAssetWarning['lines']) ? $memberWithdrawalAssetWarning['lines'] : [];
+                    $memberWithdrawalAssetSummary = trim((string) ($memberWithdrawalAssetWarning['summary'] ?? ''));
+                    if ($memberWithdrawalAssetSummary === '') {
+                        $memberWithdrawalAssetSummary = '없음';
+                    }
+                    $memberWithdrawConfirmMessage = sr_admin_member_terminal_status_confirm_message('withdrawn', $memberWithdrawalAssetWarning);
+                    $memberAnonymizeConfirmMessage = sr_admin_member_terminal_status_confirm_message('anonymized', $memberWithdrawalAssetWarning);
                     $statusClass = match ($memberStatus) {
                         'active' => 'is-normal',
                         'suspended', 'pending' => 'is-blocked',
@@ -431,7 +559,14 @@ foreach ($allowedStatuses as $status) {
                             <span class="admin-member-email-value"><?php echo sr_e(sr_admin_member_email_display($member)); ?></span>
                             <span class="admin-member-hash-value" title="<?php echo sr_e((string) $member['account_public_hash']); ?>"><?php echo sr_e((string) $member['account_public_hash']); ?></span>
                         </td>
-                        <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_member_display_name_preview($member)); ?></td>
+                        <td class="admin-table-nowrap">
+                            <?php echo sr_e(sr_admin_member_display_name_preview($member)); ?>
+                            <?php if ($memberWithdrawalAssetLines !== []) { ?>
+                                <span class="admin-member-hash-value">자산: <?php echo sr_e($memberWithdrawalAssetSummary); ?></span>
+                            <?php } elseif (!empty($memberWithdrawalAssetWarning['lookup_failed'])) { ?>
+                                <span class="admin-member-hash-value">자산: <?php echo sr_e($memberWithdrawalAssetSummary); ?></span>
+                            <?php } ?>
+                        </td>
                         <?php if ($memberListShowNicknameColumn) { ?>
                             <td class="admin-table-nowrap"><?php echo sr_e(trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '-'); ?></td>
                         <?php } ?>
@@ -446,6 +581,15 @@ foreach ($allowedStatuses as $status) {
                                 <?php if ($memberMessageWriteAvailable && $memberStatus === 'active' && (string) ($member['account_public_hash'] ?? '') !== '') { ?>
                                     <a href="<?php echo sr_e(sr_url('/message/write?to_account=' . rawurlencode((string) $member['account_public_hash']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="쪽지 발송" title="쪽지 발송"><?php echo sr_material_icon_html('mail'); ?></a>
                                 <?php } ?>
+                                <?php if (!in_array($memberStatus, $memberTerminalStatuses, true)) { ?>
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
+                                        <?php echo sr_csrf_field(); ?>
+                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
+                                        <input type="hidden" name="intent" value="evaluate_groups">
+                                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
+                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>" title="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>"><?php echo sr_material_icon_html('rule'); ?></button>
+                                    </form>
+                                <?php } ?>
                                 <?php if (!in_array($memberStatus, $memberTerminalStatuses, true) && $memberStatus !== 'suspended') { ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다.');">
                                         <?php echo sr_csrf_field(); ?>
@@ -457,7 +601,7 @@ foreach ($allowedStatuses as $status) {
                                     </form>
                                 <?php } ?>
                                 <?php if (!in_array($memberStatus, $memberTerminalStatuses, true)) { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 탈퇴 처리할까요? 세션, 2차 인증, 소셜 로그인 연결이 해제되고 privacy cleanup이 실행됩니다.');">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberWithdrawConfirmMessage)); ?>);">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                         <input type="hidden" name="intent" value="status">
@@ -467,7 +611,7 @@ foreach ($allowedStatuses as $status) {
                                     </form>
                                 <?php } ?>
                                 <?php if ($memberStatus !== 'anonymized') { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 익명화할까요? 계정 식별 정보가 되돌릴 수 없는 익명값으로 바뀌고 소셜 로그인 연결이 해제됩니다.');">
+                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberAnonymizeConfirmMessage)); ?>);">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                         <input type="hidden" name="intent" value="status">
@@ -476,13 +620,6 @@ foreach ($allowedStatuses as $status) {
                                         <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="회원 익명화" title="회원 익명화"><?php echo sr_material_icon_html('no_accounts'); ?></button>
                                     </form>
                                 <?php } ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
-                                    <input type="hidden" name="intent" value="evaluate_groups">
-                                    <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>" title="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>"><?php echo sr_material_icon_html('rule'); ?></button>
-                                </form>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
@@ -528,8 +665,8 @@ foreach ($allowedStatuses as $status) {
                 return;
             }
             var message = nextStatus === 'anonymized'
-                ? '이 회원을 익명화할까요? 계정 식별 정보가 되돌릴 수 없는 익명값으로 바뀌고 소셜 로그인 연결이 해제됩니다.'
-                : '이 회원을 탈퇴 처리할까요? 세션, 2차 인증, 소셜 로그인 연결이 해제되고 privacy cleanup이 실행됩니다.';
+                ? (statusEditForm.getAttribute('data-member-anonymize-confirm') || '이 회원을 익명화할까요? 계정 식별 정보가 되돌릴 수 없는 익명값으로 바뀌고 소셜 로그인 연결이 해제됩니다.')
+                : (statusEditForm.getAttribute('data-member-withdraw-confirm') || '이 회원을 탈퇴 처리할까요? 세션, 2차 인증, 소셜 로그인 연결이 해제되고 privacy cleanup이 실행됩니다.');
             if (!confirm(message)) {
                 event.preventDefault();
             }
