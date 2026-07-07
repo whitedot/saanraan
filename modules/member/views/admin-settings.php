@@ -939,7 +939,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var displayCell = document.createElement('td');
             var display = [];
             if (item.kind === 'fixed') {
-                display.push(field.enabled ? '사용' : '미사용');
+                display.push(field.enabled ? '사용' : '사용안함');
                 if (field.required) {
                     display.push('필수');
                 }

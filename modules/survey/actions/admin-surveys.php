@@ -221,7 +221,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class($surveyQaStatus)); ?>"><?php echo sr_e(sr_survey_qa_status_label($surveyQaStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) $survey['response_count'])); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($survey['view_count'] ?? 0))); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '미사용'; ?></span></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '사용안함'; ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_survey_time_html((string) $survey['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -255,7 +255,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <?php echo sr_admin_status_description_list_html('survey_status', array_combine(sr_survey_statuses(), array_map('sr_survey_status_label', sr_survey_statuses())) ?: [], [], '설문 상태 설명'); ?>
         <?php echo sr_admin_status_description_list_html('survey_qa_status', array_combine(sr_survey_qa_statuses(), array_map('sr_survey_qa_status_label', sr_survey_qa_statuses())) ?: [], [], '점검 상태 설명'); ?>
-        <?php echo sr_admin_status_description_list_html('survey_reward_enabled', ['enabled' => '사용', 'disabled' => '미사용'], [], '보상 사용 설명'); ?>
+        <?php echo sr_admin_status_description_list_html('survey_reward_enabled', ['enabled' => '사용', 'disabled' => '사용안함'], [], '보상 사용 설명'); ?>
     </section>
     <?php foreach ($surveys as $survey): ?>
         <?php if (empty($survey['deleted_at'])) { continue; } ?>

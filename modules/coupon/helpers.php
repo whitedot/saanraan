@@ -308,7 +308,7 @@ function sr_coupon_admin_notification_email_warnings(PDO $pdo): array
         'issue.status_updated' => '지급 상태 변경 알림 이메일 채널이 켜져 있습니다. 지급 취소를 실행하면 해당 회원에게 이메일 알림이 발송될 수 있습니다.',
         'issue.refunded' => '발급 환불 알림 이메일 채널이 켜져 있습니다. 환불 실행 후 해당 회원에게 이메일 알림이 발송될 수 있습니다.',
         'redemption.refunded' => '사용 환불 알림 이메일 채널이 켜져 있습니다. 환불 실행 후 해당 회원에게 이메일 알림이 발송될 수 있습니다.',
-        'issue.definition_disabled' => '사용 중지 회수 알림 이메일 채널이 켜져 있습니다. 사용 중지로 전환하면 미사용 지급건 회원에게 대량 이메일 발송이 발생할 수 있습니다.',
+        'issue.definition_disabled' => '사용 중지 회수 알림 이메일 채널이 켜져 있습니다. 사용 중지로 전환하면 사용안함 지급건 회원에게 대량 이메일 발송이 발생할 수 있습니다.',
     ];
     foreach ($messages as $eventKey => $message) {
         if (sr_coupon_notification_event_uses_email($pdo, (string) $eventKey)) {

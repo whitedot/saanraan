@@ -1676,7 +1676,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="form-field">
                                     <select id="community_category_status_new" name="category_status" class="form-select" required>
                                         <option value="enabled">사용</option>
-                                        <option value="disabled">미사용</option>
+                                        <option value="disabled">사용안함</option>
                                     </select>
                                 </div>
                             </div>
@@ -1734,7 +1734,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <div class="form-field">
                                         <select id="<?php echo sr_e($categoryModalId); ?>-status" name="category_status" class="form-select" required>
                                             <option value="enabled"<?php echo (string) $category['status'] === 'enabled' ? ' selected' : ''; ?>>사용</option>
-                                            <option value="disabled"<?php echo (string) $category['status'] === 'disabled' ? ' selected' : ''; ?>>미사용</option>
+                                            <option value="disabled"<?php echo (string) $category['status'] === 'disabled' ? ' selected' : ''; ?>>사용안함</option>
                                         </select>
                                     </div>
                                 </div>

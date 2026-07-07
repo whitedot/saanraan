@@ -45,7 +45,7 @@ function sr_admin_code_label_context_options(): array
         ],
         'module_status' => [
             'enabled' => '사용',
-            'disabled' => '미사용',
+            'disabled' => '사용안함',
             'installing' => '설치 중',
             'failed' => '실패',
         ],
@@ -61,7 +61,7 @@ function sr_admin_code_label_context_options(): array
             'draft' => '임시 저장',
             'scheduled' => '예약',
             'enabled' => '사용',
-            'disabled' => '미사용',
+            'disabled' => '사용안함',
             'archived' => '보관',
             'published' => '공개',
             'hidden' => '숨김',

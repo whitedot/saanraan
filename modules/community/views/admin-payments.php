@@ -82,7 +82,7 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                 </div>
                 <div class="filtering-field">
                     <span class="filtering-label">쿠폰</span>
-                    <?php echo sr_admin_filter_radio_toggle_group_html('community_payment_filter_coupon_used', 'coupon_used', ['yes' => '사용', 'no' => '미사용'], $selectedCouponUsed, '전체'); ?>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('community_payment_filter_coupon_used', 'coupon_used', ['yes' => '사용', 'no' => '사용안함'], $selectedCouponUsed, '전체'); ?>
                 </div>
                 <label class="filtering-field" for="community_payment_filter_target_id">
                     <span class="filtering-label">대상 ID</span>

@@ -260,7 +260,7 @@ if ($mode === 'list') {
                 </div>
                 <div class="filtering-field">
                     <span class="filtering-label">보상</span>
-                    <?php echo sr_admin_filter_radio_toggle_group_html('quiz_reward_filter', 'reward_enabled', ['enabled' => '사용', 'disabled' => '미사용'], [(string) ($quizFilters['reward_enabled'] ?? '')], '전체'); ?>
+                    <?php echo sr_admin_filter_radio_toggle_group_html('quiz_reward_filter', 'reward_enabled', ['enabled' => '사용', 'disabled' => '사용안함'], [(string) ($quizFilters['reward_enabled'] ?? '')], '전체'); ?>
                 </div>
             </div>
             <div class="filtering-actions">
@@ -349,7 +349,7 @@ if ($mode === 'list') {
                                 <span class="admin-summary-meta">제한 <?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?> · 통과 점수 <?php echo sr_e((string) ($quiz['pass_score'] ?? '-')); ?> · 회원 조건 <?php echo sr_e(number_format($memberGroupCount)); ?>개</span>
                             </td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['view_count'] ?? 0))); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '미사용'; ?></span></td>
+                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '사용안함'; ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -380,7 +380,7 @@ if ($mode === 'list') {
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 삭제</span>
         </div>
         <?php echo sr_admin_status_description_list_html('quiz_status', array_combine(sr_quiz_statuses(), array_map('sr_quiz_status_label', sr_quiz_statuses())) ?: [], [], '퀴즈 상태 설명'); ?>
-        <?php echo sr_admin_status_description_list_html('quiz_reward_enabled', ['enabled' => '사용', 'disabled' => '미사용'], [], '보상 사용 설명'); ?>
+        <?php echo sr_admin_status_description_list_html('quiz_reward_enabled', ['enabled' => '사용', 'disabled' => '사용안함'], [], '보상 사용 설명'); ?>
     </section>
     <?php foreach ($quizzes as $quiz) { ?>
         <?php if (!empty($quiz['deleted_at'])) { ?>
