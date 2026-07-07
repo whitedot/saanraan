@@ -112,7 +112,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                             <span class="sr-install-step-number"></span>
                             <span>
                                 <strong><?php echo sr_e($stepLabel); ?></strong>
-                                <small data-install-step-state><?php echo $stepHasErrors ? '오류 확인 필요' : '대기'; ?></small>
+                                <small data-install-step-state><?php echo $stepHasErrors ? '(오류!)' : '대기'; ?></small>
                             </span>
                         </button>
                     </li>
@@ -874,7 +874,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                     }
                     if (state) {
                         if (indicator.getAttribute('data-install-step-error') === '1') {
-                            state.textContent = '오류 확인 필요';
+                            state.textContent = '(오류!)';
                         } else if (indicatorStep === stepKey) {
                             state.textContent = '현재 단계';
                         } else if (indicatorIndex < activeIndex) {
@@ -896,23 +896,90 @@ foreach ($optionalModules as $moduleKey => $module) {
                 return panel ? panel.getAttribute('data-install-step') : 'environment';
             }
 
+            function validatableInputsInPanel(panel) {
+                if (!panel) {
+                    return [];
+                }
+
+                return Array.prototype.slice.call(panel.querySelectorAll('input, select, textarea')).filter(function (input) {
+                    return !input.disabled && input.type !== 'hidden' && typeof input.checkValidity === 'function';
+                });
+            }
+
+            function firstInvalidInPanel(panel) {
+                var inputs = validatableInputsInPanel(panel);
+                for (var index = 0; index < inputs.length; index += 1) {
+                    if (!inputs[index].checkValidity()) {
+                        return inputs[index];
+                    }
+                }
+
+                return null;
+            }
+
+            function reportInvalidInput(input, shouldScroll) {
+                if (!input) {
+                    return false;
+                }
+
+                setStep(inputStep(input), shouldScroll);
+                window.setTimeout(function () {
+                    if (typeof input.reportValidity === 'function') {
+                        input.reportValidity();
+                    } else {
+                        input.focus();
+                    }
+                }, 40);
+                return true;
+            }
+
             function openFirstInvalidStep() {
                 if (!form) {
                     return false;
                 }
-                var invalid = form.querySelector(':invalid');
+                var invalid = firstInvalidInPanel(form);
                 if (!invalid) {
                     return false;
                 }
-                setStep(inputStep(invalid), true);
-                window.setTimeout(function () {
-                    if (typeof invalid.reportValidity === 'function') {
-                        invalid.reportValidity();
-                    } else {
-                        invalid.focus();
+                return reportInvalidInput(invalid, true);
+            }
+
+            function firstInvalidInputBeforeStep(targetStepKey) {
+                var targetIndex = stepIndex(targetStepKey);
+                for (var index = 0; index < targetIndex; index += 1) {
+                    var panel = stepPanel(stepOrder[index]);
+                    if (panel && panel.getAttribute('data-install-step-blocked') === '1') {
+                        return panel.querySelector('[data-install-next]') || panel;
                     }
-                }, 40);
-                return true;
+
+                    var invalid = firstInvalidInPanel(panel);
+                    if (invalid) {
+                        return invalid;
+                    }
+                }
+
+                return null;
+            }
+
+            function moveToStepIfAllowed(targetStepKey) {
+                var targetIndex = stepIndex(targetStepKey);
+                var activeIndex = stepIndex(currentStep);
+                if (targetIndex <= activeIndex) {
+                    setStep(targetStepKey, true);
+                    return;
+                }
+
+                var blocked = firstInvalidInputBeforeStep(targetStepKey);
+                if (blocked) {
+                    if (blocked.matches && blocked.matches('input, select, textarea')) {
+                        reportInvalidInput(blocked, true);
+                    } else {
+                        setStep(inputStep(blocked), true);
+                    }
+                    return;
+                }
+
+                setStep(targetStepKey, true);
             }
 
             function updateTextSummary(key, value) {
@@ -1197,7 +1264,7 @@ foreach ($optionalModules as $moduleKey => $module) {
 
             document.querySelectorAll('[data-install-step-target]').forEach(function (button) {
                 button.addEventListener('click', function () {
-                    setStep(button.getAttribute('data-install-step-target'), true);
+                    moveToStepIfAllowed(button.getAttribute('data-install-step-target'));
                 });
             });
 
@@ -1205,6 +1272,11 @@ foreach ($optionalModules as $moduleKey => $module) {
                 button.addEventListener('click', function () {
                     var activePanel = stepPanel(currentStep);
                     if (activePanel && activePanel.getAttribute('data-install-step-blocked') === '1') {
+                        return;
+                    }
+                    var invalid = firstInvalidInPanel(activePanel);
+                    if (invalid) {
+                        reportInvalidInput(invalid, true);
                         return;
                     }
                     var nextIndex = Math.min(stepIndex(currentStep) + 1, stepOrder.length - 1);
