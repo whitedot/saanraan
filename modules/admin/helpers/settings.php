@@ -839,71 +839,17 @@ function sr_admin_post_site_setting_values(?array $site): array
 
 function sr_admin_business_info_default_items(): array
 {
-    return [
-        'company_name' => '상호',
-        'representative_name' => '대표자명',
-        'business_registration_number' => '사업자등록번호',
-        'mail_order_report_number' => '통신판매업 신고번호',
-        'business_address' => '사업장 주소',
-        'business_email' => '사업자 전자우편주소',
-        'customer_service_phone' => '고객센터 전화번호',
-        'customer_service_email' => '고객센터 전자우편주소',
-        'privacy_officer_name' => '개인정보보호책임자',
-        'privacy_officer_email' => '개인정보보호책임자 이메일',
-        'hosting_provider' => '호스팅 제공자',
-    ];
+    return sr_site_business_info_default_items();
 }
 
 function sr_admin_normalize_business_info_key(string $key): string
 {
-    $key = strtolower(trim($key));
-    $key = preg_replace('/[^a-z0-9_]+/', '_', $key);
-    $key = is_string($key) ? trim($key, '_') : '';
-
-    if ($key === '' || preg_match('/\A[a-z][a-z0-9_]{1,79}\z/', $key) !== 1) {
-        return '';
-    }
-
-    return $key;
+    return sr_site_normalize_business_info_key($key);
 }
 
 function sr_admin_normalize_business_info_items(mixed $items): array
 {
-    if (!is_array($items)) {
-        return [];
-    }
-
-    $normalized = [];
-    $customIndex = 1;
-    foreach ($items as $item) {
-        if (!is_array($item)) {
-            continue;
-        }
-
-        $label = sr_clean_single_line((string) ($item['label'] ?? ''), 80);
-        $value = sr_clean_single_line((string) ($item['value'] ?? ''), 255);
-        if ($label === '' && $value === '') {
-            continue;
-        }
-
-        $key = sr_admin_normalize_business_info_key((string) ($item['key'] ?? ''));
-        if ($key === '') {
-            $key = 'custom_' . (string) $customIndex;
-            $customIndex++;
-        }
-
-        $normalized[] = [
-            'key' => $key,
-            'label' => $label,
-            'value' => $value,
-        ];
-
-        if (count($normalized) >= 30) {
-            break;
-        }
-    }
-
-    return $normalized;
+    return sr_site_normalize_business_info_items($items);
 }
 
 function sr_admin_post_business_info_items(): array
@@ -949,36 +895,40 @@ function sr_admin_post_business_info_items(): array
 function sr_admin_business_info_form_rows(array $values): array
 {
     $savedItems = sr_admin_normalize_business_info_items($values['business_info_items'] ?? []);
-    $savedByKey = [];
-    $customItems = [];
     $defaultItems = sr_admin_business_info_default_items();
+    $seenDefaultKeys = [];
+    $rows = [];
 
     foreach ($savedItems as $item) {
         $key = (string) ($item['key'] ?? '');
         if (isset($defaultItems[$key])) {
-            $savedByKey[$key] = $item;
+            $seenDefaultKeys[$key] = true;
+            $rows[] = [
+                'key' => (string) $key,
+                'label' => (string) $defaultItems[$key],
+                'value' => (string) ($item['value'] ?? ''),
+                'is_default' => true,
+            ];
         } else {
-            $customItems[] = $item;
+            $rows[] = [
+                'key' => (string) ($item['key'] ?? ''),
+                'label' => (string) ($item['label'] ?? ''),
+                'value' => (string) ($item['value'] ?? ''),
+                'is_default' => false,
+            ];
         }
     }
 
-    $rows = [];
     foreach ($defaultItems as $key => $label) {
-        $saved = is_array($savedByKey[$key] ?? null) ? $savedByKey[$key] : [];
+        if (isset($seenDefaultKeys[$key])) {
+            continue;
+        }
+
         $rows[] = [
             'key' => (string) $key,
             'label' => (string) $label,
-            'value' => (string) ($saved['value'] ?? ''),
+            'value' => '',
             'is_default' => true,
-        ];
-    }
-
-    foreach ($customItems as $item) {
-        $rows[] = [
-            'key' => (string) ($item['key'] ?? ''),
-            'label' => (string) ($item['label'] ?? ''),
-            'value' => (string) ($item['value'] ?? ''),
-            'is_default' => false,
         ];
     }
 

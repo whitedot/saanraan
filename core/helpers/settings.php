@@ -35,6 +35,119 @@ function sr_site_display_name(?array $site = null, ?PDO $pdo = null): string
     return $siteName !== '' ? $siteName : 'Saanraan';
 }
 
+function sr_site_business_info_default_items(): array
+{
+    return [
+        'company_name' => '상호',
+        'representative_name' => '대표자명',
+        'business_registration_number' => '사업자등록번호',
+        'mail_order_report_number' => '통신판매업 신고번호',
+        'business_address' => '사업장 주소',
+        'business_email' => '사업자 전자우편주소',
+        'customer_service_phone' => '고객센터 전화번호',
+        'customer_service_email' => '고객센터 전자우편주소',
+        'privacy_officer_name' => '개인정보보호책임자',
+        'privacy_officer_email' => '개인정보보호책임자 이메일',
+        'hosting_provider' => '호스팅 제공자',
+    ];
+}
+
+function sr_site_normalize_business_info_key(string $key): string
+{
+    $key = strtolower(trim($key));
+    $key = preg_replace('/[^a-z0-9_]+/', '_', $key);
+    $key = is_string($key) ? trim($key, '_') : '';
+
+    if ($key === '' || preg_match('/\A[a-z][a-z0-9_]{1,79}\z/', $key) !== 1) {
+        return '';
+    }
+
+    return $key;
+}
+
+function sr_site_normalize_business_info_items(mixed $items): array
+{
+    if (!is_array($items)) {
+        return [];
+    }
+
+    $normalized = [];
+    $customIndex = 1;
+    $defaultItems = sr_site_business_info_default_items();
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $label = sr_clean_single_line((string) ($item['label'] ?? ''), 80);
+        $value = sr_clean_single_line((string) ($item['value'] ?? ''), 255);
+        if ($label === '' && $value === '') {
+            continue;
+        }
+
+        $key = sr_site_normalize_business_info_key((string) ($item['key'] ?? ''));
+        if (isset($defaultItems[$key])) {
+            $label = $defaultItems[$key];
+        } elseif ($key === '') {
+            $key = 'custom_' . (string) $customIndex;
+            $customIndex++;
+        }
+
+        $normalized[] = [
+            'key' => $key,
+            'label' => $label,
+            'value' => $value,
+        ];
+
+        if (count($normalized) >= 30) {
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
+function sr_site_business_info_items(?PDO $pdo): array
+{
+    if (!$pdo instanceof PDO) {
+        return [];
+    }
+
+    return sr_site_normalize_business_info_items(sr_site_setting($pdo, 'site.business_info_items', []));
+}
+
+function sr_site_visible_business_info_items(?PDO $pdo): array
+{
+    return array_values(array_filter(sr_site_business_info_items($pdo), static function (array $item): bool {
+        return trim((string) ($item['label'] ?? '')) !== '' && trim((string) ($item['value'] ?? '')) !== '';
+    }));
+}
+
+function sr_site_business_info_html(?PDO $pdo, string $classPrefix): string
+{
+    $items = sr_site_visible_business_info_items($pdo);
+    if ($items === []) {
+        return '';
+    }
+
+    $classPrefix = preg_replace('/[^a-z0-9_-]+/', '', strtolower(trim($classPrefix))) ?: 'public-layout';
+
+    ob_start();
+    ?>
+    <dl class="<?php echo sr_e($classPrefix); ?>-business-info">
+        <?php foreach ($items as $item) { ?>
+            <div class="<?php echo sr_e($classPrefix); ?>-business-info-item">
+                <dt><?php echo sr_e((string) ($item['label'] ?? '')); ?></dt>
+                <dd><?php echo sr_e((string) ($item['value'] ?? '')); ?></dd>
+            </div>
+        <?php } ?>
+    </dl>
+    <?php
+    $html = ob_get_clean();
+
+    return is_string($html) ? $html : '';
+}
+
 function sr_known_currency_min_units(): array
 {
     // Values are integer settlement minimum units, not decimal exponents.
