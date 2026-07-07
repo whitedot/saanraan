@@ -895,9 +895,12 @@ if ($withdrawAction !== '') {
 $adminMembersHelper = sr_member_auth_policy_read('modules/member/helpers/admin-members.php');
 if ($adminMembersHelper !== '') {
     sr_member_auth_policy_assert(
-        strpos($adminMembersHelper, "\$privacyCleanupResults['member_mfa'] = sr_member_delete_mfa(\$pdo, \$targetAccountId);") !== false
-            && strpos($adminMembersHelper, "sr_member_run_privacy_cleanup_contracts(\$pdo, \$targetAccountId, 'member.status_' . \$status)") !== false,
-        'Admin member status changes to withdrawn/anonymized should delete member-owned MFA data before module privacy cleanup.'
+        strpos($adminMembersHelper, 'function sr_admin_member_apply_status_effects(') !== false
+            && strpos($adminMembersHelper, 'sr_member_delete_mfa($pdo, $accountId)') !== false
+            && strpos($adminMembersHelper, 'sr_member_anonymize_account($pdo, $config, $accountId)') !== false
+            && strpos($adminMembersHelper, 'sr_member_record_consent_withdrawals($pdo, $accountId)') !== false
+            && strpos($adminMembersHelper, "sr_member_run_privacy_cleanup_contracts(\$pdo, \$accountId, 'member.status_' . \$afterStatus)") !== false,
+        'Admin member status changes to withdrawn/anonymized should remove member-owned private data before module privacy cleanup.'
     );
 }
 

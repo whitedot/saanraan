@@ -23,7 +23,7 @@ function sr_admin_member_email_display(array $member): string
 function sr_admin_member_display_name_preview(array $member): string
 {
     $status = (string) ($member['status'] ?? ($member['account_status'] ?? ''));
-    if ($status === 'anonymized') {
+    if (in_array($status, sr_admin_member_terminal_statuses(), true)) {
         return sr_t('member::account.withdrawn_display_name');
     }
 
@@ -271,7 +271,7 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
         } elseif ($field === 'name') {
             $nameClauses = ["a.display_name LIKE :keyword_display_name_like ESCAPE '\\\\'", "n.nickname LIKE :keyword_nickname_like ESCAPE '\\\\'"];
             if ($matchesWithdrawnLabel) {
-                $nameClauses[] = "a.status = 'anonymized'";
+                $nameClauses[] = "a.status IN ('withdrawn', 'anonymized')";
             }
             $where[] = '(' . implode(' OR ', $nameClauses) . ')';
             $params['keyword_display_name_like'] = $like;
@@ -286,7 +286,7 @@ function sr_admin_member_search_rows(PDO $pdo, array $config, string $field, str
                 $params['account_id'] = $accountId;
             }
             if ($matchesWithdrawnLabel) {
-                $clauses[] = "a.status = 'anonymized'";
+                $clauses[] = "a.status IN ('withdrawn', 'anonymized')";
             }
             $where[] = '(' . implode(' OR ', $clauses) . ')';
         }
@@ -351,6 +351,63 @@ function sr_admin_member_by_id(PDO $pdo, int $accountId): ?array
 function sr_admin_member_create_allowed_statuses(): array
 {
     return ['active', 'pending', 'suspended'];
+}
+
+function sr_admin_member_terminal_statuses(): array
+{
+    return ['withdrawn', 'anonymized'];
+}
+
+function sr_admin_member_status_transition_errors(array $targetAccount, string $nextStatus): array
+{
+    $currentStatus = (string) ($targetAccount['status'] ?? '');
+    if ($currentStatus === 'anonymized' && $nextStatus !== 'anonymized') {
+        return ['익명화된 회원은 다른 상태로 되돌릴 수 없습니다.'];
+    }
+    if ($currentStatus === 'withdrawn' && !in_array($nextStatus, ['withdrawn', 'anonymized'], true)) {
+        return ['탈퇴 처리된 회원은 활성 상태로 되돌릴 수 없습니다. 필요한 경우 새 계정을 만들어 주세요.'];
+    }
+
+    return [];
+}
+
+function sr_admin_member_apply_status_effects(PDO $pdo, array $config, int $accountId, string $beforeStatus, string $afterStatus): array
+{
+    $result = [
+        'revoked_sessions' => 0,
+        'deleted_profile' => false,
+        'withdrawn_consents' => 0,
+        'member_mfa' => null,
+        'account_anonymized' => false,
+        'privacy_cleanup' => [],
+    ];
+
+    if ($afterStatus !== 'active') {
+        $revokedSessions = sr_member_revoke_account_sessions($pdo, $accountId);
+        if ($revokedSessions < 0) {
+            throw new RuntimeException('Member sessions could not be revoked after account status update.');
+        }
+        $result['revoked_sessions'] = $revokedSessions;
+    }
+
+    if (!in_array($afterStatus, sr_admin_member_terminal_statuses(), true) || $beforeStatus === $afterStatus) {
+        return $result;
+    }
+
+    sr_member_delete_profile($pdo, $accountId);
+    sr_member_delete_nickname($pdo, $accountId);
+    $result['deleted_profile'] = true;
+    $result['member_mfa'] = sr_member_delete_mfa($pdo, $accountId);
+    $result['withdrawn_consents'] = sr_member_record_consent_withdrawals($pdo, $accountId);
+
+    if ($afterStatus === 'anonymized') {
+        sr_member_anonymize_account($pdo, $config, $accountId);
+        $result['account_anonymized'] = true;
+    }
+
+    $result['privacy_cleanup'] = sr_member_run_privacy_cleanup_contracts($pdo, $accountId, 'member.status_' . $afterStatus);
+
+    return $result;
 }
 
 function sr_admin_member_create_default_values(array $site = []): array
@@ -602,6 +659,10 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         ) {
             $errors[] = sr_t('member::action.admin.last_owner_disable_disallowed');
         }
+
+        if (!in_array($intent, ['revoke_sessions', 'evaluate_groups'], true)) {
+            $errors = array_merge($errors, sr_admin_member_status_transition_errors($targetAccount, $status));
+        }
     }
 
     if ($errors === [] && $intent === 'evaluate_groups') {
@@ -747,7 +808,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 $accountIdentifierHash = $emailHash;
             }
 
-            $privacyCleanupResults = [];
+            $statusEffects = [];
             $pdo->beginTransaction();
             try {
                 $stmt = $pdo->prepare(
@@ -784,17 +845,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     sr_member_save_profile_extra_field_values($pdo, $targetAccountId, $profileExtraFieldDefinitions, $profileExtraFieldValues);
                 }
 
-                $revokedSessions = $status === 'active' ? 0 : sr_member_revoke_account_sessions($pdo, $targetAccountId);
-                if ($revokedSessions < 0) {
-                    throw new RuntimeException('Member sessions could not be revoked after account update.');
-                }
-                if (in_array($status, ['withdrawn', 'anonymized'], true) && !in_array((string) $targetAccount['status'], ['withdrawn', 'anonymized'], true)) {
-                    $privacyCleanupResults['member_mfa'] = sr_member_delete_mfa($pdo, $targetAccountId);
-                    $privacyCleanupResults = array_merge(
-                        $privacyCleanupResults,
-                        sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status)
-                    );
-                }
+                $statusEffects = sr_admin_member_apply_status_effects($pdo, $runtimeConfig, $targetAccountId, (string) $targetAccount['status'], $status);
                 $pdo->commit();
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
@@ -822,13 +873,14 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'login_id_changed' => false,
                     'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,
                     'profile_extra_fields_changed' => $postedProfileExtraFieldValues !== array_intersect_key($storedProfileExtraFieldValues, $postedProfileExtraFieldValues),
-                    'privacy_cleanup' => $privacyCleanupResults,
+                    'status_effects' => $statusEffects,
                 ],
             ]);
             $notice = sr_t('member::action.admin.updated');
         }
     } elseif ($errors === []) {
-        $privacyCleanupResults = [];
+        $runtimeConfig = sr_runtime_config();
+        $statusEffects = [];
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
@@ -841,17 +893,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 'updated_at' => sr_now(),
                 'id' => $targetAccountId,
             ]);
-            $revokedSessions = $status === 'active' ? 0 : sr_member_revoke_account_sessions($pdo, $targetAccountId);
-            if ($revokedSessions < 0) {
-                throw new RuntimeException('Member sessions could not be revoked after status update.');
-            }
-            if (in_array($status, ['withdrawn', 'anonymized'], true) && !in_array((string) $targetAccount['status'], ['withdrawn', 'anonymized'], true)) {
-                $privacyCleanupResults['member_mfa'] = sr_member_delete_mfa($pdo, $targetAccountId);
-                $privacyCleanupResults = array_merge(
-                    $privacyCleanupResults,
-                    sr_member_run_privacy_cleanup_contracts($pdo, $targetAccountId, 'member.status_' . $status)
-                );
-            }
+            $statusEffects = sr_admin_member_apply_status_effects($pdo, $runtimeConfig, $targetAccountId, (string) $targetAccount['status'], $status);
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -887,8 +929,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 'metadata' => [
                     'before_status' => (string) $targetAccount['status'],
                     'after_status' => $status,
-                    'revoked_sessions' => $revokedSessions,
-                    'privacy_cleanup' => $privacyCleanupResults,
+                    'status_effects' => $statusEffects,
                 ],
             ]);
 
@@ -1098,7 +1139,7 @@ function sr_admin_member_query_parts(array $statusFilter, array $searchFilter = 
         } elseif ($field === 'name') {
             $nameClauses = ['a.display_name LIKE :keyword_display_name_like', 'n.nickname LIKE :keyword_nickname_like'];
             if ($matchesWithdrawnLabel) {
-                $nameClauses[] = "a.status = 'anonymized'";
+                $nameClauses[] = "a.status IN ('withdrawn', 'anonymized')";
             }
             $where[] = '(' . implode(' OR ', $nameClauses) . ')';
             $params['keyword_display_name_like'] = $like;
@@ -1113,7 +1154,7 @@ function sr_admin_member_query_parts(array $statusFilter, array $searchFilter = 
                 $params['account_id'] = $accountId;
             }
             if ($matchesWithdrawnLabel) {
-                $clauses[] = "a.status = 'anonymized'";
+                $clauses[] = "a.status IN ('withdrawn', 'anonymized')";
             }
             $where[] = '(' . implode(' OR ', $clauses) . ')';
         }
