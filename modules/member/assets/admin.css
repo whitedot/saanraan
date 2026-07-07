@@ -12,6 +12,8 @@
 .admin-member-edit-actions{align-items:flex-start;display:flex;gap:calc(var(--spacing) * 3);justify-content:space-between;margin:0 0 calc(var(--spacing) * 4)}
 .admin-member-edit-action-group{display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2)}
 .admin-member-edit-action-group-risk{justify-content:flex-end;margin-left:auto}
+.admin-member-risk-actions{flex-wrap:wrap;gap:var(--spacing)}
+.admin-member-risk-actions form{margin:0}
 .admin-page-member-list .admin-member-filter .filtering-field{min-width:0}
 .admin-page-member-list .admin-member-filter .filtering-submit{justify-content:center;width:auto}
 .admin-page-member-list .admin-member-table{table-layout:auto}

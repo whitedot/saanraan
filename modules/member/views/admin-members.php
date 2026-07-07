@@ -544,6 +544,7 @@ foreach ($allowedStatuses as $status) {
                     }
                     $memberWithdrawConfirmMessage = sr_admin_member_terminal_status_confirm_message('withdrawn', $memberWithdrawalAssetWarning);
                     $memberAnonymizeConfirmMessage = sr_admin_member_terminal_status_confirm_message('anonymized', $memberWithdrawalAssetWarning);
+                    $memberRiskModalId = 'member-risk-modal-' . (int) ($member['id'] ?? 0);
                     $statusClass = match ($memberStatus) {
                         'active' => 'is-normal',
                         'suspended', 'pending' => 'is-blocked',
@@ -590,43 +591,7 @@ foreach ($allowedStatuses as $status) {
                                         <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>" title="<?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?>"><?php echo sr_material_icon_html('rule'); ?></button>
                                     </form>
                                 <?php } ?>
-                                <?php if (!in_array($memberStatus, $memberTerminalStatuses, true) && $memberStatus !== 'suspended') { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다.');">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
-                                        <input type="hidden" name="intent" value="status">
-                                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                        <input type="hidden" name="status" value="suspended">
-                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="회원 차단" title="회원 차단"><?php echo sr_material_icon_html('block'); ?></button>
-                                    </form>
-                                <?php } ?>
-                                <?php if (!in_array($memberStatus, $memberTerminalStatuses, true)) { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberWithdrawConfirmMessage)); ?>);">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
-                                        <input type="hidden" name="intent" value="status">
-                                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                        <input type="hidden" name="status" value="withdrawn">
-                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="회원 탈퇴 처리" title="회원 탈퇴 처리"><?php echo sr_material_icon_html('person_remove'); ?></button>
-                                    </form>
-                                <?php } ?>
-                                <?php if ($memberStatus !== 'anonymized') { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberAnonymizeConfirmMessage)); ?>);">
-                                        <?php echo sr_csrf_field(); ?>
-                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
-                                        <input type="hidden" name="intent" value="status">
-                                        <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                        <input type="hidden" name="status" value="anonymized">
-                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="회원 익명화" title="회원 익명화"><?php echo sr_material_icon_html('no_accounts'); ?></button>
-                                    </form>
-                                <?php } ?>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
-                                    <input type="hidden" name="intent" value="revoke_sessions">
-                                    <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>" title="<?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger" aria-label="위험작업" title="위험작업" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($memberRiskModalId); ?>" data-overlay="#<?php echo sr_e($memberRiskModalId); ?>"><?php echo sr_material_icon_html('warning'); ?></button>
                             </div>
                         </td>
                     </tr>
@@ -634,16 +599,80 @@ foreach ($allowedStatuses as $status) {
             </tbody>
         </table>
     </div>
+    <?php foreach ($members as $member) { ?>
+        <?php
+        $memberStatus = (string) $member['status'];
+        $memberWithdrawalAssetWarning = $memberWithdrawalAssetWarnings[(int) ($member['id'] ?? 0)] ?? ['assets' => [], 'lines' => [], 'summary' => ''];
+        $memberWithdrawalAssetSummary = trim((string) ($memberWithdrawalAssetWarning['summary'] ?? ''));
+        if ($memberWithdrawalAssetSummary === '') {
+            $memberWithdrawalAssetSummary = '없음';
+        }
+        $memberWithdrawConfirmMessage = sr_admin_member_terminal_status_confirm_message('withdrawn', $memberWithdrawalAssetWarning);
+        $memberAnonymizeConfirmMessage = sr_admin_member_terminal_status_confirm_message('anonymized', $memberWithdrawalAssetWarning);
+        $memberRiskModalId = 'member-risk-modal-' . (int) ($member['id'] ?? 0);
+        ?>
+        <div id="<?php echo sr_e($memberRiskModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($memberRiskModalId); ?>-title" aria-hidden="true" inert>
+            <div class="modal-dialog">
+                <div class="modal-content ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="<?php echo sr_e($memberRiskModalId); ?>-title" class="modal-title">회원 위험 작업</h3>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($memberRiskModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="form-help">대상: <?php echo sr_e(sr_admin_member_display_name_preview($member)); ?> · 현재 상태: <?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></p>
+                        <p class="form-help">현재 조회된 보유 자산: <?php echo sr_e($memberWithdrawalAssetSummary); ?></p>
+                        <p class="form-help">탈퇴/익명화는 세션, 2차 인증, 소셜 로그인 연결과 개인정보 정리에 영향을 줍니다.</p>
+                    </div>
+                    <div class="modal-footer admin-member-risk-actions">
+                        <?php if (!in_array($memberStatus, $memberTerminalStatuses, true) && $memberStatus !== 'suspended') { ?>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다.');">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
+                                <input type="hidden" name="intent" value="status">
+                                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
+                                <input type="hidden" name="status" value="suspended">
+                                <button type="submit" class="btn btn-sm btn-ghost-warning modal-action"><?php echo sr_material_icon_html('block'); ?><span>차단</span></button>
+                            </form>
+                        <?php } ?>
+                        <?php if (!in_array($memberStatus, $memberTerminalStatuses, true)) { ?>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberWithdrawConfirmMessage)); ?>);">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
+                                <input type="hidden" name="intent" value="status">
+                                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
+                                <input type="hidden" name="status" value="withdrawn">
+                                <button type="submit" class="btn btn-sm btn-ghost-danger modal-action"><?php echo sr_material_icon_html('person_remove'); ?><span>탈퇴 처리</span></button>
+                            </form>
+                        <?php } ?>
+                        <?php if ($memberStatus !== 'anonymized') { ?>
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberAnonymizeConfirmMessage)); ?>);">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
+                                <input type="hidden" name="intent" value="status">
+                                <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
+                                <input type="hidden" name="status" value="anonymized">
+                                <button type="submit" class="btn btn-sm btn-ghost-danger modal-action"><?php echo sr_material_icon_html('no_accounts'); ?><span>익명화</span></button>
+                            </form>
+                        <?php } ?>
+                        <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form>
+                            <?php echo sr_csrf_field(); ?>
+                            <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
+                            <input type="hidden" name="intent" value="revoke_sessions">
+                            <input type="hidden" name="account_id" value="<?php echo sr_e((string) $member['id']); ?>">
+                            <button type="submit" class="btn btn-sm btn-ghost-danger modal-action"><?php echo sr_material_icon_html('delete'); ?><span><?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?></span></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
     <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></span>
         <?php if ($memberMessageWriteAvailable) { ?>
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('mail'); ?> 쪽지 발송</span>
         <?php } ?>
-        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('block'); ?> 회원 차단</span>
-        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('person_remove'); ?> 회원 탈퇴 처리</span>
-        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('no_accounts'); ?> 회원 익명화</span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('rule'); ?> <?php echo sr_e(sr_t('member::ui.member.evaluate_groups.5da8ff32')); ?></span>
-        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> <?php echo sr_e(sr_t('member::ui.text.3ceda84f')); ?></span>
+        <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('warning'); ?> 위험작업</span>
     </div>
     <?php echo sr_admin_status_description_list_html('member_status'); ?>
 </section>
