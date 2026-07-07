@@ -4,6 +4,10 @@ $pageTitle = sr_t('ui.saanraan.878daf3c');
 $selectedOptionalModuleMap = array_fill_keys($selectedOptionalModuleKeys, true);
 $selectedAutoDependencyModuleMap = array_fill_keys($selectedAutoDependencyModuleKeys ?? [], true);
 $selectedMainPageOption = $mainPageOptions[$values['main_page_path']] ?? $mainPageOptions['/'];
+$installErrorFieldMap = isset($installErrorFields) && is_array($installErrorFields) ? $installErrorFields : [];
+$installFieldErrorAttr = static function (string $fieldName) use ($installErrorFieldMap): string {
+    return !empty($installErrorFieldMap[$fieldName]) ? ' data-install-field-error="1"' : '';
+};
 $installStepLabels = [
     'environment' => '환경 확인',
     'basic' => '기본 정보',
@@ -97,7 +101,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                 <pre class="sr-install-ascii" aria-hidden="true">+------------------------------------------------------------------------------+
 |                                                                              |
 |                        *** SAANRAAN 설치 유틸리티 ***                        |
-|                           버전 1.0.0 / 터미널 모드                           |
+|                                버전 1.0.0                                    |
 |                                                                              |
 +------------------------------------------------------------------------------+</pre>
                 <p class="sr-install-kicker"><?php echo sr_e(sr_t('ui.settings.7abc12e1')); ?></p>
@@ -259,25 +263,25 @@ foreach ($optionalModules as $moduleKey => $module) {
                     <h3><?php echo sr_e(sr_t('ui.db.1ec96d5d')); ?></h3>
                     <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.db.saanraan.active.af3cd57e')); ?> <code>sr_</code><?php echo sr_e(sr_t('ui.text.66341384')); ?></p>
                     <div class="sr-install-field-grid">
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('db_host'); ?>>
                             <label for="db_host">DB 호스트 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="db_host" type="text" name="db_host" value="<?php echo sr_e($values['db_host']); ?>" autocomplete="off" required data-summary-source="db_host">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.active.d13269d0')); ?></span>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('db_name'); ?>>
                             <label for="db_name">DB 이름 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="db_name" type="text" name="db_name" value="<?php echo sr_e($values['db_name']); ?>" autocomplete="off" required data-summary-source="db_name">
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('db_user'); ?>>
                             <label for="db_user">DB 사용자 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="db_user" type="text" name="db_user" value="<?php echo sr_e($values['db_user']); ?>" autocomplete="off" required data-summary-source="db_user">
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('db_password'); ?>>
                             <label for="db_password">DB 비밀번호</label>
                             <input id="db_password" type="password" name="db_password" autocomplete="new-password">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.password.215ab9d4')); ?></span>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('db_table_prefix'); ?>>
                             <label for="db_table_prefix"><?php echo sr_e(sr_t('ui.prefix.49bc3888')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="db_table_prefix" type="text" name="db_table_prefix" value="<?php echo sr_e($values['db_table_prefix']); ?>" pattern="[a-z][a-z0-9]{0,20}_" inputmode="latin" autocapitalize="none" spellcheck="false" required data-install-table-prefix-input data-summary-source="db_table_prefix">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.sr.sr.site1.c9aaa2e0')); ?></span>
@@ -289,16 +293,16 @@ foreach ($optionalModules as $moduleKey => $module) {
                     <h3><?php echo sr_e(sr_t('ui.text.601b9971')); ?></h3>
                     <p class="sr-install-subsection-help"><?php echo sr_e(sr_t('ui.admin.settings.ca628f95')); ?></p>
                     <div class="sr-install-field-grid">
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('site_name'); ?>>
                             <label for="site_name"><?php echo sr_e(sr_t('ui.name.51f4c6af')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="site_name" type="text" name="site_name" value="<?php echo sr_e($values['site_name']); ?>" required data-summary-source="site_name">
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('base_url'); ?>>
                             <label for="base_url"><?php echo sr_e(sr_t('ui.url.3f618a18')); ?></label>
                             <input id="base_url" type="url" name="base_url" value="<?php echo sr_e($values['base_url']); ?>" placeholder="https://example.com" data-summary-source="base_url">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.canonical.og.url.https.e51da311')); ?></span>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('timezone'); ?>>
                             <label for="timezone">timezone <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <select id="timezone" name="timezone" required data-summary-source="timezone">
                                 <?php foreach ($timezoneOptions as $timezoneOption) { ?>
@@ -308,7 +312,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                                 <?php } ?>
                             </select>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('default_locale'); ?>>
                             <label for="default_locale"><?php echo sr_e(sr_t('ui.locale.c7cd39b4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <select id="default_locale" name="default_locale" required data-summary-source="default_locale">
                                 <?php foreach ($localeOptions as $localeOption) { ?>
@@ -318,7 +322,7 @@ foreach ($optionalModules as $moduleKey => $module) {
                                 <?php } ?>
                             </select>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('default_currency'); ?>>
                             <label for="default_currency">기본 통화 <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <select id="default_currency" name="default_currency" required data-summary-source="default_currency">
                                 <?php foreach (array_keys(sr_known_currency_min_units()) as $currencyCode) { ?>
@@ -378,25 +382,25 @@ foreach ($optionalModules as $moduleKey => $module) {
                             <input type="hidden" name="member_login_identifier" value="both">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.email.login.login.login.44f3662f')); ?></span>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('admin_email'); ?>>
                             <label for="admin_email"><?php echo sr_e(sr_t('ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="admin_email" type="email" name="admin_email" value="<?php echo sr_e($values['admin_email']); ?>" autocomplete="email" required data-summary-source="admin_email">
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('admin_login_id'); ?>>
                             <label for="admin_login_id"><?php echo sr_e(sr_t('ui.login.0cdb28b5')); ?></label>
                             <input id="admin_login_id" type="text" name="admin_login_id" value="<?php echo sr_e($values['admin_login_id']); ?>" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-install-key-input data-summary-source="admin_login_id">
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.select.email.login.active.admin.9a22f604')); ?></span>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('admin_password'); ?>>
                             <label for="admin_password"><?php echo sr_e(sr_t('ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="admin_password" type="password" name="admin_password" autocomplete="new-password" minlength="8" required>
                             <span class="sr-install-help"><?php echo sr_e(sr_t('ui.text.1e3d8fb2')); ?></span>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('admin_password_confirm'); ?>>
                             <label for="admin_password_confirm"><?php echo sr_e(sr_t('ui.password.61081c91')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="admin_password_confirm" type="password" name="admin_password_confirm" autocomplete="new-password" minlength="8" required>
                         </p>
-                        <p>
+                        <p<?php echo $installFieldErrorAttr('admin_display_name'); ?>>
                             <label for="admin_display_name"><?php echo sr_e(sr_t('ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
                             <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" required data-summary-source="admin_display_name">
                         </p>

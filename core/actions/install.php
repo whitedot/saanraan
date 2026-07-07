@@ -7,12 +7,21 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 $installPreviewMode = !empty($srInstallPreviewMode);
 $errors = [];
 $installErrorSteps = [];
-$addInstallError = function (string $message, string $stepKey) use (&$errors, &$installErrorSteps): void {
+$installErrorFields = [];
+$addInstallError = function (string $message, string $stepKey, array $fieldNames = []) use (&$errors, &$installErrorSteps, &$installErrorFields): void {
     $errors[] = $message;
     if (!isset($installErrorSteps[$stepKey])) {
         $installErrorSteps[$stepKey] = [];
     }
     $installErrorSteps[$stepKey][] = $message;
+
+    foreach ($fieldNames as $fieldName) {
+        $fieldName = (string) $fieldName;
+        if (preg_match('/\A[a-z][a-z0-9_]{0,80}\z/', $fieldName) !== 1) {
+            continue;
+        }
+        $installErrorFields[$fieldName] = true;
+    }
 };
 $requiredModules = [
     'member' => [
@@ -617,49 +626,55 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
     }
 
     if ($values['db_host'] === '' || $values['db_name'] === '' || $values['db_user'] === '') {
-        $addInstallError('DB 호스트, DB 이름, DB 사용자를 입력하세요.', 'basic');
+        $missingDbFields = [];
+        foreach (['db_host', 'db_name', 'db_user'] as $dbFieldName) {
+            if ($values[$dbFieldName] === '') {
+                $missingDbFields[] = $dbFieldName;
+            }
+        }
+        $addInstallError('DB 호스트, DB 이름, DB 사용자를 입력하세요.', 'basic', $missingDbFields);
     }
 
     if (!sr_is_safe_table_prefix($values['db_table_prefix'])) {
-        $addInstallError('DB 테이블 prefix는 영문 소문자로 시작하고, 영문 소문자/숫자를 사용하며, underscore로 끝나야 합니다. 예: sr_', 'basic');
+        $addInstallError('DB 테이블 prefix는 영문 소문자로 시작하고, 영문 소문자/숫자를 사용하며, underscore로 끝나야 합니다. 예: sr_', 'basic', ['db_table_prefix']);
     }
 
     if ($values['site_name'] === '') {
-        $addInstallError('사이트 이름을 입력하세요.', 'basic');
+        $addInstallError('사이트 이름을 입력하세요.', 'basic', ['site_name']);
     }
 
     if (!filter_var($values['admin_email'], FILTER_VALIDATE_EMAIL)) {
-        $addInstallError('관리자 이메일 형식이 올바르지 않습니다.', 'admin');
+        $addInstallError('관리자 이메일 형식이 올바르지 않습니다.', 'admin', ['admin_email']);
     }
 
     if ($values['admin_display_name'] === '') {
-        $addInstallError('관리자 이름을 입력하세요.', 'admin');
+        $addInstallError('관리자 이름을 입력하세요.', 'admin', ['admin_display_name']);
     }
 
     $values['member_login_identifier'] = sr_member_normalize_login_identifier_setting($values['member_login_identifier']);
     $values['admin_login_id'] = sr_member_normalize_login_id($values['admin_login_id']);
     if ($values['admin_login_id'] !== '' && !sr_member_is_valid_login_id($values['admin_login_id'])) {
-        $addInstallError('관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.', 'admin');
+        $addInstallError('관리자 아이디는 영문 소문자로 시작하고 영문 소문자, 숫자, underscore를 사용해 4~40자로 입력하세요.', 'admin', ['admin_login_id']);
     }
 
     if (!in_array($values['timezone'], timezone_identifiers_list(), true)) {
-        $addInstallError('timezone 값이 올바르지 않습니다.', 'basic');
+        $addInstallError('timezone 값이 올바르지 않습니다.', 'basic', ['timezone']);
     }
 
     if (
         preg_match('/\A[a-z]{2}(?:-[A-Z]{2})?\z/', $values['default_locale']) !== 1
         || !in_array($values['default_locale'], $localeOptions, true)
     ) {
-        $addInstallError('기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.', 'basic');
+        $addInstallError('기본 locale은 ko 또는 en-US 같은 형식으로 입력하세요.', 'basic', ['default_locale']);
     }
 
     $values['default_currency'] = sr_normalize_currency_code($values['default_currency']);
     if (!sr_currency_is_known($values['default_currency'])) {
-        $addInstallError('기본 통화 값이 올바르지 않습니다.', 'basic');
+        $addInstallError('기본 통화 값이 올바르지 않습니다.', 'basic', ['default_currency']);
     }
 
     if ($values['base_url'] !== '' && !sr_is_site_base_url($values['base_url'])) {
-        $addInstallError('공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.', 'basic');
+        $addInstallError('공개 기준 URL은 query, fragment, 사용자 정보를 제외한 http 또는 https URL이어야 합니다.', 'basic', ['base_url']);
     }
 
     if (!isset($mainPageOptions[$values['main_page_path']])) {
@@ -676,17 +691,17 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
     }
 
     if ($adminPassword === null || $adminPasswordConfirm === null) {
-        $addInstallError('관리자 비밀번호는 255자 이하로 입력하세요.', 'admin');
+        $addInstallError('관리자 비밀번호는 255자 이하로 입력하세요.', 'admin', ['admin_password', 'admin_password_confirm']);
         $adminPassword = '';
         $adminPasswordConfirm = '';
     }
 
     if (strlen($adminPassword) < 8) {
-        $addInstallError('관리자 비밀번호는 8자 이상이어야 합니다.', 'admin');
+        $addInstallError('관리자 비밀번호는 8자 이상이어야 합니다.', 'admin', ['admin_password']);
     }
 
     if ($adminPassword !== $adminPasswordConfirm) {
-        $addInstallError('관리자 비밀번호 확인이 일치하지 않습니다.', 'admin');
+        $addInstallError('관리자 비밀번호 확인이 일치하지 않습니다.', 'admin', ['admin_password_confirm']);
     }
 
     if ($errors === []) {
@@ -954,7 +969,11 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
                 'config_written' => is_file(SR_ROOT . '/config/config.php'),
                 'installed_lock_written' => is_file(SR_ROOT . '/storage/installed.lock'),
             ]);
-            $addInstallError('설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.', 'confirm');
+            if ($installStage === 'connect_database') {
+                $addInstallError('DB에 연결할 수 없습니다. DB 호스트, 이름, 사용자, 비밀번호를 확인하세요.', 'basic', ['db_host', 'db_name', 'db_user', 'db_password']);
+            } else {
+                $addInstallError('설치 중 오류가 발생했습니다. DB 정보와 권한을 확인하세요.', 'confirm');
+            }
             if ($installStage === 'check_existing_owner') {
                 $addInstallError('기존 소유자 계정이 있거나 설치 상태를 확인할 수 없는 DB에는 공개 설치 화면에서 다시 설치할 수 없습니다. 기존 설치 파일 상태를 수동 복구하세요.', 'confirm');
             }

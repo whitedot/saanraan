@@ -697,6 +697,12 @@ code {
     font-weight: var(--font-weight-bold);
 }
 
+.sr-install-field-grid p[data-install-field-error="1"] label,
+.sr-install-field-grid p[data-install-field-error="1"] .sr-install-field-label,
+.sr-install-field-grid p[data-install-field-error="1"] .sr-required-label {
+    color: var(--sr-danger-text);
+}
+
 .sr-install-field-grid input,
 .sr-install-field-grid select {
     border: 1px solid var(--sr-control-border);
@@ -729,6 +735,12 @@ code {
 .sr-install-field-grid input:invalid:focus-visible,
 .sr-install-field-grid select:invalid:focus-visible {
     border-color: var(--sr-danger-border);
+}
+
+.sr-install-field-grid p[data-install-field-error="1"] input,
+.sr-install-field-grid p[data-install-field-error="1"] select {
+    border-color: var(--sr-danger-border);
+    box-shadow: 0 0 0 1px var(--sr-danger-border);
 }
 
 .sr-install-page .form-checkbox {
@@ -1064,7 +1076,7 @@ code {
 }
 
 /*
- * Terminal mode visual skin.
+ * Install visual skin.
  */
 
 :root,
@@ -1366,6 +1378,12 @@ code {
     color: var(--sr-primary);
 }
 
+.sr-install-field-grid p[data-install-field-error="1"] label,
+.sr-install-field-grid p[data-install-field-error="1"] .sr-install-field-label,
+.sr-install-field-grid p[data-install-field-error="1"] .sr-required-label {
+    color: var(--sr-danger-text);
+}
+
 .sr-install-field-grid p {
     position: relative;
     display: grid;
@@ -1427,6 +1445,16 @@ code {
 
 .sr-install-field-grid p:has(select)::after {
     content: "▼]";
+}
+
+.sr-install-field-grid p[data-install-field-error="1"] input,
+.sr-install-field-grid p[data-install-field-error="1"] select {
+    box-shadow: inset 0 0 0 1px var(--sr-danger-border);
+}
+
+.sr-install-field-grid p[data-install-field-error="1"]::before,
+.sr-install-field-grid p[data-install-field-error="1"]::after {
+    color: var(--sr-danger-text);
 }
 
 .sr-install-field-grid input:focus-visible,
