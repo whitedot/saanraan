@@ -47,7 +47,7 @@ function sr_retention_check_contract_fixture_pdo(bool $withTables): PDO
     $pdo = new PDO('sqlite::memory:');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
-    foreach (['member', 'content', 'community', 'banner', 'notification'] as $moduleKey) {
+    foreach (['member', 'content', 'community', 'banner', 'notification', 'identity_verification'] as $moduleKey) {
         $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, status) VALUES (:module_key, :status)');
         $stmt->execute(['module_key' => $moduleKey, 'status' => 'enabled']);
     }
@@ -64,6 +64,9 @@ function sr_retention_check_contract_fixture_pdo(bool $withTables): PDO
             'sr_notification_reads',
             'sr_admin_notifications',
             'sr_admin_notification_reads',
+            'sr_identity_verification_attempts',
+            'sr_identity_verification_results',
+            'sr_identity_verification_links',
         ] as $tableName) {
             $pdo->exec('CREATE TABLE ' . $tableName . ' (id INTEGER PRIMARY KEY AUTOINCREMENT)');
         }
@@ -94,6 +97,8 @@ $expectedKeys = [
     'admin_notification_reads',
     'admin_notifications',
     'module_backups',
+    'identity_verification_closed_attempts',
+    'identity_verification_expired_results',
 ];
 
 $retentionPdo = sr_retention_check_contract_fixture_pdo(true);
@@ -150,13 +155,13 @@ foreach ($targets as $key => $target) {
 
 $disabledPdo = sr_retention_check_contract_fixture_pdo(false);
 $disabledTargets = sr_admin_retention_target_definitions(false, false, false, false, false, false, false, false, $disabledPdo);
-foreach (['auth_logs', 'password_resets', 'email_verifications', 'sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'banner_clicks', 'notifications', 'notification_deliveries', 'notification_reads', 'admin_notification_reads', 'admin_notifications'] as $key) {
+foreach (['auth_logs', 'password_resets', 'email_verifications', 'sessions', 'runtime_sessions', 'rate_limits', 'content_asset_access_pending_logs', 'content_asset_action_pending_logs', 'community_asset_pending_logs', 'banner_clicks', 'notifications', 'notification_deliveries', 'notification_reads', 'admin_notification_reads', 'admin_notifications', 'identity_verification_closed_attempts', 'identity_verification_expired_results'] as $key) {
     if ($disabledTargets[$key]['enabled'] !== false) {
         sr_retention_check_error($errors, 'Retention optional target should be disabled: ' . $key);
     }
 }
 
-$cleanupKeys = sr_admin_retention_cleanup_target_keys();
+$cleanupKeys = sr_admin_retention_cleanup_target_keys(null, $retentionPdo);
 sort($cleanupKeys);
 $sortedExpectedKeys = $expectedKeys;
 sort($sortedExpectedKeys);
@@ -222,7 +227,7 @@ if (!is_string($bannerAdminView)) {
     sr_retention_check_error($errors, 'Banner copy UI must only offer aggregate click count copy.');
 }
 
-$cleanupOrder = sr_admin_retention_cleanup_target_keys();
+$cleanupOrder = sr_admin_retention_cleanup_target_keys(null, $retentionPdo);
 $notificationsPosition = array_search('notifications', $cleanupOrder, true);
 foreach (['notification_deliveries', 'notification_reads'] as $key) {
     $position = array_search($key, $cleanupOrder, true);

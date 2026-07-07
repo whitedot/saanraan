@@ -346,12 +346,22 @@ function sr_admin_retention_cleanup_target_keys(?string $autoScope = null, ?PDO 
         'module_backups',
     ];
 
+    $targets = null;
+    if ($pdo !== null) {
+        $targets = sr_admin_retention_available_target_definitions($pdo);
+        foreach (array_keys($targets) as $targetKey) {
+            if (!in_array($targetKey, $targetKeys, true)) {
+                $targetKeys[] = $targetKey;
+            }
+        }
+    }
+
     if ($autoScope === null) {
         return $targetKeys;
     }
 
     $scopedKeys = [];
-    $targets = $pdo !== null ? sr_admin_retention_available_target_definitions($pdo) : sr_admin_retention_target_definitions(true, true, true, true);
+    $targets = $targets ?? sr_admin_retention_target_definitions(true, true, true, true);
     foreach ($targetKeys as $targetKey) {
         if (isset($targets[$targetKey]) && (string) ($targets[$targetKey]['auto_scope'] ?? '') === $autoScope) {
             $scopedKeys[] = $targetKey;

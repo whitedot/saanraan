@@ -106,6 +106,28 @@ $retentionHelp = [
         ]),
     ],
 ];
+$retentionTargetLabels = [
+    'auth_logs' => sr_t('admin::ui.text.428871d5'),
+    'audit_logs' => sr_t('admin::ui.admin.d0bd9568'),
+    'password_resets' => sr_t('admin::ui.password.settings.86a49355'),
+    'email_verifications' => sr_t('admin::ui.email.e74975e8'),
+    'sessions' => sr_t('admin::ui.text.7c27e716'),
+    'runtime_sessions' => sr_t('admin::ui.php.19df2136'),
+    'rate_limits' => sr_t('admin::ui.text.b3b88e44'),
+    'content_asset_access_pending_logs' => sr_t('admin::retention.pending.content_access'),
+    'content_asset_action_pending_logs' => sr_t('admin::retention.pending.content_action'),
+    'community_asset_pending_logs' => sr_t('admin::retention.pending.community_asset'),
+    'module_upload_work_dirs' => sr_t('admin::retention.module_upload_work_dirs'),
+    'banner_clicks' => sr_t('admin::ui.banner_clicks.retention_target'),
+    'notification_deliveries' => sr_t('admin::ui.notification.56c30db0'),
+    'notification_reads' => sr_t('admin::ui.notification.82294dd1'),
+    'notifications' => sr_t('admin::ui.notification.12ddd6ca'),
+    'admin_notification_reads' => sr_t('admin::retention.admin_notification_reads'),
+    'admin_notifications' => sr_t('admin::retention.admin_notifications'),
+    'module_backups' => sr_t('admin::ui.text.b7aa8533'),
+    'identity_verification_closed_attempts' => sr_t('admin::retention.identity_verification_closed_attempts'),
+    'identity_verification_expired_results' => sr_t('admin::retention.identity_verification_expired_results'),
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -263,102 +285,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.text.428871d5')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['auth_logs']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['auth_logs']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.admin.d0bd9568')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['audit_logs']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['audit_logs']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.password.settings.86a49355')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['used_tokens']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['password_resets']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.email.e74975e8')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['used_tokens']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['email_verifications']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.text.7c27e716')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['sessions']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.php.19df2136')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['runtime_sessions']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.text.b3b88e44')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['rate_limits']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::retention.pending.content_access')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['content_asset_access_pending_logs']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::retention.pending.content_action')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['content_asset_action_pending_logs']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::retention.pending.community_asset')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['community_asset_pending_logs']); ?></td>
-                            </tr>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::retention.module_upload_work_dirs')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['sessions']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['module_upload_work_dirs']); ?></td>
-                            </tr>
-                            <?php if (array_key_exists('banner_clicks', $previewCounts)) { ?>
+                            <?php foreach ($cleanupTargetKeys as $retentionTargetKey) { ?>
+                                <?php
+                                if (!array_key_exists($retentionTargetKey, $previewCounts)) {
+                                    continue;
+                                }
+                                $retentionTarget = is_array($previewTargets[$retentionTargetKey] ?? null) ? $previewTargets[$retentionTargetKey] : [];
+                                $retentionCutoffKey = (string) ($retentionTarget['cutoff_key'] ?? '');
+                                if ($retentionCutoffKey === '' || !array_key_exists($retentionCutoffKey, $previewCutoffs)) {
+                                    continue;
+                                }
+                                $retentionTargetLabel = (string) ($retentionTargetLabels[$retentionTargetKey] ?? str_replace('_', ' ', $retentionTargetKey));
+                                ?>
                                 <tr>
-                                    <td><?php echo sr_e(sr_t('admin::ui.banner_clicks.retention_target')); ?></td>
-                                    <td><?php echo sr_e($previewCutoffs['banner_clicks']); ?></td>
-                                    <td><?php echo sr_e((string) $previewCounts['banner_clicks']); ?></td>
+                                    <td><?php echo sr_e($retentionTargetLabel); ?></td>
+                                    <td><?php echo sr_e((string) $previewCutoffs[$retentionCutoffKey]); ?></td>
+                                    <td><?php echo sr_e((string) $previewCounts[$retentionTargetKey]); ?></td>
                                 </tr>
                             <?php } ?>
-                            <?php if ($hasNotificationTables) { ?>
-                                <tr>
-                                    <td><?php echo sr_e(sr_t('admin::ui.notification.12ddd6ca')); ?></td>
-                                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                                    <td><?php echo sr_e((string) $previewCounts['notifications']); ?></td>
-                                </tr>
-                                <tr>
-                                    <td><?php echo sr_e(sr_t('admin::ui.notification.56c30db0')); ?></td>
-                                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                                    <td><?php echo sr_e((string) $previewCounts['notification_deliveries']); ?></td>
-                                </tr>
-                                <tr>
-                                    <td><?php echo sr_e(sr_t('admin::ui.notification.82294dd1')); ?></td>
-                                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                                    <td><?php echo sr_e((string) $previewCounts['notification_reads']); ?></td>
-                                </tr>
-                            <?php } ?>
-                            <?php if (!empty($hasAdminNotificationTables)) { ?>
-                                <tr>
-                                    <td>관리자 운영 알림</td>
-                                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                                    <td><?php echo sr_e((string) $previewCounts['admin_notifications']); ?></td>
-                                </tr>
-                                <tr>
-                                    <td>관리자 운영 알림 확인 기록</td>
-                                    <td><?php echo sr_e($previewCutoffs['notifications']); ?></td>
-                                    <td><?php echo sr_e((string) $previewCounts['admin_notification_reads']); ?></td>
-                                </tr>
-                            <?php } ?>
-                            <tr>
-                                <td><?php echo sr_e(sr_t('admin::ui.text.b7aa8533')); ?></td>
-                                <td><?php echo sr_e($previewCutoffs['module_backups']); ?></td>
-                                <td><?php echo sr_e((string) $previewCounts['module_backups']); ?></td>
-                            </tr>
                         </tbody>
                     </table>
                     </div>

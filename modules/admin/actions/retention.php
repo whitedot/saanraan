@@ -26,8 +26,9 @@ $notice = (string) $flashResult['notice'];
 $values = sr_admin_retention_values($pdo);
 $previewCutoffs = sr_admin_retention_preview_cutoffs($values);
 $previewCounts = sr_admin_retention_preview_counts($pdo, $previewCutoffs);
+$previewTargets = sr_admin_retention_available_target_definitions($pdo);
+$cleanupTargetKeys = sr_admin_retention_cleanup_target_keys(null, $pdo);
 $hasNotificationTables = array_key_exists('notifications', $previewCounts);
-$hasAdminNotificationTables = array_key_exists('admin_notifications', $previewCounts);
 $autoCleanupRuntimeStatus = sr_admin_retention_auto_cleanup_runtime_status($pdo);
 
 include SR_ROOT . '/modules/admin/views/retention.php';
