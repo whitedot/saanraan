@@ -449,7 +449,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .form-row>.form-field>.admin-form-static:only-child,
 .admin-form .form-row>.form-field>p:not(.form-help):only-child{margin:0;min-width:0}
 .admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--text-muted);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
-.admin-form .form-field .form-help.form-help-warning{color:var(--color-warning)}
+.admin-form .form-field .form-help.form-help-warning{color:var(--color-warning)!important}
 .admin-form .form-field>.form-help:first-child{margin-top:0}
 .admin-form .form-input{width:fit-content;max-width:100%}
 .admin-form .form-input.form-control-full{width:100%}
