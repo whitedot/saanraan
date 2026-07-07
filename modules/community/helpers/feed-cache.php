@@ -510,10 +510,11 @@ function sr_community_feed_cache_post_feed_query(PDO $pdo, array $boardIds, int 
         : 'p0.id DESC';
     $params['limit_value'] = $limit;
     $summaryFeedCandidateSql = sr_community_summary_post_candidate_sql_condition($pdo, 'p0', 'p0.board_id');
+    $noticeSelectSql = sr_community_post_notice_supported($pdo) ? 'p.is_notice' : '0 AS is_notice';
 
     return [
         'SELECT p.id, p.board_id, NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status,
-                p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+                p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, ' . $noticeSelectSql . ', p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
                 list_image.id AS list_image_attachment_id,
@@ -587,6 +588,7 @@ function sr_community_feed_cache_card_snapshot(array $post): array
         'comment_count' => max(0, (int) ($post['published_comment_count'] ?? $post['comment_count'] ?? 0)),
         'thumbnail_source' => sr_community_feed_cache_thumbnail_source_marker($post),
         'is_secret' => !empty($post['is_secret']) ? 1 : 0,
+        'is_notice' => !empty($post['is_notice']) ? 1 : 0,
         'excerpt' => !empty($post['is_secret']) ? '' : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), $bodyFormat, 160),
         'body_profile_hash' => $bodyProfileHash,
         'created_at' => sr_clean_single_line((string) ($post['created_at'] ?? ''), 40),

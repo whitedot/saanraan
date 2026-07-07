@@ -51,7 +51,8 @@ if ($mode === 'edit') {
     if (!is_array($board) || (string) ($board['status'] ?? '') !== 'enabled') {
         sr_json_response(['ok' => false, 'message' => 'board_not_found'], 404, ['Cache-Control: no-store']);
     }
-    if (!sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)) {
+    if (!sr_community_account_can_write_board($pdo, $board, $account, $isAdminWriter)
+        && !sr_community_account_can_write_notice($pdo, $board, $account, $isAdminWriter)) {
         sr_json_response(['ok' => false, 'message' => 'write_forbidden'], 403, ['Cache-Control: no-store']);
     }
 }
@@ -89,6 +90,7 @@ if ($draftAction === 'delete') {
 $formStateJson = sr_community_draft_form_state_json([
     'category_id' => (int) ($values['category_id'] ?? 0),
     'is_secret' => (int) ($values['is_secret'] ?? 0),
+    'is_notice' => (int) ($values['is_notice'] ?? 0),
     'extra_field_values' => $extraFieldValues,
     'series_values' => $seriesValues,
 ]);

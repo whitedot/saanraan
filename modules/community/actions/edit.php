@@ -39,12 +39,15 @@ if (!is_array($board)) {
         'board_group_id' => (int) ($post['board_group_id'] ?? 0),
         'board_key' => (string) $post['board_key'],
         'title' => (string) $post['board_title'],
+        'status' => (string) ($post['board_status'] ?? 'enabled'),
     ];
 }
 if (sr_community_post_locked_by_comments($pdo, $board, $postId, 'edit')) {
     sr_render_error(409, '댓글 수 기준에 따라 이 게시글은 더 이상 수정할 수 없습니다.');
 }
 $settings = sr_community_settings($pdo);
+$isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
+$canWriteNotice = sr_community_account_can_write_notice($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
 $board['image_uploads_enabled'] = 0;
 $board['file_uploads_enabled'] = 0;
 $secretPostsEnabled = sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings);
@@ -103,6 +106,7 @@ $values = [
     'og_title' => (string) ($post['og_title'] ?? ''),
     'og_description' => (string) ($post['og_description'] ?? ''),
     'is_secret' => (int) ($post['is_secret'] ?? 0),
+    'is_notice' => (int) ($post['is_notice'] ?? 0),
 ];
 
 $postFormFlash = isset($_SESSION['sr_community_post_form_flash']) && is_array($_SESSION['sr_community_post_form_flash'])
@@ -142,6 +146,14 @@ if ($isPostRequest) {
     if (!$categoryEnabled) {
         $values['category_id'] = 0;
     }
+    $requestedIsNotice = (int) ($values['is_notice'] ?? 0) === 1;
+    $storedIsNotice = (int) ($post['is_notice'] ?? 0) === 1;
+    $noticeFieldSubmitted = array_key_exists('is_notice', $_POST);
+    if ($canWriteNotice) {
+        $values['is_notice'] = $requestedIsNotice ? 1 : 0;
+    } else {
+        $values['is_notice'] = $storedIsNotice ? 1 : 0;
+    }
     $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
     $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
     $values['extra_field_definitions'] = $extraFieldDefinitions;
@@ -168,6 +180,9 @@ if ($isPostRequest) {
     $errors = array_merge($errors, sr_community_validate_post_body_length($pdo, $board, $values, $settings));
     $errors = array_merge($errors, sr_community_validate_extra_field_values($extraFieldDefinitions, $extraFieldValues));
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values, $post));
+    if (!$canWriteNotice && $noticeFieldSubmitted && $requestedIsNotice !== $storedIsNotice) {
+        $errors[] = '공지사항으로 지정할 권한이 없습니다.';
+    }
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
     if ($seriesEnabled) {

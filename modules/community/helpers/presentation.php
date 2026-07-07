@@ -103,34 +103,6 @@ function sr_community_post_reaction_count_map(PDO $pdo, array $postIds): array
         return [];
     }
 
-    $disabledIds = [];
-    if (function_exists('sr_reaction_disabled_preset_key')) {
-        $disabledPlaceholders = [];
-        $disabledParams = ['disabled_key' => sr_reaction_disabled_preset_key()];
-        foreach (array_values($ids) as $index => $id) {
-            $paramKey = 'disabled_post_id_' . (string) $index;
-            $disabledPlaceholders[] = ':' . $paramKey;
-            $disabledParams[$paramKey] = $id;
-        }
-        $stmt = $pdo->prepare(
-            'SELECT id
-             FROM sr_community_posts
-             WHERE id IN (' . implode(', ', $disabledPlaceholders) . ')
-               AND reaction_preset_key = :disabled_key'
-        );
-        $stmt->execute($disabledParams);
-        foreach ($stmt->fetchAll() as $row) {
-            $disabledId = (int) ($row['id'] ?? 0);
-            if ($disabledId > 0) {
-                $disabledIds[$disabledId] = true;
-                unset($ids[(string) $disabledId]);
-            }
-        }
-        if ($ids === []) {
-            return [];
-        }
-    }
-
     $placeholders = [];
     $params = [
         'target_module' => 'community',
@@ -155,7 +127,7 @@ function sr_community_post_reaction_count_map(PDO $pdo, array $postIds): array
     $counts = [];
     foreach ($stmt->fetchAll() as $row) {
         $id = (int) ($row['target_id'] ?? 0);
-        if ($id > 0 && empty($disabledIds[$id])) {
+        if ($id > 0) {
             $counts[$id] = (int) ($row['count_value'] ?? 0);
         }
     }
@@ -399,6 +371,7 @@ function sr_community_home_post_feed_rows_by_snapshots(PDO $pdo, array $snapshot
             'title' => (string) ($snapshot['title'] ?? ''),
             'body_text' => '',
             'is_secret' => !empty($snapshot['is_secret']) ? 1 : 0,
+            'is_notice' => !empty($snapshot['is_notice']) ? 1 : 0,
             'status' => 'published',
             'view_count' => max(0, (int) ($snapshot['view_count'] ?? 0)),
             'last_commented_at' => null,

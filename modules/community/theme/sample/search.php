@@ -48,6 +48,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         <a href="<?php echo sr_e(sr_url($boardUrl)); ?>"><?php echo sr_e((string) ($post['board_title'] ?? '게시판')); ?></a>
                     </p>
                     <h2>
+                        <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
+                            <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
+                        <?php } ?>
                         <a href="<?php echo sr_e(sr_url($postUrl)); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
                     </h2>
                     <?php if ($postExcerpt !== '') { ?>

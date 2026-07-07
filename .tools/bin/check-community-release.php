@@ -400,9 +400,11 @@ $requiredRoutes = [
     'POST /community/write',
     'GET /community/edit',
     'POST /community/edit',
+    'POST /community/hide',
     'POST /community/delete',
     'POST /community/comment',
     'POST /community/comment/edit',
+    'POST /community/comment/hide',
     'POST /community/comment/delete',
     'POST /community/report',
     'GET /community/scraps',
@@ -647,7 +649,9 @@ $requiredInstallFragments = [
     'sr_community_posts' => [
         'author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT \'\'',
         'extra_values_json TEXT NULL',
+        'is_notice TINYINT(1) NOT NULL DEFAULT 0',
         'KEY idx_sr_community_posts_board_status_id (board_id, status, id)',
+        'KEY idx_sr_community_posts_board_notice_status_id (board_id, is_notice, status, id)',
         'KEY idx_sr_community_posts_status_view_id (status, view_count, id)',
         'KEY idx_sr_community_posts_author_id (author_account_id, id)',
     ],
@@ -655,6 +659,12 @@ $requiredInstallFragments = [
         'author_public_name_snapshot VARCHAR(120) NOT NULL DEFAULT \'\'',
         'KEY idx_sr_community_comments_post_status_id (post_id, status, id)',
         'KEY idx_sr_community_comments_author_id (author_account_id, id)',
+    ],
+    'sr_community_hidden_targets' => [
+        'target_type VARCHAR(20) NOT NULL',
+        'hidden_reason VARCHAR(40) NOT NULL DEFAULT \'\'',
+        'UNIQUE KEY uq_sr_community_hidden_targets_target (target_type, target_id)',
+        'KEY idx_sr_community_hidden_targets_actor (hidden_by_account_id, id)',
     ],
     'sr_community_attachments' => [
         'storage_driver VARCHAR(20) NOT NULL DEFAULT \'local\'',
@@ -754,6 +764,21 @@ sr_community_release_file_contains('modules/community/actions/delete.php', [
     "'community.post.deleted_by_admin'",
     "'community.post.deleted_by_board_manager'",
 ], 'Community delete action policy');
+sr_community_release_file_contains('modules/community/actions/post-hide.php', [
+    'sr_community_account_can_hide_post($pdo, $post, $account)',
+    "sr_community_update_post_status(\$pdo, \$postId, 'hidden'",
+    "sr_community_update_post_attachments_status(\$pdo, \$postId, 'hidden')",
+    "'community.post.hidden_by_board_manager'",
+], 'Community board staff post hide policy');
+sr_community_release_file_contains('modules/community/paths.php', [
+    "'POST /community/notice' => 'actions/post-notice.php'",
+], 'Community post notice route');
+sr_community_release_file_contains('modules/community/actions/post-notice.php', [
+    'sr_community_account_can_write_notice($pdo, $board, $account, $isAdminWriter)',
+    "sr_community_update_post_notice(\$pdo, \$postId, \$isNotice)",
+    "'community.post.notice_set'",
+    "'community.post.notice_removed'",
+], 'Community post notice action');
 sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
     'sr_community_can_delete_board($pdo, $boardId)',
     'delete_confirm_text',
@@ -767,8 +792,12 @@ sr_community_release_file_contains('modules/community/actions/view.php', [
     "'permission_source' => \$isAdminOgRemove ? 'admin' : 'board_manager'",
 ], 'Community delegated OG removal audit policy');
 sr_community_release_file_contains('modules/community/helpers/posts-writing.php', [
+    "function sr_community_account_can_write_notice",
+    "sr_community_account_has_board_management_permission(\$pdo, (int) (\$board['id'] ?? 0), \$accountId, 'write_notice')",
     "sr_admin_has_permission(\$pdo, \$accountId, '/admin/community/posts', 'delete')",
     "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'delete_post')",
+    "function sr_community_account_can_hide_post",
+    "sr_community_account_has_board_management_permission(\$pdo, (int) (\$post['board_id'] ?? 0), \$accountId, 'hide_post')",
     "sr_url_embed_sync_body_url_cache(\$pdo, 'community', 'post', \$postId, 'body', '', null)",
 ], 'Community delegated post delete policy');
 sr_community_release_file_contains('modules/community/actions/comment.php', [
@@ -793,7 +822,13 @@ sr_community_release_file_contains('modules/community/actions/comment-delete.php
     'sr_community_guest_can_delete_comment($comment, sr_post_string_without_truncation(\'guest_password\', 255) ?? \'\')',
     'sr_community_update_comment_status($pdo, $commentId, \'deleted\')',
     "'event_type' => 'community.comment.deleted_by_author'",
+    "'community.comment.deleted_by_board_manager'",
 ], 'Community comment delete action policy');
+sr_community_release_file_contains('modules/community/actions/comment-hide.php', [
+    'sr_community_account_can_hide_comment($pdo, $comment, $post, $account)',
+    "sr_community_update_comment_status(\$pdo, \$commentId, 'hidden'",
+    "'community.comment.hidden_by_board_manager'",
+], 'Community board staff comment hide policy');
 sr_community_release_file_contains('modules/community/actions/report.php', [
     'sr_community_report_target($pdo, $targetType, $targetId, (int) $account[\'id\'])',
     'sr_community_report_rate_limited($pdo, (int) $account[\'id\'], $settings)',

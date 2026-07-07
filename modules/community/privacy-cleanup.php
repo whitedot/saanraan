@@ -78,6 +78,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $attachmentDownloadLogAnonymizedCount = 0;
     $postReadPaymentLogAnonymizedCount = 0;
     $reportAutoActionActorLinksCleared = 0;
+    $hiddenTargetActorLinksCleared = 0;
     $accountGuardEventAnonymizedCount = 0;
     $accountGuardAnonymizedCount = 0;
     $assetRecoveryFailureAnonymizedCount = 0;
@@ -250,6 +251,16 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         $reportAutoActionActorLinksCleared = $stmt->rowCount();
     }
 
+    if ($columnExists($pdo, 'sr_community_hidden_targets', 'hidden_by_account_id')) {
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_hidden_targets
+             SET hidden_by_account_id = NULL
+             WHERE hidden_by_account_id = :hidden_by_account_id'
+        );
+        $stmt->execute(['hidden_by_account_id' => $accountId]);
+        $hiddenTargetActorLinksCleared = $stmt->rowCount();
+    }
+
     if (
         $columnExists($pdo, 'sr_community_account_guard_events', 'account_id')
         && $columnExists($pdo, 'sr_community_account_guard_events', 'reviewer_account_id')
@@ -345,6 +356,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_attachment_download_log_anonymized_count' => $attachmentDownloadLogAnonymizedCount,
         'community_post_read_payment_log_anonymized_count' => $postReadPaymentLogAnonymizedCount,
         'community_report_auto_action_actor_links_cleared' => $reportAutoActionActorLinksCleared,
+        'community_hidden_target_actor_links_cleared' => $hiddenTargetActorLinksCleared,
         'community_account_guard_event_anonymized_count' => $accountGuardEventAnonymizedCount,
         'community_account_guard_anonymized_count' => $accountGuardAnonymizedCount,
         'community_asset_recovery_failure_anonymized_count' => $assetRecoveryFailureAnonymizedCount,

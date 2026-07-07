@@ -162,8 +162,6 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
             extra_values_json TEXT NOT NULL DEFAULT "[]",
             title TEXT NOT NULL,
             body_text TEXT NOT NULL,
-            reaction_preset_key TEXT NOT NULL DEFAULT "",
-            reaction_comment_preset_key TEXT NOT NULL DEFAULT "",
             seo_title TEXT NOT NULL DEFAULT "",
             seo_description TEXT NOT NULL DEFAULT "",
             og_title TEXT NOT NULL DEFAULT "",
@@ -171,12 +169,6 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
             og_image_attachment_id INTEGER NULL,
             is_secret INTEGER NOT NULL DEFAULT 0,
             status TEXT NOT NULL DEFAULT "published",
-            hidden_at TEXT NULL,
-            hidden_until TEXT NULL,
-            hidden_reason TEXT NOT NULL DEFAULT "",
-            hidden_note TEXT NULL,
-            hidden_by_account_id INTEGER NULL,
-            hidden_before_status TEXT NOT NULL DEFAULT "",
             summary_feed_candidate INTEGER NOT NULL DEFAULT 1,
             view_count INTEGER NOT NULL DEFAULT 0,
             last_commented_at TEXT NULL,
@@ -200,7 +192,16 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
             body_text TEXT NOT NULL,
             is_secret INTEGER NOT NULL DEFAULT 0,
             status TEXT NOT NULL DEFAULT "published",
-            hidden_at TEXT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_hidden_targets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            target_type TEXT NOT NULL,
+            target_id INTEGER NOT NULL,
+            hidden_at TEXT NOT NULL,
             hidden_until TEXT NULL,
             hidden_reason TEXT NOT NULL DEFAULT "",
             hidden_note TEXT NULL,

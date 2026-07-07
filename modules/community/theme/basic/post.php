@@ -68,7 +68,12 @@ unset($_SESSION['sr_member_follow_feedback']);
 
         <article class="community-post-view">
             <header class="community-post-view-header">
-            <h1 class="community-post-title community-post-view-title"><?php echo sr_e($pageTitle); ?></h1>
+            <h1 class="community-post-title community-post-view-title">
+                <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
+                    <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
+                <?php } ?>
+                <?php echo sr_e($pageTitle); ?>
+            </h1>
             <div class="community-post-view-meta">
                 <?php if ((int) ($post['is_secret'] ?? 0) === 1) { ?>
                     <?php echo sr_e('비밀글'); ?>
@@ -100,6 +105,27 @@ unset($_SESSION['sr_member_follow_feedback']);
             <?php if (is_array($account)) { ?>
                 <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
                     <a class="btn btn-ghost-default" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></a>
+                <?php } ?>
+                <?php
+                $communityCanWriteNotice = sr_community_account_can_write_notice($pdo, [
+                    'id' => (int) ($post['board_id'] ?? 0),
+                    'status' => (string) ($post['board_status'] ?? 'enabled'),
+                ], $account, sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit'));
+                ?>
+                <?php if ($communityCanWriteNotice) { ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/community/notice')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                        <input type="hidden" name="intent" value="<?php echo (int) ($post['is_notice'] ?? 0) === 1 ? 'remove' : 'set'; ?>">
+                        <button type="submit" class="btn btn-ghost-default"><?php echo sr_e((int) ($post['is_notice'] ?? 0) === 1 ? '공지 해제' : '공지 지정'); ?></button>
+                    </form>
+                <?php } ?>
+                <?php if (sr_community_account_can_hide_post($pdo, $post, $account)) { ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/community/hide')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                        <button type="submit" class="btn btn-ghost-warning"><?php echo sr_e('숨김'); ?></button>
+                    </form>
                 <?php } ?>
                 <?php if (sr_community_account_can_delete_post($post, $account)) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
@@ -418,7 +444,8 @@ unset($_SESSION['sr_member_follow_feedback']);
                             <?php
                             $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
-                            $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account);
+                            $communityCommentCanHide = is_array($account) && sr_community_account_can_hide_comment($pdo, $comment, $post, $account);
+                            $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post);
                             $communityCommentIsGuestAuthor = (int) ($comment['author_account_id'] ?? 0) < 1 && (string) ($comment['guest_password_hash'] ?? '') !== '';
                             $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
@@ -464,7 +491,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                             <div class="community-comment-actions">
                                 <button type="button" class="btn btn-ghost-default" data-community-copy-url="<?php echo sr_e($communityCommentUrl); ?>" data-community-copy-default-label="<?php echo sr_e('URL 복사'); ?>" data-community-copy-success-label="<?php echo sr_e('복사됨'); ?>" data-community-copy-error-label="<?php echo sr_e('복사 실패'); ?>"><?php echo sr_e('URL 복사'); ?></button>
                                 <?php if (is_array($account) || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
-                                    <?php if ($communityCommentCanEdit || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
+                                    <?php if ($communityCommentCanEdit || $communityCommentCanHide || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
                                         <?php if ($communityCommentCanReply) { ?>
                                             <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">답글</button>
                                             <div id="<?php echo sr_e($communityCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
@@ -555,6 +582,13 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                     </form>
                                                 </div>
                                             </div>
+                                        <?php } ?>
+                                        <?php if ($communityCommentCanHide) { ?>
+                                            <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
+                                                <?php echo sr_csrf_field(); ?>
+                                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                <button type="submit" class="btn btn-ghost-warning"><?php echo sr_e('숨김'); ?></button>
+                                            </form>
                                         <?php } ?>
                                         <?php if ($communityCommentCanDelete) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">

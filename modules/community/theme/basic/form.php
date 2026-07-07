@@ -13,6 +13,7 @@ $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $isGuestAuthorForm = isset($isGuestAuthor) && !empty($isGuestAuthor);
 $showGuestAuthorFields = $isGuestAuthorForm && !isset($postIdField);
+$canWriteNotice = !empty($canWriteNotice);
 if ($isGuestAuthorForm) {
     $fileUploadEnabled = false;
     $imageUploadEnabled = false;
@@ -168,6 +169,12 @@ $communityFrameModifier = 'form';
                 <label class="community-post-secret-toggle">
                     <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($values['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
                     <span><?php echo sr_e('비밀글'); ?></span>
+                </label>
+            <?php } ?>
+            <?php if ($canWriteNotice) { ?>
+                <label class="community-post-notice-toggle">
+                    <input type="checkbox" name="is_notice" value="1" class="form-checkbox"<?php echo (int) ($values['is_notice'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                    <span><?php echo sr_e('공지사항'); ?></span>
                 </label>
             <?php } ?>
             <?php if (!$isGuestAuthorForm && !empty($seriesEnabled)) { ?>

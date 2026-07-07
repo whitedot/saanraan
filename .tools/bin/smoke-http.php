@@ -233,6 +233,14 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community hide action auth guard',
+        'method' => 'POST',
+        'path' => '/community/hide',
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'community delete action auth guard',
         'method' => 'POST',
         'path' => '/community/delete',
@@ -268,6 +276,14 @@ $checks = [
         'label' => 'community comment edit action auth guard',
         'method' => 'POST',
         'path' => '/community/comment/edit',
+        'allowed_statuses' => [302, 404],
+        'redirect_path_prefixes' => ['/login?next='],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community comment hide action auth guard',
+        'method' => 'POST',
+        'path' => '/community/comment/hide',
         'allowed_statuses' => [302, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -795,11 +811,13 @@ if ($expectMemberOnly) {
     ];
     $memberOnlyForbiddenPosts = [
         'POST /community/edit' => true,
+        'POST /community/hide' => true,
         'POST /community/delete' => true,
         'POST /community/comment' => true,
         'POST /content/comment' => true,
         'POST /community/report' => true,
         'POST /community/comment/edit' => true,
+        'POST /community/comment/hide' => true,
         'POST /community/comment/delete' => true,
         'POST /community/scrap' => true,
         'POST /message/write' => true,

@@ -33,7 +33,8 @@ if (!empty($communityBoardIdentityPolicy['required']) && empty($communityBoardId
 }
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
-$canWriteBoard = sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
+$canWriteBoard = sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter)
+    || sr_community_account_can_write_notice($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
 $postsPerPage = sr_community_board_list_per_page($pdo, $board, $settings);
 $listDefaultSort = sr_community_board_list_default_sort($pdo, $board);
 $listExcerptEnabled = sr_community_board_list_excerpt_enabled($pdo, $board);

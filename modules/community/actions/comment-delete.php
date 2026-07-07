@@ -33,14 +33,12 @@ if ($isGuestDelete) {
 
 $settings = sr_community_settings($pdo);
 $isAdminDelete = !$isAuthorDelete && (
-    is_array($account) && (sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'edit')
-    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'delete')
-    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit')
+    is_array($account) && (sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'delete')
     || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete'))
 );
 $commentActorType = $isGuestDelete ? 'guest' : ($isAuthorDelete ? 'member' : ($isAdminDelete ? 'admin' : 'community_board_manager'));
 // Release check keeps the original author-delete event contract: 'event_type' => 'community.comment.deleted_by_author'
-$commentEventType = $isGuestDelete ? 'community.comment.deleted_by_guest' : ($isAuthorDelete ? 'community.comment.deleted_by_author' : 'community.comment.deleted_by_manager');
+$commentEventType = $isGuestDelete ? 'community.comment.deleted_by_guest' : ($isAuthorDelete ? 'community.comment.deleted_by_author' : ($isAdminDelete ? 'community.comment.deleted_by_admin' : 'community.comment.deleted_by_board_manager'));
 $recoveryResult = ['recovery_status' => 'not_needed'];
 try {
     $pdo->beginTransaction();

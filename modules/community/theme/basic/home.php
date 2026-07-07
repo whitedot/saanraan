@@ -42,7 +42,12 @@ $communityFrameModifier = 'home';
                                 </a>
                             <?php } ?>
                             <div class="community-home-post-body">
-                                <h2 class="community-post-title community-home-post-title"><a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle); ?></a><?php echo sr_community_post_comment_count_html($post); ?></h2>
+                                <h2 class="community-post-title community-home-post-title">
+                                    <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
+                                        <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
+                                    <?php } ?>
+                                    <a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
+                                </h2>
                                 <?php if ($postExcerpt !== '') { ?>
                                     <p><?php echo sr_e($postExcerpt); ?></p>
                                 <?php } ?>

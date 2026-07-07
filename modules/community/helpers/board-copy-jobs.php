@@ -652,9 +652,9 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
     $summaryFeedCandidate = sr_community_summary_feed_candidate_value_for_board($pdo, $targetBoardId);
     $insert = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, title, body_text, reaction_preset_key, reaction_comment_preset_key, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, title, body_text, is_secret, is_notice, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :title, :body_text, :reaction_preset_key, :reaction_comment_preset_key, :is_secret, :summary_feed_candidate, :status, 0, :last_commented_at, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :title, :body_text, :is_secret, :is_notice, :summary_feed_candidate, :status, 0, :last_commented_at, :created_at, :updated_at)'
     );
     $processed = 0;
     foreach ($maps as $map) {
@@ -673,9 +673,8 @@ function sr_community_board_copy_job_copy_posts(PDO $pdo, array $job, int $limit
             'author_public_name_snapshot' => (string) ($post['author_public_name_snapshot'] ?? ''),
             'title' => (string) $post['title'],
             'body_text' => (string) $post['body_text'],
-            'reaction_preset_key' => (string) ($post['reaction_preset_key'] ?? ''),
-            'reaction_comment_preset_key' => (string) ($post['reaction_comment_preset_key'] ?? ''),
             'is_secret' => (int) ($post['is_secret'] ?? 0) === 1 ? 1 : 0,
+            'is_notice' => (int) ($post['is_notice'] ?? 0) === 1 ? 1 : 0,
             'summary_feed_candidate' => $summaryFeedCandidate,
             'status' => (string) $post['status'],
             'last_commented_at' => $post['last_commented_at'] ?? null,

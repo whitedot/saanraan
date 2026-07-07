@@ -248,7 +248,7 @@ $communityBoardSectionNavItems = [
 ];
 if ($communityBoardsPage === 'edit') {
     $communityBoardSectionNavItems += [
-        'community-board-section-managers' => '스탭 권한',
+        'community-board-section-managers' => '게시판 운영 스탭',
         'community-board-section-categories' => '카테고리',
     ];
 }
@@ -1449,15 +1449,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section id="community-board-section-managers" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header">
-                <h2 class="card-title">스탭 권한</h2>
+                <h2 class="card-title">게시판 운영 스탭</h2>
                 <div class="admin-row-actions">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-grant-modal" data-overlay="#community-board-manager-grant-modal">스탭 권한 부여</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-grant-modal" data-overlay="#community-board-manager-grant-modal">운영 권한 부여</button>
                 </div>
             </div>
-            <p class="form-help">특정 회원에게 이 게시판에 한정된 관리 작업 권한을 부여합니다. 이 권한은 게시글 본문 수정 권한으로 확대되지 않습니다. 권한 부여와 회수는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
+            <p class="form-help">특정 회원에게 공개 게시판 화면에서 이 게시판의 글과 댓글을 숨기거나 삭제하는 운영 권한을 부여합니다. 이 권한은 관리자 모드 접근 권한이나 게시글 본문 수정 권한으로 확대되지 않습니다. 권한 부여와 회수는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
             <div class="table-wrapper">
                 <table class="table table-list">
-                    <caption class="sr-only">게시판 스탭 권한 목록</caption>
+                    <caption class="sr-only">게시판 운영 스탭 권한 목록</caption>
                     <thead>
                         <tr>
                             <th>회원</th>
@@ -1469,7 +1469,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tbody>
                         <?php if ($communityBoardManagers === []) { ?>
                             <tr>
-                                <td colspan="4" class="admin-empty-state">부여된 스탭 권한이 없습니다.</td>
+                                <td colspan="4" class="admin-empty-state">부여된 게시판 운영 권한이 없습니다.</td>
                             </tr>
                         <?php } ?>
                         <?php foreach ($communityBoardManagers as $manager) { ?>
@@ -1495,7 +1495,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <input type="hidden" name="intent" value="board_manager_revoke">
                                             <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
                                             <input type="hidden" name="manager_id" value="<?php echo sr_e((string) (int) ($manager['id'] ?? 0)); ?>">
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="스탭 권한 회수" title="회수"><?php echo sr_material_icon_html('delete'); ?></button>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 운영 권한 회수" title="회수"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
                                     </div>
                                 </td>
@@ -1508,7 +1508,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-dialog modal-dialog-lg">
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme" data-community-board-manager-grant-form>
                         <div class="modal-header">
-                            <h3 id="community-board-manager-grant-modal-label" class="modal-title">스탭 권한 부여</h3>
+                            <h3 id="community-board-manager-grant-modal-label" class="modal-title">게시판 운영 권한 부여</h3>
                             <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-board-manager-grant-modal"><?php echo sr_material_icon_html('close'); ?></button>
                         </div>
                         <div class="modal-body">
@@ -1545,7 +1545,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="modal-footer-note">
-                            <p class="form-help">이 작업은 게시판 기본 설정 저장과 별도로 스탭 권한만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
+                            <p class="form-help">이 작업은 게시판 기본 설정 저장과 별도로 공개 게시판 운영 권한만 추가합니다. 관리자 모드 접근 권한이나 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-board-manager-grant-modal">닫기</button>

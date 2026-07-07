@@ -22,7 +22,9 @@ if (!is_array($account) && sr_community_board_identity_action_required($pdo, $bo
     $account = sr_member_require_login($pdo);
 }
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
-if (!sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter)) {
+$canWriteBoard = sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
+$canWriteNotice = sr_community_account_can_write_notice($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);
+if (!$canWriteBoard && !$canWriteNotice) {
     if (!is_array($account) && sr_community_effective_board_policy($pdo, $board, 'write_policy') !== 'guest') {
         $account = sr_member_require_login($pdo);
     }
@@ -74,6 +76,7 @@ $values = [
     'og_title' => '',
     'og_description' => '',
     'is_secret' => 0,
+    'is_notice' => !$canWriteBoard && $canWriteNotice ? 1 : 0,
 ];
 
 $postFormFlash = isset($_SESSION['sr_community_post_form_flash']) && is_array($_SESSION['sr_community_post_form_flash'])
@@ -104,6 +107,8 @@ if ($isPostRequest) {
     if (!$categoryEnabled) {
         $values['category_id'] = 0;
     }
+    $requestedIsNotice = (int) ($values['is_notice'] ?? 0) === 1;
+    $values['is_notice'] = $requestedIsNotice && $canWriteNotice ? 1 : 0;
     $extraFieldValues = sr_community_extra_field_input_values($extraFieldDefinitions);
     $values['extra_values_json'] = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
     $values['extra_field_definitions'] = $extraFieldDefinitions;
@@ -139,6 +144,12 @@ if ($isPostRequest) {
         }
     }
     $errors = array_merge($errors, sr_community_post_category_validation_errors($pdo, $board, $values));
+    if (!$canWriteBoard && $canWriteNotice && (int) ($values['is_notice'] ?? 0) !== 1) {
+        $errors[] = '공지사항 작성 권한으로는 공지사항만 작성할 수 있습니다.';
+    }
+    if ($requestedIsNotice && !$canWriteNotice) {
+        $errors[] = '공지사항으로 지정할 권한이 없습니다.';
+    }
     $privacyConsentActionKeys = sr_community_privacy_consent_post_targets_from_request($values);
     $errors = array_merge($errors, sr_community_privacy_consent_validation_errors($pdo, $board, $privacyConsentActionKeys));
     if ((string) $seriesValues['series_mode'] !== 'none' && !$seriesEnabled) {

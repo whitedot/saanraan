@@ -447,7 +447,7 @@
     if (communityDraftTextHasContent(payload.title) || communityDraftTextHasContent(payload.body_text)) {
       return true;
     }
-    if (Number(payload.category_id || 0) > 0 || String(payload.is_secret || '0') === '1') {
+    if (Number(payload.category_id || 0) > 0 || String(payload.is_secret || '0') === '1' || String(payload.is_notice || '0') === '1') {
       return true;
     }
     if (communityDraftObjectHasValue(payload.extra_field_values || {})) {
@@ -470,7 +470,7 @@
     if (communityDraftTextHasContent(snapshot.title) || communityDraftTextHasContent(snapshot.body_text)) {
       return true;
     }
-    if (Number(snapshot.category_id || 0) > 0 || String(snapshot.is_secret || '0') === '1') {
+    if (Number(snapshot.category_id || 0) > 0 || String(snapshot.is_secret || '0') === '1' || String(snapshot.is_notice || '0') === '1') {
       return true;
     }
     if (String(snapshot.series_mode || 'none') !== 'none'
@@ -557,6 +557,11 @@
       secret.checked = String(payload.is_secret || '0') === '1';
       secret.dispatchEvent(new Event('change', { bubbles: true }));
     }
+    var notice = form.querySelector('[name="is_notice"]');
+    if (notice && Object.prototype.hasOwnProperty.call(payload, 'is_notice')) {
+      notice.checked = String(payload.is_notice || '0') === '1';
+      notice.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     var extra = payload.extra_field_values || {};
     Object.keys(extra).forEach(function (key) {
       var control = form.querySelector('[name="community_extra_fields[' + key.replace(/"/g, '\\"') + ']"]');
@@ -629,6 +634,7 @@
       body_text: snapshot.body_text || '',
       category_id: snapshot.category_id || 0,
       is_secret: snapshot.is_secret || 0,
+      is_notice: snapshot.is_notice || 0,
       extra_field_values: extra,
       series_values: {
         series_mode: snapshot.series_mode || 'none',

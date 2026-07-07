@@ -37,11 +37,30 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php if (is_array($account ?? null) && sr_community_account_can_edit_post($post, $account)) { ?>
                 <p><a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) (int) ($post['id'] ?? 0))); ?>">수정</a></p>
             <?php } ?>
+            <?php
+            $exampleCanWriteNotice = is_array($account ?? null) && sr_community_account_can_write_notice($pdo, [
+                'id' => (int) ($post['board_id'] ?? 0),
+                'status' => (string) ($post['board_status'] ?? 'enabled'),
+            ], $account, sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit'));
+            ?>
+            <?php if ($exampleCanWriteNotice) { ?>
+                <form method="post" action="<?php echo sr_e(sr_url('/community/notice')); ?>">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="post_id" value="<?php echo sr_e((string) (int) ($post['id'] ?? 0)); ?>">
+                    <input type="hidden" name="intent" value="<?php echo (int) ($post['is_notice'] ?? 0) === 1 ? 'remove' : 'set'; ?>">
+                    <button type="submit" class="btn btn-solid-light"><?php echo sr_e((int) ($post['is_notice'] ?? 0) === 1 ? '공지 해제' : '공지 지정'); ?></button>
+                </form>
+            <?php } ?>
         </aside>
 
         <section class="example-community-reader-main">
             <header class="example-community-hero">
-                <h1><?php echo sr_e((string) ($post['title'] ?? '')); ?></h1>
+                <h1>
+                    <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
+                        <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
+                    <?php } ?>
+                    <?php echo sr_e((string) ($post['title'] ?? '')); ?>
+                </h1>
                 <p>
                     <?php $postAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
                     <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($post['author_account_id'] ?? 0), $postAuthorLabel, [

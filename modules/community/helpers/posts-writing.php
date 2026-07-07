@@ -132,6 +132,120 @@ function sr_community_update_post_status(PDO $pdo, int $postId, string $status, 
     }
 }
 
+function sr_community_hidden_target_type_for_table(string $tableName): string
+{
+    if ($tableName === 'sr_community_posts') {
+        return 'post';
+    }
+    if ($tableName === 'sr_community_comments') {
+        return 'comment';
+    }
+
+    return '';
+}
+
+function sr_community_hidden_target_select_columns(string $alias = 'hidden_meta'): string
+{
+    $prefix = preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $alias) === 1 ? $alias : 'hidden_meta';
+
+    return $prefix . '.hidden_at,
+                    ' . $prefix . '.hidden_until,
+                    COALESCE(' . $prefix . '.hidden_reason, \'\') AS hidden_reason,
+                    ' . $prefix . '.hidden_note,
+                    ' . $prefix . '.hidden_by_account_id,
+                    COALESCE(' . $prefix . '.hidden_before_status, \'\') AS hidden_before_status';
+}
+
+function sr_community_hidden_target_join_sql(string $targetType, string $targetAlias, string $joinAlias = 'hidden_meta'): string
+{
+    if (!in_array($targetType, ['post', 'comment'], true)) {
+        return '';
+    }
+    if (preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $targetAlias) !== 1) {
+        return '';
+    }
+    if (preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $joinAlias) !== 1) {
+        $joinAlias = 'hidden_meta';
+    }
+
+    return "LEFT JOIN sr_community_hidden_targets " . $joinAlias . " ON " . $joinAlias . ".target_type = '" . $targetType . "' AND " . $joinAlias . ".target_id = " . $targetAlias . ".id";
+}
+
+function sr_community_save_hidden_target(PDO $pdo, string $targetType, int $targetId, string $beforeStatus, array $options = []): void
+{
+    if ($targetId < 1 || !in_array($targetType, ['post', 'comment'], true)) {
+        return;
+    }
+
+    $existingStmt = $pdo->prepare(
+        'SELECT hidden_before_status, created_at
+         FROM sr_community_hidden_targets
+         WHERE target_type = :target_type
+           AND target_id = :target_id
+         LIMIT 1'
+    );
+    $existingStmt->execute([
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
+    $existing = $existingStmt->fetch();
+    $existingBeforeStatus = is_array($existing) ? (string) ($existing['hidden_before_status'] ?? '') : '';
+    $hiddenBeforeStatus = $beforeStatus !== '' && $beforeStatus !== 'hidden'
+        ? $beforeStatus
+        : $existingBeforeStatus;
+    if ($hiddenBeforeStatus === '') {
+        $hiddenBeforeStatus = 'published';
+    }
+
+    $now = sr_now();
+    $createdAt = is_array($existing) && (string) ($existing['created_at'] ?? '') !== ''
+        ? (string) $existing['created_at']
+        : $now;
+    $pdo->prepare(
+        'DELETE FROM sr_community_hidden_targets
+         WHERE target_type = :target_type
+           AND target_id = :target_id'
+    )->execute([
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
+    $stmt = $pdo->prepare(
+        'INSERT INTO sr_community_hidden_targets
+            (target_type, target_id, hidden_at, hidden_until, hidden_reason, hidden_note, hidden_by_account_id, hidden_before_status, created_at, updated_at)
+         VALUES
+            (:target_type, :target_id, :hidden_at, :hidden_until, :hidden_reason, :hidden_note, :hidden_by_account_id, :hidden_before_status, :created_at, :updated_at)'
+    );
+    $stmt->execute([
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+        'hidden_at' => $now,
+        'hidden_until' => $options['hidden_until'] ?? null,
+        'hidden_reason' => (string) ($options['hidden_reason'] ?? ''),
+        'hidden_note' => (string) ($options['hidden_note'] ?? ''),
+        'hidden_by_account_id' => isset($options['hidden_by_account_id']) && (int) $options['hidden_by_account_id'] > 0 ? (int) $options['hidden_by_account_id'] : null,
+        'hidden_before_status' => $hiddenBeforeStatus,
+        'created_at' => $createdAt,
+        'updated_at' => $now,
+    ]);
+}
+
+function sr_community_clear_hidden_target(PDO $pdo, string $targetType, int $targetId): void
+{
+    if ($targetId < 1 || !in_array($targetType, ['post', 'comment'], true)) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'DELETE FROM sr_community_hidden_targets
+         WHERE target_type = :target_type
+           AND target_id = :target_id'
+    );
+    $stmt->execute([
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
+}
+
 function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $tableName, int $id, string $status, array $options = []): void
 {
     if ($id < 1 || !in_array($tableName, ['sr_community_posts', 'sr_community_comments'], true)) {
@@ -139,30 +253,26 @@ function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $table
     }
 
     $now = sr_now();
+    $targetType = sr_community_hidden_target_type_for_table($tableName);
     if ($status === 'hidden') {
+        $beforeStmt = $pdo->prepare('SELECT status FROM ' . $tableName . ' WHERE id = :id LIMIT 1');
+        $beforeStmt->execute(['id' => $id]);
+        $beforeStatus = (string) ($beforeStmt->fetchColumn() ?: '');
         $stmt = $pdo->prepare(
             'UPDATE ' . $tableName . '
              SET status = :status,
-                 hidden_at = :hidden_at,
-                 hidden_until = :hidden_until,
-                 hidden_reason = :hidden_reason,
-                 hidden_note = :hidden_note,
-                 hidden_by_account_id = :hidden_by_account_id,
-                 hidden_before_status = CASE WHEN status <> \'hidden\' THEN status ELSE hidden_before_status END,
                  updated_at = :updated_at
              WHERE id = :id
                AND status <> \'deleted\''
         );
         $stmt->execute([
             'status' => $status,
-            'hidden_at' => $now,
-            'hidden_until' => $options['hidden_until'] ?? null,
-            'hidden_reason' => (string) ($options['hidden_reason'] ?? ''),
-            'hidden_note' => (string) ($options['hidden_note'] ?? ''),
-            'hidden_by_account_id' => isset($options['hidden_by_account_id']) && (int) $options['hidden_by_account_id'] > 0 ? (int) $options['hidden_by_account_id'] : null,
             'updated_at' => $now,
             'id' => $id,
         ]);
+        if ($stmt->rowCount() > 0) {
+            sr_community_save_hidden_target($pdo, $targetType, $id, $beforeStatus, $options);
+        }
         if ($tableName === 'sr_community_posts') {
             sr_community_mark_post_embed_target_stale($pdo, $id);
         }
@@ -172,12 +282,6 @@ function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $table
     $stmt = $pdo->prepare(
         'UPDATE ' . $tableName . '
          SET status = :status,
-             hidden_at = NULL,
-             hidden_until = NULL,
-             hidden_reason = \'\',
-             hidden_note = NULL,
-             hidden_by_account_id = NULL,
-             hidden_before_status = \'\',
              updated_at = :updated_at
          WHERE id = :id
            AND status <> \'deleted\''
@@ -187,6 +291,9 @@ function sr_community_update_status_with_hidden_metadata(PDO $pdo, string $table
         'updated_at' => $now,
         'id' => $id,
     ]);
+    if ($stmt->rowCount() > 0) {
+        sr_community_clear_hidden_target($pdo, $targetType, $id);
+    }
     if ($tableName === 'sr_community_posts') {
         sr_community_mark_post_embed_target_stale($pdo, $id);
     }
@@ -223,6 +330,7 @@ function sr_community_redact_deleted_post(PDO $pdo, int $postId): void
         'updated_at' => $now,
         'id' => $postId,
     ]);
+    sr_community_clear_hidden_target($pdo, 'post', $postId);
     sr_community_redact_post_field_values($pdo, $postId);
 
     if (function_exists('sr_url_embed_sync_body_url_cache')) {
@@ -251,6 +359,29 @@ function sr_community_update_post_og_image(PDO $pdo, int $postId, ?int $attachme
     sr_community_mark_post_embed_target_stale($pdo, $postId);
 }
 
+function sr_community_update_post_notice(PDO $pdo, int $postId, bool $isNotice): void
+{
+    if ($postId < 1 || !sr_community_post_notice_supported($pdo)) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_community_posts
+         SET is_notice = :is_notice,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND status = \'published\''
+    );
+    $stmt->execute([
+        'is_notice' => $isNotice ? 1 : 0,
+        'updated_at' => sr_now(),
+        'id' => $postId,
+    ]);
+    if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'post_notice_changed');
+    }
+}
+
 function sr_community_update_post_content(PDO $pdo, int $postId, array $values, int $accountId = 0): void
 {
     if ($pdo->inTransaction()) {
@@ -277,6 +408,8 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
         }
         $categorySupported = sr_community_categories_supported($pdo);
         $categorySetSql = $categorySupported ? 'category_id = :category_id,' : '';
+        $noticeSupported = sr_community_post_notice_supported($pdo);
+        $noticeSetSql = $noticeSupported ? 'is_notice = :is_notice,' : '';
         $stmt = $pdo->prepare(
             'UPDATE sr_community_posts
              SET ' . $categorySetSql . '
@@ -287,9 +420,8 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
                  seo_description = :seo_description,
                  og_title = :og_title,
                  og_description = :og_description,
-                 reaction_preset_key = :reaction_preset_key,
-                 reaction_comment_preset_key = :reaction_comment_preset_key,
                  is_secret = :is_secret,
+                 ' . $noticeSetSql . '
                  updated_at = :updated_at
              WHERE id = :id'
         );
@@ -301,12 +433,13 @@ function sr_community_update_post_content(PDO $pdo, int $postId, array $values, 
             'seo_description' => sr_community_seo_text((string) ($values['seo_description'] ?? ''), 255),
             'og_title' => sr_community_seo_text((string) ($values['og_title'] ?? ''), 160),
             'og_description' => sr_community_seo_text((string) ($values['og_description'] ?? ''), 255),
-            'reaction_preset_key' => '',
-            'reaction_comment_preset_key' => '',
             'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
             'updated_at' => sr_now(),
             'id' => $postId,
         ];
+        if ($noticeSupported) {
+            $params['is_notice'] = (int) ($values['is_notice'] ?? 0) === 1 ? 1 : 0;
+        }
         if ($categorySupported) {
             $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
         }
@@ -372,6 +505,20 @@ function sr_community_account_can_delete_post(array $post, array $account, ?PDO 
     return sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
 }
 
+function sr_community_account_can_hide_post(PDO $pdo, array $post, ?array $account): bool
+{
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    if ($accountId < 1 || (string) ($post['status'] ?? '') !== 'published') {
+        return false;
+    }
+
+    return (function_exists('sr_admin_has_permission')
+            && (sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'edit')
+                || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete')))
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'hide_post')
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
+}
+
 function sr_community_guest_can_edit_post(array $post, string $password): bool
 {
     return (int) ($post['author_account_id'] ?? 0) < 1
@@ -423,6 +570,17 @@ function sr_community_account_can_write_board(PDO $pdo, array $board, ?array $ac
     return false;
 }
 
+function sr_community_account_can_write_notice(PDO $pdo, array $board, ?array $account, bool $isAdminWriter = false): bool
+{
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    if ((string) ($board['status'] ?? '') !== 'enabled' || $accountId < 1) {
+        return false;
+    }
+
+    return $isAdminWriter
+        || sr_community_account_has_board_management_permission($pdo, (int) ($board['id'] ?? 0), $accountId, 'write_notice');
+}
+
 function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, ?array $settings = null): array
 {
     $bodyFormat = 'plain';
@@ -449,12 +607,11 @@ function sr_community_post_input_values(?PDO $pdo = null, ?array $board = null, 
         'seo_description' => '',
         'og_title' => '',
         'og_description' => '',
-        'reaction_preset_key' => '',
-        'reaction_comment_preset_key' => '',
         'is_secret' => sr_post_string('is_secret', 10) === '1'
             && $pdo instanceof PDO
             && is_array($board)
             && sr_community_effective_board_secret_posts_enabled($pdo, $board, $settings) ? 1 : 0,
+        'is_notice' => sr_post_string('is_notice', 10) === '1' ? 1 : 0,
     ];
 }
 
@@ -501,11 +658,14 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
     $categorySupported = sr_community_categories_supported($pdo);
     $categoryColumnSql = $categorySupported ? 'category_id, ' : '';
     $categoryValueSql = $categorySupported ? ':category_id, ' : '';
+    $noticeSupported = sr_community_post_notice_supported($pdo);
+    $noticeColumnSql = $noticeSupported ? 'is_notice, ' : '';
+    $noticeValueSql = $noticeSupported ? ':is_notice, ' : '';
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_posts
-            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, extra_values_json, title, body_text, reaction_preset_key, reaction_comment_preset_key, seo_title, seo_description, og_title, og_description, is_secret, summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
+            (board_id, ' . $categoryColumnSql . 'author_account_id, author_public_name_snapshot, guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, extra_values_json, title, body_text, seo_title, seo_description, og_title, og_description, is_secret, ' . $noticeColumnSql . 'summary_feed_candidate, status, view_count, last_commented_at, created_at, updated_at)
          VALUES
-            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, :extra_values_json, :title, :body_text, :reaction_preset_key, :reaction_comment_preset_key, :seo_title, :seo_description, :og_title, :og_description, :is_secret, :summary_feed_candidate, :status, 0, NULL, :created_at, :updated_at)'
+            (:board_id, ' . $categoryValueSql . ':author_account_id, :author_public_name_snapshot, :guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, :extra_values_json, :title, :body_text, :seo_title, :seo_description, :og_title, :og_description, :is_secret, ' . $noticeValueSql . ':summary_feed_candidate, :status, 0, NULL, :created_at, :updated_at)'
     );
     $guestValues = sr_community_guest_author_values_for_storage($values);
     $params = [
@@ -521,8 +681,6 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
         'title' => trim((string) $values['title']),
         'body_text' => $bodyText,
-        'reaction_preset_key' => '',
-        'reaction_comment_preset_key' => '',
         'seo_title' => sr_community_seo_text((string) ($values['seo_title'] ?? ''), 160),
         'seo_description' => sr_community_seo_text((string) ($values['seo_description'] ?? ''), 255),
         'og_title' => sr_community_seo_text((string) ($values['og_title'] ?? ''), 160),
@@ -533,6 +691,9 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         'created_at' => $now,
         'updated_at' => $now,
     ];
+    if ($noticeSupported) {
+        $params['is_notice'] = (int) ($values['is_notice'] ?? 0) === 1 ? 1 : 0;
+    }
     if ($categorySupported) {
         $params['category_id'] = (int) ($values['category_id'] ?? 0) > 0 ? (int) $values['category_id'] : null;
     }

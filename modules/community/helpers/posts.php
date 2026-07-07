@@ -250,19 +250,38 @@ function sr_community_board_list_sort_key(string $value): string
     return in_array($value, sr_community_board_list_sort_values(), true) ? $value : 'latest';
 }
 
-function sr_community_board_list_sort_sql(string $sort): string
+function sr_community_post_notice_supported(PDO $pdo): bool
 {
-    if ($sort === 'oldest') {
-        return 'p.id ASC';
-    }
-    if ($sort === 'views') {
-        return 'p.view_count DESC, p.id DESC';
-    }
-    if ($sort === 'comments') {
-        return 'published_comment_count DESC, p.id DESC';
+    static $supportedByConnection = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $supportedByConnection)) {
+        return $supportedByConnection[$cacheKey];
     }
 
-    return 'p.id DESC';
+    try {
+        $pdo->query('SELECT is_notice FROM sr_community_posts LIMIT 1');
+        $supportedByConnection[$cacheKey] = true;
+    } catch (Throwable) {
+        $supportedByConnection[$cacheKey] = false;
+    }
+
+    return $supportedByConnection[$cacheKey];
+}
+
+function sr_community_board_list_sort_sql(string $sort, bool $noticeSupported = true): string
+{
+    $noticePrefix = $noticeSupported ? 'p.is_notice DESC, ' : '';
+    if ($sort === 'oldest') {
+        return $noticePrefix . 'p.id ASC';
+    }
+    if ($sort === 'views') {
+        return $noticePrefix . 'p.view_count DESC, p.id DESC';
+    }
+    if ($sort === 'comments') {
+        return $noticePrefix . 'published_comment_count DESC, p.id DESC';
+    }
+
+    return $noticePrefix . 'p.id DESC';
 }
 
 function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest', int $authorAccountId = 0): array
@@ -270,7 +289,8 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
     $keyword = trim($keyword);
-    $orderSql = sr_community_board_list_sort_sql(sr_community_board_list_sort_key($sort));
+    $noticeSupported = sr_community_post_notice_supported($pdo);
+    $orderSql = sr_community_board_list_sort_sql(sr_community_board_list_sort_key($sort), $noticeSupported);
     $categorySupported = sr_community_categories_supported($pdo);
     $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
@@ -292,9 +312,10 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
     $categorySelectSql = $categorySupported
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
+    $noticeSelectSql = $noticeSupported ? 'p.is_notice' : '0 AS is_notice';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, ' . $noticeSelectSql . ', p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
                 (SELECT COUNT(*) FROM sr_community_attachments att WHERE att.post_id = p.id AND att.status = \'active\') AS active_attachment_count,
                 list_image.id AS list_image_attachment_id,
@@ -502,6 +523,7 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $noticeSelectSql = sr_community_post_notice_supported($pdo) ? 'p.is_notice' : '0 AS is_notice';
     $secretBodyCondition = "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '!'";
     $searchCondition = "p.title LIKE :title_keyword ESCAPE '!'";
     if ($bodyBoardPlaceholders !== []) {
@@ -510,7 +532,7 @@ function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, i
     }
 
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.is_secret, p.status, p.view_count, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, b.board_key, b.title AS board_title, ' . $categorySelectSql . ", p.author_account_id, p.title, p.body_text, p.is_secret, " . $noticeSelectSql . ", p.status, p.view_count, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = 'published') AS published_comment_count
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -664,8 +686,9 @@ function sr_community_post_for_read(PDO $pdo, int $postId, ?array $account): ?ar
         ? 'p.category_id, cat.category_key, cat.title AS category_title, cat.status AS category_status'
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $noticeSelectSql = sr_community_post_notice_supported($pdo) ? 'p.is_notice' : '0 AS is_notice';
     $stmt = $pdo->prepare(
-        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.reaction_preset_key, p.reaction_comment_preset_key, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.is_secret, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        "SELECT p.id, p.board_id, " . $categorySelectSql . ", p.author_account_id, p.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ", author.status AS author_account_status, p.title, p.body_text, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.is_secret, " . $noticeSelectSql . ", p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_group_id, b.board_key, b.title AS board_title, b.description AS board_description, b.status AS board_status, b.read_policy, b.comment_policy
          FROM sr_community_posts p
          INNER JOIN sr_community_boards b ON b.id = p.board_id
@@ -979,8 +1002,9 @@ function sr_community_admin_post_by_id(PDO $pdo, int $postId): ?array
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
     $authorSnapshotSelectSql = sr_community_author_public_name_snapshot_select($pdo, 'sr_community_posts', 'p');
+    $noticeSelectSql = sr_community_post_notice_supported($pdo) ? 'p.is_notice' : '0 AS is_notice';
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', p.title, p.body_text, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
+        'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, ' . $authorSnapshotSelectSql . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', p.title, p.body_text, p.seo_title, p.seo_description, p.og_title, p.og_description, p.og_image_attachment_id, ' . $noticeSelectSql . ', p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 b.board_key, b.title AS board_title,
                 a.display_name AS author_display_name,
                 author_nickname.nickname AS author_nickname,

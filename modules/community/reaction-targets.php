@@ -71,16 +71,9 @@ if (!function_exists('sr_community_reaction_post_result')) {
         }
         $presetKey = '';
         if ($reactionEnabled) {
-            $presetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $post['reaction_preset_key'] ?? '') : '';
-            if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
-                $canView = false;
-                $presetKey = '';
-            }
-            if ($presetKey === '') {
-                $presetKey = is_array($board)
-                    ? sr_community_effective_board_setting($pdo, $board, 'reaction_post_preset_key', (string) ($settings['reaction_post_preset_key'] ?? ''))
-                    : (string) ($settings['reaction_post_preset_key'] ?? '');
-            }
+            $presetKey = is_array($board)
+                ? sr_community_effective_board_setting($pdo, $board, 'reaction_post_preset_key', (string) ($settings['reaction_post_preset_key'] ?? ''))
+                : (string) ($settings['reaction_post_preset_key'] ?? '');
         }
 
         return [
@@ -137,16 +130,9 @@ if (!function_exists('sr_community_reaction_comment_result')) {
         }
         $presetKey = '';
         if ($reactionEnabled) {
-            $presetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_comment_preset_key'] ?? '') : '';
-            if (function_exists('sr_reaction_disabled_preset_key') && $presetKey === sr_reaction_disabled_preset_key()) {
-                $canView = false;
-                $presetKey = '';
-            }
-            if ($presetKey === '') {
-                $presetKey = is_array($board)
-                    ? sr_community_effective_board_setting($pdo, $board, 'reaction_comment_preset_key', (string) ($settings['reaction_comment_preset_key'] ?? ''))
-                    : (string) ($settings['reaction_comment_preset_key'] ?? '');
-            }
+            $presetKey = is_array($board)
+                ? sr_community_effective_board_setting($pdo, $board, 'reaction_comment_preset_key', (string) ($settings['reaction_comment_preset_key'] ?? ''))
+                : (string) ($settings['reaction_comment_preset_key'] ?? '');
         }
 
         return [
@@ -269,8 +255,7 @@ return [
 
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.post_id, c.author_account_id, c.is_secret AS comment_is_secret, c.status AS comment_status,
-                            p.board_id, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret, p.status AS post_status,
-                            p.reaction_comment_preset_key
+                            p.board_id, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret, p.status AS post_status
                      FROM sr_community_comments c
                      LEFT JOIN sr_community_posts p ON p.id = c.post_id
                      WHERE c.id = :id
@@ -298,8 +283,7 @@ return [
                 $placeholders = implode(', ', array_fill(0, count($commentIds), '?'));
                 $stmt = $pdo->prepare(
                     'SELECT c.id, c.post_id, c.author_account_id, c.is_secret AS comment_is_secret, c.status AS comment_status,
-                            p.board_id, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret, p.status AS post_status,
-                            p.reaction_comment_preset_key
+                            p.board_id, p.author_account_id AS post_author_account_id, p.is_secret AS post_is_secret, p.status AS post_status
                      FROM sr_community_comments c
                      LEFT JOIN sr_community_posts p ON p.id = c.post_id
                      WHERE c.id IN (' . $placeholders . ')'

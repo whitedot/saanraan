@@ -94,6 +94,8 @@ function sr_community_account_can_hide_comment(PDO $pdo, array $comment, array $
                 || sr_admin_has_permission($pdo, $accountId, '/admin/community/comments', 'delete')
                 || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'edit')
                 || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete')))
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'hide_comment')
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_comment')
         || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
 }
 
@@ -324,6 +326,7 @@ function sr_community_redact_deleted_comment(PDO $pdo, int $commentId): void
         'updated_at' => sr_now(),
         'id' => $commentId,
     ]);
+    sr_community_clear_hidden_target($pdo, 'comment', $commentId);
 }
 
 function sr_community_update_comment_content(PDO $pdo, int $commentId, array $values): void
@@ -353,7 +356,8 @@ function sr_community_account_can_edit_comment(array $comment, array $account): 
 
 function sr_community_account_can_delete_comment(array $comment, array $account, ?PDO $pdo = null, ?array $post = null): bool
 {
-    if ((int) ($account['id'] ?? 0) > 0
+    $accountId = (int) ($account['id'] ?? 0);
+    if ($accountId > 0
         && (int) $comment['author_account_id'] === (int) $account['id']
         && (string) $comment['status'] === 'published') {
         return true;
@@ -361,8 +365,15 @@ function sr_community_account_can_delete_comment(array $comment, array $account,
     if (!$pdo instanceof PDO || !is_array($post)) {
         return false;
     }
+    if ((string) ($comment['status'] ?? '') !== 'published') {
+        return false;
+    }
 
-    return sr_community_account_can_hide_comment($pdo, $comment, $post, $account);
+    return (function_exists('sr_admin_has_permission')
+            && (sr_admin_has_permission($pdo, $accountId, '/admin/community/comments', 'delete')
+                || sr_admin_has_permission($pdo, $accountId, '/admin/community/posts', 'delete')))
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_comment')
+        || sr_community_account_has_board_management_permission($pdo, (int) ($post['board_id'] ?? 0), $accountId, 'delete_post');
 }
 
 function sr_community_guest_can_edit_comment(array $comment, string $password): bool

@@ -302,10 +302,11 @@ function sr_community_report_auto_action_locked_target(PDO $pdo, string $targetT
 {
     if ($targetType === 'post') {
         $stmt = $pdo->prepare(
-            'SELECT p.id, p.status, p.hidden_at, p.hidden_reason, p.hidden_by_account_id, p.hidden_before_status, p.board_id,
+            'SELECT p.id, p.status, ' . sr_community_hidden_target_select_columns('hidden_meta') . ', p.board_id,
                     b.status AS board_status
              FROM sr_community_posts p
              INNER JOIN sr_community_boards b ON b.id = p.board_id
+             ' . sr_community_hidden_target_join_sql('post', 'p', 'hidden_meta') . '
              WHERE p.id = :id
              LIMIT 1' . sr_community_report_auto_action_lock_suffix($pdo)
         );
@@ -322,12 +323,13 @@ function sr_community_report_auto_action_locked_target(PDO $pdo, string $targetT
 
     if ($targetType === 'comment') {
         $stmt = $pdo->prepare(
-            'SELECT c.id, c.status, c.hidden_at, c.hidden_reason, c.hidden_by_account_id, c.hidden_before_status, c.post_id,
+            'SELECT c.id, c.status, ' . sr_community_hidden_target_select_columns('hidden_meta') . ', c.post_id,
                     p.status AS post_status,
                     b.status AS board_status
              FROM sr_community_comments c
              INNER JOIN sr_community_posts p ON p.id = c.post_id
              INNER JOIN sr_community_boards b ON b.id = p.board_id
+             ' . sr_community_hidden_target_join_sql('comment', 'c', 'hidden_meta') . '
              WHERE c.id = :id
              LIMIT 1' . sr_community_report_auto_action_lock_suffix($pdo)
         );

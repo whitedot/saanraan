@@ -11,6 +11,7 @@ $fileUploadEnabled = !isset($postIdField) && (int) ($board['file_uploads_enabled
 $imageUploadEnabled = !isset($postIdField) && (int) ($board['image_uploads_enabled'] ?? 0) === 1 && (int) ($settings['attachment_max_count'] ?? 1) > 0;
 $isGuestAuthorForm = isset($isGuestAuthor) && !empty($isGuestAuthor);
 $showGuestAuthorFields = $isGuestAuthorForm && !isset($postIdField);
+$canWriteNotice = !empty($canWriteNotice);
 if ($isGuestAuthorForm) {
     $fileUploadEnabled = false;
     $imageUploadEnabled = false;
@@ -84,6 +85,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php echo sr_community_extra_fields_form_html(is_array($extraFieldDefinitions ?? null) ? $extraFieldDefinitions : [], is_array($extraFieldValues ?? null) ? $extraFieldValues : []); ?>
         <?php if (!empty($secretPostsEnabled)) { ?>
             <label><input type="checkbox" name="is_secret" value="1"<?php echo (int) ($values['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>> 비밀글</label>
+        <?php } ?>
+        <?php if ($canWriteNotice) { ?>
+            <label><input type="checkbox" name="is_notice" value="1"<?php echo (int) ($values['is_notice'] ?? 0) === 1 ? ' checked' : ''; ?>> 공지사항</label>
         <?php } ?>
         <?php if ($imageUploadEnabled) { ?>
             <label>이미지 <input type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp"></label>

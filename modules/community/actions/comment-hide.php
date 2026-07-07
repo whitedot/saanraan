@@ -25,14 +25,19 @@ if (!sr_community_account_can_hide_comment($pdo, $comment, $post, $account)) {
     sr_render_error(403, '댓글을 숨길 권한이 없습니다.');
 }
 
-sr_community_update_comment_status($pdo, $commentId, 'hidden');
+$isAdminCommentHide = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'edit')
+    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'delete')
+    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit')
+    || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete');
+sr_community_update_comment_status($pdo, $commentId, 'hidden', [
+    'hidden_reason' => 'moderation',
+    'hidden_note' => 'Hidden from public board view by board staff.',
+    'hidden_by_account_id' => (int) $account['id'],
+]);
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
-    'actor_type' => (sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'edit')
-        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/comments', 'delete')
-        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit')
-        || sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'delete')) ? 'admin' : 'community_board_manager',
-    'event_type' => 'community.comment.hidden_by_manager',
+    'actor_type' => $isAdminCommentHide ? 'admin' : 'community_board_manager',
+    'event_type' => $isAdminCommentHide ? 'community.comment.hidden_by_admin' : 'community.comment.hidden_by_board_manager',
     'target_type' => 'community_comment',
     'target_id' => (string) $commentId,
     'result' => 'success',

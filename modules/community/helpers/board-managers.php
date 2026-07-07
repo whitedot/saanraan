@@ -5,8 +5,12 @@ declare(strict_types=1);
 function sr_community_board_manager_permission_options(): array
 {
     return [
-        'view_manage' => '스탭 권한 목록 조회',
+        'view_manage' => '비밀글/비밀댓글 열람',
+        'write_notice' => '공지사항 작성',
+        'hide_post' => '게시글 숨김',
         'delete_post' => '게시글 삭제',
+        'hide_comment' => '댓글 숨김',
+        'delete_comment' => '댓글 삭제',
         'remove_post_og_image' => '게시글 OG 이미지 제거',
     ];
 }

@@ -53,14 +53,14 @@ sr_community_report_auto_action_check_contains('modules/community/updates/2026.0
 ]);
 
 sr_community_report_auto_action_check_contains('modules/community/module.php', [
-    "'version' => '2026.07.001'",
+    "'version' => '2026.07.003'",
     "'report_auto_action_enabled' => false",
     "'report_auto_action_threshold' => 5",
     "'report_auto_action_public_mode' => 'exclude'",
 ]);
 
 sr_community_report_auto_action_check_contains('core/actions/install.php', [
-    "'community' => [\n        'name' => '커뮤니티',\n        'version' => '2026.07.001'",
+    "'community' => [\n        'name' => '커뮤니티',\n        'version' => '2026.07.003'",
 ]);
 
 sr_community_report_auto_action_check_contains('modules/community/helpers/levels.php', [
@@ -217,12 +217,21 @@ if ($errors === []) {
             id INTEGER PRIMARY KEY,
             board_id INTEGER NOT NULL,
             status TEXT NOT NULL,
-            hidden_at TEXT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_community_hidden_targets (
+            id INTEGER PRIMARY KEY,
+            target_type TEXT NOT NULL,
+            target_id INTEGER NOT NULL,
+            hidden_at TEXT NOT NULL,
             hidden_until TEXT NULL,
             hidden_reason TEXT NOT NULL DEFAULT "",
             hidden_note TEXT NULL,
             hidden_by_account_id INTEGER NULL,
             hidden_before_status TEXT NOT NULL DEFAULT "",
+            created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         )'
     );
@@ -277,7 +286,7 @@ if ($errors === []) {
         'report_auto_action_window_days' => 0,
         'report_auto_action_public_mode' => 'exclude',
     ]);
-    $postRow = $pdo->query('SELECT status, hidden_at, hidden_reason, hidden_by_account_id FROM sr_community_posts WHERE id = 11')->fetch(PDO::FETCH_ASSOC);
+    $postRow = $pdo->query("SELECT p.status, h.hidden_at, h.hidden_reason, h.hidden_by_account_id FROM sr_community_posts p LEFT JOIN sr_community_hidden_targets h ON h.target_type = 'post' AND h.target_id = p.id WHERE p.id = 11")->fetch(PDO::FETCH_ASSOC);
     $attachmentStatus = (string) $pdo->query('SELECT status FROM sr_community_attachments WHERE id = 1')->fetchColumn();
     $autoRow = $pdo->query("SELECT * FROM sr_community_report_auto_actions WHERE target_type = 'post' AND target_id = 11")->fetch(PDO::FETCH_ASSOC);
     if (
@@ -315,7 +324,7 @@ if ($errors === []) {
         'reviewer_account_id' => 77,
         'metadata' => ['source' => 'admin_report_review', 'release_result' => $releaseResult],
     ]);
-    $releasedPostRow = $pdo->query('SELECT status, hidden_reason, hidden_before_status FROM sr_community_posts WHERE id = 11')->fetch(PDO::FETCH_ASSOC);
+    $releasedPostRow = $pdo->query("SELECT p.status, h.hidden_reason, h.hidden_before_status FROM sr_community_posts p LEFT JOIN sr_community_hidden_targets h ON h.target_type = 'post' AND h.target_id = p.id WHERE p.id = 11")->fetch(PDO::FETCH_ASSOC);
     $releasedAttachmentStatus = (string) $pdo->query('SELECT status FROM sr_community_attachments WHERE id = 1')->fetchColumn();
     $releasedAutoRow = $pdo->query("SELECT status, active_target_uid, reviewer_account_id, released_at FROM sr_community_report_auto_actions WHERE target_type = 'post' AND target_id = 11")->fetch(PDO::FETCH_ASSOC);
     if (

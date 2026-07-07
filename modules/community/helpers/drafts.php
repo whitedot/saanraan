@@ -145,6 +145,7 @@ function sr_community_draft_form_state_json(array $state): string
     $payload = [
         'category_id' => (int) ($state['category_id'] ?? 0),
         'is_secret' => !empty($state['is_secret']) ? 1 : 0,
+        'is_notice' => !empty($state['is_notice']) ? 1 : 0,
         'extra_field_values' => is_array($state['extra_field_values'] ?? null) ? $state['extra_field_values'] : [],
         'series_values' => is_array($state['series_values'] ?? null) ? $state['series_values'] : [],
     ];
@@ -162,6 +163,7 @@ function sr_community_draft_form_state(string $json): array
     return [
         'category_id' => (int) ($decoded['category_id'] ?? 0),
         'is_secret' => !empty($decoded['is_secret']) ? 1 : 0,
+        'is_notice' => !empty($decoded['is_notice']) ? 1 : 0,
         'extra_field_values' => is_array($decoded['extra_field_values'] ?? null) ? $decoded['extra_field_values'] : [],
         'series_values' => is_array($decoded['series_values'] ?? null) ? $decoded['series_values'] : [],
     ];
@@ -343,6 +345,7 @@ function sr_community_draft_restore_payload(?array $draft, ?string $currentConte
         'body_text' => (string) ($bodyRestore['body_text'] ?? ''),
         'category_id' => (int) ($state['category_id'] ?? 0),
         'is_secret' => (int) ($state['is_secret'] ?? 0),
+        'is_notice' => (int) ($state['is_notice'] ?? 0),
         'extra_field_values' => is_array($state['extra_field_values'] ?? null) ? $state['extra_field_values'] : [],
         'series_values' => is_array($state['series_values'] ?? null) ? $state['series_values'] : [],
         'body_tmp_ref_count' => (int) ($draft['body_tmp_ref_count'] ?? 0),
