@@ -8,7 +8,7 @@ return [
     'admin' => [
         'category' => 'security',
         'category_label' => '보안',
-        'category_order' => 35,
+        'category_order' => 42,
         'menu_order' => 20,
         'icon' => ['type' => 'symbol', 'name' => 'shield'],
         'settings_path' => '/admin/antispam/settings',
