@@ -9,6 +9,7 @@ $memberMfaPendingFactor = isset($memberMfaPendingFactor) && is_array($memberMfaP
 $memberMfaSetup = isset($memberMfaSetup) && is_array($memberMfaSetup) ? $memberMfaSetup : [];
 $memberMfaRecoveryCodes = isset($memberMfaRecoveryCodes) && is_array($memberMfaRecoveryCodes) ? array_values(array_filter(array_map('strval', $memberMfaRecoveryCodes))) : [];
 $memberMfaRecoveryCodeCounts = isset($memberMfaRecoveryCodeCounts) && is_array($memberMfaRecoveryCodeCounts) ? $memberMfaRecoveryCodeCounts : [];
+$memberAccountActionRows = isset($memberAccountActionRows) && is_array($memberAccountActionRows) ? $memberAccountActionRows : [];
 $memberMfaLoginMode = isset($memberMfaLoginMode) && is_string($memberMfaLoginMode) ? $memberMfaLoginMode : 'optional';
 $memberMfaTotpLoginAllowed = isset($memberMfaTotpLoginAllowed) ? (bool) $memberMfaTotpLoginAllowed : true;
 $memberMfaTotpSetupAllowed = isset($memberMfaTotpSetupAllowed) ? (bool) $memberMfaTotpSetupAllowed : $memberMfaTotpLoginAllowed;
@@ -60,6 +61,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <a class="member-skin-basic-side-nav-link<?php echo $memberAccountPageKey === $memberAccountPage ? ' is-active' : ''; ?>" href="<?php echo sr_e(sr_url((string) $memberAccountPageItem['url'])); ?>"<?php echo $memberAccountPageKey === $memberAccountPage ? ' aria-current="page"' : ''; ?>>
                         <?php echo sr_e((string) $memberAccountPageItem['label']); ?>
                     </a>
+                <?php } ?>
+                <?php foreach ($memberAccountActionRows as $memberAccountActionRow) { ?>
+                    <?php
+                    $memberAccountActionLabel = trim((string) ($memberAccountActionRow['label'] ?? ''));
+                    $memberAccountActionUrl = trim((string) ($memberAccountActionRow['url'] ?? ''));
+                    ?>
+                    <?php if ($memberAccountActionLabel !== '' && $memberAccountActionUrl !== '') { ?>
+                        <a class="member-skin-basic-side-nav-link" href="<?php echo sr_e($memberAccountActionUrl); ?>">
+                            <?php echo sr_e($memberAccountActionLabel); ?>
+                        </a>
+                    <?php } ?>
                 <?php } ?>
                 <a class="member-skin-basic-side-nav-link" href="<?php echo sr_e(sr_url('/account/withdraw')); ?>"><?php echo sr_e(sr_t('member::ui.member.4406c379')); ?></a>
             </nav>

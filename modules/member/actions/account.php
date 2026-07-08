@@ -9,6 +9,9 @@ if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modu
 
 $account = sr_member_require_login($pdo);
 sr_member_group_evaluate_account($pdo, (int) $account['id']);
+$memberAccountActionRows = function_exists('sr_public_layout_member_action_rows')
+    ? sr_public_layout_member_action_rows($pdo, (int) $account['id'])
+    : [];
 
 $errors = [];
 $notice = '';

@@ -1291,14 +1291,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } else { ?>
                                         <?php echo sr_e((string) $page['title']); ?>
                                     <?php } ?>
-                                    <?php if ($pageIsDeleted) { ?>
-                                        <br>
-                                        <?php
-                                        $contentDeletedDetailModalId = 'content-deleted-detail-modal-' . (string) (int) $page['id'];
-                                        $contentPermanentDeleteModals .= $contentDeletedDetailModalHtml($page);
-                                        ?>
-                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDeletedDetailModalId); ?>" data-overlay="#<?php echo sr_e($contentDeletedDetailModalId); ?>">삭제 상세</button>
-                                    <?php } ?>
                                 </td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['content_group_title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap">
@@ -1345,9 +1337,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             </form>
                                         <?php } elseif ($pageIsDeleted) { ?>
                                             <?php
+                                            $contentDeletedDetailModalId = 'content-deleted-detail-modal-' . (string) (int) $page['id'];
                                             $contentPermanentDeleteModalId = 'content-permanent-delete-modal-' . (string) (int) $page['id'];
+                                            $contentPermanentDeleteModals .= $contentDeletedDetailModalHtml($page);
                                             $contentPermanentDeleteModals .= $contentPermanentDeleteModalHtml($page);
                                             ?>
+                                            <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDeletedDetailModalId); ?>" data-overlay="#<?php echo sr_e($contentDeletedDetailModalId); ?>">삭제 상세</button>
                                             <button type="button" class="btn btn-sm btn-icon btn-solid-danger" aria-label="콘텐츠 영구 삭제" title="영구 삭제" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentPermanentDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentPermanentDeleteModalId); ?>"><?php echo sr_material_icon_html('delete_forever'); ?></button>
                                         <?php } ?>
                                     </div>
