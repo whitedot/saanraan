@@ -14,7 +14,7 @@
 | `community` | `comment.created`, `comment.mention` | 게시글 작성자, 멘션 회원 | `site` | 게시글 댓글 작성자 알림, 커뮤니티 댓글 멘션 알림 |
 | `quiz` | `comment.mention` | 멘션 회원 | `site` | 퀴즈 댓글 멘션 알림 |
 | `survey` | `comment.mention` | 멘션 회원 | `site` | 설문 댓글 멘션 알림 |
-| `notification` | `member_push_endpoint.connected`, `member_push_endpoint.disabled` | 회원 | `site` | 회원 Telegram 푸시 수신처 연결/해제 보안 알림 |
+| `notification` | `member_push_endpoint.connected`, `member_push_endpoint.disabled` | 회원 | `site` | 회원 외부 푸시 수신처 연결/해제 보안 알림 |
 
 반복 이벤트는 `sr_notification_event_templates`의 DB 템플릿을 사용한다. 이벤트 알림은 `source_module_key`, `event_key`, `metadata_json`을 저장하고 제목은 표시/발송 시 템플릿에서 생성한다. `sr_notifications.title`은 관리자 수동 알림과 기존 데이터 호환 fallback으로 유지한다. 알림 모듈이 비활성화되었거나 템플릿이 누락되면 소비 모듈 작업은 실패하지 않고 no-op으로 처리한다.
 
