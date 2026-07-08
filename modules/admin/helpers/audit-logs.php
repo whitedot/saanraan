@@ -386,7 +386,7 @@ function sr_admin_audit_log_display_message(array $log): string
         'Point transaction created.' => '포인트 거래가 생성되었습니다.',
         'Reward transaction created.' => '적립금 거래가 생성되었습니다.',
         'Notification deleted.' => '알림이 삭제되었습니다.',
-        'Notification delivery status updated.' => '이메일 발송 작업 상태가 변경되었습니다.',
+        'Notification delivery status updated.' => '알림 발송 작업 상태가 변경되었습니다.',
         'Notification created.' => '알림이 생성되었습니다.',
         'Community board skin updated.' => '커뮤니티 게시판 스킨이 변경되었습니다.',
         'Community board created.' => '커뮤니티 게시판이 생성되었습니다.',

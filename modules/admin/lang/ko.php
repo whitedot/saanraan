@@ -273,7 +273,7 @@ return [
     'ui.all.active.e049f4e9' => '화면 전체를 활용하여 사용자에게 몰입감 있는 경험을 제공할 수 있습니다.',
     'ui.all.active.f80dbc9e' => '전체 너비를 사용하는 모달입니다. 더 많은 정보를 한눈에 보여줄 때 유용합니다.',
     'ui.all.fullscreen.modal.cfc5e840' => '전체 화면 모달 (Fullscreen Modal)',
-    'ui.all.notification.e9b364cb' => '전체 알림 / 이메일 대기 ',
+    'ui.all.notification.e9b364cb' => '전체 알림 / 발송 대기 ',
     'ui.all.status.bf90fe33' => '전체 프로젝트 상태 확인',
     'ui.all.status.notification.status.b3013a7d' => '플랫폼 전체에서 수행된 최신 상호 작용 및 작업을 확인하세요. 최근 파일 업로드, 댓글, 상태 업데이트 및 알림 기록이 포함되어 진행 중인
                                             변경 사항을 최신 상태로 유지할 수 있습니다.',
@@ -456,7 +456,7 @@ return [
     'ui.notification.4044b674' => '커스텀 알림',
     'ui.notification.46327dc4' => '이 중요한 알림 메시지를 성공적으로 읽으셨습니다. 이 텍스트는 이러한 유형의 레이아웃에서 간격이 어떻게 작동하는지
                                             보여주기 위해 의도적으로 약간 더 길게 작성되었습니다.',
-    'ui.notification.56c30db0' => '이메일 발송 작업',
+    'ui.notification.56c30db0' => '알림 발송 작업',
     'ui.notification.6ed99ebf' => '점선 테두리가 있는 성공 알림!',
     'ui.notification.7aac0421' => '와 함께 제공되는 가벼운 알림입니다.',
     'ui.notification.82294dd1' => '알림 읽음 기록',
