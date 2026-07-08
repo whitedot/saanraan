@@ -22,6 +22,7 @@ require_once SR_ROOT . '/modules/community/helpers/member-groups.php';
 require_once SR_ROOT . '/modules/community/helpers/notifications.php';
 require_once SR_ROOT . '/modules/community/helpers/board-copy.php';
 require_once SR_ROOT . '/modules/community/helpers/board-copy-jobs.php';
+require_once SR_ROOT . '/modules/community/helpers/board-delete-jobs.php';
 require_once SR_ROOT . '/modules/community/helpers/admin-boards.php';
 require_once SR_ROOT . '/modules/community/helpers/seo.php';
 require_once SR_ROOT . '/modules/community/helpers/board-managers.php';

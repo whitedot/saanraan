@@ -12,6 +12,7 @@ if (!defined('SR_ROOT')) {
 
 require_once 'modules/community/helpers/attachments.php';
 require_once 'modules/community/helpers/board-copy.php';
+require_once 'modules/community/helpers/board-delete-jobs.php';
 
 $errors = [];
 
@@ -83,6 +84,16 @@ sr_board_copy_limit_assert(
 sr_board_copy_limit_assert(
     sr_community_board_copy_normalized_values(['copy_scope' => ['settings', 'posts_comments']])['mode'] === 'full',
     'Post/comment board copy scope should use the job path.'
+);
+
+sr_board_copy_limit_assert(
+    sr_community_board_delete_load_assessment(['posts' => 1, 'comments' => 0, 'attachments' => 0, 'series' => 0])['grade'] === 'low',
+    'Board delete load should stay low for a single post.'
+);
+
+sr_board_copy_limit_assert(
+    sr_community_board_delete_load_assessment(['posts' => 500, 'comments' => 0, 'attachments' => 0, 'series' => 0])['requires_batch_review'] === true,
+    'Board delete load should require batch review at the delete job threshold.'
 );
 
 sr_board_copy_limit_assert(

@@ -24,6 +24,9 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url($communityBoardsPage === 'lis
 if ($communityBoardsPage === 'list') {
     $adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/board-copy-jobs')) . '" class="btn btn-ghost-secondary">'
         . sr_e('작업 관리')
+        . '</a>'
+        . '<a href="' . sr_e(sr_url('/admin/community/board-delete-jobs')) . '" class="btn btn-ghost-secondary">'
+        . sr_e('삭제 작업')
         . '</a>';
 }
 $communityPostBodyLengthMax = sr_community_post_body_setting_max_length();
@@ -382,12 +385,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>
                                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $board['id']))); ?>" class="btn btn-sm btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
-                                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="admin-inline-form">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="intent" value="delete_board">
-                                    <input type="hidden" name="board_id" value="<?php echo sr_e((string) $board['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 삭제" title="게시판 삭제" onclick="return confirm('이 게시판을 삭제할까요? 게시글, 댓글, 첨부파일, 시리즈 연결도 함께 삭제됩니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
-                                </form>
+                                <a href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']) . '&delete=1')); ?>" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 삭제" title="게시판 삭제"><?php echo sr_material_icon_html('delete'); ?></a>
                             </div>
                         </td>
                     </tr>
@@ -1430,21 +1428,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 
-    <?php if ($communityBoardsPage === 'edit') { ?>
+        <?php if ($communityBoardsPage === 'edit') { ?>
         <?php $boardDeleteCheck = sr_community_can_delete_board($pdo, (int) ($formBoard['id'] ?? 0)); ?>
         <?php $boardDeleteReferences = is_array($boardDeleteCheck['references'] ?? null) ? $boardDeleteCheck['references'] : []; ?>
-        <?php $boardDeleteTargetRecords = (int) ($boardDeleteReferences['posts'] ?? 0) + (int) ($boardDeleteReferences['comments'] ?? 0) + (int) ($boardDeleteReferences['attachments'] ?? 0) + (int) ($boardDeleteReferences['series'] ?? 0); ?>
-        <?php $boardDeleteLoad = sr_admin_high_load_assessment([
-            'target_records' => $boardDeleteTargetRecords,
-            'file_operations' => (int) ($boardDeleteReferences['attachments'] ?? 0),
-            'table_count' => 8,
-            'long_transaction' => true,
-            'rollback_limited' => true,
-        ]); ?>
+        <?php $boardDeleteLoad = sr_community_board_delete_load_assessment($boardDeleteReferences); ?>
         <?php $boardDeleteConfirmText = '삭제 ' . (string) ($formBoard['board_key'] ?? ''); ?>
         <div id="<?php echo sr_e($boardDeleteModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($boardDeleteModalId); ?>-label" aria-hidden="true" inert>
             <div class="modal-dialog">
-                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="modal-content admin-form ui-form-theme">
+                <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="modal-content admin-form ui-form-theme" data-sr-validate-form>
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($boardDeleteModalId); ?>-label" class="modal-title">게시판 삭제</h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
@@ -1473,7 +1464,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="form-row">
                             <label class="form-label" for="community_board_delete_confirm_text">삭제 확인 문구 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                             <div class="form-field">
-                                <input id="community_board_delete_confirm_text" type="text" name="delete_confirm_text" maxlength="80" class="form-input" required data-confirm-phrase="<?php echo sr_e($boardDeleteConfirmText); ?>">
+                                <input id="community_board_delete_confirm_text" type="text" name="delete_confirm_text" maxlength="80" class="form-input" required data-confirm-phrase="<?php echo sr_e($boardDeleteConfirmText); ?>" data-confirm-phrase-message="게시판 삭제 확인 문구가 일치하지 않습니다." data-overlay-focus>
                                 <p class="form-help"><?php echo sr_e('삭제하려면 "' . $boardDeleteConfirmText . '"를 입력하세요.'); ?></p>
                             </div>
                         </div>
@@ -1485,6 +1476,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </form>
             </div>
         </div>
+
+        <?php if (sr_get_string('delete', 1) === '1') { ?>
+            <script>
+            window.addEventListener('DOMContentLoaded', function () {
+                var trigger = document.querySelector('[data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>"]');
+                if (trigger && typeof trigger.click === 'function') {
+                    trigger.click();
+                }
+            });
+            </script>
+        <?php } ?>
 
         <section id="community-board-section-managers" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header">

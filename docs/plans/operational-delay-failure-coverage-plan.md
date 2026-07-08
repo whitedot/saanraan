@@ -43,6 +43,8 @@
 | 커뮤니티 저장소 정리 대기 | `sr_community_storage_cleanup_failures.status = 'pending'` | 24시간 초과 시 지연 | storage key | 커뮤니티 저장소 정리 실패 목록 |
 | 게시판 복사 진행 중 | `sr_community_board_copy_jobs.status IN ('pending', 'running')` | 15분 초과 시 지연 | 원본 게시판명 또는 작업 ID | 게시판 배치 복사 |
 | 게시판 복사 실패 | `sr_community_board_copy_jobs.status IN ('failed', 'canceled')` | 즉시 지연 초과 | 원본 게시판명 또는 작업 ID | 게시판 배치 복사 |
+| 게시판 삭제 진행 중 | `sr_community_board_delete_jobs.status IN ('pending', 'running')` | 15분 초과 시 지연 | 게시판명 또는 삭제 작업 ID | 게시판 삭제 작업 관리 |
+| 게시판 삭제 실패 | `sr_community_board_delete_jobs.status IN ('failed', 'cleanup_required')` | 즉시 지연 초과 | 게시판명 또는 삭제 작업 ID | 게시판 삭제 작업 관리 |
 | 커뮤니티 레벨 재계산 진행 중 | `sr_community_level_recalculate_jobs.status = 'running'` | 15분 초과 시 지연 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
 | 커뮤니티 레벨 재계산 실패 | `sr_community_level_recalculate_jobs.status = 'failed'` | 즉시 지연 초과 | 작업 ID + 요청자 + 처리 수/전체 수 | `/admin/community/levels` |
 | 퀴즈 보상 지급 대기 | `sr_quiz_reward_grants.status = 'pending'` | 15분 초과 시 지연 | 퀴즈 제목 또는 ID | 퀴즈 보상 로그 |

@@ -136,6 +136,46 @@ return [
     'action_label' => '게시판 작업 관리',
   ],
   [
+    'label' => 'community.board_delete.active',
+    'title' => '게시판 삭제 진행 중',
+    'module' => 'community',
+    'table' => 'sr_community_board_delete_jobs',
+    'where' => 'status IN (\'pending\', \'running\')',
+    'age_column' => 'updated_at',
+    'delay_tolerance' => '15분',
+    'warn_after_seconds' => 900,
+    'target_sql' => 'SELECT b.title AS target_label, j.id AS target_fallback
+                FROM sr_community_board_delete_jobs j
+                LEFT JOIN sr_community_boards b ON b.id = j.board_id
+                WHERE j.status IN (\'pending\', \'running\')
+                ORDER BY j.updated_at ASC, j.id ASC
+                LIMIT 5',
+    'target_fallback_prefix' => '삭제 작업',
+    'followup' => '진행 상태와 작업 잠금 만료, 이어받기 필요 여부를 확인합니다.',
+    'action_url' => '/admin/community/board-delete-jobs',
+    'action_label' => '게시판 삭제 작업 관리',
+  ],
+  [
+    'label' => 'community.board_delete.failed',
+    'title' => '게시판 삭제 실패',
+    'module' => 'community',
+    'table' => 'sr_community_board_delete_jobs',
+    'where' => 'status IN (\'failed\', \'cleanup_required\')',
+    'age_column' => 'updated_at',
+    'delay_tolerance' => '즉시',
+    'warn_after_seconds' => 0,
+    'target_sql' => 'SELECT b.title AS target_label, j.id AS target_fallback
+                FROM sr_community_board_delete_jobs j
+                LEFT JOIN sr_community_boards b ON b.id = j.board_id
+                WHERE j.status IN (\'failed\', \'cleanup_required\')
+                ORDER BY j.updated_at ASC, j.id ASC
+                LIMIT 5',
+    'target_fallback_prefix' => '삭제 작업',
+    'followup' => '/admin/community/board-delete-jobs에서 실패 단계, 실패 항목, 저장소 정리 필요 여부를 확인합니다.',
+    'action_url' => '/admin/community/board-delete-jobs',
+    'action_label' => '게시판 삭제 작업 관리',
+  ],
+  [
     'label' => 'community.level_recalculate.running',
     'title' => '커뮤니티 레벨 재계산 진행 중',
     'module' => 'community',

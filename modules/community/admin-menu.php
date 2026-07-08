@@ -7,7 +7,7 @@ return [
         [
             'label' => '게시판 관리',
             'path' => '/admin/community/boards',
-            'active_paths' => ['/admin/community/board-copy-jobs'],
+            'active_paths' => ['/admin/community/board-copy-jobs', '/admin/community/board-delete-jobs'],
             'order' => 20,
         ],
         [

@@ -60,6 +60,8 @@ return [
     'POST /admin/community/boards/copy' => 'actions/admin-board-copy.php',
     'GET /admin/community/board-copy-jobs' => 'actions/admin-board-copy-jobs.php',
     'POST /admin/community/board-copy-jobs' => 'actions/admin-board-copy-jobs.php',
+    'GET /admin/community/board-delete-jobs' => 'actions/admin-board-delete-jobs.php',
+    'POST /admin/community/board-delete-jobs' => 'actions/admin-board-delete-jobs.php',
     'POST /admin/community/boards/update' => 'actions/admin-board-update.php',
     'GET /admin/community/board-groups' => 'actions/admin-board-groups.php',
     'POST /admin/community/board-groups' => 'actions/admin-board-groups.php',

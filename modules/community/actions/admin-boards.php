@@ -202,13 +202,7 @@ if (sr_request_method() === 'POST') {
             + (int) ($deleteReferences['comments'] ?? 0)
             + (int) ($deleteReferences['attachments'] ?? 0)
             + (int) ($deleteReferences['series'] ?? 0);
-        $deleteLoadAssessment = sr_admin_high_load_assessment([
-            'target_records' => $deleteTargetRecords,
-            'file_operations' => (int) ($deleteReferences['attachments'] ?? 0),
-            'table_count' => 8,
-            'long_transaction' => true,
-            'rollback_limited' => true,
-        ]);
+        $deleteLoadAssessment = sr_community_board_delete_load_assessment($deleteReferences);
         $deleteConfirmText = is_array($deleteBoard) ? '삭제 ' . (string) ($deleteBoard['board_key'] ?? '') : '';
         if (!is_array($deleteBoard)) {
             $errors[] = sr_t('community::action.error.board_not_found');
@@ -233,6 +227,38 @@ if (sr_request_method() === 'POST') {
         if ($errors !== []) {
             sr_admin_flash_result(sr_admin_action_result($errors, $notice));
             sr_redirect(is_array($deleteBoard) ? '/admin/community/boards/edit?id=' . (string) $boardId : '/admin/community/boards');
+        }
+        if (sr_community_board_delete_job_required($deleteReferences)) {
+            try {
+                $deleteJobId = sr_community_board_delete_job_create($pdo, $boardId, (int) $account['id']);
+            } catch (Throwable $exception) {
+                if (function_exists('sr_log_exception')) {
+                    sr_log_exception($exception, 'community_board_delete_job_create_failed');
+                }
+                $errors[] = $exception->getMessage();
+                sr_admin_flash_result(sr_admin_action_result($errors, $notice));
+                sr_redirect('/admin/community/boards/edit?id=' . (string) $boardId);
+            }
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'community.board_delete_job.created',
+                'target_type' => 'community_board_delete_job',
+                'target_id' => (string) $deleteJobId,
+                'result' => 'success',
+                'message' => 'Community board delete job created.',
+                'metadata' => [
+                    'board_key' => (string) ($deleteBoard['board_key'] ?? ''),
+                    'board_id' => $boardId,
+                    'target_records' => $deleteTargetRecords,
+                    'references' => $deleteReferences,
+                    'batch' => true,
+                    'load_grade' => (string) $deleteLoadAssessment['grade'],
+                    'confirmation_checked' => true,
+                ],
+            ]);
+            sr_admin_flash_result(sr_admin_action_result([], '게시판 삭제 작업을 만들었습니다. 다음 단계로 이어서 처리하세요.'));
+            sr_redirect('/admin/community/board-delete-jobs?id=' . (string) $deleteJobId);
         }
         $deleteResult = sr_community_delete_board($pdo, $boardId);
         $errors = array_merge($errors, is_array($deleteResult['errors'] ?? null) ? $deleteResult['errors'] : []);

@@ -152,6 +152,10 @@ sr_admin_navigation_runtime_assert(
     in_array('/admin/community/board-copy-jobs', (array) ($communityBoardMenuItem['active_paths'] ?? []), true),
     'Admin navigation runtime fixture must preserve board copy job active path aliases after menu normalization.'
 );
+sr_admin_navigation_runtime_assert(
+    in_array('/admin/community/board-delete-jobs', (array) ($communityBoardMenuItem['active_paths'] ?? []), true),
+    'Admin navigation runtime fixture must preserve board delete job active path aliases after menu normalization.'
+);
 $notificationMenuPaths = array_map(
     static fn (array $item): string => (string) ($item['path'] ?? ''),
     array_values(array_filter((array) ($moduleGroups['notification']['items'] ?? []), 'is_array'))
@@ -183,8 +187,10 @@ sr_admin_navigation_runtime_assert(
 
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
-    is_string($communityAdminMenu) && str_contains($communityAdminMenu, "'active_paths' => ['/admin/community/board-copy-jobs']"),
-    'Community admin menu should keep board copy jobs active under board management.'
+    is_string($communityAdminMenu)
+        && str_contains($communityAdminMenu, "'/admin/community/board-copy-jobs'")
+        && str_contains($communityAdminMenu, "'/admin/community/board-delete-jobs'"),
+    'Community admin menu should keep board copy/delete jobs active under board management.'
 );
 
 if ($errors !== []) {
