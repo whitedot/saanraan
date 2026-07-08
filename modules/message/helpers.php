@@ -103,17 +103,73 @@ function sr_message_save_member_settings(PDO $pdo, int $accountId, bool $receive
     }
 
     $now = sr_now();
-    $stmt = $pdo->prepare(
-        'INSERT INTO sr_message_member_settings (account_id, receive_enabled, created_at, updated_at)
-         VALUES (:account_id, :receive_enabled, :created_at, :updated_at)
-         ON DUPLICATE KEY UPDATE receive_enabled = VALUES(receive_enabled), updated_at = VALUES(updated_at)'
-    );
+    $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $sql = $driver === 'sqlite'
+        ? 'INSERT INTO sr_message_member_settings (account_id, receive_enabled, created_at, updated_at)
+           VALUES (:account_id, :receive_enabled, :created_at, :updated_at)
+           ON CONFLICT(account_id) DO UPDATE SET receive_enabled = excluded.receive_enabled, updated_at = excluded.updated_at'
+        : 'INSERT INTO sr_message_member_settings (account_id, receive_enabled, created_at, updated_at)
+           VALUES (:account_id, :receive_enabled, :created_at, :updated_at)
+           ON DUPLICATE KEY UPDATE receive_enabled = VALUES(receive_enabled), updated_at = VALUES(updated_at)';
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([
         'account_id' => $accountId,
         'receive_enabled' => $receiveEnabled ? 1 : 0,
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+}
+
+function sr_message_registration_field_key(): string
+{
+    return 'message_receive_enabled';
+}
+
+function sr_message_registration_fields(PDO $pdo): array
+{
+    $settings = sr_message_settings($pdo);
+    if (empty($settings['message_enabled']) || empty($settings['member_receive_opt_enabled'])) {
+        return [];
+    }
+
+    return [
+        [
+            'key' => sr_message_registration_field_key(),
+            'type' => 'checkbox',
+            'label' => '쪽지 수신 허용',
+            'help' => '다른 회원이 나에게 쪽지를 보낼 수 있습니다.',
+            'default' => !empty($settings['default_member_receive_enabled']),
+        ],
+    ];
+}
+
+function sr_message_registration_save(PDO $pdo, int $accountId, array $values, array $context = []): array
+{
+    if ($accountId < 1) {
+        return ['receive_enabled' => false, 'saved' => false];
+    }
+
+    try {
+        $settings = sr_message_settings($pdo);
+        $receiveEnabled = !empty($settings['default_member_receive_enabled']);
+        $fieldKey = sr_message_registration_field_key();
+        if (!empty($settings['member_receive_opt_enabled']) && array_key_exists($fieldKey, $values)) {
+            $receiveEnabled = (string) $values[$fieldKey] === '1';
+        }
+
+        sr_message_save_member_settings($pdo, $accountId, $receiveEnabled);
+
+        return [
+            'receive_enabled' => $receiveEnabled,
+            'source' => !empty($settings['member_receive_opt_enabled']) && array_key_exists($fieldKey, $values)
+                ? 'registration_form'
+                : 'default',
+            'saved' => true,
+        ];
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'message_registration_save');
+        throw new RuntimeException('message_registration_save_failed', 0, $exception);
+    }
 }
 
 function sr_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null, ?string $accountStatus = null): string

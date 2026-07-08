@@ -1258,7 +1258,8 @@ return [
 
 - 배열을 반환한다.
 - 선택 `helpers`, `fields`, `fields_function`, `validate_function`, `save_function`을 제공한다.
-- 추가 입력은 `registration_extensions[{module_key}]` POST namespace 안에서만 읽고, 기본 회원 필드 이름과 충돌하면 안 된다.
+- 필드 `type`은 `text` 또는 `checkbox`를 사용할 수 있고, `checkbox` 값은 `registration_extensions[...]`에서 선택 시 `1`, 미선택 시 `0`으로 정규화된다.
+- 추가 입력은 `registration_extensions[{field_key}]` POST namespace 안에서만 읽고, 기본 회원 필드 이름과 충돌하면 안 된다.
 - `validate_function`은 가입 트랜잭션 전에 오류 배열을 반환하고, `save_function`은 가입 트랜잭션 안에서 자기 모듈 확장 데이터를 저장한다.
 
 `member-mfa-providers.php`:
@@ -1473,7 +1474,7 @@ return [
 | `asset_exchange` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-action-rows.php`, `dashboard.php` | `asset-exchange.php`, `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-withdrawal-assets.php`, `member-summary-rows.php`, `coupon-references.php`, `dashboard.php`, `url-embed-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
 | `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php` |
-| `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php` | `member-assets.php`, `notification-events.php` |
+| `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `member-registration.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php` | `member-assets.php`, `notification-events.php` |
 | `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `member-assets.php`, `notification-events.php` |
 | `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `member-assets.php`, `notification-events.php` |
 | `antispam` | `paths.php`, `admin-menu.php` | `antispam-targets.php`, `antispam-providers.php` |

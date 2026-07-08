@@ -334,11 +334,12 @@ function sr_member_registration_extension_fields(PDO $pdo, array $contracts): ar
             $fields[$key] = [
                 'module_key' => $moduleKey,
                 'key' => $key,
-                'type' => in_array((string) ($field['type'] ?? 'text'), ['text'], true) ? (string) ($field['type'] ?? 'text') : 'text',
+                'type' => in_array((string) ($field['type'] ?? 'text'), ['text', 'checkbox'], true) ? (string) ($field['type'] ?? 'text') : 'text',
                 'label' => $label,
                 'help' => trim((string) ($field['help'] ?? '')),
                 'maxlength' => max(1, min(255, (int) ($field['maxlength'] ?? 120))),
                 'required' => !empty($field['required']),
+                'default' => !empty($field['default']) ? '1' : '',
             ];
         }
     }
@@ -349,8 +350,10 @@ function sr_member_registration_extension_fields(PDO $pdo, array $contracts): ar
 function sr_member_registration_extension_empty_values(array $fields): array
 {
     $values = [];
-    foreach ($fields as $key => $_field) {
-        $values[(string) $key] = '';
+    foreach ($fields as $key => $field) {
+        $values[(string) $key] = (string) ($field['type'] ?? 'text') === 'checkbox'
+            ? (!empty($field['default']) ? '1' : '0')
+            : '';
     }
 
     return $values;
@@ -365,6 +368,19 @@ function sr_member_registration_extension_values_from_post(array $fields, array 
     }
 
     foreach ($fields as $key => $field) {
+        $type = (string) ($field['type'] ?? 'text');
+        if ($type === 'checkbox') {
+            $rawValue = $extensionPost[(string) $key] ?? '';
+            if (is_array($rawValue)) {
+                $errors[] = (string) ($field['label'] ?? $key) . ' 값을 확인해 주세요.';
+                $values[(string) $key] = '0';
+                continue;
+            }
+
+            $values[(string) $key] = (string) $rawValue === '1' ? '1' : '0';
+            continue;
+        }
+
         $maxlength = (int) ($field['maxlength'] ?? 120);
         $rawValue = $extensionPost[(string) $key] ?? '';
         if (is_array($rawValue)) {

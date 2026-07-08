@@ -26,6 +26,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'member-only-routes.php',
+            'member-registration.php',
             'privacy-export.php',
             'privacy-cleanup.php',
             'report-targets.php',
