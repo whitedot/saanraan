@@ -374,6 +374,15 @@ if ($params !== ['revoked_cutoff' => '2026-01-01 00:00:00', 'expired_cutoff' => 
     sr_retention_check_error($errors, 'Retention query params mapping failed.');
 }
 
+$retentionDefaultCutoffs = sr_admin_retention_preview_cutoffs(sr_admin_retention_default_values());
+$retentionImmediateCutoffs = sr_admin_retention_immediate_cutoffs(sr_admin_retention_default_values());
+if (($retentionImmediateCutoffs['commerce_records'] ?? '') !== ($retentionDefaultCutoffs['commerce_records'] ?? '')) {
+    sr_retention_check_error($errors, 'Immediate retention cleanup must not advance legal commerce retention cutoff.');
+}
+if (($retentionImmediateCutoffs['auth_logs'] ?? '') === ($retentionDefaultCutoffs['auth_logs'] ?? '')) {
+    sr_retention_check_error($errors, 'Immediate retention cleanup must advance operational retention cutoff.');
+}
+
 $retentionHelper = file_get_contents($root . '/modules/admin/helpers/retention.php');
 if (!is_string($retentionHelper)) {
     sr_retention_check_error($errors, 'Retention helper cannot be read.');

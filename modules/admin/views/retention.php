@@ -162,58 +162,82 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </span>
             <div class="form-field">
                 <label class="form-check form-label" for="modules_admin_retention_auto_cleanup_enabled">
-                                    <input id="modules_admin_retention_auto_cleanup_enabled" type="checkbox" name="auto_cleanup_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
-                                    <?php echo sr_admin_choice_label_html('사용'); ?>
-                                </label>
+                    <input id="modules_admin_retention_auto_cleanup_enabled" type="checkbox" name="auto_cleanup_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) $values['auto_cleanup_enabled'] === 1 ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('사용'); ?>
+                </label>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_auto_cleanup_interval_hours', sr_t('admin::ui.text.3a13e62b'), $retentionHelp['auto_cleanup_interval_hours']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_auto_cleanup_interval_hours" type="number" name="auto_cleanup_interval_hours" value="<?php echo sr_e((string) $values['auto_cleanup_interval_hours']); ?>" class="form-input" min="1" max="720" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_auto_cleanup_interval_hours" type="number" name="auto_cleanup_interval_hours" value="<?php echo sr_e((string) $values['auto_cleanup_interval_hours']); ?>" class="form-input" min="1" max="720" required>
+                    <span class="input-group-text">시간</span>
+                </div>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_auto_cleanup_batch_size', sr_t('admin::ui.text.df1bcbf1'), $retentionHelp['auto_cleanup_batch_size']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_auto_cleanup_batch_size" type="number" name="auto_cleanup_batch_size" value="<?php echo sr_e((string) $values['auto_cleanup_batch_size']); ?>" class="form-input" min="1" max="5000" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_auto_cleanup_batch_size" type="number" name="auto_cleanup_batch_size" value="<?php echo sr_e((string) $values['auto_cleanup_batch_size']); ?>" class="form-input" min="1" max="5000" required>
+                    <span class="input-group-text">건</span>
+                </div>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_auth_logs_days', sr_t('admin::ui.text.6cc455be'), $retentionHelp['auth_logs_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_auth_logs_days" type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" class="form-input" min="1" max="3650" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_auth_logs_days" type="number" name="auth_logs_days" value="<?php echo sr_e((string) $values['auth_logs_days']); ?>" class="form-input" min="1" max="3650" required>
+                    <span class="input-group-text">일</span>
+                </div>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_audit_logs_days', sr_t('admin::ui.admin.e6a220a3'), $retentionHelp['audit_logs_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_audit_logs_days" type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" class="form-input" min="1" max="3650" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_audit_logs_days" type="number" name="audit_logs_days" value="<?php echo sr_e((string) $values['audit_logs_days']); ?>" class="form-input" min="1" max="3650" required>
+                    <span class="input-group-text">일</span>
+                </div>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_used_tokens_days', sr_t('admin::ui.active.e5845fb2'), $retentionHelp['used_tokens_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_used_tokens_days" type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" class="form-input" min="1" max="3650" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_used_tokens_days" type="number" name="used_tokens_days" value="<?php echo sr_e((string) $values['used_tokens_days']); ?>" class="form-input" min="1" max="3650" required>
+                    <span class="input-group-text">일</span>
+                </div>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_sessions_days', sr_t('admin::ui.text.48581a76'), $retentionHelp['sessions_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_sessions_days" type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" class="form-input" min="1" max="3650" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_sessions_days" type="number" name="sessions_days" value="<?php echo sr_e((string) $values['sessions_days']); ?>" class="form-input" min="1" max="3650" required>
+                    <span class="input-group-text">일</span>
+                </div>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_banner_clicks_days', sr_t('admin::ui.banner_clicks.retention'), $retentionHelp['banner_clicks_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_banner_clicks_days" type="number" name="banner_clicks_days" value="<?php echo sr_e((string) $values['banner_clicks_days']); ?>" class="form-input" min="1" max="3650" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_banner_clicks_days" type="number" name="banner_clicks_days" value="<?php echo sr_e((string) $values['banner_clicks_days']); ?>" class="form-input" min="1" max="3650" required>
+                    <span class="input-group-text">일</span>
+                </div>
             </div>
         </div>
         <?php if ($hasNotificationTables) { ?>
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('admin_retention_notifications_days', sr_t('admin::ui.notification.9bf7948a'), $retentionHelp['notifications_days']['id'], $retentionHelpOpenLabel, true); ?>
                 <div class="form-field">
-                    <input id="admin_retention_notifications_days" type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" class="form-input" min="1" max="3650" required>
+                    <div class="input-group admin-input-unit">
+                        <input id="admin_retention_notifications_days" type="number" name="notifications_days" value="<?php echo sr_e((string) $values['notifications_days']); ?>" class="form-input" min="1" max="3650" required>
+                        <span class="input-group-text">일</span>
+                    </div>
                 </div>
             </div>
         <?php } else { ?>
@@ -222,13 +246,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_retention_module_backups_days', sr_t('admin::ui.text.b4268fef'), $retentionHelp['module_backups_days']['id'], $retentionHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="admin_retention_module_backups_days" type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" class="form-input" min="1" max="3650" required>
+                <div class="input-group admin-input-unit">
+                    <input id="admin_retention_module_backups_days" type="number" name="module_backups_days" value="<?php echo sr_e((string) $values['module_backups_days']); ?>" class="form-input" min="1" max="3650" required>
+                    <span class="input-group-text">일</span>
+                </div>
             </div>
         </div>
     </section>
     <div class="form-sticky-actions form-actions form-actions-split">
-        <button type="button" class="btn btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal">
+        <button type="button" class="btn btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal" data-admin-retention-cleanup-mode="retention">
             <?php echo sr_e(sr_t('admin::ui.text.90922df1')); ?>
+        </button>
+        <button type="button" class="btn btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-retention-cleanup-modal" data-overlay="#admin-retention-cleanup-modal" data-admin-retention-cleanup-mode="immediate">
+            즉시 정리
         </button>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.save.864e6c0c')); ?></button>
     </div>
@@ -276,77 +306,91 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <div id="admin-retention-cleanup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="admin-retention-cleanup-modal-label">
     <div class="modal-dialog modal-dialog-lg">
-        <div class="modal-content">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/retention')); ?>" class="admin-form ui-form-theme" data-admin-retention-cleanup-form>
-                <div class="modal-header">
-                    <h3 id="admin-retention-cleanup-modal-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.0b10a14f')); ?></h3>
-                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-retention-cleanup-modal">
-                        <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
-                    </button>
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/retention')); ?>" class="modal-content admin-form ui-form-theme" data-admin-retention-cleanup-form>
+            <div class="modal-header">
+                <h3 id="admin-retention-cleanup-modal-label" class="modal-title"><?php echo sr_e(sr_t('admin::ui.text.0b10a14f')); ?></h3>
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#admin-retention-cleanup-modal">
+                    <?php echo sr_material_icon_html('close', '', sr_t('admin::ui.close.1e8c1020')); ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="cleanup">
+                <div class="form-row">
+                    <span class="form-label">정리 방식 <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
+                    <div class="form-field">
+                        <label class="form-check form-label" for="admin_retention_cleanup_mode_retention">
+                            <input id="admin_retention_cleanup_mode_retention" type="radio" name="cleanup_mode" value="retention" class="form-radio" checked>
+                            기준에 따라 정리
+                        </label>
+                        <label class="form-check form-label" for="admin_retention_cleanup_mode_immediate">
+                            <input id="admin_retention_cleanup_mode_immediate" type="radio" name="cleanup_mode" value="immediate" class="form-radio">
+                            즉시 정리
+                        </label>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <?php echo sr_csrf_field(); ?>
-                    <input type="hidden" name="intent" value="cleanup">
-                    <p><?php echo sr_e(sr_t('admin::ui.save.5d203a1c')); ?></p>
-                    <div class="table-wrapper">
-                    <table class="table table-list">
-                        <thead>
+                <p><?php echo sr_e(sr_t('admin::ui.save.5d203a1c')); ?></p>
+                <p class="form-help">즉시 정리는 운영 보관일 기준 대상을 현재 시각 기준으로 정리합니다. 법정 보관 만료 대상은 기존 법정 기준을 유지합니다.</p>
+                <div class="table-wrapper">
+                <table class="table table-list">
+                    <thead>
+                        <tr>
+                            <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
+                            <th><?php echo sr_e(sr_t('admin::ui.text.8e07f3ae')); ?></th>
+                            <th><?php echo sr_e('기준 후보'); ?></th>
+                            <th><?php echo sr_e('즉시 후보'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($cleanupTargetKeys as $retentionTargetKey) { ?>
+                            <?php
+                            if (!array_key_exists($retentionTargetKey, $previewCounts)) {
+                                continue;
+                            }
+                            $retentionTarget = is_array($previewTargets[$retentionTargetKey] ?? null) ? $previewTargets[$retentionTargetKey] : [];
+                            $retentionCutoffKey = (string) ($retentionTarget['cutoff_key'] ?? '');
+                            if ($retentionCutoffKey === '' || !array_key_exists($retentionCutoffKey, $previewCutoffs)) {
+                                continue;
+                            }
+                            $retentionTargetLabel = (string) ($retentionTargetLabels[$retentionTargetKey] ?? str_replace('_', ' ', $retentionTargetKey));
+                            ?>
                             <tr>
-                                <th><?php echo sr_e(sr_t('admin::ui.text.8c609deb')); ?></th>
-                                <th><?php echo sr_e(sr_t('admin::ui.text.8e07f3ae')); ?></th>
-                                <th><?php echo sr_e(sr_t('admin::ui.delete.783a19c6')); ?></th>
+                                <td><?php echo sr_e($retentionTargetLabel); ?></td>
+                                <td><?php echo sr_e((string) $previewCutoffs[$retentionCutoffKey]); ?></td>
+                                <td><?php echo sr_e((string) $previewCounts[$retentionTargetKey]); ?></td>
+                                <td><?php echo sr_e((string) ($immediatePreviewCounts[$retentionTargetKey] ?? $previewCounts[$retentionTargetKey])); ?></td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($cleanupTargetKeys as $retentionTargetKey) { ?>
-                                <?php
-                                if (!array_key_exists($retentionTargetKey, $previewCounts)) {
-                                    continue;
-                                }
-                                $retentionTarget = is_array($previewTargets[$retentionTargetKey] ?? null) ? $previewTargets[$retentionTargetKey] : [];
-                                $retentionCutoffKey = (string) ($retentionTarget['cutoff_key'] ?? '');
-                                if ($retentionCutoffKey === '' || !array_key_exists($retentionCutoffKey, $previewCutoffs)) {
-                                    continue;
-                                }
-                                $retentionTargetLabel = (string) ($retentionTargetLabels[$retentionTargetKey] ?? str_replace('_', ' ', $retentionTargetKey));
-                                ?>
-                                <tr>
-                                    <td><?php echo sr_e($retentionTargetLabel); ?></td>
-                                    <td><?php echo sr_e((string) $previewCutoffs[$retentionCutoffKey]); ?></td>
-                                    <td><?php echo sr_e((string) $previewCounts[$retentionTargetKey]); ?></td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
+                        <?php } ?>
+                    </tbody>
+                </table>
+                </div>
+                <div class="form-row">
+                    <span class="form-label"><?php echo sr_e(sr_t('admin::ui.delete.b5dd39cf')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
+                    <div class="form-field">
+                        <?php echo sr_admin_switch_html('modules_admin_retention_cleanup_confirmed', 'cleanup_confirmed', '1', false, sr_t('admin::ui.delete.ec013040'), '', ' required'); ?>
                     </div>
-                    <div class="form-row">
-                        <span class="form-label"><?php echo sr_e(sr_t('admin::ui.delete.b5dd39cf')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></span>
-                        <div class="form-field">
-                            <?php echo sr_admin_checkbox_toggle_html('modules_admin_retention_cleanup_confirmed', 'cleanup_confirmed', '1', false, sr_t('admin::ui.delete.ec013040'), ' required data-overlay-focus'); ?>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label class="form-label" for="admin_retention_cleanup_phrase"><?php echo sr_e(sr_t('admin::ui.text.82e63a67')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
-                        <div class="form-field">
-                            <div class="validation-field">
-                                <input id="admin_retention_cleanup_phrase" type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required class="form-input form-control-icon-end" aria-describedby="admin_retention_cleanup_phrase_error" data-admin-confirm-phrase="DELETE" data-admin-confirm-message="<?php echo sr_e(sr_t('admin::retention.cleanup.phrase_error')); ?>">
-                                <div class="validation-static-icon" hidden data-admin-confirm-phrase-icon>
-                                    <?php echo sr_material_icon_html('info', 'validation-error-icon', sr_t('admin::retention.cleanup.phrase_error')); ?>
-                                </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="admin_retention_cleanup_phrase"><?php echo sr_e(sr_t('admin::ui.text.82e63a67')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                    <div class="form-field">
+                        <div class="validation-field">
+                            <input id="admin_retention_cleanup_phrase" type="text" name="cleanup_phrase" maxlength="20" placeholder="DELETE" required class="form-input form-control-icon-end" aria-describedby="admin_retention_cleanup_phrase_error" data-admin-confirm-phrase="DELETE" data-admin-confirm-message="<?php echo sr_e(sr_t('admin::retention.cleanup.phrase_error')); ?>">
+                            <div class="validation-static-icon" hidden data-admin-confirm-phrase-icon>
+                                <?php echo sr_material_icon_html('info', 'validation-error-icon', sr_t('admin::retention.cleanup.phrase_error')); ?>
                             </div>
-                            <p id="admin_retention_cleanup_phrase_error" class="validation-error-note" hidden data-admin-confirm-phrase-error><?php echo sr_e(sr_t('admin::retention.cleanup.phrase_error')); ?></p>
                         </div>
+                        <p id="admin_retention_cleanup_phrase_error" class="validation-error-note" hidden data-admin-confirm-phrase-error><?php echo sr_e(sr_t('admin::retention.cleanup.phrase_error')); ?></p>
                     </div>
                 </div>
-                <div class="modal-footer-note">
-                    <p class="form-help">정리 실행은 보관 정책 저장과 별도로 바로 처리됩니다. 위 보관 정책 입력값은 함께 저장되지 않습니다.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-retention-cleanup-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('admin::ui.text.90922df1')); ?></button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="modal-footer-note">
+                <p class="form-help">정리 실행은 보관 정책 저장과 별도로 바로 처리됩니다. 위 보관 정책 입력값은 함께 저장되지 않습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#admin-retention-cleanup-modal"><?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?></button>
+                <button type="submit" class="btn btn-solid-primary modal-action">선택한 방식으로 정리</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -366,6 +410,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var expectedPhrase = input.getAttribute('data-admin-confirm-phrase') || '';
     var errorMessage = input.getAttribute('data-admin-confirm-message') || '';
+    var setCleanupMode = function (mode) {
+        var targetMode = mode === 'immediate' ? 'immediate' : 'retention';
+        var modeInput = form.querySelector('input[name="cleanup_mode"][value="' + targetMode + '"]');
+        if (modeInput) {
+            modeInput.checked = true;
+        }
+    };
+
+    Array.prototype.slice.call(document.querySelectorAll('[data-admin-retention-cleanup-mode]')).forEach(function (button) {
+        button.addEventListener('click', function () {
+            setCleanupMode(button.getAttribute('data-admin-retention-cleanup-mode') || 'retention');
+        });
+    });
 
     var clearPhraseError = function () {
         input.setCustomValidity('');

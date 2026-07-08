@@ -577,6 +577,28 @@ function sr_admin_retention_preview_cutoffs(array $values): array
     return $cutoffs;
 }
 
+function sr_admin_retention_immediate_cutoffs(array $values): array
+{
+    $cutoffs = sr_admin_retention_preview_cutoffs($values);
+    $now = sr_now();
+
+    foreach ([
+        'auth_logs',
+        'audit_logs',
+        'used_tokens',
+        'sessions',
+        'banner_clicks',
+        'notifications',
+        'module_backups',
+    ] as $cutoffKey) {
+        if (array_key_exists($cutoffKey, $cutoffs)) {
+            $cutoffs[$cutoffKey] = $now;
+        }
+    }
+
+    return $cutoffs;
+}
+
 function sr_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs): array
 {
     $previewCounts = [];
@@ -604,9 +626,11 @@ function sr_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs): arr
     return $previewCounts;
 }
 
-function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, ?int $limitPerTarget = null, ?string $autoScope = null): array
+function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, ?int $limitPerTarget = null, ?string $autoScope = null, string $cleanupMode = 'retention'): array
 {
-    $cutoffs = sr_admin_retention_preview_cutoffs($values);
+    $cutoffs = $cleanupMode === 'immediate'
+        ? sr_admin_retention_immediate_cutoffs($values)
+        : sr_admin_retention_preview_cutoffs($values);
     $targets = sr_admin_retention_available_target_definitions($pdo);
     $deletedCounts = [];
     foreach (sr_admin_retention_cleanup_target_keys($autoScope, $pdo) as $key) {
@@ -625,7 +649,7 @@ function sr_admin_retention_execute_cleanup(PDO $pdo, array $values, ?int $limit
     return $deletedCounts;
 }
 
-function sr_admin_log_retention_cleanup(PDO $pdo, array $account, array $values, array $deletedCounts): void
+function sr_admin_log_retention_cleanup(PDO $pdo, array $account, array $values, array $deletedCounts, string $cleanupMode = 'retention'): void
 {
     sr_audit_log($pdo, [
         'actor_account_id' => (int) $account['id'],
@@ -638,6 +662,7 @@ function sr_admin_log_retention_cleanup(PDO $pdo, array $account, array $values,
         'metadata' => [
             'days' => sr_admin_retention_auto_cleanup_days($values),
             'deleted' => $deletedCounts,
+            'mode' => $cleanupMode,
         ],
     ]);
 }
@@ -857,15 +882,21 @@ function sr_admin_handle_retention_post(PDO $pdo, array $account, array $current
             $notice = $values === $currentValues ? '보관 기간 변경 사항이 없습니다.' : '보관 기간을 저장했습니다.';
         }
     } elseif ($intent === 'cleanup') {
+        $cleanupMode = sr_post_string('cleanup_mode', 20);
+        if (!in_array($cleanupMode, ['retention', 'immediate'], true)) {
+            $cleanupMode = 'retention';
+        }
         $errors = sr_admin_validate_retention_values($values);
         foreach (sr_admin_validate_retention_cleanup() as $cleanupError) {
             $errors[] = $cleanupError;
         }
 
         if ($errors === []) {
-            $deletedCounts = sr_admin_retention_execute_cleanup($pdo, $values);
-            sr_admin_log_retention_cleanup($pdo, $account, $values, $deletedCounts);
-            $notice = '보관 기간 정리를 실행했습니다.';
+            $deletedCounts = sr_admin_retention_execute_cleanup($pdo, $values, null, null, $cleanupMode);
+            sr_admin_log_retention_cleanup($pdo, $account, $values, $deletedCounts, $cleanupMode);
+            $notice = $cleanupMode === 'immediate'
+                ? '즉시 정리를 실행했습니다.'
+                : '보관 기준에 따라 정리했습니다.';
         }
     } else {
         $errors[] = '데이터 정리 요청 값이 올바르지 않습니다.';
