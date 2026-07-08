@@ -1259,6 +1259,7 @@ return [
 - 배열을 반환한다.
 - 선택 `helpers`, `fields`, `fields_function`, `validate_function`, `save_function`을 제공한다.
 - 필드 `type`은 `text` 또는 `checkbox`를 사용할 수 있고, `checkbox` 값은 `registration_extensions[...]`에서 선택 시 `1`, 미선택 시 `0`으로 정규화된다.
+- `required` 필드는 회원가입 helper가 브라우저 표시와 별개로 서버에서도 검증한다. `text`는 빈 문자열을 거부하고, `checkbox`는 선택된 `1`만 유효하다.
 - 추가 입력은 `registration_extensions[{field_key}]` POST namespace 안에서만 읽고, 기본 회원 필드 이름과 충돌하면 안 된다.
 - `validate_function`은 가입 트랜잭션 전에 오류 배열을 반환하고, `save_function`은 가입 트랜잭션 안에서 자기 모듈 확장 데이터를 저장한다.
 

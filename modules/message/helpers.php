@@ -153,7 +153,10 @@ function sr_message_registration_save(PDO $pdo, int $accountId, array $values, a
         $settings = sr_message_settings($pdo);
         $receiveEnabled = !empty($settings['default_member_receive_enabled']);
         $fieldKey = sr_message_registration_field_key();
-        if (!empty($settings['member_receive_opt_enabled']) && array_key_exists($fieldKey, $values)) {
+        $canUseRegistrationValue = !empty($settings['message_enabled'])
+            && !empty($settings['member_receive_opt_enabled'])
+            && array_key_exists($fieldKey, $values);
+        if ($canUseRegistrationValue) {
             $receiveEnabled = (string) $values[$fieldKey] === '1';
         }
 
@@ -161,7 +164,7 @@ function sr_message_registration_save(PDO $pdo, int $accountId, array $values, a
 
         return [
             'receive_enabled' => $receiveEnabled,
-            'source' => !empty($settings['member_receive_opt_enabled']) && array_key_exists($fieldKey, $values)
+            'source' => $canUseRegistrationValue
                 ? 'registration_form'
                 : 'default',
             'saved' => true,

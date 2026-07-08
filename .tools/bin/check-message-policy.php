@@ -496,6 +496,15 @@ sr_message_policy_assert(
     !empty($metadata['saved']) && !empty($metadata['receive_enabled']) && $receiveEnabled === 1,
     'Message registration save must still create the default receive row when the message feature is disabled.'
 );
+$metadata = sr_message_registration_save($pdo, 23, [sr_message_registration_field_key() => '0']);
+$receiveEnabled = (int) $pdo->query('SELECT receive_enabled FROM sr_message_member_settings WHERE account_id = 23')->fetchColumn();
+sr_message_policy_assert(
+    !empty($metadata['saved'])
+        && !empty($metadata['receive_enabled'])
+        && (string) ($metadata['source'] ?? '') === 'default'
+        && $receiveEnabled === 1,
+    'Message registration save must ignore posted receive values while the message feature is disabled.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "message policy checks failed:\n");
