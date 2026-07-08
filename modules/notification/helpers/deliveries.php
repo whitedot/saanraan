@@ -51,6 +51,28 @@ function sr_notification_delivery_runner_lock_id(): string
     return sr_notification_clean_single_line($host . ':' . getmypid(), 80);
 }
 
+function sr_notification_member_external_immediate_delivery_enabled(): bool
+{
+    return PHP_SAPI !== 'cli' && function_exists('sr_request_method') && sr_request_method() === 'POST';
+}
+
+function sr_notification_current_site_context(PDO $pdo): array
+{
+    if (is_array($GLOBALS['site'] ?? null)) {
+        return $GLOBALS['site'];
+    }
+    if (function_exists('sr_load_site')) {
+        try {
+            $site = sr_load_site($pdo);
+            return is_array($site) ? $site : [];
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    return [];
+}
+
 function sr_notification_delivery_error_message(string $message): string
 {
     $message = sr_notification_clean_single_line($message, 2000);
@@ -758,6 +780,146 @@ function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, i
     }
 
     return is_array($delivery) ? $delivery : null;
+}
+
+function sr_notification_claim_delivery_by_id(PDO $pdo, int $deliveryId, string $lockId, string $now, int $lockTimeoutSeconds, array $channels = []): ?array
+{
+    if ($deliveryId <= 0) {
+        return null;
+    }
+
+    $channels = $channels === [] ? array_merge(['email'], sr_notification_admin_external_channel_keys()) : sr_notification_normalize_channels($channels);
+    $channels = array_values(array_filter($channels, static fn (string $channel): bool => $channel !== 'site'));
+    if ($channels === []) {
+        return null;
+    }
+
+    $lockCutoff = date('Y-m-d H:i:s', strtotime($now) - max(30, $lockTimeoutSeconds));
+    $channelPlaceholders = [];
+    $updateParams = [
+        'id' => $deliveryId,
+        'locked_at' => $now,
+        'locked_by' => $lockId,
+        'updated_at' => $now,
+        'now_due' => $now,
+        'lock_cutoff' => $lockCutoff,
+    ];
+    foreach ($channels as $index => $channel) {
+        $key = 'channel_' . (string) $index;
+        $channelPlaceholders[] = ':' . $key;
+        $updateParams[$key] = $channel;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_notification_deliveries
+         SET status = \'processing\',
+             locked_at = :locked_at,
+             locked_by = :locked_by,
+             attempt_count = attempt_count + 1,
+             updated_at = :updated_at
+         WHERE id = :id
+           AND channel IN (' . implode(', ', $channelPlaceholders) . ')
+           AND recipient LIKE \'endpoint:%\'
+           AND (
+                (status = \'queued\' AND (next_attempt_at IS NULL OR next_attempt_at <= :now_due))
+                OR (status = \'processing\' AND (locked_at IS NULL OR locked_at <= :lock_cutoff))
+           )'
+    );
+    $stmt->execute($updateParams);
+    if ($stmt->rowCount() < 1) {
+        return null;
+    }
+
+    $eventSelect = sr_notification_event_select_sql($pdo, 'n');
+    $stmt = $pdo->prepare(
+        'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.attempt_count,
+                n.title AS title' . $eventSelect . ',
+                n.body_text AS body_text,
+                n.body_format AS body_format,
+                n.link_url AS link_url
+         FROM sr_notification_deliveries d
+         INNER JOIN sr_notifications n ON n.id = d.notification_id
+         WHERE d.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute(['id' => $deliveryId]);
+    $delivery = $stmt->fetch();
+    if (is_array($delivery)) {
+        $delivery['title'] = sr_notification_title_from_row($pdo, $delivery);
+    }
+
+    return is_array($delivery) ? $delivery : null;
+}
+
+function sr_notification_delete_sent_delivery(PDO $pdo, int $deliveryId): void
+{
+    if ($deliveryId <= 0) {
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        "DELETE FROM sr_notification_deliveries
+         WHERE id = :id
+           AND status = 'sent'
+           AND recipient LIKE 'endpoint:%'"
+    );
+    $stmt->execute(['id' => $deliveryId]);
+}
+
+function sr_notification_process_immediate_member_external_deliveries(PDO $pdo, array $site, array $deliveryIds): array
+{
+    $settings = sr_notification_settings($pdo);
+    $maxAttempts = max(1, min(20, (int) ($settings['delivery_max_attempts'] ?? 5)));
+    $lockTimeoutSeconds = max(30, min(3600, (int) ($settings['delivery_lock_timeout_seconds'] ?? 300)));
+    $lockId = 'immediate:' . sr_notification_delivery_runner_lock_id();
+    $result = [
+        'claimed' => 0,
+        'sent' => 0,
+        'failed' => 0,
+        'dead' => 0,
+        'skipped' => 0,
+    ];
+
+    foreach (array_values(array_unique(array_map('intval', $deliveryIds))) as $deliveryId) {
+        $now = sr_now();
+        $delivery = sr_notification_claim_delivery_by_id($pdo, $deliveryId, $lockId, $now, $lockTimeoutSeconds, sr_notification_member_external_channel_keys());
+        if ($delivery === null) {
+            continue;
+        }
+
+        $result['claimed']++;
+        try {
+            $deliveryResult = sr_notification_process_delivery($pdo, $site, $delivery, $settings, $now, $maxAttempts);
+            $result['sent'] += (int) ($deliveryResult['sent'] ?? 0);
+            $result['failed'] += (int) ($deliveryResult['failed'] ?? 0);
+            $result['dead'] += (int) ($deliveryResult['dead'] ?? 0);
+            $result['skipped'] += (int) ($deliveryResult['skipped'] ?? 0);
+            if ((string) ($deliveryResult['status'] ?? '') === 'sent') {
+                sr_notification_delete_sent_delivery($pdo, (int) ($delivery['id'] ?? 0));
+            }
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'notification_immediate_delivery');
+            $exceptionMessage = '발송 처리 예외: ' . get_class($exception);
+            if ($exception->getMessage() !== '') {
+                $exceptionMessage .= ': ' . $exception->getMessage();
+            }
+            $status = sr_notification_mark_delivery_failed(
+                $pdo,
+                (int) ($delivery['id'] ?? 0),
+                sr_now(),
+                $exceptionMessage,
+                (int) ($delivery['attempt_count'] ?? 1),
+                $maxAttempts
+            );
+            if ($status === 'dead') {
+                $result['dead']++;
+            } else {
+                $result['failed']++;
+            }
+        }
+    }
+
+    return $result;
 }
 
 function sr_notification_mark_delivery_sent(PDO $pdo, int $deliveryId, string $now, string $providerMessageId = ''): void

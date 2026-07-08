@@ -1052,6 +1052,7 @@ function sr_notification_admin_status_counts(PDO $pdo, array $allowedStatuses): 
 
 function sr_notification_create(PDO $pdo, array $data): int
 {
+    $queuedDeliveryIds = [];
     $audience = (string) ($data['audience'] ?? 'account');
     if (!in_array($audience, ['account', 'all'], true)) {
         throw new InvalidArgumentException('Notification audience is invalid.');
@@ -1168,7 +1169,7 @@ function sr_notification_create(PDO $pdo, array $data): int
         $stmt->execute($params);
 
         $notificationId = (int) $pdo->lastInsertId();
-        sr_notification_queue_deliveries($pdo, $notificationId, $channels, $audience, $accountId, $recipient);
+        $queuedDeliveryIds = sr_notification_queue_deliveries($pdo, $notificationId, $channels, $audience, $accountId, $recipient);
 
         if ($startedTransaction) {
             $pdo->commit();
@@ -1181,10 +1182,18 @@ function sr_notification_create(PDO $pdo, array $data): int
         throw $exception;
     }
 
+    if ($startedTransaction && $queuedDeliveryIds !== [] && sr_notification_member_external_immediate_delivery_enabled()) {
+        sr_notification_process_immediate_member_external_deliveries(
+            $pdo,
+            sr_notification_current_site_context($pdo),
+            $queuedDeliveryIds
+        );
+    }
+
     return $notificationId;
 }
 
-function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $channels, string $audience, ?int $accountId = null, string $recipient = ''): void
+function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $channels, string $audience, ?int $accountId = null, string $recipient = ''): array
 {
     $channels = sr_notification_normalize_channels($channels);
     $recipient = sr_notification_clean_single_line($recipient, 255);
@@ -1220,6 +1229,7 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
          VALUES
             (:notification_id, :channel, :recipient, :status, :provider_message_id, :error_message, NULL, :created_at, :updated_at)'
     );
+    $queuedDeliveryIds = [];
 
     foreach ($channels as $channel) {
         if ($channel === 'site') {
@@ -1249,6 +1259,11 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
+            if ($stmt->rowCount() > 0) {
+                $queuedDeliveryIds[] = (int) $pdo->lastInsertId();
+            }
         }
     }
+
+    return $queuedDeliveryIds;
 }

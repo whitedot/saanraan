@@ -887,6 +887,16 @@ sr_notification_runtime_assert(
 );
 sr_notification_runtime_assert(
     is_string($notificationDeliveryHelpers)
+        && is_string($notificationHelpers)
+        && str_contains($notificationDeliveryHelpers, 'function sr_notification_process_immediate_member_external_deliveries(')
+        && str_contains($notificationDeliveryHelpers, 'function sr_notification_delete_sent_delivery(')
+        && str_contains($notificationDeliveryHelpers, "DELETE FROM sr_notification_deliveries\n         WHERE id = :id\n           AND status = 'sent'")
+        && str_contains($notificationHelpers, 'sr_notification_member_external_immediate_delivery_enabled()')
+        && str_contains($notificationHelpers, 'sr_notification_process_immediate_member_external_deliveries('),
+    'member external push deliveries must be attempted immediately after POST notification commits and successful rows must not remain in the delivery list.'
+);
+sr_notification_runtime_assert(
+    is_string($notificationDeliveryHelpers)
         && str_contains($notificationDeliveryHelpers, '발송 처리 예외: ')
         && str_contains($notificationDeliveryHelpers, 'get_class($exception)')
         && str_contains($notificationDeliveryHelpers, '$exception->getMessage()'),
