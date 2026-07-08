@@ -396,6 +396,30 @@ sr_message_policy_assert(
     $registrationErrors === [] && (string) ($postedValues[sr_message_registration_field_key()] ?? '') === '0',
     'Unchecked registration checkbox must normalize to 0.'
 );
+
+$_POST = ['registration_extensions' => []];
+$registrationErrors = [];
+$postedValues = sr_member_registration_extension_values_from_post([
+    'required_text' => [
+        'key' => 'required_text',
+        'type' => 'text',
+        'label' => '필수 텍스트',
+        'required' => true,
+        'maxlength' => 20,
+    ],
+    'required_checkbox' => [
+        'key' => 'required_checkbox',
+        'type' => 'checkbox',
+        'label' => '필수 체크',
+        'required' => true,
+    ],
+], $registrationErrors);
+sr_message_policy_assert(
+    (string) ($postedValues['required_text'] ?? 'filled') === ''
+        && (string) ($postedValues['required_checkbox'] ?? '1') === '0'
+        && count($registrationErrors) === 2,
+    'Required registration extension text and checkbox fields must be validated server-side.'
+);
 $_POST = [];
 
 $metadata = sr_message_registration_save($pdo, 20, [sr_message_registration_field_key() => '0']);

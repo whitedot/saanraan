@@ -378,6 +378,9 @@ function sr_member_registration_extension_values_from_post(array $fields, array 
             }
 
             $values[(string) $key] = (string) $rawValue === '1' ? '1' : '0';
+            if (!empty($field['required']) && $values[(string) $key] !== '1') {
+                $errors[] = (string) ($field['label'] ?? $key) . '을(를) 선택해 주세요.';
+            }
             continue;
         }
 
@@ -398,6 +401,9 @@ function sr_member_registration_extension_values_from_post(array $fields, array 
         }
 
         $values[(string) $key] = trim($value);
+        if (!empty($field['required']) && $values[(string) $key] === '') {
+            $errors[] = (string) ($field['label'] ?? $key) . '을(를) 입력해 주세요.';
+        }
     }
 
     return $values;
