@@ -47,22 +47,18 @@ $contentIdentityAuthorApplicationAvailable = isset($contentIdentityAuthorApplica
 $contentIdentityAuthorApplicationAdultAvailable = isset($contentIdentityAuthorApplicationAdultAvailable)
     ? (bool) $contentIdentityAuthorApplicationAdultAvailable
     : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'content.author_application.adult'));
-$contentIdentityUnavailable = !$contentIdentityContentViewAvailable
-    || !$contentIdentityContentViewAdultAvailable
-    || !$contentIdentityAuthorApplicationAvailable
-    || !$contentIdentityAuthorApplicationAdultAvailable;
 $contentIdentityContentViewInputAttributes = $contentIdentityContentViewAvailable
     ? ''
     : ' disabled aria-describedby="content-settings-identity-unavailable"';
 $contentIdentityContentViewAdultInputAttributes = $contentIdentityContentViewAdultAvailable
     ? ''
-    : ' disabled aria-describedby="content-settings-identity-unavailable"';
+    : ' disabled aria-describedby="content-settings-identity-adult-unavailable"';
 $contentIdentityAuthorApplicationInputAttributes = $contentIdentityAuthorApplicationAvailable
     ? ''
-    : ' disabled aria-describedby="content-settings-identity-unavailable"';
+    : ' disabled aria-describedby="content-settings-author-identity-unavailable"';
 $contentIdentityAuthorApplicationAdultInputAttributes = $contentIdentityAuthorApplicationAdultAvailable
     ? ''
-    : ' disabled aria-describedby="content-settings-identity-unavailable"';
+    : ' disabled aria-describedby="content-settings-author-identity-adult-unavailable"';
 $contentLayoutExtraMenuItems = function_exists('sr_content_layout_extra_menu_items_from_settings') ? sr_content_layout_extra_menu_items_from_settings($settings) : [];
 $contentLayoutExtraMenuRows = static function (array $menuItems, bool $template = false) use ($contentSiteMenuSelectOptions): void {
     foreach ($template ? [['area_key' => '', 'menu_key' => '']] : $menuItems as $menuItem) {
@@ -214,7 +210,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_switch_html('content_admin_settings_reaction_enabled', 'reaction_enabled', '1', $contentReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $contentReactionInputAttributes); ?>
                 <p class="form-help">꺼져 있으면 콘텐츠와 댓글의 리액션 위젯을 표시하지 않습니다.</p>
                 <?php if (!$contentReactionAvailable) { ?>
-                    <p id="content-settings-reaction-unavailable" class="form-help form-help-warning">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
+                    <p id="content-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
                 <?php } ?>
             </div>
         </div>
@@ -252,9 +248,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_required', 'identity_content_view_required', '1', $contentIdentityContentViewAvailable && !empty($settings['identity_content_view_required']), '사용', '', $contentIdentityContentViewInputAttributes); ?>
                 <p class="form-help">사용하면 공개 콘텐츠를 보려는 회원에게 본인확인을 요구합니다.</p>
-                <?php if ($contentIdentityUnavailable) { ?>
+                <?php if (!$contentIdentityContentViewAvailable) { ?>
                     <p id="content-settings-identity-unavailable" class="form-help form-help-warning">
-                        본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
                     </p>
                 <?php } ?>
             </div>
@@ -263,7 +259,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="form-label">콘텐츠 열람 성인 본인확인</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_identity_content_view_adult_required', 'identity_content_view_adult_required', '1', $contentIdentityContentViewAdultAvailable && !empty($settings['identity_content_view_adult_required']), '사용', '', $contentIdentityContentViewAdultInputAttributes); ?>
-                <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 공개 콘텐츠를 볼 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+                <?php if ($contentIdentityContentViewAdultAvailable) { ?>
+                    <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 공개 콘텐츠를 볼 수 있습니다.</p>
+                <?php } else { ?>
+                    <p id="content-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 성인 열람 목적 제공자를 설정하세요.</p>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">
@@ -296,13 +296,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_required', 'identity_author_application_required', '1', $contentIdentityAuthorApplicationAvailable && !empty($settings['identity_author_application_required']), '사용', '', $contentIdentityAuthorApplicationInputAttributes); ?>
                 <p class="form-help">사용하면 콘텐츠 작성자 신청 전에 본인확인을 요구합니다.</p>
+                <?php if (!$contentIdentityAuthorApplicationAvailable) { ?>
+                    <p id="content-settings-author-identity-unavailable" class="form-help form-help-warning">
+                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 작성자 신청 목적 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
+                    </p>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
             <span class="form-label">작성자 신청 성인 본인확인</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_identity_author_application_adult_required', 'identity_author_application_adult_required', '1', $contentIdentityAuthorApplicationAdultAvailable && !empty($settings['identity_author_application_adult_required']), '사용', '', $contentIdentityAuthorApplicationAdultInputAttributes); ?>
-                <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 콘텐츠 작성자 신청을 받을 수 있습니다.</p>
+                <?php if ($contentIdentityAuthorApplicationAdultAvailable) { ?>
+                    <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 콘텐츠 작성자 신청을 할 수 있습니다.</p>
+                <?php } else { ?>
+                    <p id="content-settings-author-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 작성자 신청 성인 목적 제공자를 설정하세요.</p>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>

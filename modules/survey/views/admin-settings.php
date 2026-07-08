@@ -20,13 +20,13 @@ $surveyIdentityViewAvailable = isset($surveyIdentityViewAvailable)
 $surveyIdentityViewAdultAvailable = isset($surveyIdentityViewAdultAvailable)
     ? (bool) $surveyIdentityViewAdultAvailable
     : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'survey.view.adult'));
-$surveyIdentityUnavailable = !$surveyIdentityViewAvailable || !$surveyIdentityViewAdultAvailable;
+$surveyIdentityUnavailable = !$surveyIdentityViewAvailable;
 $surveyIdentityViewInputAttributes = $surveyIdentityViewAvailable
     ? ''
     : ' disabled aria-describedby="survey-settings-identity-unavailable"';
 $surveyIdentityViewAdultInputAttributes = $surveyIdentityViewAdultAvailable
     ? ''
-    : ' disabled aria-describedby="survey-settings-identity-unavailable"';
+    : ' disabled aria-describedby="survey-settings-identity-adult-unavailable"';
 $surveyReactionAvailable = isset($surveyReactionAvailable)
     ? (bool) $surveyReactionAvailable
     : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
@@ -136,8 +136,7 @@ $surveySettingsHelp = [
         'title' => '설문 리액션 프리셋',
         'body_html' => $surveySettingsHelpBodyHtml([
             '개별 설문에서 프리셋을 비워둘 때 사용하는 기본 리액션 세트입니다.',
-            '리액션 모듈의 프리셋 관리에서 운영자가 세트를 추가하거나 수정할 수 있습니다.',
-        ]),
+        ]) . '<p><a href="' . sr_e(sr_url('/admin/reactions/presets')) . '" target="_blank" rel="noopener noreferrer">리액션 프리셋 관리</a>에서 운영자가 세트를 추가하거나 수정할 수 있습니다.</p>',
     ],
     'reaction_comment_preset_key' => [
         'id' => 'survey-settings-help-reaction-comment-preset',
@@ -282,7 +281,7 @@ $surveySettingsHelp = [
                     <p class="form-help">사용하면 설문 상세와 응답 전에 본인확인을 요구합니다.</p>
                     <?php if ($surveyIdentityUnavailable) { ?>
                         <p id="survey-settings-identity-unavailable" class="form-help form-help-warning">
-                            본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                            <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
                         </p>
                     <?php } ?>
                 </div>
@@ -291,7 +290,11 @@ $surveySettingsHelp = [
                 <span class="form-label">설문 참여 성인 본인확인</span>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('survey_settings_identity_view_adult_required', 'identity_view_adult_required', '1', $surveyIdentityViewAdultAvailable && !empty($settings['identity_view_adult_required']), '사용', '', $surveyIdentityViewAdultInputAttributes); ?>
-                    <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 설문에 접근할 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+                    <?php if ($surveyIdentityViewAdultAvailable) { ?>
+                        <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 설문에 접근할 수 있습니다.</p>
+                    <?php } else { ?>
+                        <p id="survey-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 설문 성인 참여 목적 제공자를 설정하세요.</p>
+                    <?php } ?>
                 </div>
             </div>
             <div class="form-row">
@@ -316,7 +319,7 @@ $surveySettingsHelp = [
                     </select>
                     <p class="form-help">개별 설문에서 값을 비워두면 이 값을 사용합니다.</p>
                     <?php if (!$surveyReactionAvailable) { ?>
-                        <p id="survey-settings-reaction-unavailable" class="form-help form-help-warning">리액션 모듈을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</p>
+                        <p id="survey-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</p>
                     <?php } ?>
                 </div>
             </div>

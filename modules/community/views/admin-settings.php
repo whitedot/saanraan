@@ -254,7 +254,7 @@ $communitySettingsSectionNavItems = [
                 <p class="form-help">읽기 정책이 회원/그룹이거나 읽기 레벨/그룹 제한이 있는 게시판은 본인확인을 마친 회원만 볼 수 있게 합니다.</p>
                 <?php if (!$communityIdentityRestrictedBoardAvailable) { ?>
                     <p id="community-settings-identity-unavailable" class="form-help form-help-warning">
-                        본인확인 사용이 꺼져 있거나 제한 게시판 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
+                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 제한 게시판 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
                     </p>
                 <?php } ?>
             </div>
@@ -374,7 +374,7 @@ $communitySettingsSectionNavItems = [
                     <p class="form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
                     <?php if (!$communityPrivacyConsentPolicyDocumentsAvailable) { ?>
                         <p id="community-settings-privacy-consent-unavailable" class="form-help form-help-warning">
-                            약관/방침 관리 모듈이 설치되어 있지 않거나 활성화되어 있지 않고, 게시된 정책 문서가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
+                            <a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">약관/방침 관리 모듈</a>이 설치되어 있지 않거나 활성화되어 있지 않고, <a href="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" target="_blank" rel="noopener noreferrer">게시된 정책 문서</a>가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
                         </p>
                     <?php } ?>
                 </div>
@@ -588,7 +588,7 @@ $communitySettingsSectionNavItems = [
                 <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', $communityReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $communityReactionInputAttributes); ?>
                 <p class="form-help">꺼져 있으면 커뮤니티 게시글과 댓글의 리액션 위젯을 표시하지 않고, 게시판 목록에도 반응 수를 표시하지 않습니다.</p>
                 <?php if (!$communityReactionAvailable) { ?>
-                    <p id="community-settings-reaction-unavailable" class="form-help form-help-warning">리액션 모듈을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
+                    <p id="community-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
                 <?php } ?>
             </div>
         </div>
@@ -1039,7 +1039,7 @@ $communitySettingsSectionNavItems = [
         <div class="admin-notice-copy">
             <strong><?php echo sr_e(sr_t('community::ui.level_disabled_notice_title')); ?></strong>
             <p><?php echo sr_e(sr_t('community::ui.level_disabled_notice_body')); ?></p>
-            <p><a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('community::ui.level_disabled_notice_link')); ?></a></p>
+            <p><a href="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="btn btn-sm btn-solid-light" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('community::ui.level_disabled_notice_link')); ?></a></p>
         </div>
     </div>
 <?php } ?>

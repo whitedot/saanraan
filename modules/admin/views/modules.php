@@ -541,9 +541,9 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                                 <?php if ($isRequired) { ?>
                                     <p class="form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.required.status.22c14e16')); ?></p>
                                 <?php } elseif ($foundationDependents !== []) { ?>
-                                    <p class="form-help admin-module-status-help"><?php echo sr_e('활성 의존 모듈(' . implode(', ', array_map('strval', $foundationDependents)) . ')이 사용하는 기반 모듈은 비활성화할 수 없습니다.'); ?></p>
+                                    <p class="form-help form-help-warning admin-module-status-help"><?php echo sr_e('활성 의존 모듈(' . implode(', ', array_map('strval', $foundationDependents)) . ')이 사용하는 기반 모듈은 비활성화할 수 없습니다.'); ?></p>
                                 <?php } elseif ($requiredByModules !== []) { ?>
-                                    <p class="form-help admin-module-status-help"><?php echo sr_e('활성 의존 모듈(' . implode(', ', array_map('strval', $requiredByModules)) . ')이 사용하는 모듈은 비활성화할 수 없습니다.'); ?></p>
+                                    <p class="form-help form-help-warning admin-module-status-help"><?php echo sr_e('활성 의존 모듈(' . implode(', ', array_map('strval', $requiredByModules)) . ')이 사용하는 모듈은 비활성화할 수 없습니다.'); ?></p>
                                 <?php } else { ?>
                                     <p class="form-help admin-module-status-help"><?php echo sr_e(sr_t('admin::ui.status.f9873f1e')); ?></p>
                                 <?php } ?>

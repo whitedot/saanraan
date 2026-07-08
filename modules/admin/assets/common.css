@@ -155,7 +155,14 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .form-row{align-items:start;display:grid}
 .form-field{min-width:0}
 .form-help{color:var(--text-muted);display:block;font-size:var(--text-xs);line-height:var(--text-xs--line-height);margin-top:calc(var(--spacing) * 2)}
+.form-help-info{color:var(--color-info)!important}
 .form-help-warning{color:var(--color-warning)!important}
+.form-help-info a,
+.form-help-warning a{color:inherit;text-decoration-line:underline;text-decoration-thickness:.08em;text-underline-offset:.16em}
+.form-help-info a:hover,.form-help-info a:focus,
+.form-help-warning a:hover,.form-help-warning a:focus{color:inherit;text-decoration-thickness:.12em}
+.admin-help-modal-body a{color:var(--color-info);text-decoration-line:underline;text-decoration-thickness:.08em;text-underline-offset:.16em}
+.admin-help-modal-body a:hover,.admin-help-modal-body a:focus{color:var(--color-info-hover);text-decoration-thickness:.12em}
 .form-field>.form-help:first-child{margin-top:0}
 .form-row-label{align-items:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;min-height:calc(var(--spacing) * 9.25);padding-top:0}
 .admin-list-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px solid var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}

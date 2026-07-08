@@ -134,7 +134,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="form-help">사용하면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>
                 <?php if (!$rewardIdentityWithdrawalAvailable) { ?>
                     <p id="reward-settings-identity-unavailable" class="form-help form-help-warning">
-                        본인확인 사용이 꺼져 있거나 적립금 출금 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
+                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 적립금 출금 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
                     </p>
                 <?php } ?>
             </div>

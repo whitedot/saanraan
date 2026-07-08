@@ -1366,7 +1366,7 @@ $quizSectionNavItems = [
                     </select>
                     <p class="form-help">보상 종류가 쿠폰 발급일 때 지급할 사용 가능한 쿠폰을 선택합니다.</p>
                     <?php if ($couponRewardDefinitions === []) { ?>
-                        <p class="form-help">현재 선택 가능한 활성 쿠폰이 없습니다. 쿠폰 관리에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.</p>
+                        <p class="form-help form-help-warning">현재 선택 가능한 활성 쿠폰이 없습니다. <a href="<?php echo sr_e(sr_url('/admin/coupons')); ?>" target="_blank" rel="noopener noreferrer">쿠폰 관리</a>에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.</p>
                     <?php } ?>
                 </div>
             </div>

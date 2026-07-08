@@ -21,13 +21,13 @@ $quizIdentityViewAvailable = isset($quizIdentityViewAvailable)
 $quizIdentityViewAdultAvailable = isset($quizIdentityViewAdultAvailable)
     ? (bool) $quizIdentityViewAdultAvailable
     : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'quiz.view.adult'));
-$quizIdentityUnavailable = !$quizIdentityViewAvailable || !$quizIdentityViewAdultAvailable;
+$quizIdentityUnavailable = !$quizIdentityViewAvailable;
 $quizIdentityViewInputAttributes = $quizIdentityViewAvailable
     ? ''
     : ' disabled aria-describedby="quiz-settings-identity-unavailable"';
 $quizIdentityViewAdultInputAttributes = $quizIdentityViewAdultAvailable
     ? ''
-    : ' disabled aria-describedby="quiz-settings-identity-unavailable"';
+    : ' disabled aria-describedby="quiz-settings-identity-adult-unavailable"';
 $quizReactionAvailable = isset($quizReactionAvailable)
     ? (bool) $quizReactionAvailable
     : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
@@ -154,8 +154,7 @@ $quizSettingsHelp = [
         'title' => '기본 보상 쿠폰',
         'body_html' => $quizSettingsHelpBodyHtml([
             '보상 종류가 쿠폰 발급일 때 지급할 쿠폰입니다.',
-            '쿠폰 관리에 등록되어 있고 활성 상태이며 사용 기간 안에 있는 쿠폰만 선택할 수 있습니다.',
-        ]),
+        ]) . '<p><a href="' . sr_e(sr_url('/admin/coupons')) . '" target="_blank" rel="noopener noreferrer">쿠폰 관리</a>에 등록되어 있고 활성 상태이며 사용 기간 안에 있는 쿠폰만 선택할 수 있습니다.</p>',
     ],
     'default_reward_amount' => [
         'id' => 'quiz-settings-help-default-reward-amount',
@@ -413,7 +412,7 @@ $quizSettingsSectionNavItems = [
                     </select>
                     <p class="form-help">개별 퀴즈에서 값을 비워두면 이 값을 사용합니다.</p>
                     <?php if (!$quizReactionAvailable) { ?>
-                        <p id="quiz-settings-reaction-unavailable" class="form-help form-help-warning">리액션 모듈을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</p>
+                        <p id="quiz-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</p>
                     <?php } ?>
                 </div>
             </div>
@@ -476,7 +475,7 @@ $quizSettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <?php if ($couponRewardDefinitions === []) { ?>
-                        <p class="form-help">현재 선택 가능한 활성 쿠폰이 없습니다.</p>
+                        <p class="form-help form-help-warning">현재 선택 가능한 활성 쿠폰이 없습니다. <a href="<?php echo sr_e(sr_url('/admin/coupons')); ?>" target="_blank" rel="noopener noreferrer">쿠폰 관리</a>에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.</p>
                     <?php } ?>
                 </div>
             </div>
@@ -543,7 +542,7 @@ $quizSettingsSectionNavItems = [
                 <p class="form-help">사용하면 퀴즈 상세와 응시 전에 본인확인을 요구합니다.</p>
                 <?php if ($quizIdentityUnavailable) { ?>
                     <p id="quiz-settings-identity-unavailable" class="form-help form-help-warning">
-                        본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
                     </p>
                 <?php } ?>
             </div>
@@ -552,7 +551,11 @@ $quizSettingsSectionNavItems = [
             <span class="form-label">퀴즈 참여 성인 본인확인</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('quiz_settings_identity_view_adult_required', 'identity_view_adult_required', '1', $quizIdentityViewAdultAvailable && !empty($settings['identity_view_adult_required']), '사용', '', $quizIdentityViewAdultInputAttributes); ?>
-                <p class="form-help">사용하면 성인 여부가 확인된 본인확인 결과가 있어야 퀴즈에 접근할 수 있습니다. 본인확인 환경설정의 생년월일 사용이 켜져 있어야 저장할 수 있습니다.</p>
+                <?php if ($quizIdentityViewAdultAvailable) { ?>
+                    <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 퀴즈에 접근할 수 있습니다.</p>
+                <?php } else { ?>
+                    <p id="quiz-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 퀴즈 성인 참여 목적 제공자를 설정하세요.</p>
+                <?php } ?>
             </div>
         </div>
     </section>

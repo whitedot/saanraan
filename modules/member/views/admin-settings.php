@@ -195,7 +195,7 @@ $memberSettingsSectionNavItems = [
                     <small class="form-help">필수는 가입 전 본인확인을 완료해야 가입할 수 있고, 선택은 가입 화면에 본인확인 버튼만 표시합니다.</small>
                     <?php if ($memberIdentityUnavailable) { ?>
                         <p id="member-settings-identity-unavailable" class="form-help form-help-warning">
-                            본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                            <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
                         </p>
                     <?php } ?>
                 </div>
@@ -320,7 +320,7 @@ $memberSettingsSectionNavItems = [
 
     <section id="member-settings-section-mfa" class="card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.mfa_totp.title')); ?></h2>
-        <p class="form-help">운영자가 허용한 방식으로만 로그인 2차 인증을 진행합니다. 이메일 인증 코드는 바로 사용할 수 있고, SMS나 다른 인증 방식은 해당 기능을 제공하는 모듈을 켜면 선택 항목에 표시됩니다.</p>
+        <p class="form-help form-help-info">운영자가 허용한 방식으로만 로그인 2차 인증을 진행합니다. 이메일 인증 코드는 바로 사용할 수 있고, SMS나 다른 인증 방식은 <a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">모듈 관리</a>에서 해당 기능을 제공하는 모듈을 켜면 선택 항목에 표시됩니다.</p>
         <div class="form-row">
             <span class="form-label">로그인 2차 인증 정책</span>
             <div class="form-field">
