@@ -716,21 +716,22 @@ function sr_community_group_keys_from_setting(mixed $value): array
 
 function sr_community_level_tables_exist(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $pdo->query('SELECT 1 FROM sr_community_levels LIMIT 1');
         $pdo->query('SELECT 1 FROM sr_community_account_levels LIMIT 1');
         $pdo->query('SELECT 1 FROM sr_community_level_logs LIMIT 1');
-        $exists = true;
+        $existsByPdo[$cacheKey] = true;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_community_level_recalculate_job_create(PDO $pdo, int $accountId, int $total, int $batchSize): array

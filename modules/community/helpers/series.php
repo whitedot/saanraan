@@ -54,36 +54,38 @@ function sr_community_series_post_sort_order(string $key = 'series_sort_order'):
 
 function sr_community_series_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $pdo->query('SELECT 1 FROM sr_community_series LIMIT 1');
-        $exists = true;
+        $existsByPdo[$cacheKey] = true;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_community_series_items_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $pdo->query('SELECT 1 FROM sr_community_series_items LIMIT 1');
-        $exists = true;
+        $existsByPdo[$cacheKey] = true;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_community_series_feature_enabled(PDO $pdo): bool
@@ -126,19 +128,20 @@ function sr_community_series_available_for_board(PDO $pdo, array $board, ?array 
 
 function sr_community_series_scraps_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $pdo->query('SELECT 1 FROM sr_community_series_scraps LIMIT 1');
-        $exists = true;
+        $existsByPdo[$cacheKey] = true;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_community_series_scraps_supported(PDO $pdo): bool

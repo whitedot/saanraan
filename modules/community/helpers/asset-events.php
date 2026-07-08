@@ -160,19 +160,20 @@ function sr_community_has_coupon_access_history(PDO $pdo, int $accountId, string
 
 function sr_community_access_entitlements_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $stmt = $pdo->query('SELECT 1 FROM sr_community_access_entitlements LIMIT 1');
-        $exists = $stmt !== false;
+        $existsByPdo[$cacheKey] = $stmt !== false;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_community_grant_access_entitlement(PDO $pdo, int $accountId, string $subjectType, int $subjectId, string $eventKey, string $sourceKind, string $sourceAssetModule = '', string $sourceChargePolicy = 'once', string $sourceReference = ''): void
@@ -2503,18 +2504,19 @@ function sr_community_payment_history_table_exists(PDO $pdo, string $tableName):
     if (!preg_match('/\Asr_[a-z0-9_]+\z/', $tableName)) {
         return false;
     }
-    if (array_key_exists($tableName, $cache)) {
-        return $cache[$tableName];
+    $cacheKey = (string) spl_object_id($pdo) . ':' . $tableName;
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
     }
 
     try {
         $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
-        $cache[$tableName] = true;
+        $cache[$cacheKey] = true;
     } catch (Throwable) {
-        $cache[$tableName] = false;
+        $cache[$cacheKey] = false;
     }
 
-    return $cache[$tableName];
+    return $cache[$cacheKey];
 }
 
 function sr_community_admin_payment_history_sort_options(): array

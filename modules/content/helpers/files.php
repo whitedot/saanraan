@@ -669,19 +669,20 @@ function sr_content_admin_download_file_by_id(PDO $pdo, int $fileId): ?array
 
 function sr_content_file_download_logs_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $stmt = $pdo->query('SELECT 1 FROM sr_content_file_download_logs LIMIT 1');
-        $exists = $stmt !== false;
+        $existsByPdo[$cacheKey] = $stmt !== false;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_content_file_download_log_columns(PDO $pdo): array

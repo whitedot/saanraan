@@ -158,19 +158,20 @@ function sr_content_has_coupon_access_history(PDO $pdo, int $pageId, int $accoun
 
 function sr_content_access_entitlements_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $stmt = $pdo->query('SELECT 1 FROM sr_content_access_entitlements LIMIT 1');
-        $exists = $stmt !== false;
+        $existsByPdo[$cacheKey] = $stmt !== false;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_content_access_entitlement_subject_type(string $accessKind): string
@@ -1986,19 +1987,20 @@ function sr_content_admin_payment_history_filters_from_request(PDO $pdo): array
 
 function sr_content_view_payment_logs_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $pdo->query('SELECT 1 FROM sr_content_view_payment_logs LIMIT 1');
-        $exists = true;
+        $existsByPdo[$cacheKey] = true;
     } catch (Throwable) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_content_admin_payment_history_sources(PDO $pdo): array

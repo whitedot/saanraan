@@ -468,7 +468,6 @@ function sr_privacy_cleanup_runtime_check_community_optional_post_read_payment_t
     $pdo->exec('CREATE TABLE sr_community_level_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_access_entitlements (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, source_reference TEXT NOT NULL, anonymized_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL, extra_values_json TEXT NOT NULL DEFAULT "[]", updated_at TEXT NOT NULL DEFAULT "")');
-    $pdo->exec('CREATE TABLE sr_community_post_field_values (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, cleanup_policy_snapshot TEXT NOT NULL, value_text TEXT NULL, value_json TEXT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_series (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL, updated_by INTEGER NULL, moderated_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
@@ -477,7 +476,59 @@ function sr_privacy_cleanup_runtime_check_community_optional_post_read_payment_t
 
     $result = $cleanup($pdo, 7, ['event_type' => 'withdrawal']);
     sr_privacy_cleanup_runtime_assert(is_array($result) && ($result['cleaned'] ?? null) === true, 'community cleanup must tolerate missing optional post read payment table.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['community_post_field_values_anonymized_count'] ?? -1) === 0, 'community cleanup must report zero post field value cleanup count when the table is absent.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_post_read_payment_log_anonymized_count'] ?? -1) === 0, 'community cleanup must report zero post read payment cleanup count when the table is absent.');
+}
+
+function sr_privacy_cleanup_runtime_check_table_exists_cache_scope(): void
+{
+    require_once SR_ROOT . '/modules/content/helpers.php';
+    require_once SR_ROOT . '/modules/content/helpers/asset-access.php';
+    require_once SR_ROOT . '/modules/community/helpers.php';
+    require_once SR_ROOT . '/modules/community/helpers/asset-events.php';
+
+    $contentPdo = sr_privacy_cleanup_runtime_pdo();
+    $contentPdo->exec('CREATE TABLE sr_content_access_entitlements (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $contentPdo->exec('CREATE TABLE sr_content_file_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $contentPdo->exec('CREATE TABLE sr_content_view_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    sr_privacy_cleanup_runtime_assert(sr_content_access_entitlements_table_exists($contentPdo), 'content access entitlement table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_content_file_download_logs_table_exists($contentPdo), 'content file download table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_content_view_payment_logs_table_exists($contentPdo), 'content view payment table cache must detect present table.');
+
+    $contentMissingPdo = sr_privacy_cleanup_runtime_pdo();
+    sr_privacy_cleanup_runtime_assert(!sr_content_access_entitlements_table_exists($contentMissingPdo), 'content access entitlement table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_content_file_download_logs_table_exists($contentMissingPdo), 'content file download table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_content_view_payment_logs_table_exists($contentMissingPdo), 'content view payment table cache must be scoped per PDO.');
+
+    $communityPdo = sr_privacy_cleanup_runtime_pdo();
+    $communityPdo->exec('CREATE TABLE sr_community_access_entitlements (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_levels (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_account_levels (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_level_logs (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_post_read_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_post_field_values (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_series (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $communityPdo->exec('CREATE TABLE sr_community_submission_consents (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    sr_privacy_cleanup_runtime_assert(sr_community_access_entitlements_table_exists($communityPdo), 'community access entitlement table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_community_level_tables_exist($communityPdo), 'community level table cache must detect present tables.');
+    sr_privacy_cleanup_runtime_assert(sr_community_payment_history_table_exists($communityPdo, 'sr_community_post_read_payment_logs'), 'community payment history table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_community_post_field_values_table_exists($communityPdo), 'community post field value table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_community_series_table_exists($communityPdo), 'community series table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_community_series_items_table_exists($communityPdo), 'community series item table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_community_series_scraps_table_exists($communityPdo), 'community series scrap table cache must detect present table.');
+    sr_privacy_cleanup_runtime_assert(sr_community_submission_consents_table_exists($communityPdo), 'community submission consent table cache must detect present table.');
+
+    $communityMissingPdo = sr_privacy_cleanup_runtime_pdo();
+    sr_privacy_cleanup_runtime_assert(!sr_community_access_entitlements_table_exists($communityMissingPdo), 'community access entitlement table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_community_level_tables_exist($communityMissingPdo), 'community level table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_community_payment_history_table_exists($communityMissingPdo, 'sr_community_post_read_payment_logs'), 'community payment history table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_community_post_field_values_table_exists($communityMissingPdo), 'community post field value table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_community_series_table_exists($communityMissingPdo), 'community series table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_community_series_items_table_exists($communityMissingPdo), 'community series item table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_community_series_scraps_table_exists($communityMissingPdo), 'community series scrap table cache must be scoped per PDO.');
+    sr_privacy_cleanup_runtime_assert(!sr_community_submission_consents_table_exists($communityMissingPdo), 'community submission consent table cache must be scoped per PDO.');
 }
 
 function sr_privacy_cleanup_runtime_check_notification(): void
@@ -728,6 +779,7 @@ sr_privacy_cleanup_runtime_check_content();
 sr_privacy_cleanup_runtime_check_content_optional_view_payment_table();
 sr_privacy_cleanup_runtime_check_community();
 sr_privacy_cleanup_runtime_check_community_optional_post_read_payment_table();
+sr_privacy_cleanup_runtime_check_table_exists_cache_scope();
 sr_privacy_cleanup_runtime_check_notification();
 sr_privacy_cleanup_runtime_check_policy_documents();
 sr_privacy_cleanup_runtime_check_payment_ledger();

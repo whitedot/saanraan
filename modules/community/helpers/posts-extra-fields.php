@@ -14,7 +14,20 @@ function sr_community_board_field_definitions_table_exists(PDO $pdo): bool
 
 function sr_community_post_field_values_table_exists(PDO $pdo): bool
 {
-    return true;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM sr_community_post_field_values LIMIT 1');
+        $existsByPdo[$cacheKey] = true;
+    } catch (Throwable $exception) {
+        $existsByPdo[$cacheKey] = false;
+    }
+
+    return $existsByPdo[$cacheKey];
 }
 
 function sr_community_extra_field_type(string $type): string

@@ -478,17 +478,18 @@ function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $ac
 
 function sr_community_submission_consents_table_exists(PDO $pdo): bool
 {
-    static $exists = null;
-    if ($exists !== null) {
-        return $exists;
+    static $existsByPdo = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $existsByPdo)) {
+        return $existsByPdo[$cacheKey];
     }
 
     try {
         $stmt = $pdo->query('SELECT 1 FROM sr_community_submission_consents LIMIT 1');
-        $exists = $stmt !== false;
+        $existsByPdo[$cacheKey] = $stmt !== false;
     } catch (Throwable $exception) {
-        $exists = false;
+        $existsByPdo[$cacheKey] = false;
     }
 
-    return $exists;
+    return $existsByPdo[$cacheKey];
 }
