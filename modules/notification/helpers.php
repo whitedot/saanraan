@@ -492,7 +492,7 @@ function sr_notification_settings(PDO $pdo): array
     $settings['email_transport'] = in_array((string) $settings['email_transport'], ['php_mail', 'smtp', 'http_api'], true) ? (string) $settings['email_transport'] : 'php_mail';
     $settings['email_smtp_port'] = max(1, min(65535, (int) $settings['email_smtp_port']));
     $settings['email_smtp_encryption'] = in_array((string) $settings['email_smtp_encryption'], ['none', 'tls', 'ssl'], true) ? (string) $settings['email_smtp_encryption'] : 'tls';
-    $settings['email_timeout_seconds'] = max(3, min(30, (int) $settings['email_timeout_seconds']));
+    $settings['email_timeout_seconds'] = max(3, min(180, (int) $settings['email_timeout_seconds']));
     $settings['external_push_enabled'] = (bool) $settings['external_push_enabled'];
     $settings['slack_webhook_enabled'] = (bool) $settings['slack_webhook_enabled'];
     $settings['slack_webhook_url'] = sr_notification_clean_setting_value((string) $settings['slack_webhook_url'], 255);

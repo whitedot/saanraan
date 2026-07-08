@@ -69,14 +69,19 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <label class="form-label" for="notification_admin_settings_email_timeout_seconds">타임아웃 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
-                <input id="notification_admin_settings_email_timeout_seconds" type="number" name="email_timeout_seconds" value="<?php echo sr_e((string) $settings['email_timeout_seconds']); ?>" min="3" max="30" class="form-input" required>
-                <small class="form-help">초 단위입니다. 3부터 30까지 입력합니다.</small>
+                <input id="notification_admin_settings_email_timeout_seconds" type="number" name="email_timeout_seconds" value="<?php echo sr_e((string) $settings['email_timeout_seconds']); ?>" min="3" max="180" class="form-input" required>
+                <small class="form-help">초 단위입니다. 3부터 180까지 입력합니다.</small>
             </div>
         </div>
     </section>
 
     <section id="notification-settings-section-smtp" class="card" data-admin-section-anchor>
-        <h2>SMTP</h2>
+        <h2>
+            <span>SMTP</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="notification-smtp-test-email-modal" data-overlay="#notification-smtp-test-email-modal">
+                테스트 메일
+            </button>
+        </h2>
         <div class="form-row">
             <label class="form-label" for="notification_admin_settings_email_smtp_host">호스트 <span class="sr-required-label" data-notification-smtp-host-required hidden>(필수)</span></label>
             <div class="form-field">
@@ -110,7 +115,7 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <label class="form-label" for="notification_admin_settings_email_smtp_password">비밀번호</label>
             <div class="form-field">
-                <input id="notification_admin_settings_email_smtp_password" type="password" name="email_smtp_password" value="" maxlength="255" class="form-input form-control-full" autocomplete="new-password">
+                <input id="notification_admin_settings_email_smtp_password" type="password" name="email_smtp_password" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['email_smtp_password'])); ?>" class="form-input form-control-full" autocomplete="new-password">
                 <small class="form-help">비워두면 기존 저장값을 유지합니다.</small>
             </div>
         </div>
@@ -128,7 +133,7 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <label class="form-label" for="notification_admin_settings_email_http_api_bearer_token">인증 토큰</label>
             <div class="form-field">
-                <input id="notification_admin_settings_email_http_api_bearer_token" type="password" name="email_http_api_bearer_token" value="" maxlength="255" class="form-input form-control-full" autocomplete="new-password">
+                <input id="notification_admin_settings_email_http_api_bearer_token" type="password" name="email_http_api_bearer_token" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['email_http_api_bearer_token'])); ?>" class="form-input form-control-full" autocomplete="new-password">
                 <small class="form-help">비워두면 기존 저장값을 유지합니다.</small>
             </div>
         </div>
@@ -279,6 +284,34 @@ $notificationSettingsSectionNavItems = [
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
+
+<div id="notification-smtp-test-email-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="notification-smtp-test-email-modal-title" aria-hidden="true" inert>
+    <div class="modal-dialog">
+        <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/settings')); ?>" class="modal-content ui-form-theme">
+            <div class="modal-header">
+                <h3 id="notification-smtp-test-email-modal-title" class="modal-title">테스트 메일 발송</h3>
+                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#notification-smtp-test-email-modal">
+                    <?php echo sr_material_icon_html('close'); ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <?php echo sr_csrf_field(); ?>
+                <input type="hidden" name="intent" value="test_email">
+                <div class="form-row">
+                    <label class="form-label" for="notification_smtp_test_email_recipient">수신 이메일 <span class="sr-required-label">(필수)</span></label>
+                    <div class="form-field">
+                        <input id="notification_smtp_test_email_recipient" type="email" name="test_email_recipient" maxlength="255" class="form-input form-control-full" autocomplete="email" required data-overlay-focus>
+                        <small class="form-help">현재 저장된 SMTP 설정으로 발송합니다.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#notification-smtp-test-email-modal">취소</button>
+                <button type="submit" class="btn btn-solid-primary modal-action">발송</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 (function () {

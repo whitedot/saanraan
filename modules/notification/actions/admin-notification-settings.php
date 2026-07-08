@@ -21,13 +21,81 @@ if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/notifications/settings', 'edit');
 
     $intent = sr_post_string('intent', 40);
+    if ($intent === 'test_email') {
+        $recipient = sr_normalize_identifier(sr_post_string('test_email_recipient', 255));
+        $testErrors = [];
+        $testNotice = '';
+
+        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            $testErrors[] = '테스트 메일을 받을 이메일 주소가 올바르지 않습니다.';
+        }
+        if ((string) ($settings['email_transport'] ?? '') !== 'smtp') {
+            $testErrors[] = '테스트 메일은 발송 방식이 SMTP일 때 보낼 수 있습니다.';
+        }
+        if ((string) ($settings['email_from_email'] ?? '') === '' || !filter_var((string) ($settings['email_from_email'] ?? ''), FILTER_VALIDATE_EMAIL)) {
+            $testErrors[] = 'SMTP 테스트 발송에는 올바른 발신 이메일이 필요합니다.';
+        }
+        if (trim((string) ($settings['email_smtp_host'] ?? '')) === '') {
+            $testErrors[] = 'SMTP 호스트를 먼저 저장하세요.';
+        }
+        if ((int) ($settings['email_smtp_port'] ?? 0) < 1 || (int) ($settings['email_smtp_port'] ?? 0) > 65535) {
+            $testErrors[] = 'SMTP 포트는 1부터 65535 사이여야 합니다.';
+        }
+        if (!array_key_exists((string) ($settings['email_smtp_encryption'] ?? ''), sr_notification_email_encryption_options())) {
+            $testErrors[] = 'SMTP 암호화 방식을 먼저 저장하세요.';
+        }
+
+        if ($testErrors === []) {
+            $smtpError = '';
+            $sent = sr_send_smtp_mail(
+                is_array($site ?? null) ? $site : null,
+                sr_notification_mail_config_from_settings($settings),
+                $recipient,
+                '[Saanraan] SMTP 테스트 메일',
+                "SMTP 테스트 메일입니다.\n\n이 메일을 받았다면 현재 저장된 SMTP 설정으로 메일 발송이 가능합니다.",
+                $smtpError
+            );
+
+            if ($sent) {
+                $testNotice = '테스트 메일을 발송했습니다.';
+            } else {
+                $smtpError = trim($smtpError);
+                $testErrors[] = $smtpError !== ''
+                    ? '테스트 메일을 발송하지 못했습니다. 원인: ' . $smtpError
+                    : '테스트 메일을 발송하지 못했습니다. SMTP 설정과 서버 로그를 확인해 주세요.';
+                sr_log_exception(
+                    new RuntimeException('SMTP test email failed: ' . ($smtpError !== '' ? $smtpError : 'unknown')),
+                    'notification_smtp_test_email_failed'
+                );
+            }
+
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'notification.settings.test_email_sent',
+                'target_type' => 'module',
+                'target_id' => 'notification',
+                'result' => $sent ? 'success' : 'failure',
+                'message' => $sent ? 'Notification SMTP test email sent.' : 'Notification SMTP test email failed.',
+                'metadata' => [
+                    'email_transport' => (string) ($settings['email_transport'] ?? ''),
+                    'recipient_domain' => (string) substr(strrchr($recipient, '@') ?: '', 1),
+                ],
+            ]);
+        }
+
+        sr_admin_redirect_with_result(sr_admin_action_result($testErrors, $testNotice), '/admin/notifications/settings');
+    }
+
     if ($intent !== 'save_settings') {
         $errors[] = '요청한 작업을 처리할 수 없습니다.';
     }
 
     $existingSettings = $settings;
-    $emailSmtpPassword = sr_post_string('email_smtp_password', 255);
-    $emailHttpApiBearerToken = sr_post_string('email_http_api_bearer_token', 255);
+    $emailSmtpPasswordInput = sr_post_string_without_truncation('email_smtp_password', 255);
+    $emailHttpApiBearerTokenInput = sr_post_string_without_truncation('email_http_api_bearer_token', 255);
+    $emailSmtpPassword = is_string($emailSmtpPasswordInput) ? trim($emailSmtpPasswordInput) : '';
+    $emailHttpApiBearerToken = is_string($emailHttpApiBearerTokenInput) ? trim($emailHttpApiBearerTokenInput) : '';
     $slackWebhookUrlInput = sr_post_string_without_truncation('slack_webhook_url', 255);
     $discordWebhookUrlInput = sr_post_string_without_truncation('discord_webhook_url', 255);
     $telegramBotTokenInput = sr_post_string_without_truncation('telegram_bot_token', 255);
@@ -68,6 +136,12 @@ if (sr_request_method() === 'POST') {
     if (!array_key_exists($settings['email_transport'], sr_notification_email_transport_options())) {
         $errors[] = '메일 발송 방식을 선택하세요.';
     }
+    if ($emailSmtpPasswordInput === null) {
+        $errors[] = 'SMTP 비밀번호는 255자 이내로 입력하세요.';
+    }
+    if ($emailHttpApiBearerTokenInput === null) {
+        $errors[] = '메일 API 인증 토큰은 255자 이내로 입력하세요.';
+    }
     if ($settings['email_from_email'] !== '' && !filter_var($settings['email_from_email'], FILTER_VALIDATE_EMAIL)) {
         $errors[] = '발신 이메일 주소가 올바르지 않습니다.';
     }
@@ -77,8 +151,8 @@ if (sr_request_method() === 'POST') {
     if (!array_key_exists($settings['email_smtp_encryption'], sr_notification_email_encryption_options())) {
         $errors[] = 'SMTP 암호화 방식을 선택하세요.';
     }
-    if ($settings['email_timeout_seconds'] < 3 || $settings['email_timeout_seconds'] > 30) {
-        $errors[] = '메일 타임아웃은 3초부터 30초 사이로 입력하세요.';
+    if ($settings['email_timeout_seconds'] < 3 || $settings['email_timeout_seconds'] > 180) {
+        $errors[] = '메일 타임아웃은 3초부터 180초 사이로 입력하세요.';
     }
     if ($settings['delivery_web_runner_interval_seconds'] < 10 || $settings['delivery_web_runner_interval_seconds'] > 3600) {
         $errors[] = '웹 자동 실행 간격은 10초부터 3600초 사이로 입력하세요.';

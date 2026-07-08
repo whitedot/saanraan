@@ -1094,19 +1094,22 @@ function sr_mail_from_address(?array $site, array $mailConfig): string
     return 'no-reply@' . preg_replace('/[^A-Za-z0-9.-]/', '', $host);
 }
 
-function sr_send_smtp_mail(?array $site, array $mailConfig, string $to, string $subject, string $body): bool
+function sr_send_smtp_mail(?array $site, array $mailConfig, string $to, string $subject, string $body, ?string &$error = null): bool
 {
+    $error = '';
     $host = (string) ($mailConfig['host'] ?? '');
     $port = (int) ($mailConfig['port'] ?? 587);
     if ($host === '' || $port < 1 || $port > 65535) {
+        $error = 'SMTP host or port is invalid.';
         return false;
     }
 
     $encryption = strtolower((string) ($mailConfig['encryption'] ?? 'tls'));
     $remote = ($encryption === 'ssl' ? 'ssl://' : '') . $host . ':' . $port;
-    $timeout = max(3, min(30, (int) ($mailConfig['timeout_seconds'] ?? 10)));
+    $timeout = max(3, min(180, (int) ($mailConfig['timeout_seconds'] ?? 10)));
     $socket = @stream_socket_client($remote, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT);
     if (!is_resource($socket)) {
+        $error = 'SMTP connection failed: ' . trim((string) ($errstr !== '' ? $errstr : ('error ' . (string) $errno)));
         return false;
     }
 
@@ -1125,27 +1128,33 @@ function sr_send_smtp_mail(?array $site, array $mailConfig, string $to, string $
     $message = implode("\r\n", $headers) . "\r\n\r\n" . str_replace(["\r\n", "\r"], "\n", $body);
 
     try {
-        if (!sr_smtp_expect($socket, [220])) {
+        $smtpResponse = '';
+        if (!sr_smtp_expect($socket, [220], $smtpResponse)) {
+            $error = 'SMTP greeting failed: ' . $smtpResponse;
             fclose($socket);
             return false;
         }
 
         $serverName = sr_smtp_server_name();
-        if (!sr_smtp_command($socket, 'EHLO ' . $serverName, [250])) {
+        if (!sr_smtp_command($socket, 'EHLO ' . $serverName, [250], $smtpResponse)) {
+            $error = 'SMTP EHLO failed: ' . $smtpResponse;
             fclose($socket);
             return false;
         }
 
         if ($encryption === 'tls') {
-            if (!sr_smtp_command($socket, 'STARTTLS', [220])) {
+            if (!sr_smtp_command($socket, 'STARTTLS', [220], $smtpResponse)) {
+                $error = 'SMTP STARTTLS failed: ' . $smtpResponse;
                 fclose($socket);
                 return false;
             }
             if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                $error = 'SMTP TLS negotiation failed.';
                 fclose($socket);
                 return false;
             }
-            if (!sr_smtp_command($socket, 'EHLO ' . $serverName, [250])) {
+            if (!sr_smtp_command($socket, 'EHLO ' . $serverName, [250], $smtpResponse)) {
+                $error = 'SMTP EHLO after STARTTLS failed: ' . $smtpResponse;
                 fclose($socket);
                 return false;
             }
@@ -1155,26 +1164,40 @@ function sr_send_smtp_mail(?array $site, array $mailConfig, string $to, string $
         $password = (string) ($mailConfig['password'] ?? '');
         if ($username !== '') {
             if (
-                !sr_smtp_command($socket, 'AUTH LOGIN', [334])
-                || !sr_smtp_command($socket, base64_encode($username), [334])
-                || !sr_smtp_command($socket, base64_encode($password), [235])
+                !sr_smtp_command($socket, 'AUTH LOGIN', [334], $smtpResponse)
+                || !sr_smtp_command($socket, base64_encode($username), [334], $smtpResponse)
+                || !sr_smtp_command($socket, base64_encode($password), [235], $smtpResponse)
             ) {
+                $error = 'SMTP authentication failed: ' . $smtpResponse;
                 fclose($socket);
                 return false;
             }
         }
 
-        $ok = sr_smtp_command($socket, 'MAIL FROM:<' . $from . '>', [250])
-            && sr_smtp_command($socket, 'RCPT TO:<' . $to . '>', [250, 251])
-            && sr_smtp_command($socket, 'DATA', [354])
-            && sr_smtp_command($socket, sr_smtp_dot_stuff($message) . "\r\n.", [250])
-            && sr_smtp_command($socket, 'QUIT', [221]);
+        $ok = true;
+        if (!sr_smtp_command($socket, 'MAIL FROM:<' . $from . '>', [250], $smtpResponse)) {
+            $error = 'SMTP MAIL FROM failed: ' . $smtpResponse;
+            $ok = false;
+        } elseif (!sr_smtp_command($socket, 'RCPT TO:<' . $to . '>', [250, 251], $smtpResponse)) {
+            $error = 'SMTP RCPT TO failed: ' . $smtpResponse;
+            $ok = false;
+        } elseif (!sr_smtp_command($socket, 'DATA', [354], $smtpResponse)) {
+            $error = 'SMTP DATA failed: ' . $smtpResponse;
+            $ok = false;
+        } elseif (!sr_smtp_command($socket, sr_smtp_dot_stuff($message) . "\r\n.", [250], $smtpResponse)) {
+            $error = 'SMTP message body failed: ' . $smtpResponse;
+            $ok = false;
+        } elseif (!sr_smtp_command($socket, 'QUIT', [221], $smtpResponse)) {
+            $error = 'SMTP QUIT failed: ' . $smtpResponse;
+            $ok = false;
+        }
         fclose($socket);
         return $ok;
     } catch (Throwable $exception) {
         if (is_resource($socket)) {
             fclose($socket);
         }
+        $error = 'SMTP send exception: ' . $exception->getMessage();
         return false;
     }
 }
@@ -1217,7 +1240,7 @@ function sr_send_http_api_mail(array $mailConfig, string $to, string $subject, s
     $context = stream_context_create([
         'http' => [
             'method' => 'POST',
-            'timeout' => max(3, min(30, (int) ($mailConfig['timeout_seconds'] ?? 10))),
+            'timeout' => max(3, min(180, (int) ($mailConfig['timeout_seconds'] ?? 10))),
             'ignore_errors' => true,
             'follow_location' => 0,
             'max_redirects' => 0,
@@ -1278,23 +1301,29 @@ function sr_smtp_server_name(): string
     return 'localhost';
 }
 
-function sr_smtp_command($socket, string $command, array $expectedCodes): bool
+function sr_smtp_command($socket, string $command, array $expectedCodes, ?string &$lastResponse = null): bool
 {
     fwrite($socket, $command . "\r\n");
-    return sr_smtp_expect($socket, $expectedCodes);
+    return sr_smtp_expect($socket, $expectedCodes, $lastResponse);
 }
 
-function sr_smtp_expect($socket, array $expectedCodes): bool
+function sr_smtp_expect($socket, array $expectedCodes, ?string &$lastResponse = null): bool
 {
     $lastCode = 0;
+    $lastResponse = '';
     while (($line = fgets($socket, 515)) !== false) {
         if (preg_match('/\A(\d{3})([\s-])/', $line, $matches) !== 1) {
             continue;
         }
         $lastCode = (int) $matches[1];
+        $lastResponse = trim($line);
         if ((string) $matches[2] === ' ') {
             break;
         }
+    }
+
+    if ($lastResponse === '') {
+        $lastResponse = 'no SMTP response';
     }
 
     return in_array($lastCode, $expectedCodes, true);

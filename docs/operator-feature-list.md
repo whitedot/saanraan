@@ -339,7 +339,7 @@
 | 사이트 알림 | 개별 회원 또는 전체 회원에게 전달할 알림을 사이트 안에 남길 수 있어 이메일 없이도 중요한 처리 결과를 계정 영역에서 확인하게 한다. | 사이트 알림 생성, 개별/전체 회원 대상, 관리자 알림 목록 |
 | 회원 알림함 | 회원이 자신에게 온 알림을 모아 보고 읽음 처리할 수 있어 신청, 자산, 쿠폰 상태 변화가 흩어지지 않는다. | 공개 상단 알림 드롭다운, 회원 알림 목록, 알림 읽음 처리 |
 | 이메일 발송 대기열 | 이메일 발송을 대기열 형태로 기록해 즉시 발송 실패가 전체 처리 흐름을 망가뜨리지 않게 한다. | 이메일 발송 대기열, 알림 발송 작업 상태 조회 |
-| 이메일 발송 방식 | SMTP 또는 HTTP API 방식의 이메일 발송 정보를 저장해 호스팅 환경이나 외부 발송 서비스에 맞춰 전달 채널을 선택한다. | 이메일 채널 사용 설정, SMTP 설정, HTTP API endpoint, Bearer token, timeout |
+| 이메일 발송 방식 | SMTP 또는 HTTP API 방식의 이메일 발송 정보를 저장해 호스팅 환경이나 외부 발송 서비스에 맞춰 전달 채널을 선택하고, 저장된 SMTP 설정으로 테스트 메일을 보내 연결 상태를 확인한다. | 이메일 채널 사용 설정, SMTP 설정, SMTP 테스트 메일, secret 마스킹, HTTP API endpoint, Bearer token, timeout 최대 180초 |
 | 발송 상태 관리 | 외부 발송 작업의 수신자, provider message ID, 오류 메시지, 상태를 조회하고 실패/취소된 작업은 재시도 대기열로 되돌리거나 대기/실패 작업을 취소해 발송 지연을 추적한다. | 발송 작업 필터, queued/sent/failed/canceled 상태, 재시도/취소 전이, provider ID, 오류 메시지 |
 | 운영 push 채널 | 관리자 운영 알림은 사이트 내부 알림과 별개로 Slack, Discord, Telegram 같은 외부 채널 발송 대기열에 연결할 수 있다. | 운영 알림 외부 채널, Slack webhook, Discord webhook, Telegram bot, 채널별 실패 정책, secret 마스킹 |
 | 회원 Telegram 연결 | 회원이 Telegram push endpoint를 연결하거나 해제할 수 있고, 연결 해제 시 남은 delivery 참조를 취소해 더 이상 보내지 않게 한다. | Telegram endpoint 암호화 저장, 연결/해제 재인증, 발송 전 endpoint 재검증, cleanup ciphertext 제거 |
