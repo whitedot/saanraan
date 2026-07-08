@@ -597,6 +597,66 @@ function sr_privacy_cleanup_runtime_check_reward(): void
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT admin_note FROM sr_reward_withdrawal_requests WHERE id = 2') === 'admin8', 'reward cleanup must not alter other account withdrawal notes.');
 }
 
+function sr_privacy_cleanup_runtime_check_deposit(): void
+{
+    $cleanup = include 'modules/deposit/privacy-cleanup.php';
+    if (!is_callable($cleanup)) {
+        sr_privacy_cleanup_runtime_error('deposit privacy cleanup contract is not callable.');
+        return;
+    }
+
+    $pdo = sr_privacy_cleanup_runtime_pdo();
+    $pdo->exec(
+        'CREATE TABLE sr_deposit_refund_requests (
+            id INTEGER PRIMARY KEY,
+            account_id INTEGER NOT NULL,
+            amount INTEGER NOT NULL,
+            bank_name TEXT NOT NULL,
+            bank_account_number TEXT NOT NULL,
+            bank_account_holder TEXT NOT NULL,
+            requester_note TEXT NOT NULL,
+            status TEXT NOT NULL,
+            admin_note TEXT NOT NULL,
+            transaction_id INTEGER NULL,
+            processed_by_account_id INTEGER NULL,
+            requested_at TEXT NOT NULL,
+            processed_at TEXT NULL,
+            updated_at TEXT NOT NULL
+        )'
+    );
+    $pdo->exec(
+        "INSERT INTO sr_deposit_refund_requests
+            (id, account_id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, admin_note, transaction_id, processed_by_account_id, requested_at, processed_at, updated_at)
+         VALUES
+            (1, 7, 6000, 'DepositBank7', '333-7', 'DepositHolder7', 'note7', 'completed', 'admin7', 1, 99, '', '', ''),
+            (2, 8, 5000, 'DepositBank8', '333-8', 'DepositHolder8', 'note8', 'pending', 'admin8', NULL, NULL, '', NULL, '')"
+    );
+
+    $invalidResult = $cleanup($pdo, 0, ['event_type' => 'member.anonymized']);
+    sr_privacy_cleanup_runtime_assert(is_array($invalidResult) && ($invalidResult['cleaned'] ?? null) === false, 'deposit cleanup must return cleaned=false for invalid account id.');
+
+    $noopResult = $cleanup($pdo, 7, ['event_type' => 'member.profile_updated']);
+    sr_privacy_cleanup_runtime_assert(is_array($noopResult) && ($noopResult['cleaned'] ?? null) === false, 'deposit cleanup must return cleaned=false for non-anonymize events.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT bank_account_number FROM sr_deposit_refund_requests WHERE id = 1') === '333-7', 'deposit cleanup must not alter refund PII on non-anonymize events.');
+
+    $result = $cleanup($pdo, 7, ['event_type' => 'member.anonymized']);
+    sr_privacy_cleanup_runtime_assert(is_array($result), 'deposit cleanup must return an array result.');
+    sr_privacy_cleanup_runtime_assert(($result['cleaned'] ?? null) === true, 'deposit cleanup result must include cleaned=true.');
+    sr_privacy_cleanup_runtime_assert(($result['event_type'] ?? '') === 'member.anonymized', 'deposit cleanup result must preserve event_type.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['deposit_refund_request_pii_cleared_count'] ?? -1) === 1, 'deposit cleanup must report refund PII cleanup count.');
+
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_deposit_refund_requests WHERE id = 1') === 7, 'deposit cleanup must retain target refund account id for financial evidence.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT amount FROM sr_deposit_refund_requests WHERE id = 1') === 6000, 'deposit cleanup must retain target refund amount.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT bank_name FROM sr_deposit_refund_requests WHERE id = 1') === '', 'deposit cleanup must clear target refund bank name.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT bank_account_number FROM sr_deposit_refund_requests WHERE id = 1') === '', 'deposit cleanup must clear target refund bank account number.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT bank_account_holder FROM sr_deposit_refund_requests WHERE id = 1') === '', 'deposit cleanup must clear target refund bank account holder.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT requester_note FROM sr_deposit_refund_requests WHERE id = 1') === '', 'deposit cleanup must clear target refund requester note.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT admin_note FROM sr_deposit_refund_requests WHERE id = 1') === '', 'deposit cleanup must clear target refund admin note.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT updated_at FROM sr_deposit_refund_requests WHERE id = 1') === sr_now(), 'deposit cleanup must timestamp target refund PII cleanup.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT bank_account_number FROM sr_deposit_refund_requests WHERE id = 2') === '333-8', 'deposit cleanup must not alter other account refund PII.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT admin_note FROM sr_deposit_refund_requests WHERE id = 2') === 'admin8', 'deposit cleanup must not alter other account refund notes.');
+}
+
 sr_privacy_cleanup_runtime_check_asset_ledger();
 sr_privacy_cleanup_runtime_check_quiz();
 sr_privacy_cleanup_runtime_check_survey();
@@ -605,6 +665,7 @@ sr_privacy_cleanup_runtime_check_community();
 sr_privacy_cleanup_runtime_check_notification();
 sr_privacy_cleanup_runtime_check_policy_documents();
 sr_privacy_cleanup_runtime_check_payment_ledger();
+sr_privacy_cleanup_runtime_check_deposit();
 sr_privacy_cleanup_runtime_check_reward();
 
 if ($errors !== []) {

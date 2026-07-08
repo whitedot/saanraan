@@ -27,6 +27,10 @@
 | `access_scope` | 공개 화면, 회원 본인, 권한 있는 관리자, 배치/CLI 등 접근 범위 |
 | `verification` | 연결된 체크 스크립트, smoke, 수동 확인 기준 |
 
+## 법정 보존기간 기준
+
+#418 기준으로 탈퇴/익명화 후에도 다른 법령에 따라 보존해야 하는 기록은 개인정보 보호법 제21조에 맞춰 다른 개인정보와 분리하여 저장·관리하는 것을 기본 원칙으로 둔다. 전자상거래 등에서의 소비자보호에 관한 법률 시행령 제6조의 기본 clock은 표시·광고 기록 6개월, 계약 또는 청약철회 기록 5년, 대금결제 및 재화 등의 공급 기록 5년, 소비자 불만 또는 분쟁처리 기록 3년이다. 통신비밀보호법상 통신사실확인자료 보존의무 적용 여부는 운영 성격과 제공 서비스 범위에 따라 별도 법률 검토가 필요하며, 적용 대상인 인터넷 로그류는 법정 기간을 우선한다.
+
 ## 현재 번들 모듈 처리활동 씨앗
 
 | 모듈 | 주요 처리활동 | ROPA 보강 기준 |
@@ -42,7 +46,7 @@
 | `community` | 게시글, 댓글, 신고, 신고 자동 임시 조치, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/신고자/신고 대상/자동 조치 검토자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. |
 | `content` | 콘텐츠, 댓글, 작가 신청, 유료 접근권, 다운로드/자산 로그 | 작성자와 신청자, 유료 접근권, 다운로드/자산 로그의 export_cleanup과 금액성 보존 경계를 구분한다. |
 | `coupon` | 쿠폰 지급, 공개 발급, 사용, 환불 기록 | 권리성 증빙으로 보존하며 발급 campaign/source, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 환불 처리자와 메모, 만료 후 표시 최소화 기준을 기록한다. |
-| `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 계좌정보 마스킹 시점, 처리자 접근 범위를 기록한다. |
+| `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 처리자 접근 범위를 기록한다. 탈퇴/익명화 cleanup은 환불 신청의 은행명, 계좌번호, 예금주, 요청자/관리자 note를 비우고, 금액·상태·거래 연결·처리자는 증빙으로 유지한다. |
 | `logo_manager` | 로고 배치와 변경 작성자 | 설정 변경 책임 추적은 운영 보존으로 두되 감사 로그 대체 가능성을 검토한다. |
 | `markdown_editor` | Markdown parser/style profile과 declaration-only CSS 설정 | 본문 개인정보는 소유 모듈에 귀속하고, 플러그인 설정 자체는 회원 귀속 개인정보를 저장하지 않는다. |
 | `message` | 회원 간 쪽지, 수신 설정, 신고 대상 resolver | 쪽지 본문과 발신/수신 방향은 message 모듈이 소유하고, 상대 계정 ID는 export에서 마스킹한다. |
@@ -171,7 +175,7 @@
 
 | 표면 | 보존 기준 | cleanup 기준 |
 | --- | --- | --- |
-| `point`, `reward`, `deposit` 원장 | 잔액, 거래 유형, 금액, reference, 처리 시각은 사본 제공과 운영 보존 대상이다. reward 출금 신청은 금액, 상태, 거래 연결, 처리자를 증빙으로 유지한다. | point/deposit은 모듈 cleanup을 제공하지 않고 원장 보존으로 처리한다. reward cleanup은 출금 은행명, 계좌번호, 예금주와 요청자/관리자 note만 빈 값으로 정리한다. |
+| `point`, `reward`, `deposit` 원장 | 잔액, 거래 유형, 금액, reference, 처리 시각은 사본 제공과 운영 보존 대상이다. reward 출금 신청과 deposit 환불 신청은 금액, 상태, 거래 연결, 처리자를 증빙으로 유지한다. | point는 모듈 cleanup을 제공하지 않고 원장 보존으로 처리한다. reward/deposit cleanup은 출금·환불 은행명, 계좌번호, 예금주와 요청자/관리자 note만 빈 값으로 정리한다. point/deposit/reward 원장은 전자상거래법상 계약·청약철회 또는 대금결제·공급 기록이면 5년, 소비자 불만·분쟁처리 기록이면 3년 보존 clock을 붙인다. |
 | `coupon`, `asset_exchange` 로그 | 지급/사용/환불/환전 묶음과 실패 사유는 권리성 증빙으로 유지한다. | 상태 정정은 반대 거래나 정정 row로 남기며 원거래 account 연결을 제거하지 않는다. |
 | `content` 자산 로그 | `sr_content_asset_access_logs`, `sr_content_asset_action_logs`, `sr_content_author_reward_logs`의 completed 원장성 row는 account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 파일 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`, 쿠폰 redemption 링크, 환불 계약 version을 함께 제공한다. | `sr_content_access_entitlements`와 `sr_content_file_download_logs`는 접근 상태/다운로드 이력 최소화를 위해 account 연결을 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
 | `community` 자산 로그 | `sr_community_asset_logs`, `sr_community_publisher_reward_logs`의 completed 원장성 row는 downloader/publisher account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 첨부 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`를 함께 제공한다. | `sr_community_access_entitlements`는 접근권 상태이므로 account 연결과 source reference를 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |

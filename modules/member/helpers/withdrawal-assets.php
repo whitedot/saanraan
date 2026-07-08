@@ -106,13 +106,6 @@ function sr_member_withdrawal_refund_account_errors(array $refundAccount): array
     return $errors;
 }
 
-function sr_member_withdrawal_refund_account_summary(array $refundAccount): string
-{
-    $summary = trim((string) ($refundAccount['bank'] ?? '') . ' / ' . (string) ($refundAccount['holder'] ?? '') . ' / ' . (string) ($refundAccount['number'] ?? ''));
-
-    return sr_member_clean_withdrawal_refund_value($summary, 160);
-}
-
 function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $refundAccount): array
 {
     $processedAssets = [];
@@ -138,7 +131,7 @@ function sr_member_process_asset_withdrawal(PDO $pdo, int $accountId, array $ref
 
         $reason = 'member.withdrawal.' . (string) $definition['ledger_label'] . '.' . (string) $definition['ledger_process_label'];
         if ($assetKey === 'deposit') {
-            $reason .= ' refund=' . sr_member_withdrawal_refund_account_summary($refundAccount);
+            $reason .= ' refund_account=provided';
         }
 
         $transactionFunction = (string) $definition['transaction_function'];

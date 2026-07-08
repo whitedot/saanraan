@@ -91,7 +91,7 @@ FROM sr_policy_documents d
 INNER JOIN (
     SELECT 'member_terms' AS document_key, '<p>서비스 이용 조건과 회원의 기본 의무에 동의합니다.</p>' AS body_html, '회원가입 필수 이용약관입니다.' AS summary_text
     UNION ALL SELECT 'member_privacy_collection', '<p>회원가입과 서비스 제공에 필요한 개인정보 수집 및 이용에 동의합니다.</p>', '회원가입 필수 개인정보 수집 및 이용 동의입니다.'
-    UNION ALL SELECT 'member_privacy_policy', '<p>개인정보 처리 목적, 보관 기간, 권리 행사 방법을 안내합니다.</p>', '공개 개인정보처리방침입니다.'
+    UNION ALL SELECT 'member_privacy_policy', '<p>개인정보 처리 목적, 보관 기간, 권리 행사 방법을 안내합니다.</p><p>관계 법령에 따른 주요 보존기간은 계약 또는 청약철회 기록 5년, 대금결제 및 재화 등의 공급 기록 5년, 소비자 불만 또는 분쟁처리 기록 3년, 표시·광고 기록 6개월입니다. 다른 법령에 따라 보존해야 하는 개인정보는 다른 개인정보와 분리하여 저장·관리합니다.</p>', '공개 개인정보처리방침입니다.'
     UNION ALL SELECT 'member_marketing', '<p>서비스 소식과 혜택 안내 수신에 동의합니다.</p>', '선택 마케팅 수신 동의입니다.'
     UNION ALL SELECT 'community_privacy_default', '<p>게시판 제출과 첨부 처리에 필요한 개인정보 수집 및 이용에 동의합니다.</p>', '게시판 제출 개인정보 수집 및 이용 동의입니다.'
 ) seed ON seed.document_key = d.document_key
