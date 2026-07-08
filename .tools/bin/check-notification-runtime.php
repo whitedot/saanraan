@@ -928,6 +928,7 @@ sr_notification_runtime_assert(str_contains($settingsView, 'type="password" name
 sr_notification_runtime_assert(str_contains($settingsView, "'slack_member_push_enabled'"), 'notification settings view must render Slack member push enable switch.');
 sr_notification_runtime_assert(str_contains($settingsView, "'discord_member_push_enabled'"), 'notification settings view must render Discord member push enable switch.');
 sr_notification_runtime_assert(str_contains($settingsView, "'telegram_member_push_enabled'"), 'notification settings view must render Telegram member push enable switch.');
+sr_notification_runtime_assert(str_contains($settingsView, 'Telegram 회원 허용') && !str_contains($settingsView, '회원 수신처 허용'), 'notification settings view must use concise member allow labels.');
 sr_notification_runtime_assert(str_contains($settingsView, 'sr_notification_secret_display'), 'notification settings view must mask stored Slack webhook URLs.');
 sr_notification_runtime_assert(
     str_contains($settingsView, 'data-notification-operational-toggle="slack"')

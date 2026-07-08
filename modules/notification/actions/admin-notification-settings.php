@@ -225,7 +225,7 @@ if (sr_request_method() === 'POST') {
             $enabledProviderCount++;
         }
         if ($enabledProviderCount < 1) {
-            $errors[] = '외부 알림 채널 사용 시 운영 알림 발송 또는 회원 수신처 허용을 하나 이상 켜세요.';
+            $errors[] = '외부 알림 채널 사용 시 운영 알림 발송 또는 회원 허용을 하나 이상 켜세요.';
         }
         if ($settings['slack_webhook_enabled'] && $settings['slack_channel_label'] === '') {
             $errors[] = 'Slack 채널 표시명을 입력하세요.';

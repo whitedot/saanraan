@@ -199,7 +199,7 @@ $notificationSettingsSectionNavItems = [
             <span class="form-label">외부 알림 채널</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '사용', '', ' data-notification-external-push-enabled'); ?>
-                <small class="form-help">끄면 운영 알림 발송과 회원 개인 수신처 연결을 모두 사용하지 않습니다.</small>
+                <small class="form-help">끄면 운영 알림 발송과 회원 연결을 모두 사용하지 않습니다.</small>
             </div>
         </div>
         <div class="form-row">
@@ -209,7 +209,7 @@ $notificationSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">Slack 회원 수신처 허용</span>
+            <span class="form-label">Slack 회원 허용</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_slack_member_push_enabled', 'slack_member_push_enabled', '1', !empty($settings['slack_member_push_enabled']), '사용', '', ''); ?>
                 <small class="form-help">회원이 계정 알림 화면에서 개인 Slack 수신 URL을 연결할 수 있습니다.</small>
@@ -236,7 +236,7 @@ $notificationSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">Discord 회원 수신처 허용</span>
+            <span class="form-label">Discord 회원 허용</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_discord_member_push_enabled', 'discord_member_push_enabled', '1', !empty($settings['discord_member_push_enabled']), '사용', '', ''); ?>
                 <small class="form-help">회원이 계정 알림 화면에서 개인 Discord 수신 URL을 연결할 수 있습니다.</small>
@@ -263,7 +263,7 @@ $notificationSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">Telegram 회원 수신처 허용</span>
+            <span class="form-label">Telegram 회원 허용</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_telegram_member_push_enabled', 'telegram_member_push_enabled', '1', !empty($settings['telegram_member_push_enabled']), '사용', '', ' data-notification-member-toggle="telegram"'); ?>
                 <small class="form-help">회원이 계정 알림 화면에서 개인 Telegram 대화방 ID를 연결할 수 있습니다.</small>
