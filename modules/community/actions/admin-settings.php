@@ -105,6 +105,7 @@ if (sr_request_method() === 'POST') {
         $postBodyMinLength = sr_admin_post_int_in_range('post_body_min_length', 0, $postBodyMaxSettingLength);
         $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, $postBodyMaxSettingLength);
         $embedEnabled = ($_POST['embed_enabled'] ?? '') === '1';
+        $businessInfoVisible = ($_POST['business_info_visible'] ?? '') === '1';
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
@@ -437,6 +438,7 @@ if (sr_request_method() === 'POST') {
                 ['theme_key', $themeKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
                 ['layout_extra_menu_keys_json', sr_community_layout_extra_menu_keys_json($layoutExtraMenuItems), 'json'],
+                ['business_info_visible', $businessInfoVisible ? '1' : '0', 'bool'],
                 ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
                 ['draft_autosave_enabled', $draftAutosaveEnabled ? '1' : '0', 'bool'],
                 ['draft_autosave_interval_seconds', (string) $draftAutosaveIntervalSeconds, 'int'],
@@ -574,6 +576,7 @@ if (sr_request_method() === 'POST') {
                         'theme_key' => $themeKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,
                         'layout_extra_menu_keys_json' => $layoutExtraMenuItems,
+                        'business_info_visible' => $businessInfoVisible,
                         'series_enabled' => $seriesEnabled,
                         'post_editor' => $postEditor,
                         'post_toolbar_preset' => $postToolbarPreset,

@@ -225,6 +225,13 @@ $surveySettingsHelp = [
                 </div>
             </div>
             <div class="form-row">
+                <span class="form-label">사업자정보</span>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('survey_settings_business_info_visible', 'business_info_visible', '1', !empty($settings['business_info_visible']), '노출'); ?>
+                    <p class="form-help">사이트 설정에 저장된 사업자 정보 중 값이 있는 항목을 설문 공개 레이아웃 푸터에 표시합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_default_status', '기본 상태', $surveySettingsHelp['default_status']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <?php

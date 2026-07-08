@@ -35,6 +35,7 @@ return [
         'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_extra_menu_keys_json' => [],
+        'business_info_visible' => true,
         'series_enabled' => true,
         'member_submission_enabled' => false,
         'identity_content_view_required' => false,

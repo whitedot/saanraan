@@ -35,6 +35,7 @@ return [
         'embed_enabled' => true,
         'identity_view_required' => false,
         'identity_view_adult_required' => false,
+        'business_info_visible' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,

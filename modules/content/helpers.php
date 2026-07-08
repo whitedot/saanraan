@@ -112,6 +112,7 @@ function sr_content_default_settings(): array
         'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_extra_menu_keys_json' => [],
+        'business_info_visible' => true,
         'series_enabled' => true,
         'member_submission_enabled' => false,
         'identity_content_view_required' => false,
@@ -349,6 +350,7 @@ function sr_content_settings(PDO $pdo): array
         $settings[$settingKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
     $settings['layout_extra_menu_keys_json'] = sr_content_layout_extra_menu_items_from_settings($settings);
+    $settings['business_info_visible'] = sr_content_bool_setting($settings['business_info_visible'] ?? true);
     $settings['series_enabled'] = sr_content_bool_setting($settings['series_enabled'] ?? true);
     $settings['member_submission_enabled'] = sr_content_bool_setting($settings['member_submission_enabled'] ?? false);
     $settings['identity_content_view_required'] = sr_content_bool_setting($settings['identity_content_view_required'] ?? false);
@@ -417,6 +419,7 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     $context['module_home_url'] = sr_url('/content');
     $context['module_label'] = '콘텐츠';
     $context['module_menu_label'] = '콘텐츠 메뉴';
+    $context['business_info_visible'] = !array_key_exists('business_info_visible', $settings) || !empty($settings['business_info_visible']);
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'reset.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'common.css');
@@ -582,6 +585,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['theme_key', sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic')), 'string'],
         ['layout_primary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')), 'string'],
         ['layout_extra_menu_keys_json', sr_content_layout_extra_menu_keys_json($settings['layout_extra_menu_keys_json'] ?? []), 'json'],
+        ['business_info_visible', !empty($settings['business_info_visible']) ? '1' : '0', 'bool'],
         ['series_enabled', !empty($settings['series_enabled']) ? '1' : '0', 'bool'],
         ['member_submission_enabled', !empty($settings['member_submission_enabled']) ? '1' : '0', 'bool'],
         ['identity_content_view_required', !empty($settings['identity_content_view_required']) ? '1' : '0', 'bool'],

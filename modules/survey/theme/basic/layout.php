@@ -47,7 +47,8 @@ $layoutBeforeLayoutHtml = '';
 $layoutModuleBeforeLayoutHtml = '';
 $layoutModuleBeforeFooterHtml = '';
 $layoutAfterLayoutHtml = '';
-$layoutBusinessInfoHtml = sr_site_business_info_html($layoutPdo, 'survey-layout');
+$layoutBusinessInfoVisible = !array_key_exists('business_info_visible', $layoutContext) || !empty($layoutContext['business_info_visible']);
+$layoutBusinessInfoHtml = $layoutBusinessInfoVisible ? sr_site_business_info_html($layoutPdo, 'survey-layout') : '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
     require_once SR_ROOT . '/modules/logo_manager/helpers.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [

@@ -739,6 +739,74 @@ sr_skin_theme_check_contains([
 ], 'Public module theme setting UI');
 
 foreach ([
+    'content' => [
+        'helper' => 'modules/content/helpers.php',
+        'module' => 'modules/content/module.php',
+        'action' => 'modules/content/actions/admin-settings.php',
+        'view' => 'modules/content/views/admin-settings.php',
+        'layouts' => ['modules/content/theme/basic/layout.php', 'modules/content/theme/sample/layout.php'],
+        'switch_id' => 'content_admin_settings_business_info_visible',
+        'post_marker' => "sr_post_string('business_info_visible', 1) === '1'",
+        'helper_default_marker' => "'business_info_visible' => true",
+    ],
+    'community' => [
+        'helper' => 'modules/community/helpers/levels.php',
+        'module' => 'modules/community/module.php',
+        'action' => 'modules/community/actions/admin-settings.php',
+        'view' => 'modules/community/views/admin-settings.php',
+        'layouts' => ['modules/community/theme/basic/layout.php', 'modules/community/theme/sample/layout.php'],
+        'switch_id' => 'community_admin_settings_business_info_visible',
+        'post_marker' => "\$_POST['business_info_visible'] ?? ''",
+        'helper_default_marker' => "'business_info_visible' => (bool)",
+    ],
+    'quiz' => [
+        'helper' => 'modules/quiz/helpers.php',
+        'module' => 'modules/quiz/module.php',
+        'action' => 'modules/quiz/helpers.php',
+        'view' => 'modules/quiz/views/admin-settings.php',
+        'layouts' => ['modules/quiz/theme/basic/layout.php', 'modules/quiz/theme/sample/layout.php'],
+        'switch_id' => 'quiz_settings_business_info_visible',
+        'post_marker' => "\$_POST['business_info_visible'] ?? ''",
+        'helper_default_marker' => "'business_info_visible' => true",
+    ],
+    'survey' => [
+        'helper' => 'modules/survey/helpers.php',
+        'module' => 'modules/survey/module.php',
+        'action' => 'modules/survey/helpers.php',
+        'view' => 'modules/survey/views/admin-settings.php',
+        'layouts' => ['modules/survey/theme/basic/layout.php', 'modules/survey/theme/sample/layout.php'],
+        'switch_id' => 'survey_settings_business_info_visible',
+        'post_marker' => "\$_POST['business_info_visible'] ?? ''",
+        'helper_default_marker' => "'business_info_visible' => true",
+    ],
+] as $moduleKey => $businessInfoTarget) {
+    sr_skin_theme_check_contains($businessInfoTarget['helper'], [
+        (string) $businessInfoTarget['helper_default_marker'],
+    ], ucfirst($moduleKey) . ' business info helper default');
+    sr_skin_theme_check_contains($businessInfoTarget['module'], [
+        "'business_info_visible' => true",
+    ], ucfirst($moduleKey) . ' business info module default');
+    sr_skin_theme_check_contains($businessInfoTarget['helper'], [
+        "\$context['business_info_visible']",
+    ], ucfirst($moduleKey) . ' business info layout context');
+    sr_skin_theme_check_contains($businessInfoTarget['action'], [
+        $businessInfoTarget['post_marker'],
+    ], ucfirst($moduleKey) . ' business info setting POST');
+    sr_skin_theme_check_contains($businessInfoTarget['view'], [
+        (string) $businessInfoTarget['switch_id'],
+        "'business_info_visible'",
+        '사업자정보',
+    ], ucfirst($moduleKey) . ' business info setting UI');
+    foreach ($businessInfoTarget['layouts'] as $layoutPath) {
+        sr_skin_theme_check_contains((string) $layoutPath, [
+            '$layoutBusinessInfoVisible',
+            'business_info_visible',
+            'sr_site_business_info_html',
+        ], ucfirst($moduleKey) . ' business info layout rendering');
+    }
+}
+
+foreach ([
     'modules/content/views/admin-settings.php',
     'modules/community/views/admin-settings.php',
     'modules/quiz/views/admin-settings.php',

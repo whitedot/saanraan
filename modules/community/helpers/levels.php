@@ -53,6 +53,7 @@ function sr_community_default_settings(): array
         'layout_key' => is_string($settings['layout_key'] ?? null) ? (string) $settings['layout_key'] : '',
         'theme_key' => is_string($settings['theme_key'] ?? null) ? (string) $settings['theme_key'] : 'basic',
         'layout_primary_menu_key' => is_string($settings['layout_primary_menu_key'] ?? null) ? (string) $settings['layout_primary_menu_key'] : 'header',
+        'business_info_visible' => (bool) ($settings['business_info_visible'] ?? true),
         'layout_extra_menu_keys_json' => is_array($settings['layout_extra_menu_keys_json'] ?? null) || is_string($settings['layout_extra_menu_keys_json'] ?? null)
             ? ($settings['layout_extra_menu_keys_json'] ?? [])
             : [],
@@ -253,6 +254,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
         $settings[$settingKey] = sr_community_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
     $settings['layout_extra_menu_keys_json'] = sr_community_layout_extra_menu_items_from_settings($settings);
+    $settings['business_info_visible'] = sr_community_bool_setting($settings['business_info_visible'] ?? true);
     $settings['series_enabled'] = sr_community_bool_setting($settings['series_enabled'] ?? true);
     $settings['draft_autosave_enabled'] = sr_community_bool_setting($settings['draft_autosave_enabled'] ?? false);
     $settings['draft_autosave_interval_seconds'] = sr_community_draft_autosave_interval_seconds($settings);
@@ -605,6 +607,7 @@ function sr_community_public_layout_context(array $settings, array $context = []
     $context['module_home_url'] = sr_url('/community');
     $context['module_label'] = '커뮤니티';
     $context['module_menu_label'] = '커뮤니티 메뉴';
+    $context['business_info_visible'] = !array_key_exists('business_info_visible', $settings) || !empty($settings['business_info_visible']);
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'reset.css');
     $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'common.css');

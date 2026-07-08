@@ -714,6 +714,13 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
+            <span class="form-label">사업자정보</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('community_admin_settings_business_info_visible', 'business_info_visible', '1', !empty($settings['business_info_visible']), '노출'); ?>
+                <p class="form-help">사이트 설정에 저장된 사업자 정보 중 값이 있는 항목을 커뮤니티 공개 레이아웃 푸터에 표시합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>

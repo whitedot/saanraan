@@ -369,6 +369,7 @@ function sr_quiz_default_settings(): array
         'embed_enabled' => true,
         'identity_view_required' => false,
         'identity_view_adult_required' => false,
+        'business_info_visible' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'public_list_limit' => 50,
@@ -698,6 +699,7 @@ function sr_quiz_normalize_settings(array $settings): array
     $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
     $normalized['identity_view_required'] = !empty($normalized['identity_view_required']);
     $normalized['identity_view_adult_required'] = !empty($normalized['identity_view_adult_required']);
+    $normalized['business_info_visible'] = !array_key_exists('business_info_visible', $normalized) || !empty($normalized['business_info_visible']);
     $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
     $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
     $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
@@ -749,6 +751,7 @@ function sr_quiz_settings_from_post(): array
         'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
         'identity_view_required' => ($_POST['identity_view_required'] ?? '') === '1',
         'identity_view_adult_required' => ($_POST['identity_view_adult_required'] ?? '') === '1',
+        'business_info_visible' => ($_POST['business_info_visible'] ?? '') === '1',
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_preset_key', 80), 80),
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
@@ -852,6 +855,7 @@ function sr_quiz_public_layout_context(array $settings, array $context = []): ar
     $context['module_home_url'] = sr_url('/quiz');
     $context['module_label'] = '퀴즈';
     $context['module_menu_label'] = '퀴즈 메뉴';
+    $context['business_info_visible'] = !array_key_exists('business_info_visible', $settings) || !empty($settings['business_info_visible']);
 
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('quiz', $themeKey, 'reset.css');
