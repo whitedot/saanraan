@@ -347,22 +347,34 @@ $contentDeletedDetailModalHtml = static function (array $content): string {
                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
                 </div>
                 <div class="modal-body">
-                    <dl class="admin-meta-list">
-                        <dt>내부 ID</dt>
-                        <dd>#<?php echo sr_e((string) $contentId); ?></dd>
-                        <dt>삭제 판정</dt>
-                        <dd>status=deleted</dd>
-                        <dt>삭제 시각</dt>
-                        <dd><?php echo sr_content_time_html((string) ($content['updated_at'] ?? '')); ?></dd>
-                        <dt>redaction</dt>
-                        <dd>완료</dd>
-                        <dt>보존 로그</dt>
-                        <dd><?php echo sr_e(number_format((int) ($content['preserved_log_count'] ?? 0))); ?>건</dd>
-                        <dt>cleanup 대기</dt>
-                        <dd><?php echo sr_e(number_format((int) ($content['cleanup_pending_count'] ?? 0))); ?>건</dd>
-                        <dt>영구 삭제</dt>
-                        <dd>가능</dd>
-                    </dl>
+                    <div class="form-row">
+                        <span class="form-label">내부 ID</span>
+                        <div class="form-field"><p class="admin-form-static">#<?php echo sr_e((string) $contentId); ?></p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">삭제 판정</span>
+                        <div class="form-field"><p class="admin-form-static">status=deleted</p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">삭제 시각</span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_content_time_html((string) ($content['updated_at'] ?? '')); ?></p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">redaction</span>
+                        <div class="form-field"><p class="admin-form-static">완료</p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">보존 로그</span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_e(number_format((int) ($content['preserved_log_count'] ?? 0))); ?>건</p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">cleanup 대기</span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_e(number_format((int) ($content['cleanup_pending_count'] ?? 0))); ?>건</p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">영구 삭제</span>
+                        <div class="form-field"><p class="admin-form-static">가능</p></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>">닫기</button>

@@ -792,7 +792,7 @@ $communitySettingsSectionNavItems = [
 <button type="button" class="btn btn-solid-light" hidden data-overlay="#community-settings-level-max-confirm-modal" data-community-settings-level-max-open><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></button>
 <div id="community-settings-level-max-confirm-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-settings-level-max-confirm-modal-label" aria-hidden="true" inert>
     <div class="modal-dialog-center">
-        <div class="modal-content">
+        <div class="modal-content admin-form ui-form-theme">
             <div class="modal-header">
                 <h3 id="community-settings-level-max-confirm-modal-label" class="modal-title"><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></h3>
                 <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#community-settings-level-max-confirm-modal" data-community-settings-level-max-close>
@@ -1130,18 +1130,26 @@ $communitySettingsSectionNavItems = [
                 <div data-community-level-recalculate-step="notice">
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_1')); ?></p>
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_notice_2')); ?></p>
-                    <dl class="admin-meta-list">
-                        <dt><?php echo sr_e('부하 등급'); ?></dt>
-                        <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['label']); ?></dd>
-                        <dt><?php echo sr_e('처리 대상'); ?></dt>
-                        <dd><?php echo sr_e('활성/대기 회원 ' . number_format($communityLevelRecalculateTargetCount) . '명'); ?></dd>
-                        <dt><?php echo sr_e('중단/실패 시 상태'); ?></dt>
-                        <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['failure_state']); ?></dd>
-                        <dt><?php echo sr_e('권장 실행 시점'); ?></dt>
-                        <dd><?php echo sr_e((string) $communityLevelRecalculateLoad['recommended_time']); ?></dd>
-                        <dt><?php echo sr_e('기록 위치'); ?></dt>
-                        <dd><?php echo sr_e('완료 결과는 감사 로그 community.levels.recalculated metadata에 대상 수와 배치 정보를 남깁니다.'); ?></dd>
-                    </dl>
+                    <div class="form-row">
+                        <span class="form-label"><?php echo sr_e('부하 등급'); ?></span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_e((string) $communityLevelRecalculateLoad['label']); ?></p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label"><?php echo sr_e('처리 대상'); ?></span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_e('활성/대기 회원 ' . number_format($communityLevelRecalculateTargetCount) . '명'); ?></p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label"><?php echo sr_e('중단/실패 시 상태'); ?></span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_e((string) $communityLevelRecalculateLoad['failure_state']); ?></p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label"><?php echo sr_e('권장 실행 시점'); ?></span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_e((string) $communityLevelRecalculateLoad['recommended_time']); ?></p></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label"><?php echo sr_e('기록 위치'); ?></span>
+                        <div class="form-field"><p class="admin-form-static"><?php echo sr_e('완료 결과는 감사 로그 community.levels.recalculated metadata에 대상 수와 배치 정보를 남깁니다.'); ?></p></div>
+                    </div>
                 </div>
                 <div data-community-level-recalculate-step="text" hidden>
                     <p><?php echo sr_e(sr_t('community::ui.level_recalculate_modal_text_help', ['text' => sr_t('community::ui.level_recalculate_confirmation_text')])); ?></p>

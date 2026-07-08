@@ -1453,14 +1453,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardDeleteCheck['external_references'] ?? null) ? $boardDeleteCheck['external_references'] : []))); ?>건.
                             현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
                         </p>
-                        <dl class="admin-meta-list">
-                            <dt><?php echo sr_e('부하 등급'); ?></dt>
-                            <dd><?php echo sr_e((string) $boardDeleteLoad['label']); ?></dd>
-                            <dt><?php echo sr_e('중단/실패 시 상태'); ?></dt>
-                            <dd><?php echo sr_e((string) $boardDeleteLoad['failure_state']); ?></dd>
-                            <dt><?php echo sr_e('권장 실행 시점'); ?></dt>
-                            <dd><?php echo sr_e((string) $boardDeleteLoad['recommended_time']); ?></dd>
-                        </dl>
+                        <div class="form-row">
+                            <span class="form-label"><?php echo sr_e('부하 등급'); ?></span>
+                            <div class="form-field"><p class="admin-form-static"><?php echo sr_e((string) $boardDeleteLoad['label']); ?></p></div>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label"><?php echo sr_e('중단/실패 시 상태'); ?></span>
+                            <div class="form-field"><p class="admin-form-static"><?php echo sr_e((string) $boardDeleteLoad['failure_state']); ?></p></div>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label"><?php echo sr_e('권장 실행 시점'); ?></span>
+                            <div class="form-field"><p class="admin-form-static"><?php echo sr_e((string) $boardDeleteLoad['recommended_time']); ?></p></div>
+                        </div>
                         <div class="form-row">
                             <label class="form-label" for="community_board_delete_confirm_text">삭제 확인 문구 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                             <div class="form-field">
