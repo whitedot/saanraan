@@ -157,6 +157,7 @@ if ($isGuestAuthor) {
         'community_nickname' => sr_community_member_nickname($pdo, (int) $account['id']),
         'status' => (string) ($account['status'] ?? ''),
     ], sr_member_settings($pdo));
+    $commentLinkUrl = '/community/post?id=' . (string) $postId . '#community-comment-' . (string) $commentId;
     if ((int) $post['author_account_id'] > 0 && (int) $post['author_account_id'] !== (int) $account['id']) {
         $postAuthorNotificationCreated = sr_community_create_account_event_notification(
             $pdo,
@@ -167,7 +168,7 @@ if ($isGuestAuthor) {
                 'comment_id' => $commentId,
                 'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
                 'member_name' => $commentAuthorLabel,
-                'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+                'link_url' => $commentLinkUrl,
                 'created_at' => sr_now(),
             ],
             (int) $account['id']
@@ -185,7 +186,7 @@ if ($isGuestAuthor) {
                 'comment_id' => $commentId,
                 'parent_comment_id' => (int) ($values['parent_comment_id'] ?? 0),
                 'member_name' => $commentAuthorLabel,
-                'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+                'link_url' => $commentLinkUrl,
                 'created_at' => sr_now(),
             ],
             (int) $account['id']

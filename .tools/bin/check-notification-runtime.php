@@ -762,6 +762,9 @@ sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SE
 sr_notification_runtime_assert(!empty(sr_notification_slack_webhook_response_result(['ok' => true, 'status' => 200, 'body' => 'ok'])['ok']), 'notification runtime fixture must accept Slack webhook ok response.');
 $deliveryTransportHelpers = sr_notification_runtime_file('modules/notification/helpers/deliveries.php');
 sr_notification_runtime_assert(str_contains($deliveryTransportHelpers, 'curl_init') && str_contains($deliveryTransportHelpers, 'allow_url_fopen'), 'notification runtime fixture must allow webhook HTTP delivery through cURL before allow_url_fopen stream fallback.');
+sr_notification_runtime_assert(!str_contains($deliveryTransportHelpers, 'sr_json_encode(') && str_contains($deliveryTransportHelpers, 'JSON_INVALID_UTF8_SUBSTITUTE'), 'notification runtime fixture must encode webhook payloads without depending on unavailable helpers.');
+sr_notification_runtime_assert(str_contains($deliveryTransportHelpers, "in_array(\$method, ['GET', 'POST'], true)") && str_contains($deliveryTransportHelpers, "if (\$method === 'GET')"), 'notification web runner must run after POST requests while keeping GET interval throttling.');
+sr_notification_runtime_assert(str_contains($deliveryTransportHelpers, 'function sr_notification_absolute_link_url(') && !str_contains($deliveryTransportHelpers, 'sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl)'), 'notification external push payloads must send absolute URLs for relative notification links.');
 sr_notification_runtime_assert(!empty(sr_notification_external_push_response_result('discord_webhook', ['ok' => true, 'status' => 204, 'body' => ''])['ok']), 'notification runtime fixture must accept Discord webhook success response.');
 sr_notification_runtime_assert((string) (sr_notification_external_push_response_result('telegram_bot', ['ok' => true, 'status' => 200, 'body' => '{"ok":true,"result":{"message_id":77}}'])['provider_message_id'] ?? '') === 'telegram:77', 'notification runtime fixture must accept Telegram bot success response.');
 $slackFailure = sr_notification_slack_webhook_response_result(['ok' => true, 'status' => 403, 'body' => 'invalid_auth token=secret']);
@@ -857,6 +860,8 @@ $notificationHelpers = file_get_contents($root . '/modules/notification/helpers.
 $notificationDeliveryHelpers = file_get_contents($root . '/modules/notification/helpers/deliveries.php');
 $notificationAdminHelpers = file_get_contents($root . '/modules/notification/helpers/admin-notifications.php');
 $notificationPrivacyExport = file_get_contents($root . '/modules/notification/privacy-export.php');
+$requestBootstrap = sr_notification_runtime_file('core/request-bootstrap.php');
+sr_notification_runtime_assert(str_contains($requestBootstrap, "in_array(\$method, ['GET', 'POST'], true)") && str_contains($requestBootstrap, 'sr_notification_register_web_delivery_runner'), 'request bootstrap must register notification web runner for POST requests as well as GET requests.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, '$allowedDeliveryStatuses = sr_notification_delivery_statuses();'), 'notification delivery admin action must use shared delivery statuses.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "array_merge(['email'], sr_notification_admin_external_channel_keys())"), 'notification delivery admin action must expose all admin external delivery filters.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'channel NOT IN ('), 'notification delete action must not delete admin external deliveries with colliding notification ids.');
@@ -907,6 +912,10 @@ $settingsView = sr_notification_runtime_file('modules/notification/views/admin-n
 $memberAccountView = sr_notification_runtime_file('modules/member/views/account.php');
 $accountNotificationsAction = sr_notification_runtime_file('modules/notification/actions/account-notifications.php');
 $accountNotificationsView = sr_notification_runtime_file('modules/notification/views/account-notifications.php');
+$communityCommentAction = sr_notification_runtime_file('modules/community/actions/comment.php');
+$communityNotificationHelpers = sr_notification_runtime_file('modules/community/helpers/notifications.php');
+sr_notification_runtime_assert(str_contains($communityCommentAction, '#community-comment-') && !str_contains($communityCommentAction, "'link_url' => '/community/post?id=' . (string) \$postId . '#comments'"), 'community comment created notifications must link to the created comment anchor.');
+sr_notification_runtime_assert(str_contains($communityNotificationHelpers, '#community-comment-') && !str_contains($communityNotificationHelpers, "'link_url' => '/community/post?id=' . (string) \$postId . '#comments'"), 'community comment mention notifications must link to the mentioned comment anchor.');
 sr_notification_runtime_assert(str_contains($settingsAction, "'external_push_enabled' => (bool) \$settings['external_push_enabled']"), 'notification settings audit metadata must include external push policy without webhook secret.');
 $settingsAuditPos = strpos($settingsAction, 'sr_audit_log($pdo, [');
 $settingsAuditBlock = $settingsAuditPos === false ? '' : substr($settingsAction, $settingsAuditPos, 1200);

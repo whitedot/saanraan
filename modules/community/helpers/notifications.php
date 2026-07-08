@@ -250,7 +250,7 @@ function sr_community_create_comment_mention_notifications(
                 'post_id' => $postId,
                 'comment_id' => $commentId,
                 'member_name' => sr_member_public_name_for_account_id($pdo, $createdByAccountId, sr_t('community::report.account.member')),
-                'link_url' => '/community/post?id=' . (string) $postId . '#comments',
+                'link_url' => '/community/post?id=' . (string) $postId . '#community-comment-' . (string) $commentId,
                 'created_at' => sr_now(),
             ],
             $createdByAccountId

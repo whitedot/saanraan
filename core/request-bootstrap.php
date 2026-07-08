@@ -90,7 +90,7 @@ function sr_request_bootstrap_retention_cleanup(PDO $pdo, string $method, string
 
 function sr_request_bootstrap_notification_runner(PDO $pdo, ?array $site, string $method, string $path): void
 {
-    if ($method !== 'GET' || !sr_module_enabled($pdo, 'notification') || !is_file(SR_ROOT . '/modules/notification/helpers.php')) {
+    if (!in_array($method, ['GET', 'POST'], true) || !sr_module_enabled($pdo, 'notification') || !is_file(SR_ROOT . '/modules/notification/helpers.php')) {
         return;
     }
 

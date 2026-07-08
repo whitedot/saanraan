@@ -92,6 +92,29 @@ function sr_notification_mask_recipient(string $recipient): string
     return $prefix . '***';
 }
 
+function sr_notification_absolute_link_url(array $site, string $linkUrl): string
+{
+    if (sr_is_http_url($linkUrl)) {
+        return $linkUrl;
+    }
+    if (!sr_is_safe_relative_url($linkUrl)) {
+        return '';
+    }
+    if (function_exists('sr_absolute_url')) {
+        return sr_absolute_url($site, $linkUrl);
+    }
+
+    $baseUrl = rtrim((string) ($site['base_url'] ?? ''), '/');
+    if ($baseUrl === '' && function_exists('sr_current_base_url')) {
+        $baseUrl = rtrim(sr_current_base_url(), '/');
+    }
+    if ($baseUrl !== '' && preg_match('#\Ahttps?://[^\s/$.?#].[^\s]*\z#i', $baseUrl) === 1) {
+        return $baseUrl . '/' . ltrim($linkUrl, '/');
+    }
+
+    return sr_url($linkUrl);
+}
+
 function sr_notification_update_delivery_status_row(PDO $pdo, int $deliveryId, string $beforeStatus, string $targetStatus, string $now): array
 {
     $transition = sr_notification_delivery_status_transition($beforeStatus, $targetStatus);
@@ -841,7 +864,7 @@ function sr_notification_process_email_delivery(PDO $pdo, array $site, array $de
     }
     $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
     if ($linkUrl !== '') {
-        $body .= ($body !== '' ? "\n\n" : '') . (sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl));
+        $body .= ($body !== '' ? "\n\n" : '') . sr_notification_absolute_link_url($site, $linkUrl);
     }
 
     $previousConfig = sr_runtime_config();
@@ -870,7 +893,7 @@ function sr_notification_member_external_push_payload(string $channel, array $de
     $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
     $lines = ['[' . $siteName . '] ' . $title, '사이트에서 내용을 확인해 주세요.'];
     if ($linkUrl !== '') {
-        $lines[] = sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl);
+        $lines[] = sr_notification_absolute_link_url($site, $linkUrl);
     }
 
     if ($channel === 'telegram_bot') {
@@ -1017,7 +1040,7 @@ function sr_notification_external_push_text(array $delivery, array $site): strin
         $lines[] = sr_notification_clean_text($body, 1500);
     }
     if ($linkUrl !== '') {
-        $lines[] = sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl);
+        $lines[] = sr_notification_absolute_link_url($site, $linkUrl);
     }
 
     return implode("\n\n", $lines);
@@ -1047,7 +1070,10 @@ function sr_notification_http_json_post(string $url, array $payload, int $timeou
     }
 
     $timeout = min(30, max(3, $timeoutSeconds));
-    $json = sr_json_encode($payload);
+    $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    if (!is_string($json)) {
+        return ['ok' => false, 'status' => 0, 'body' => '', 'error' => 'payload_encode_failed'];
+    }
     $lastTransportError = '';
 
     if (function_exists('curl_init')) {
@@ -1329,7 +1355,7 @@ function sr_notification_save_module_runtime_setting(PDO $pdo, string $settingKe
 
 function sr_notification_register_web_delivery_runner(PDO $pdo, array $site, string $method, string $path): void
 {
-    if ($method !== 'GET') {
+    if (!in_array($method, ['GET', 'POST'], true)) {
         return;
     }
     if ($path === '/manifest.webmanifest' || $path === '/service-worker.js') {
@@ -1341,11 +1367,13 @@ function sr_notification_register_web_delivery_runner(PDO $pdo, array $site, str
         return;
     }
 
-    $lastRunAt = (string) sr_module_setting($pdo, 'notification', 'delivery_last_web_runner_at', '');
-    $lastRunTime = $lastRunAt === '' ? false : strtotime($lastRunAt);
-    $interval = max(10, (int) ($settings['delivery_web_runner_interval_seconds'] ?? 60));
-    if ($lastRunTime !== false && time() - $lastRunTime < $interval) {
-        return;
+    if ($method === 'GET') {
+        $lastRunAt = (string) sr_module_setting($pdo, 'notification', 'delivery_last_web_runner_at', '');
+        $lastRunTime = $lastRunAt === '' ? false : strtotime($lastRunAt);
+        $interval = max(10, (int) ($settings['delivery_web_runner_interval_seconds'] ?? 60));
+        if ($lastRunTime !== false && time() - $lastRunTime < $interval) {
+            return;
+        }
     }
 
     $batchSize = max(1, min(5, (int) ($settings['delivery_web_runner_batch_size'] ?? 1)));
