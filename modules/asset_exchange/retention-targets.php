@@ -17,13 +17,15 @@ return [
         'count_params' => ['cutoff' => 'commerce_records'],
         'delete_sql' => "UPDATE sr_asset_exchange_logs
          SET account_id = 0,
-             created_by_account_id = NULL
+             created_by_account_id = NULL,
+             failure_reason = ''
          WHERE account_id > 0
            AND account_id IN (SELECT id FROM sr_member_accounts WHERE status IN ('withdrawn', 'anonymized'))
            AND created_at < :cutoff",
         'delete_limited_sql' => "UPDATE sr_asset_exchange_logs
          SET account_id = 0,
-             created_by_account_id = NULL
+             created_by_account_id = NULL,
+             failure_reason = ''
          WHERE id IN (
             SELECT id FROM (
                 SELECT l.id

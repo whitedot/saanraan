@@ -18,6 +18,7 @@ return [
         'delete_sql' => "UPDATE sr_reward_transactions
          SET account_id = 0,
              created_by_account_id = NULL,
+             reason = '',
              reference_id = CASE WHEN reference_type = 'member.withdrawal' THEN 'anonymous' ELSE reference_id END
          WHERE account_id > 0
            AND account_id IN (SELECT id FROM sr_member_accounts WHERE status IN ('withdrawn', 'anonymized'))
@@ -25,6 +26,7 @@ return [
         'delete_limited_sql' => "UPDATE sr_reward_transactions
          SET account_id = 0,
              created_by_account_id = NULL,
+             reason = '',
              reference_id = CASE WHEN reference_type = 'member.withdrawal' THEN 'anonymous' ELSE reference_id END
          WHERE id IN (
             SELECT id FROM (

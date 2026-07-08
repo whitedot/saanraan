@@ -228,6 +228,28 @@ foreach ([
     }
 }
 
+foreach ([
+    'point_legal_transactions',
+    'reward_legal_transactions',
+    'deposit_legal_transactions',
+] as $legalReasonTargetKey) {
+    $targetSql = implode("\n", [
+        (string) ($targets[$legalReasonTargetKey]['delete_sql'] ?? ''),
+        (string) ($targets[$legalReasonTargetKey]['delete_limited_sql'] ?? ''),
+    ]);
+    if (!str_contains($targetSql, "reason = ''")) {
+        sr_retention_check_error($errors, 'Legal transaction retention target must clear free-text reasons: ' . $legalReasonTargetKey);
+    }
+}
+
+$assetExchangeLegalSql = implode("\n", [
+    (string) ($targets['asset_exchange_legal_logs']['delete_sql'] ?? ''),
+    (string) ($targets['asset_exchange_legal_logs']['delete_limited_sql'] ?? ''),
+]);
+if (!str_contains($assetExchangeLegalSql, "failure_reason = ''")) {
+    sr_retention_check_error($errors, 'Asset exchange legal retention target must clear failure reason text.');
+}
+
 $bannerClickSql = implode("\n", [
     (string) ($targets['banner_clicks']['count_sql'] ?? ''),
     (string) ($targets['banner_clicks']['delete_sql'] ?? ''),

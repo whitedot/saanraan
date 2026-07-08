@@ -38,7 +38,7 @@
 | `admin` | 관리자 권한, 감사 로그, 보존/정리 화면, 운영 알림 처리 | actor account, IP/UA, metadata redaction, 보존기간과 관리자 접근 범위를 분리한다. |
 | `antispam` | 산술 challenge, CAPTCHA provider 검증, 선택적 remote IP 전달 | DB 회원 귀속 데이터는 없지만 provider script와 remote IP 전달은 쿠키/외부 처리자 inventory에 포함한다. |
 | `antispam_captcha_providers` | Turnstile, hCaptcha, reCAPTCHA provider 계약 | 국외 처리와 외부 processor 후보로 기록하고, 동의 전 script 차단 필요 여부를 #151에서 결정한다. |
-| `asset_exchange` | 환전 로그와 정정 증빙 | 금액성 운영 증빙으로 export_retained, account 연결과 정정 가능 기간을 기록한다. 탈퇴/익명화 계정의 법정 보관기간 만료 로그는 retention target에서 account/actor 연결을 제거하고, 실패 사유는 분쟁 cut-off에서 먼저 비운다. |
+| `asset_exchange` | 환전 로그와 정정 증빙 | 금액성 운영 증빙으로 export_retained, account 연결과 정정 가능 기간을 기록한다. 탈퇴/익명화 계정의 법정 보관기간 만료 로그는 retention target에서 account/actor 연결과 실패 사유를 제거하고, 실패 사유는 분쟁 cut-off에서 먼저 비운다. |
 | `asset_ledger` | 자산 원장 primitive, reconciliation 조회, 포인트/금액 미회수 관리 | 공통 미회수 큐의 account 연결, 금액, source 식별자, 회수 상태를 보관하며 사본 제공과 탈퇴/익명화 cleanup 계약을 제공한다. |
 | `payment_ledger` | 결제 record와 결제 구성 item 증빙 | account 연결, subject module/type/id, payable/settlement 금액, 쿠폰·자산·외부 결제·접근권 item snapshot을 보관한다. 사본 제공 대상이며 탈퇴/익명화 시 account 연결을 제거한다. |
 | `banner` | 배너 설정, 클릭 dedupe hash | `click_key_hash`는 account/session/IP/UA에서 파생될 수 있는 가명성 dedupe 데이터다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 정리한다. 배너 복사는 집계 클릭 수만 선택 복사할 수 있고 dedupe hash row는 새 배너로 복제하지 않는다. |
@@ -175,7 +175,7 @@
 
 | 표면 | 보존 기준 | cleanup 기준 |
 | --- | --- | --- |
-| `point`, `reward`, `deposit` 원장 | 잔액, 거래 유형, 금액, reference, 처리 시각은 사본 제공과 운영 보존 대상이다. reward 출금 신청과 deposit 환불 신청은 금액, 상태, 거래 연결, 처리자를 증빙으로 유지한다. | point는 탈퇴/익명화 cleanup을 제공하지 않고 원장 보존으로 처리한다. reward/deposit cleanup은 출금·환불 은행명, 계좌번호, 예금주와 요청자/관리자 note만 빈 값으로 정리한다. 탈퇴/익명화 계정의 point/deposit/reward 원장은 전자상거래법상 계약·청약철회 또는 대금결제·공급 5년 clock이 만료되면 retention target에서 account/actor 연결을 제거한다. |
+| `point`, `reward`, `deposit` 원장 | 잔액, 거래 유형, 금액, reference, 처리 시각은 사본 제공과 운영 보존 대상이다. reward 출금 신청과 deposit 환불 신청은 금액, 상태, 거래 연결, 처리자를 증빙으로 유지한다. | point는 탈퇴/익명화 cleanup을 제공하지 않고 원장 보존으로 처리한다. reward/deposit cleanup은 출금·환불 은행명, 계좌번호, 예금주와 요청자/관리자 note만 빈 값으로 정리한다. 탈퇴/익명화 계정의 point/deposit/reward 원장은 전자상거래법상 계약·청약철회 또는 대금결제·공급 5년 clock이 만료되면 retention target에서 account/actor 연결과 자유기입 사유를 제거한다. |
 | `coupon`, `asset_exchange` 로그 | 지급/사용/환불/환전 묶음과 실패 사유는 권리성 증빙으로 유지한다. | 상태 정정은 반대 거래나 정정 row로 남기며 원거래 account 연결을 제거하지 않는다. |
 | `content` 자산 로그 | `sr_content_asset_access_logs`, `sr_content_asset_action_logs`, `sr_content_author_reward_logs`의 completed 원장성 row는 account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 파일 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`, 쿠폰 redemption 링크, 환불 계약 version을 함께 제공한다. | `sr_content_access_entitlements`와 `sr_content_file_download_logs`는 접근 상태/다운로드 이력 최소화를 위해 account 연결을 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
 | `community` 자산 로그 | `sr_community_asset_logs`, `sr_community_publisher_reward_logs`의 completed 원장성 row는 downloader/publisher account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 첨부 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`를 함께 제공한다. | `sr_community_access_entitlements`는 접근권 상태이므로 account 연결과 source reference를 제거할 수 있다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
