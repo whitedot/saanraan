@@ -187,18 +187,21 @@ function sr_notification_external_provider_options(): array
         'slack_webhook' => [
             'label' => 'Slack webhook',
             'enabled_setting' => 'slack_webhook_enabled',
+            'member_enabled_setting' => 'slack_member_push_enabled',
             'webhook_url_setting' => 'slack_webhook_url',
             'channel_label_setting' => 'slack_channel_label',
         ],
         'discord_webhook' => [
             'label' => 'Discord webhook',
             'enabled_setting' => 'discord_webhook_enabled',
+            'member_enabled_setting' => 'discord_member_push_enabled',
             'webhook_url_setting' => 'discord_webhook_url',
             'channel_label_setting' => 'discord_channel_label',
         ],
         'telegram_bot' => [
             'label' => 'Telegram bot',
             'enabled_setting' => 'telegram_bot_enabled',
+            'member_enabled_setting' => 'telegram_member_push_enabled',
             'bot_token_setting' => 'telegram_bot_token',
             'chat_id_setting' => 'telegram_chat_id',
             'channel_label_setting' => 'telegram_channel_label',
@@ -351,8 +354,8 @@ function sr_notification_member_external_provider_is_ready(string $channel, arra
         return false;
     }
 
-    $enabledSetting = (string) ($options[$channel]['enabled_setting'] ?? '');
-    if ($enabledSetting !== '' && empty($settings[$enabledSetting])) {
+    $memberEnabledSetting = (string) ($options[$channel]['member_enabled_setting'] ?? '');
+    if ($memberEnabledSetting !== '' && empty($settings[$memberEnabledSetting])) {
         return false;
     }
 
@@ -666,7 +669,13 @@ function sr_notification_claim_delivery(PDO $pdo, string $lockId, string $now, i
                 (d.status = \'queued\' AND (d.next_attempt_at IS NULL OR d.next_attempt_at <= :now_due))
                 OR (d.status = \'processing\' AND (d.locked_at IS NULL OR d.locked_at <= :lock_cutoff))
            )
-         ORDER BY d.id ASC
+         ORDER BY
+           CASE
+             WHEN d.recipient LIKE \'endpoint:%\' THEN 0
+             WHEN d.channel IN (' . sr_notification_admin_external_channel_sql_list() . ') THEN 1
+             ELSE 2
+           END ASC,
+           d.id ASC
          LIMIT 1'
     );
     $stmt->execute($params);
@@ -1033,16 +1042,56 @@ function sr_notification_external_push_payload(string $channel, array $delivery,
 
 function sr_notification_http_json_post(string $url, array $payload, int $timeoutSeconds): array
 {
-    if (!sr_notification_webhook_url_is_allowed($url) || !ini_get('allow_url_fopen')) {
+    if (!sr_notification_webhook_url_is_allowed($url)) {
         return ['ok' => false, 'status' => 0, 'body' => '', 'error' => 'provider_unavailable'];
+    }
+
+    $timeout = min(30, max(3, $timeoutSeconds));
+    $json = sr_json_encode($payload);
+    $lastTransportError = '';
+
+    if (function_exists('curl_init')) {
+        $handle = curl_init($url);
+        if ($handle !== false) {
+            $options = [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_POSTFIELDS => $json,
+                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_CONNECTTIMEOUT => min(10, $timeout),
+                CURLOPT_FOLLOWLOCATION => false,
+            ];
+            if (defined('CURLOPT_PROTOCOLS') && defined('CURLPROTO_HTTPS')) {
+                $options[CURLOPT_PROTOCOLS] = CURLPROTO_HTTPS;
+            }
+            curl_setopt_array($handle, $options);
+            $body = curl_exec($handle);
+            $status = (int) curl_getinfo($handle, CURLINFO_HTTP_CODE);
+            $errno = (int) curl_errno($handle);
+            curl_close($handle);
+            if (is_string($body)) {
+                return [
+                    'ok' => true,
+                    'status' => $status,
+                    'body' => $body,
+                    'error' => '',
+                ];
+            }
+            $lastTransportError = $errno > 0 ? 'provider_unavailable:curl_' . (string) $errno : 'provider_unavailable';
+        }
+    }
+
+    if (!ini_get('allow_url_fopen')) {
+        return ['ok' => false, 'status' => 0, 'body' => '', 'error' => $lastTransportError !== '' ? $lastTransportError : 'provider_unavailable'];
     }
 
     $context = stream_context_create([
         'http' => [
             'method' => 'POST',
             'header' => "Content-Type: application/json\r\n",
-            'content' => sr_json_encode($payload),
-            'timeout' => min(30, max(3, $timeoutSeconds)),
+            'content' => $json,
+            'timeout' => $timeout,
             'ignore_errors' => true,
         ],
     ]);
@@ -1059,7 +1108,7 @@ function sr_notification_http_json_post(string $url, array $payload, int $timeou
         'ok' => is_string($body),
         'status' => $status,
         'body' => is_string($body) ? $body : '',
-        'error' => is_string($body) ? '' : 'provider_unavailable',
+        'error' => is_string($body) ? '' : ($lastTransportError !== '' ? $lastTransportError : 'provider_unavailable'),
     ];
 }
 
@@ -1220,11 +1269,15 @@ function sr_notification_run_delivery_batch(PDO $pdo, array $site, int $batchSiz
             $result['skipped'] += (int) ($deliveryResult['skipped'] ?? 0);
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'notification_delivery_runner');
+            $exceptionMessage = '발송 처리 예외: ' . get_class($exception);
+            if ($exception->getMessage() !== '') {
+                $exceptionMessage .= ': ' . $exception->getMessage();
+            }
             $status = sr_notification_mark_delivery_failed(
                 $pdo,
                 (int) ($delivery['id'] ?? 0),
                 sr_now(),
-                'runner exception',
+                $exceptionMessage,
                 (int) ($delivery['attempt_count'] ?? 1),
                 $maxAttempts
             );

@@ -14,6 +14,7 @@ $allowedChannels = sr_notification_allowed_channels();
 $allowedCreateChannels = sr_notification_create_channels($pdo);
 $allowedDeliveryChannels = array_values(array_intersect($allowedChannels, array_merge(['email'], sr_notification_admin_external_channel_keys())));
 $adminExternalChannelSqlList = sr_notification_admin_external_channel_sql_list();
+$adminExternalDeliveryCondition = sr_notification_admin_external_delivery_sql_condition('d');
 $allowedDeliveryStatuses = sr_notification_delivery_statuses();
 $errors = [];
 $notice = '';
@@ -222,7 +223,7 @@ if (sr_request_method() === 'POST') {
         if ($errors === []) {
             if ($status === 'failed') {
                 sr_notification_create_admin_notification($pdo, [
-                    'title' => '이메일 발송 작업이 실패로 표시되었습니다.',
+                    'title' => '알림 발송 작업이 실패로 표시되었습니다.',
                     'body_text' => '발송 작업 #' . (string) $deliveryId . ' 상태를 확인해 주세요.',
                     'severity' => 'warning',
                     'source_module_key' => 'notification',
@@ -473,8 +474,8 @@ if (sr_request_method() === 'POST') {
                     ],
                 ]);
 
-                $notice = in_array('email', $channels, true)
-                    ? '알림을 등록했고 이메일 발송 작업을 만들었습니다.'
+                $notice = count(array_diff($channels, ['site'])) > 0
+                    ? '알림을 등록했고 발송 작업을 만들었습니다.'
                     : '알림을 등록했습니다.';
                 $notificationCreateModalOpen = false;
                 $notificationCreateValues = [
@@ -543,10 +544,10 @@ $deliverySort = sr_admin_sort_from_request($deliverySortOptions, $deliveryDefaul
 $deliveryEventSelect = sr_notification_event_select_sql($pdo, 'n');
 $deliverySql = 'SELECT d.id, d.notification_id, d.channel, d.recipient, d.status, d.provider_message_id, d.error_message, d.attempted_at, d.updated_at,
                        d.attempt_count, d.next_attempt_at, d.locked_at,
-                       CASE WHEN d.channel IN (' . $adminExternalChannelSqlList . ') THEN an.title ELSE n.title END AS notification_title' . $deliveryEventSelect . '
+                       CASE WHEN ' . $adminExternalDeliveryCondition . ' THEN an.title ELSE n.title END AS notification_title' . $deliveryEventSelect . '
                 FROM sr_notification_deliveries d
-                LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel NOT IN (' . $adminExternalChannelSqlList . ')
-                LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel IN (' . $adminExternalChannelSqlList . ')';
+                LEFT JOIN sr_notifications n ON n.id = d.notification_id AND NOT (' . $adminExternalDeliveryCondition . ')
+                LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND ' . $adminExternalDeliveryCondition;
 $deliveryParams = [];
 $deliveryWhere = ["d.channel <> 'site'"];
 if ((int) ($deliveryListFilters['delivery_id'] ?? 0) > 0) {
@@ -572,13 +573,13 @@ if ($deliveryListFilters['q'] !== '') {
         $deliveryWhere[] = 'CAST(d.notification_id AS CHAR) LIKE :delivery_q';
         $deliveryParams['delivery_q'] = $deliveryLike;
     } elseif ($deliveryListFilters['field'] === 'title') {
-        $deliveryWhere[] = '(CASE WHEN d.channel IN (' . $adminExternalChannelSqlList . ') THEN an.title ELSE n.title END) LIKE :delivery_q';
+        $deliveryWhere[] = '(CASE WHEN ' . $adminExternalDeliveryCondition . ' THEN an.title ELSE n.title END) LIKE :delivery_q';
         $deliveryParams['delivery_q'] = $deliveryLike;
     } elseif ($deliveryListFilters['field'] === 'recipient') {
         $deliveryWhere[] = 'd.recipient LIKE :delivery_q';
         $deliveryParams['delivery_q'] = $deliveryLike;
     } else {
-        $deliveryWhere[] = '(CAST(d.id AS CHAR) LIKE :delivery_q_id OR CAST(d.notification_id AS CHAR) LIKE :delivery_q_notification OR (CASE WHEN d.channel IN (' . $adminExternalChannelSqlList . ') THEN an.title ELSE n.title END) LIKE :delivery_q_title OR d.recipient LIKE :delivery_q_recipient OR d.provider_message_id LIKE :delivery_q_provider OR d.error_message LIKE :delivery_q_error)';
+        $deliveryWhere[] = '(CAST(d.id AS CHAR) LIKE :delivery_q_id OR CAST(d.notification_id AS CHAR) LIKE :delivery_q_notification OR (CASE WHEN ' . $adminExternalDeliveryCondition . ' THEN an.title ELSE n.title END) LIKE :delivery_q_title OR d.recipient LIKE :delivery_q_recipient OR d.provider_message_id LIKE :delivery_q_provider OR d.error_message LIKE :delivery_q_error)';
         $deliveryParams['delivery_q_id'] = $deliveryLike;
         $deliveryParams['delivery_q_notification'] = $deliveryLike;
         $deliveryParams['delivery_q_title'] = $deliveryLike;
@@ -594,8 +595,8 @@ $deliveryPagination = sr_admin_pagination_from_total($pdo, 0);
 if ($notificationAdminPage === 'deliveries') {
     $deliveryCountSql = 'SELECT COUNT(*) AS count_value
                          FROM sr_notification_deliveries d
-                         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND d.channel NOT IN (' . $adminExternalChannelSqlList . ')
-                         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND d.channel IN (' . $adminExternalChannelSqlList . ')'
+                         LEFT JOIN sr_notifications n ON n.id = d.notification_id AND NOT (' . $adminExternalDeliveryCondition . ')
+                         LEFT JOIN sr_admin_notifications an ON an.id = d.notification_id AND ' . $adminExternalDeliveryCondition
         . ($deliveryWhere !== [] ? ' WHERE ' . implode(' AND ', $deliveryWhere) : '');
     $stmt = $pdo->prepare($deliveryCountSql);
     $stmt->execute($deliveryParams);

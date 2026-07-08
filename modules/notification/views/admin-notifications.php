@@ -174,7 +174,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
                             <td class="admin-table-break admin-notification-delivery-recipient-cell" title="<?php echo sr_e($deliveryRecipient !== '' ? sr_notification_mask_recipient($deliveryRecipient) : '-'); ?>"><?php echo sr_e($deliveryRecipientLabel); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($deliveryStatusClass); ?>"<?php echo $deliveryStatusTitle !== '' ? ' title="' . sr_e($deliveryStatusTitle) . '"' : ''; ?>><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span></td>
+                            <td class="admin-table-nowrap">
+                                <span class="admin-status <?php echo sr_e($deliveryStatusClass); ?>"<?php echo $deliveryStatusTitle !== '' ? ' title="' . sr_e($deliveryStatusTitle) . '"' : ''; ?>><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span>
+                                <?php if ((string) ($delivery['error_message'] ?? '') !== '') { ?>
+                                    <br><span class="admin-summary-meta"><?php echo sr_e((string) $delivery['error_message']); ?></span>
+                                <?php } ?>
+                            </td>
                             <td class="admin-table-nowrap admin-notification-delivery-date-cell"><?php echo sr_notification_time_html((string) $delivery['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -200,7 +205,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
         <?php echo sr_admin_status_description_list_html('delivery_status'); ?>
     </section>
-    <?php echo sr_admin_pagination_html($deliveryPagination, '이메일 발송 작업 목록 페이지'); ?>
+    <?php echo sr_admin_pagination_html($deliveryPagination, '알림 발송 작업 목록 페이지'); ?>
 <?php } else { ?>
     <div class="admin-local-nav-wrap">
         <div class="admin-summary-stats">
@@ -314,6 +319,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap admin-notification-date-cell"><?php echo sr_notification_time_html((string) $notification['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
+                                    <a href="<?php echo sr_e(sr_url('/admin/notification-deliveries?field=notification&q=' . rawurlencode((string) (int) $notification['id']))); ?>" class="btn btn-sm btn-icon btn-outline-light" aria-label="발송 작업 확인" title="발송 작업 확인"><?php echo sr_material_icon_html('outbox'); ?></a>
                                     <form method="post" action="<?php echo sr_e(sr_url('/admin/notifications/delete')); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notification['id']); ?>">
