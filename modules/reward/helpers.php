@@ -161,7 +161,7 @@ function sr_reward_default_notification_case_settings(): array
 
 function sr_reward_account_notification_channel_keys(): array
 {
-    return ['site', 'email', 'telegram_bot'];
+    return ['site', 'email', 'slack_webhook', 'discord_webhook', 'telegram_bot'];
 }
 
 function sr_reward_notification_channels_from_value(mixed $value): array

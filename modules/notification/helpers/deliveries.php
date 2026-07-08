@@ -242,6 +242,21 @@ function sr_notification_webhook_url_is_allowed(string $url): bool
         && $host !== '';
 }
 
+function sr_notification_member_external_channel_labels(): array
+{
+    return [
+        'slack_webhook' => 'Slack',
+        'discord_webhook' => 'Discord',
+        'telegram_bot' => 'Telegram',
+    ];
+}
+
+function sr_notification_member_external_channel_label(string $channel): string
+{
+    $labels = sr_notification_member_external_channel_labels();
+    return (string) ($labels[$channel] ?? $channel);
+}
+
 function sr_notification_telegram_bot_token_is_allowed(string $token): bool
 {
     $token = trim($token);
@@ -321,7 +336,7 @@ function sr_notification_delivery_endpoint_id(string $recipient): int
 
 function sr_notification_member_external_channel_keys(): array
 {
-    return ['telegram_bot'];
+    return ['slack_webhook', 'discord_webhook', 'telegram_bot'];
 }
 
 function sr_notification_admin_external_delivery_sql_condition(string $alias = 'd'): string
@@ -331,12 +346,36 @@ function sr_notification_admin_external_delivery_sql_condition(string $alias = '
 
 function sr_notification_member_external_provider_is_ready(string $channel, array $settings): bool
 {
-    if ($channel !== 'telegram_bot' || empty($settings['external_push_enabled']) || empty($settings['telegram_bot_enabled'])) {
+    $options = sr_notification_external_provider_options();
+    if (!isset($options[$channel]) || empty($settings['external_push_enabled'])) {
         return false;
     }
 
-    return sr_notification_telegram_bot_token_is_allowed((string) ($settings['telegram_bot_token'] ?? ''))
+    $enabledSetting = (string) ($options[$channel]['enabled_setting'] ?? '');
+    if ($enabledSetting !== '' && empty($settings[$enabledSetting])) {
+        return false;
+    }
+
+    if ($channel === 'telegram_bot') {
+        return sr_notification_telegram_bot_token_is_allowed((string) ($settings['telegram_bot_token'] ?? ''))
+            && sr_notification_secret_crypto_available();
+    }
+
+    return in_array($channel, ['slack_webhook', 'discord_webhook'], true)
         && sr_notification_secret_crypto_available();
+}
+
+function sr_notification_member_push_endpoint_is_allowed(string $providerKey, string $endpoint): bool
+{
+    if ($providerKey === 'telegram_bot') {
+        return sr_notification_telegram_chat_id_is_allowed($endpoint);
+    }
+
+    if (in_array($providerKey, ['slack_webhook', 'discord_webhook'], true)) {
+        return sr_notification_webhook_url_is_allowed($endpoint);
+    }
+
+    return false;
 }
 
 function sr_notification_push_endpoint_mask(string $providerKey, string $endpoint): string
@@ -356,8 +395,8 @@ function sr_notification_save_member_push_endpoint(PDO $pdo, array $data): int
     if ($accountId <= 0 || !in_array($providerKey, sr_notification_member_external_channel_keys(), true)) {
         throw new InvalidArgumentException('Member push endpoint is invalid.');
     }
-    if ($providerKey === 'telegram_bot' && !sr_notification_telegram_chat_id_is_allowed($endpoint)) {
-        throw new InvalidArgumentException('Telegram chat ID is invalid.');
+    if (!sr_notification_member_push_endpoint_is_allowed($providerKey, $endpoint)) {
+        throw new InvalidArgumentException('Member push endpoint is invalid.');
     }
     if (!sr_notification_member_external_provider_is_ready($providerKey, sr_notification_settings($pdo))) {
         throw new RuntimeException('Member push provider is not ready.');
@@ -833,7 +872,22 @@ function sr_notification_member_external_push_payload(string $channel, array $de
         ];
     }
 
+    if ($channel === 'discord_webhook') {
+        return ['content' => implode("\n\n", $lines)];
+    }
+
     return ['text' => implode("\n\n", $lines)];
+}
+
+function sr_notification_member_external_push_endpoint(string $channel, array $settings, string $endpoint): string
+{
+    if ($channel === 'telegram_bot') {
+        return sr_notification_external_push_endpoint($channel, $settings);
+    }
+
+    return in_array($channel, ['slack_webhook', 'discord_webhook'], true) && sr_notification_webhook_url_is_allowed($endpoint)
+        ? $endpoint
+        : '';
 }
 
 function sr_notification_member_push_delivery_context(PDO $pdo, array $delivery): ?array
@@ -906,7 +960,7 @@ function sr_notification_process_member_external_push_delivery(PDO $pdo, array $
         (string) ($context['endpoint_ciphertext'] ?? ''),
         'notification-push-endpoint|' . $channel
     );
-    if (!is_string($endpoint) || $endpoint === '' || ($channel === 'telegram_bot' && !sr_notification_telegram_chat_id_is_allowed($endpoint))) {
+    if (!is_string($endpoint) || $endpoint === '' || !sr_notification_member_push_endpoint_is_allowed($channel, $endpoint)) {
         sr_notification_mark_delivery_canceled($pdo, $deliveryId, $now, 'member push endpoint decrypt failed');
         return ['status' => 'canceled', 'sent' => 0, 'failed' => 0, 'dead' => 0, 'skipped' => 1];
     }
@@ -918,7 +972,7 @@ function sr_notification_process_member_external_push_delivery(PDO $pdo, array $
         'link_url' => (string) ($context['link_url'] ?? ''),
     ]);
     $response = sr_notification_http_json_post(
-        sr_notification_external_push_endpoint($channel, $settings),
+        sr_notification_member_external_push_endpoint($channel, $settings, $endpoint),
         sr_notification_member_external_push_payload($channel, $deliveryForPayload, $site, $endpoint),
         (int) ($settings['email_timeout_seconds'] ?? 10)
     );

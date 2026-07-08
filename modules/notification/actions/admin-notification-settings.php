@@ -215,25 +215,25 @@ if (sr_request_method() === 'POST') {
         if ($enabledProviderCount < 1) {
             $errors[] = '외부 푸시 사용 시 발송 채널을 하나 이상 켜세요.';
         }
-        if ($settings['slack_webhook_enabled'] && $settings['slack_channel_label'] === '') {
+        if ($settings['slack_webhook_enabled'] && $settings['slack_webhook_url'] !== '' && $settings['slack_channel_label'] === '') {
             $errors[] = 'Slack 채널 표시명을 입력하세요.';
         }
-        if ($settings['slack_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['slack_webhook_url'])) {
+        if ($settings['slack_webhook_enabled'] && $settings['slack_webhook_url'] !== '' && !sr_notification_webhook_url_is_allowed((string) $settings['slack_webhook_url'])) {
             $errors[] = 'Slack 수신 URL은 HTTPS URL이어야 합니다.';
         }
-        if ($settings['discord_webhook_enabled'] && $settings['discord_channel_label'] === '') {
+        if ($settings['discord_webhook_enabled'] && $settings['discord_webhook_url'] !== '' && $settings['discord_channel_label'] === '') {
             $errors[] = 'Discord 채널 표시명을 입력하세요.';
         }
-        if ($settings['discord_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['discord_webhook_url'])) {
+        if ($settings['discord_webhook_enabled'] && $settings['discord_webhook_url'] !== '' && !sr_notification_webhook_url_is_allowed((string) $settings['discord_webhook_url'])) {
             $errors[] = 'Discord 수신 URL은 HTTPS URL이어야 합니다.';
         }
-        if ($settings['telegram_bot_enabled'] && $settings['telegram_channel_label'] === '') {
+        if ($settings['telegram_bot_enabled'] && $settings['telegram_chat_id'] !== '' && $settings['telegram_channel_label'] === '') {
             $errors[] = 'Telegram 채널 표시명을 입력하세요.';
         }
         if ($settings['telegram_bot_enabled'] && !sr_notification_telegram_bot_token_is_allowed((string) $settings['telegram_bot_token'])) {
             $errors[] = 'Telegram 봇 토큰 형식이 올바르지 않습니다.';
         }
-        if ($settings['telegram_bot_enabled'] && !sr_notification_telegram_chat_id_is_allowed((string) $settings['telegram_chat_id'])) {
+        if ($settings['telegram_bot_enabled'] && $settings['telegram_chat_id'] !== '' && !sr_notification_telegram_chat_id_is_allowed((string) $settings['telegram_chat_id'])) {
             $errors[] = 'Telegram 대화방 ID 형식이 올바르지 않습니다.';
         }
     }

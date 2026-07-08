@@ -457,22 +457,22 @@ sr_notification_runtime_assert($unknownChannelRejected, 'notification runtime fi
 sr_notification_runtime_assert(in_array('slack_webhook', sr_notification_allowed_channels(), true), 'notification runtime fixture must expose slack_webhook as an allowed delivery channel.');
 sr_notification_runtime_assert(in_array('discord_webhook', sr_notification_allowed_channels(), true), 'notification runtime fixture must expose discord_webhook as an allowed delivery channel.');
 sr_notification_runtime_assert(in_array('telegram_bot', sr_notification_allowed_channels(), true), 'notification runtime fixture must expose telegram_bot as an allowed delivery channel.');
-sr_notification_runtime_assert(!in_array('slack_webhook', sr_notification_create_channels($pdo), true), 'notification runtime fixture must keep external push out of member notification create channels.');
-sr_notification_runtime_assert(!in_array('discord_webhook', sr_notification_create_channels($pdo), true), 'notification runtime fixture must keep Discord external push out of member notification create channels.');
+sr_notification_runtime_assert(!in_array('slack_webhook', sr_notification_create_channels($pdo), true), 'notification runtime fixture must keep external push out of generic notification create channels.');
+sr_notification_runtime_assert(!in_array('discord_webhook', sr_notification_create_channels($pdo), true), 'notification runtime fixture must keep Discord external push out of generic notification create channels.');
 sr_notification_runtime_assert(!in_array('telegram_bot', sr_notification_create_channels($pdo), true), 'notification runtime fixture must keep Telegram external push out of member notification create channels.');
 $memberSlackRejected = false;
 try {
     sr_notification_create($pdo, [
         'account_id' => 7,
         'audience' => 'account',
-        'title' => '회원 Slack 차단',
+        'title' => '회원 Slack endpoint 없음',
         'channels' => ['slack_webhook'],
         'recipient' => '운영 알림',
     ]);
 } catch (InvalidArgumentException) {
     $memberSlackRejected = true;
 }
-sr_notification_runtime_assert($memberSlackRejected, 'notification runtime fixture must reject slack_webhook for member notifications.');
+sr_notification_runtime_assert($memberSlackRejected, 'notification runtime fixture must reject slack_webhook member delivery without an active personal endpoint.');
 foreach (['discord_webhook', 'telegram_bot'] as $memberExternalChannel) {
     $memberExternalRejected = false;
     try {
@@ -490,6 +490,9 @@ foreach (['discord_webhook', 'telegram_bot'] as $memberExternalChannel) {
 }
 sr_notification_runtime_assert(sr_notification_webhook_url_is_allowed('https://hooks.slack.com/services/T000/B000/fixture'), 'notification runtime fixture must allow HTTPS Slack webhook URLs.');
 sr_notification_runtime_assert(!sr_notification_webhook_url_is_allowed('http://hooks.slack.com/services/T000/B000/fixture'), 'notification runtime fixture must reject non-HTTPS webhook URLs.');
+sr_notification_runtime_assert(sr_notification_member_push_endpoint_is_allowed('slack_webhook', 'https://hooks.slack.com/services/T000/B000/member'), 'notification runtime fixture must allow member Slack webhook endpoint URLs.');
+sr_notification_runtime_assert(sr_notification_member_push_endpoint_is_allowed('discord_webhook', 'https://discord.com/api/webhooks/member/token'), 'notification runtime fixture must allow member Discord webhook endpoint URLs.');
+sr_notification_runtime_assert(!sr_notification_member_push_endpoint_is_allowed('slack_webhook', 'http://hooks.slack.com/services/T000/B000/member'), 'notification runtime fixture must reject non-HTTPS member Slack webhook endpoint URLs.');
 sr_notification_runtime_assert(sr_notification_telegram_bot_token_is_allowed('123456789:ABCdef_ghi-jklmnopqrstuvwxyz123456'), 'notification runtime fixture must allow Telegram bot token format.');
 sr_notification_runtime_assert(!sr_notification_telegram_bot_token_is_allowed('telegram_fixture'), 'notification runtime fixture must reject malformed Telegram bot tokens.');
 sr_notification_runtime_assert(!sr_notification_telegram_bot_token_is_allowed('123456789:' . str_repeat('A', 206)), 'notification runtime fixture must reject Telegram bot tokens that would exceed endpoint length limits.');
@@ -524,6 +527,45 @@ sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SE
 sr_notification_runtime_assert(in_array('telegram_bot', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Telegram push channel when endpoint exists.');
 sr_notification_runtime_assert(sr_notification_member_push_active_count($pdo, 7, 'telegram_bot') === 1, 'notification runtime fixture must count active member push endpoints.');
 sr_notification_runtime_assert(count(sr_notification_member_push_endpoint_rows($pdo, 7)) === 1, 'notification runtime fixture must list member push endpoint rows without plaintext.');
+$memberSlackEndpointId = sr_notification_save_member_push_endpoint($pdo, [
+    'account_id' => 7,
+    'provider_key' => 'slack_webhook',
+    'endpoint' => 'https://hooks.slack.com/services/T000/B000/member',
+    'recipient_label' => '개인 Slack',
+]);
+$memberDiscordEndpointId = sr_notification_save_member_push_endpoint($pdo, [
+    'account_id' => 7,
+    'provider_key' => 'discord_webhook',
+    'endpoint' => 'https://discord.com/api/webhooks/member/token',
+    'recipient_label' => '개인 Discord',
+]);
+sr_notification_runtime_assert($memberSlackEndpointId > 0, 'notification runtime fixture must save member Slack push endpoint.');
+sr_notification_runtime_assert($memberDiscordEndpointId > 0, 'notification runtime fixture must save member Discord push endpoint.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT endpoint_ciphertext FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberSlackEndpointId]) !== 'https://hooks.slack.com/services/T000/B000/member', 'notification runtime fixture must not store member Slack webhook plaintext.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT recipient_masked FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberDiscordEndpointId]) === 'https://discord.com/[masked]', 'notification runtime fixture must mask member Discord webhook endpoint.');
+sr_notification_runtime_assert(in_array('slack_webhook', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Slack push channel when endpoint exists.');
+sr_notification_runtime_assert(in_array('discord_webhook', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Discord push channel when endpoint exists.');
+$memberSlackNotificationId = sr_notification_create($pdo, [
+    'account_id' => 7,
+    'audience' => 'account',
+    'title' => '회원 Slack 푸시 알림',
+    'body_text' => '민감 본문은 Slack 푸시에 그대로 보내지 않습니다.',
+    'link_url' => '/account/notifications',
+    'channels' => ['site', 'slack_webhook'],
+]);
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'slack_webhook\' AND recipient = :recipient', ['id' => $memberSlackNotificationId, 'recipient' => 'endpoint:' . (string) $memberSlackEndpointId]) === 1, 'notification runtime fixture must queue member Slack push delivery by endpoint reference.');
+$memberDiscordPayload = sr_notification_member_external_push_payload('discord_webhook', [
+    'title' => '회원 Discord 푸시 알림',
+    'body_text' => '민감 본문',
+    'link_url' => '/account/notifications',
+], ['site_name' => '산란'], 'https://discord.com/api/webhooks/member/token');
+sr_notification_runtime_assert(isset($memberDiscordPayload['content']) && !isset($memberDiscordPayload['text']), 'notification runtime fixture must use Discord content payload for member push.');
+$claimedMemberSlack = sr_notification_claim_delivery($pdo, 'fixture-member-slack-lock', '2026-06-11 12:03:00', 300, ['slack_webhook']);
+sr_notification_runtime_assert(is_array($claimedMemberSlack) && (string) ($claimedMemberSlack['title'] ?? '') === '회원 Slack 푸시 알림', 'notification runtime fixture must claim member Slack push delivery with account notification title.');
+$pdo->prepare("UPDATE sr_notification_push_endpoints SET status = 'disabled', disabled_at = '2026-06-11 12:03:30' WHERE id = :id")->execute(['id' => $memberSlackEndpointId]);
+$memberSlackResult = sr_notification_process_delivery($pdo, ['site_name' => '산란'], $claimedMemberSlack, sr_notification_settings($pdo), '2026-06-11 12:04:00', 5);
+sr_notification_runtime_assert(($memberSlackResult['skipped'] ?? 0) === 1, 'notification runtime fixture must skip queued member Slack push after endpoint is disabled.');
+sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT status FROM sr_notification_deliveries WHERE id = :id', ['id' => (int) ($claimedMemberSlack['id'] ?? 0)]) === 'canceled', 'notification runtime fixture must cancel queued member Slack push after endpoint is disabled.');
 $duplicateEndpointRejected = false;
 try {
     sr_notification_save_member_push_endpoint($pdo, [
@@ -818,7 +860,7 @@ sr_notification_runtime_assert(
         && str_contains($adminNotificationView, 'value="mark_unread"'),
     'admin notification list must render single and batch unread actions.'
 );
-sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'connect_telegram_push'"), 'member notification account action must expose Telegram push connect intent.');
+sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'connect_push_endpoint'"), 'member notification account action must expose generic push endpoint connect intent.');
 sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'disable_push_endpoint'"), 'member notification account action must expose push endpoint disable intent.');
 sr_notification_runtime_assert(str_contains($accountNotificationsAction, 'sr_member_reauth_throttle_status($pdo, (int) $account[\'id\'])'), 'member notification push changes must use reauth throttling.');
 sr_notification_runtime_assert(str_contains($accountNotificationsAction, 'password_verify($currentPassword'), 'member notification push changes must verify current password.');
@@ -828,6 +870,8 @@ sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'event
 sr_notification_runtime_assert(str_contains($accountNotificationsAction, "'event_key' => 'member_push_endpoint.disabled'"), 'member notification push disable notice must use the notification event template.');
 sr_notification_runtime_assert(str_contains(sr_notification_runtime_file('modules/notification/install.sql'), "'notification', 'member_push_endpoint.connected'") && str_contains(sr_notification_runtime_file('modules/notification/install.sql'), '\'["site"]\''), 'member notification push security notice templates must stay in site notifications.');
 sr_notification_runtime_assert(str_contains($accountNotificationsView, 'name="telegram_chat_id"'), 'member notification account view must render Telegram chat ID input.');
+sr_notification_runtime_assert(str_contains($accountNotificationsView, 'name="provider_key"'), 'member notification account view must submit provider keys for push endpoint connections.');
+sr_notification_runtime_assert(str_contains($accountNotificationsView, 'name="endpoint"'), 'member notification account view must render webhook endpoint input for Slack and Discord.');
 sr_notification_runtime_assert(str_contains($accountNotificationsView, 'value="disable_push_endpoint"'), 'member notification account view must render endpoint disable form.');
 sr_notification_runtime_assert(str_contains($accountNotificationsView, 'autocomplete="current-password"'), 'member notification account view must require current password fields.');
 

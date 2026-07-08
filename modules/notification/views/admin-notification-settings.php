@@ -11,11 +11,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php
 $notificationSettingsSectionNavItems = [
-    'notification-settings-section-email' => '메일 환경',
-    'notification-settings-section-smtp' => 'SMTP',
-    'notification-settings-section-http-api' => '메일 API',
-    'notification-settings-section-external-push' => '외부 푸시',
-    'notification-settings-section-runner' => '발송 실행',
+    'notification-settings-section-runner' => '기본환경',
+    'notification-settings-section-email' => '이메일',
+    'notification-settings-section-external-push' => '외부 알림 채널',
 ];
 ?>
 <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="알림 설정 섹션">
@@ -31,8 +29,62 @@ $notificationSettingsSectionNavItems = [
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
 
+    <section id="notification-settings-section-runner" class="card" data-admin-section-anchor>
+        <h2>기본환경</h2>
+        <p class="form-help">이 설정은 이메일뿐 아니라 외부 발송 delivery queue에 쌓이는 모든 발송 작업의 처리 정책에 적용됩니다.</p>
+        <div class="form-row">
+            <span class="form-label">웹 자동 실행</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('notification_admin_settings_delivery_web_runner_enabled', 'delivery_web_runner_enabled', '1', !empty($settings['delivery_web_runner_enabled']), '사용', '', ''); ?>
+                <small class="form-help">공유호스팅 기본 실행 방식입니다. 요청 응답 뒤 적은 수의 delivery 작업만 처리합니다.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_web_runner_interval_seconds">웹 실행 간격 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="notification_admin_settings_delivery_web_runner_interval_seconds" type="number" name="delivery_web_runner_interval_seconds" value="<?php echo sr_e((string) $settings['delivery_web_runner_interval_seconds']); ?>" min="10" max="3600" class="form-input" required>
+                <small class="form-help">초 단위입니다. 10부터 3600까지 입력합니다.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_web_runner_batch_size">웹 실행당 delivery 처리 수 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="notification_admin_settings_delivery_web_runner_batch_size" type="number" name="delivery_web_runner_batch_size" value="<?php echo sr_e((string) $settings['delivery_web_runner_batch_size']); ?>" min="1" max="5" class="form-input" required>
+                <small class="form-help">한 번의 웹 요청 말미에서 처리할 최대 delivery 작업 수입니다.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_manual_batch_size">수동 실행당 delivery 처리 수 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="notification_admin_settings_delivery_manual_batch_size" type="number" name="delivery_manual_batch_size" value="<?php echo sr_e((string) $settings['delivery_manual_batch_size']); ?>" min="1" max="50" class="form-input" required>
+                <small class="form-help">관리자 발송 목록에서 수동 실행할 때 처리할 최대 delivery 작업 수입니다.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_cli_batch_size">명령줄 실행당 delivery 처리 수 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="notification_admin_settings_delivery_cli_batch_size" type="number" name="delivery_cli_batch_size" value="<?php echo sr_e((string) $settings['delivery_cli_batch_size']); ?>" min="1" max="100" class="form-input" required>
+                <small class="form-help">cron 또는 명령줄 수동 실행에서 처리할 최대 delivery 작업 수입니다.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_max_attempts">최대 재시도 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="notification_admin_settings_delivery_max_attempts" type="number" name="delivery_max_attempts" value="<?php echo sr_e((string) $settings['delivery_max_attempts']); ?>" min="1" max="20" class="form-input" required>
+                <small class="form-help">초과하면 실패 보관 상태로 전환합니다.</small>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="notification_admin_settings_delivery_lock_timeout_seconds">처리 점유 만료 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="notification_admin_settings_delivery_lock_timeout_seconds" type="number" name="delivery_lock_timeout_seconds" value="<?php echo sr_e((string) $settings['delivery_lock_timeout_seconds']); ?>" min="30" max="3600" class="form-input" required>
+                <small class="form-help">처리 중인 작업이 이 시간을 넘기면 다음 실행에서 다시 이어받을 수 있습니다.</small>
+            </div>
+        </div>
+    </section>
+
     <section id="notification-settings-section-email" class="card" data-admin-section-anchor>
-        <h2>메일 발송 환경</h2>
+        <h2>이메일</h2>
         <div class="form-row">
             <span class="form-label">이메일 채널</span>
             <div class="form-field">
@@ -73,15 +125,13 @@ $notificationSettingsSectionNavItems = [
                 <small class="form-help">초 단위입니다. 3부터 180까지 입력합니다.</small>
             </div>
         </div>
-    </section>
 
-    <section id="notification-settings-section-smtp" class="card" data-admin-section-anchor>
-        <h2>
+        <h3>
             <span>SMTP</span>
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="notification-smtp-test-email-modal" data-overlay="#notification-smtp-test-email-modal">
                 테스트 메일
             </button>
-        </h2>
+        </h3>
         <div class="form-row">
             <label class="form-label" for="notification_admin_settings_email_smtp_host">호스트 <span class="sr-required-label" data-notification-smtp-host-required hidden>(필수)</span></label>
             <div class="form-field">
@@ -119,10 +169,8 @@ $notificationSettingsSectionNavItems = [
                 <small class="form-help">비워두면 기존 저장값을 유지합니다.</small>
             </div>
         </div>
-    </section>
 
-    <section id="notification-settings-section-http-api" class="card" data-admin-section-anchor>
-        <h2>메일 API</h2>
+        <h3>메일 API</h3>
         <div class="form-row">
             <label class="form-label" for="notification_admin_settings_email_http_api_endpoint">전송 URL <span class="sr-required-label" data-notification-http-api-endpoint-required hidden>(필수)</span></label>
             <div class="form-field">
@@ -140,16 +188,16 @@ $notificationSettingsSectionNavItems = [
     </section>
 
     <section id="notification-settings-section-external-push" class="card" data-admin-section-anchor>
-        <h2>외부 운영 푸시</h2>
+        <h2>외부 알림 채널</h2>
         <div class="form-row">
-            <span class="form-label">외부 푸시 채널</span>
+            <span class="form-label">외부 알림 채널</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '사용', '', ''); ?>
-                <small class="form-help">회원 대상 외부 푸시는 아직 사용하지 않습니다.</small>
+                <small class="form-help">운영 알림 provider와 회원 개인 외부 수신처 provider 활성화에 함께 적용됩니다.</small>
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">Slack 발송</span>
+            <span class="form-label">Slack 제공자</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_slack_webhook_enabled', 'slack_webhook_enabled', '1', !empty($settings['slack_webhook_enabled']), '사용', '', ''); ?>
             </div>
@@ -158,18 +206,18 @@ $notificationSettingsSectionNavItems = [
             <label class="form-label" for="notification_admin_settings_slack_channel_label">Slack 채널 표시명</label>
             <div class="form-field">
                 <input id="notification_admin_settings_slack_channel_label" type="text" name="slack_channel_label" value="<?php echo sr_e((string) $settings['slack_channel_label']); ?>" maxlength="80" class="form-input form-control-full">
-                <small class="form-help">발송 목록의 수신자 칸에 저장할 식별용 표시명입니다.</small>
+                <small class="form-help">운영 알림 발송 목록의 수신자 칸에 저장할 식별용 표시명입니다.</small>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_slack_webhook_url">Slack 수신 URL</label>
+            <label class="form-label" for="notification_admin_settings_slack_webhook_url">Slack 운영 수신 URL</label>
             <div class="form-field">
                 <input id="notification_admin_settings_slack_webhook_url" type="password" name="slack_webhook_url" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['slack_webhook_url'])); ?>" class="form-input form-control-full" autocomplete="new-password">
-                <small class="form-help">HTTPS URL만 허용합니다. 비워두면 기존 저장값을 유지합니다.</small>
+                <small class="form-help">운영 알림에 사용할 HTTPS 수신 URL입니다. 회원 개인 수신 URL은 회원 화면에서 별도로 암호화 저장합니다.</small>
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">Discord 발송</span>
+            <span class="form-label">Discord 제공자</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_discord_webhook_enabled', 'discord_webhook_enabled', '1', !empty($settings['discord_webhook_enabled']), '사용', '', ''); ?>
             </div>
@@ -178,18 +226,18 @@ $notificationSettingsSectionNavItems = [
             <label class="form-label" for="notification_admin_settings_discord_channel_label">Discord 채널 표시명</label>
             <div class="form-field">
                 <input id="notification_admin_settings_discord_channel_label" type="text" name="discord_channel_label" value="<?php echo sr_e((string) $settings['discord_channel_label']); ?>" maxlength="80" class="form-input form-control-full">
-                <small class="form-help">발송 목록의 수신자 칸에 저장할 식별용 표시명입니다.</small>
+                <small class="form-help">운영 알림 발송 목록의 수신자 칸에 저장할 식별용 표시명입니다.</small>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_discord_webhook_url">Discord 수신 URL</label>
+            <label class="form-label" for="notification_admin_settings_discord_webhook_url">Discord 운영 수신 URL</label>
             <div class="form-field">
                 <input id="notification_admin_settings_discord_webhook_url" type="password" name="discord_webhook_url" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['discord_webhook_url'])); ?>" class="form-input form-control-full" autocomplete="new-password">
-                <small class="form-help">HTTPS URL만 허용합니다. 비워두면 기존 저장값을 유지합니다.</small>
+                <small class="form-help">운영 알림에 사용할 HTTPS 수신 URL입니다. 회원 개인 수신 URL은 회원 화면에서 별도로 암호화 저장합니다.</small>
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">Telegram 발송</span>
+            <span class="form-label">Telegram 제공자</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_telegram_bot_enabled', 'telegram_bot_enabled', '1', !empty($settings['telegram_bot_enabled']), '사용', '', ''); ?>
             </div>
@@ -198,7 +246,7 @@ $notificationSettingsSectionNavItems = [
             <label class="form-label" for="notification_admin_settings_telegram_channel_label">Telegram 채널 표시명</label>
             <div class="form-field">
                 <input id="notification_admin_settings_telegram_channel_label" type="text" name="telegram_channel_label" value="<?php echo sr_e((string) $settings['telegram_channel_label']); ?>" maxlength="80" class="form-input form-control-full">
-                <small class="form-help">발송 목록의 수신자 칸에 저장할 식별용 표시명입니다.</small>
+                <small class="form-help">운영 알림 발송 목록의 수신자 칸에 저장할 식별용 표시명입니다.</small>
             </div>
         </div>
         <div class="form-row">
@@ -212,7 +260,7 @@ $notificationSettingsSectionNavItems = [
             <label class="form-label" for="notification_admin_settings_telegram_chat_id">Telegram 대화방 ID</label>
             <div class="form-field">
                 <input id="notification_admin_settings_telegram_chat_id" type="text" name="telegram_chat_id" value="<?php echo sr_e((string) $settings['telegram_chat_id']); ?>" maxlength="120" class="form-input form-control-full">
-                <small class="form-help">숫자 ID 또는 @channel 형식입니다.</small>
+                <small class="form-help">운영 알림 수신처입니다. 회원 개인 Telegram 수신처는 회원 화면에서 따로 연결합니다. 숫자 ID 또는 @channel 형식입니다.</small>
             </div>
         </div>
         <div class="form-row">
@@ -222,59 +270,6 @@ $notificationSettingsSectionNavItems = [
                     <option value="retry"<?php echo (string) $settings['external_push_failure_policy'] === 'retry' ? ' selected' : ''; ?>>재시도 후 실패 보관</option>
                     <option value="dead"<?php echo (string) $settings['external_push_failure_policy'] === 'dead' ? ' selected' : ''; ?>>즉시 실패 보관</option>
                 </select>
-            </div>
-        </div>
-    </section>
-
-    <section id="notification-settings-section-runner" class="card" data-admin-section-anchor>
-        <h2>발송 실행</h2>
-        <div class="form-row">
-            <span class="form-label">웹 자동 실행</span>
-            <div class="form-field">
-                <?php echo sr_admin_switch_html('notification_admin_settings_delivery_web_runner_enabled', 'delivery_web_runner_enabled', '1', !empty($settings['delivery_web_runner_enabled']), '사용', '', ''); ?>
-                <small class="form-help">공유호스팅 기본 실행 방식입니다. 요청 응답 뒤 적은 수의 발송만 처리합니다.</small>
-            </div>
-        </div>
-        <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_delivery_web_runner_interval_seconds">웹 실행 간격 <span class="sr-required-label">(필수)</span></label>
-            <div class="form-field">
-                <input id="notification_admin_settings_delivery_web_runner_interval_seconds" type="number" name="delivery_web_runner_interval_seconds" value="<?php echo sr_e((string) $settings['delivery_web_runner_interval_seconds']); ?>" min="10" max="3600" class="form-input" required>
-                <small class="form-help">초 단위입니다. 10부터 3600까지 입력합니다.</small>
-            </div>
-        </div>
-        <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_delivery_web_runner_batch_size">웹 실행당 발송 수 <span class="sr-required-label">(필수)</span></label>
-            <div class="form-field">
-                <input id="notification_admin_settings_delivery_web_runner_batch_size" type="number" name="delivery_web_runner_batch_size" value="<?php echo sr_e((string) $settings['delivery_web_runner_batch_size']); ?>" min="1" max="5" class="form-input" required>
-                <small class="form-help">한 번의 웹 요청 말미에서 처리할 최대 발송 수입니다.</small>
-            </div>
-        </div>
-        <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_delivery_manual_batch_size">수동 실행당 발송 수 <span class="sr-required-label">(필수)</span></label>
-            <div class="form-field">
-                <input id="notification_admin_settings_delivery_manual_batch_size" type="number" name="delivery_manual_batch_size" value="<?php echo sr_e((string) $settings['delivery_manual_batch_size']); ?>" min="1" max="50" class="form-input" required>
-                <small class="form-help">관리자 발송 목록에서 수동 실행할 때 처리할 최대 발송 수입니다.</small>
-            </div>
-        </div>
-        <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_delivery_cli_batch_size">명령줄 실행당 발송 수 <span class="sr-required-label">(필수)</span></label>
-            <div class="form-field">
-                <input id="notification_admin_settings_delivery_cli_batch_size" type="number" name="delivery_cli_batch_size" value="<?php echo sr_e((string) $settings['delivery_cli_batch_size']); ?>" min="1" max="100" class="form-input" required>
-                <small class="form-help">cron 또는 명령줄 수동 실행에서 처리할 최대 발송 수입니다.</small>
-            </div>
-        </div>
-        <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_delivery_max_attempts">최대 재시도 <span class="sr-required-label">(필수)</span></label>
-            <div class="form-field">
-                <input id="notification_admin_settings_delivery_max_attempts" type="number" name="delivery_max_attempts" value="<?php echo sr_e((string) $settings['delivery_max_attempts']); ?>" min="1" max="20" class="form-input" required>
-                <small class="form-help">초과하면 실패 보관 상태로 전환합니다.</small>
-            </div>
-        </div>
-        <div class="form-row">
-            <label class="form-label" for="notification_admin_settings_delivery_lock_timeout_seconds">처리 점유 만료 <span class="sr-required-label">(필수)</span></label>
-            <div class="form-field">
-                <input id="notification_admin_settings_delivery_lock_timeout_seconds" type="number" name="delivery_lock_timeout_seconds" value="<?php echo sr_e((string) $settings['delivery_lock_timeout_seconds']); ?>" min="30" max="3600" class="form-input" required>
-                <small class="form-help">처리 중인 작업이 이 시간을 넘기면 다음 실행에서 다시 이어받을 수 있습니다.</small>
             </div>
         </div>
     </section>

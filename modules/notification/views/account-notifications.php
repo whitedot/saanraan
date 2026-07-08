@@ -12,16 +12,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
         <h1 class="type-page-title"><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></h1>
         <p><a href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('notification::ui.text.bf751bf5')); ?></a></p>
 
-        <?php if ($notice !== '') { ?>
-            <p><?php echo sr_e($notice); ?></p>
-        <?php } ?>
-        <?php if ($errors !== []) { ?>
-            <ul>
-                <?php foreach ($errors as $error) { ?>
-                    <li><?php echo sr_e((string) $error); ?></li>
-                <?php } ?>
-            </ul>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('notification', $notice, $errors); ?>
 
         <section class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title"><?php echo sr_e(sr_t('notification::ui.text.50f30154')); ?></h2>
@@ -35,10 +26,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 
         <section class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">외부 푸시</h2>
-            <p>Telegram 개인 chat으로 새 알림 도착 사실만 받습니다.</p>
+            <p>연결한 개인 수신처로 새 알림 도착 사실만 받습니다.</p>
 
             <?php if (!$pushProviderReady) { ?>
-                <p>현재 Telegram 푸시 연결을 사용할 수 없습니다.</p>
+                <p>현재 외부 푸시 연결을 사용할 수 없습니다.</p>
             <?php } ?>
 
             <?php if ($pushEndpoints !== []) { ?>
@@ -56,7 +47,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <tbody>
                         <?php foreach ($pushEndpoints as $pushEndpoint) { ?>
                             <tr>
-                                <td>Telegram</td>
+                                <td><?php echo sr_e(sr_notification_member_external_channel_label((string) ($pushEndpoint['provider_key'] ?? ''))); ?></td>
                                 <td>
                                     <?php echo sr_e((string) ((string) ($pushEndpoint['recipient_label'] ?? '') !== '' ? $pushEndpoint['recipient_label'] : $pushEndpoint['recipient_masked'])); ?>
                                     <?php if ((string) ($pushEndpoint['recipient_label'] ?? '') !== '') { ?>
@@ -88,32 +79,50 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     </div>
             <?php } ?>
 
-            <?php if ($pushProviderReady && !$pushLimitReached) { ?>
-                <form method="post" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
-                    <?php echo sr_csrf_field(); ?>
-                    <input type="hidden" name="intent" value="connect_telegram_push">
-                    <p>
-                        <label for="modules_notification_telegram_chat_id">
-                            <span>Telegram chat ID</span>
-                            <input id="modules_notification_telegram_chat_id" type="text" name="telegram_chat_id" maxlength="120" required class="form-input">
-                        </label>
-                    </p>
-                    <p>
-                        <label for="modules_notification_telegram_label">
-                            <span>표시 이름</span>
-                            <input id="modules_notification_telegram_label" type="text" name="recipient_label" maxlength="120" class="form-input">
-                        </label>
-                    </p>
-                    <p>
-                        <label for="modules_notification_connect_push_password">
-                            <span>현재 비밀번호</span>
-                            <input id="modules_notification_connect_push_password" type="password" name="current_password" autocomplete="current-password" required class="form-input">
-                        </label>
-                    </p>
-                    <button type="submit" class="btn btn-solid-primary">Telegram 푸시 연결</button>
-                </form>
-            <?php } elseif ($pushProviderReady) { ?>
-                <p>Telegram 푸시 수신처는 최대 5개까지 연결할 수 있습니다.</p>
+            <?php if ($pushProviderReady) { ?>
+                <?php foreach ($pushProviderStates as $pushProviderKey => $pushProviderState) { ?>
+                    <?php if (empty($pushProviderState['ready'])) { ?>
+                        <?php continue; ?>
+                    <?php } ?>
+                    <?php $pushProviderLabel = (string) ($pushProviderState['label'] ?? sr_notification_member_external_channel_label((string) $pushProviderKey)); ?>
+                    <?php if (!empty($pushProviderState['limit_reached'])) { ?>
+                        <p><?php echo sr_e($pushProviderLabel); ?> 푸시 수신처는 최대 5개까지 연결할 수 있습니다.</p>
+                        <?php continue; ?>
+                    <?php } ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="connect_push_endpoint">
+                        <input type="hidden" name="provider_key" value="<?php echo sr_e((string) $pushProviderKey); ?>">
+                        <?php if ((string) $pushProviderKey === 'telegram_bot') { ?>
+                            <p>
+                                <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_chat_id">
+                                    <span>Telegram chat ID</span>
+                                    <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_chat_id" type="text" name="telegram_chat_id" maxlength="120" required class="form-input">
+                                </label>
+                            </p>
+                        <?php } else { ?>
+                            <p>
+                                <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_endpoint">
+                                    <span><?php echo sr_e($pushProviderLabel); ?> 수신 URL</span>
+                                    <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_endpoint" type="url" name="endpoint" maxlength="255" required class="form-input form-control-full" autocomplete="off" placeholder="https://">
+                                </label>
+                            </p>
+                        <?php } ?>
+                        <p>
+                            <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_label">
+                                <span>표시 이름</span>
+                                <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_label" type="text" name="recipient_label" maxlength="120" class="form-input">
+                            </label>
+                        </p>
+                        <p>
+                            <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_password">
+                                <span>현재 비밀번호</span>
+                                <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_password" type="password" name="current_password" autocomplete="current-password" required class="form-input">
+                            </label>
+                        </p>
+                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($pushProviderLabel); ?> 푸시 연결</button>
+                    </form>
+                <?php } ?>
             <?php } ?>
         </div></section>
 
