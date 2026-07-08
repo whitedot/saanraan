@@ -226,16 +226,18 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         $attachmentDownloadLogAnonymizedCount = $stmt->rowCount();
     }
 
-    $postReadPaymentSetSql = $columnExists($pdo, 'sr_community_post_read_payment_logs', 'coupon_dedupe_key')
-        ? "account_id = NULL,\n             coupon_dedupe_key = ''"
-        : 'account_id = NULL';
-    $stmt = $pdo->prepare(
-        'UPDATE sr_community_post_read_payment_logs
-         SET ' . $postReadPaymentSetSql . '
-         WHERE account_id = :account_id'
-    );
-    $stmt->execute(['account_id' => $accountId]);
-    $postReadPaymentLogAnonymizedCount = $stmt->rowCount();
+    if ($columnExists($pdo, 'sr_community_post_read_payment_logs', 'account_id')) {
+        $postReadPaymentSetSql = $columnExists($pdo, 'sr_community_post_read_payment_logs', 'coupon_dedupe_key')
+            ? "account_id = NULL,\n                 coupon_dedupe_key = ''"
+            : 'account_id = NULL';
+        $stmt = $pdo->prepare(
+            'UPDATE sr_community_post_read_payment_logs
+             SET ' . $postReadPaymentSetSql . '
+             WHERE account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $postReadPaymentLogAnonymizedCount = $stmt->rowCount();
+    }
 
     if (
         $columnExists($pdo, 'sr_community_report_auto_actions', 'reviewer_account_id')

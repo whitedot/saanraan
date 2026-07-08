@@ -84,16 +84,18 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         $fileDownloadLogAnonymizedCount = $stmt->rowCount();
     }
 
-    $viewPaymentSetSql = $columnExists($pdo, 'sr_content_view_payment_logs', 'coupon_dedupe_key')
-        ? "account_id = NULL,\n             coupon_dedupe_key = ''"
-        : 'account_id = NULL';
-    $stmt = $pdo->prepare(
-        'UPDATE sr_content_view_payment_logs
-         SET ' . $viewPaymentSetSql . '
-         WHERE account_id = :account_id'
-    );
-    $stmt->execute(['account_id' => $accountId]);
-    $viewPaymentLogAnonymizedCount = $stmt->rowCount();
+    if ($columnExists($pdo, 'sr_content_view_payment_logs', 'account_id')) {
+        $viewPaymentSetSql = $columnExists($pdo, 'sr_content_view_payment_logs', 'coupon_dedupe_key')
+            ? "account_id = NULL,\n                 coupon_dedupe_key = ''"
+            : 'account_id = NULL';
+        $stmt = $pdo->prepare(
+            'UPDATE sr_content_view_payment_logs
+             SET ' . $viewPaymentSetSql . '
+             WHERE account_id = :account_id'
+        );
+        $stmt->execute(['account_id' => $accountId]);
+        $viewPaymentLogAnonymizedCount = $stmt->rowCount();
+    }
 
     $authorApplicationAnonymizedCount = 0;
     if ($columnExists($pdo, 'sr_content_author_applications', 'account_id')) {

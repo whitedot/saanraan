@@ -310,6 +310,27 @@ function sr_privacy_cleanup_runtime_check_content(): void
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT source_reference FROM sr_content_access_entitlements WHERE id = 2') === 'ref8', 'content cleanup must not alter other account entitlements.');
 }
 
+function sr_privacy_cleanup_runtime_check_content_optional_view_payment_table(): void
+{
+    require_once SR_ROOT . '/modules/content/helpers.php';
+    $cleanup = include 'modules/content/privacy-cleanup.php';
+    if (!is_callable($cleanup)) {
+        sr_privacy_cleanup_runtime_error('content privacy cleanup contract is not callable for optional payment table check.');
+        return;
+    }
+
+    $pdo = sr_privacy_cleanup_runtime_pdo();
+    $pdo->exec('CREATE TABLE sr_content_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_content_file_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
+    $pdo->exec('CREATE TABLE sr_content_access_entitlements (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, source_reference TEXT NOT NULL, anonymized_at TEXT NULL)');
+    $pdo->exec('CREATE TABLE sr_content_series (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL, updated_by INTEGER NULL)');
+    $pdo->exec('CREATE TABLE sr_content_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
+
+    $result = $cleanup($pdo, 7, ['event_type' => 'withdrawal']);
+    sr_privacy_cleanup_runtime_assert(is_array($result) && ($result['cleaned'] ?? null) === true, 'content cleanup must tolerate missing optional view payment table.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['content_view_payment_log_anonymized_count'] ?? -1) === 0, 'content cleanup must report zero view payment cleanup count when the table is absent.');
+}
+
 function sr_privacy_cleanup_runtime_check_community(): void
 {
     require_once SR_ROOT . '/modules/member/helpers/nicknames.php';
@@ -340,8 +361,8 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
-	    $pdo->exec('CREATE TABLE sr_community_post_read_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
-	    $pdo->exec('CREATE TABLE sr_community_attachment_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
+    $pdo->exec('CREATE TABLE sr_community_post_read_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
+    $pdo->exec('CREATE TABLE sr_community_attachment_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
     $pdo->exec('CREATE TABLE sr_community_report_auto_actions (id INTEGER PRIMARY KEY AUTOINCREMENT, target_hidden_by_account_id INTEGER NULL, reviewer_account_id INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL, actor_account_id INTEGER NULL, operation_context_json TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, downloader_account_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL)');
@@ -428,6 +449,35 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_submission_consents WHERE id = 1 AND account_id IS NULL AND ip_hash IS NULL AND user_agent_hash IS NULL') === 1, 'community cleanup must anonymize target submission consent.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT nickname FROM sr_member_nicknames WHERE account_id = 8') === 'nick8', 'community cleanup must not alter other account nickname.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT source_reference FROM sr_community_access_entitlements WHERE id = 2') === 'ref8', 'community cleanup must not alter other account entitlement.');
+}
+
+function sr_privacy_cleanup_runtime_check_community_optional_post_read_payment_table(): void
+{
+    require_once SR_ROOT . '/modules/member/helpers/nicknames.php';
+    require_once SR_ROOT . '/modules/community/helpers.php';
+    $cleanup = include 'modules/community/privacy-cleanup.php';
+    if (!is_callable($cleanup)) {
+        sr_privacy_cleanup_runtime_error('community privacy cleanup contract is not callable for optional payment table check.');
+        return;
+    }
+
+    $pdo = sr_privacy_cleanup_runtime_pdo();
+    $pdo->exec('CREATE TABLE sr_member_nicknames (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL, nickname TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_levels (id INTEGER PRIMARY KEY AUTOINCREMENT)');
+    $pdo->exec('CREATE TABLE sr_community_account_levels (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_level_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_access_entitlements (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, source_reference TEXT NOT NULL, anonymized_at TEXT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL, extra_values_json TEXT NOT NULL DEFAULT "[]", updated_at TEXT NOT NULL DEFAULT "")');
+    $pdo->exec('CREATE TABLE sr_community_post_field_values (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, cleanup_policy_snapshot TEXT NOT NULL, value_text TEXT NULL, value_json TEXT NULL, updated_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_series (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL, updated_by INTEGER NULL, moderated_by INTEGER NULL)');
+    $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
+    $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_attachment_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
+
+    $result = $cleanup($pdo, 7, ['event_type' => 'withdrawal']);
+    sr_privacy_cleanup_runtime_assert(is_array($result) && ($result['cleaned'] ?? null) === true, 'community cleanup must tolerate missing optional post read payment table.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['community_post_read_payment_log_anonymized_count'] ?? -1) === 0, 'community cleanup must report zero post read payment cleanup count when the table is absent.');
 }
 
 function sr_privacy_cleanup_runtime_check_notification(): void
@@ -675,7 +725,9 @@ sr_privacy_cleanup_runtime_check_asset_ledger();
 sr_privacy_cleanup_runtime_check_quiz();
 sr_privacy_cleanup_runtime_check_survey();
 sr_privacy_cleanup_runtime_check_content();
+sr_privacy_cleanup_runtime_check_content_optional_view_payment_table();
 sr_privacy_cleanup_runtime_check_community();
+sr_privacy_cleanup_runtime_check_community_optional_post_read_payment_table();
 sr_privacy_cleanup_runtime_check_notification();
 sr_privacy_cleanup_runtime_check_policy_documents();
 sr_privacy_cleanup_runtime_check_payment_ledger();
