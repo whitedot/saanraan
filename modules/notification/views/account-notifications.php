@@ -10,7 +10,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
     <main class="ui-page">
         <h1 class="type-page-title"><?php echo sr_e(sr_t('notification::ui.notification.12ddd6ca')); ?></h1>
-        <p><a href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('notification::ui.text.bf751bf5')); ?></a></p>
+        <p><a href="<?php echo sr_e(sr_url('/mypage')); ?>"><?php echo sr_e(sr_t('notification::ui.text.bf751bf5')); ?></a></p>
 
         <?php echo sr_public_feedback_toasts('notification', $notice, $errors); ?>
 

@@ -32,6 +32,12 @@ $memberAccountPages = [
         'url' => $memberAccountBasePath . '/privacy',
     ],
 ];
+if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'notification')) {
+    $memberAccountPages['notifications'] = [
+        'label' => sr_t('member::ui.notification.12ddd6ca'),
+        'url' => '/account/notifications',
+    ];
+}
 if ($profileFieldsEnabled) {
     $memberAccountPages['profile'] = [
         'label' => sr_t('member::ui.select.2ea79f04'),
@@ -446,10 +452,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             </dl>
                         <?php } ?>
                     </section>
-
-                    <?php if (isset($pdo) && $pdo instanceof PDO && sr_module_enabled($pdo, 'notification')) { ?>
-                        <p><a href="<?php echo sr_e(sr_url('/account/notifications')); ?>"><?php echo sr_e(sr_t('member::ui.notification.12ddd6ca')); ?></a></p>
-                    <?php } ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/account/privacy-export')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                         <?php echo sr_csrf_field(); ?>
                         <label for="modules_member_account_current_password_2">

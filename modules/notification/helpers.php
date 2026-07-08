@@ -465,12 +465,15 @@ function sr_notification_default_settings(): array
         'email_http_api_bearer_token' => '',
         'external_push_enabled' => false,
         'slack_webhook_enabled' => true,
+        'slack_member_push_enabled' => false,
         'slack_webhook_url' => '',
         'slack_channel_label' => '운영 알림',
         'discord_webhook_enabled' => false,
+        'discord_member_push_enabled' => false,
         'discord_webhook_url' => '',
         'discord_channel_label' => '운영 알림',
         'telegram_bot_enabled' => false,
+        'telegram_member_push_enabled' => false,
         'telegram_bot_token' => '',
         'telegram_chat_id' => '',
         'telegram_channel_label' => '운영 알림',
@@ -495,12 +498,15 @@ function sr_notification_settings(PDO $pdo): array
     $settings['email_timeout_seconds'] = max(3, min(180, (int) $settings['email_timeout_seconds']));
     $settings['external_push_enabled'] = (bool) $settings['external_push_enabled'];
     $settings['slack_webhook_enabled'] = (bool) $settings['slack_webhook_enabled'];
+    $settings['slack_member_push_enabled'] = (bool) $settings['slack_member_push_enabled'];
     $settings['slack_webhook_url'] = sr_notification_clean_setting_value((string) $settings['slack_webhook_url'], 255);
     $settings['slack_channel_label'] = sr_notification_clean_setting_value((string) $settings['slack_channel_label'], 80);
     $settings['discord_webhook_enabled'] = (bool) $settings['discord_webhook_enabled'];
+    $settings['discord_member_push_enabled'] = (bool) $settings['discord_member_push_enabled'];
     $settings['discord_webhook_url'] = sr_notification_clean_setting_value((string) $settings['discord_webhook_url'], 255);
     $settings['discord_channel_label'] = sr_notification_clean_setting_value((string) $settings['discord_channel_label'], 80);
     $settings['telegram_bot_enabled'] = (bool) $settings['telegram_bot_enabled'];
+    $settings['telegram_member_push_enabled'] = (bool) $settings['telegram_member_push_enabled'];
     $settings['telegram_bot_token'] = sr_notification_clean_setting_value((string) $settings['telegram_bot_token'], 255);
     $settings['telegram_chat_id'] = sr_notification_clean_setting_value((string) $settings['telegram_chat_id'], 120);
     $settings['telegram_channel_label'] = sr_notification_clean_setting_value((string) $settings['telegram_channel_label'], 80);
@@ -563,12 +569,15 @@ function sr_notification_save_settings(PDO $pdo, array $settings): void
         ['email_http_api_bearer_token', (string) $settings['email_http_api_bearer_token'], 'string'],
         ['external_push_enabled', !empty($settings['external_push_enabled']) ? '1' : '0', 'bool'],
         ['slack_webhook_enabled', !empty($settings['slack_webhook_enabled']) ? '1' : '0', 'bool'],
+        ['slack_member_push_enabled', !empty($settings['slack_member_push_enabled']) ? '1' : '0', 'bool'],
         ['slack_webhook_url', (string) $settings['slack_webhook_url'], 'string'],
         ['slack_channel_label', (string) $settings['slack_channel_label'], 'string'],
         ['discord_webhook_enabled', !empty($settings['discord_webhook_enabled']) ? '1' : '0', 'bool'],
+        ['discord_member_push_enabled', !empty($settings['discord_member_push_enabled']) ? '1' : '0', 'bool'],
         ['discord_webhook_url', (string) $settings['discord_webhook_url'], 'string'],
         ['discord_channel_label', (string) $settings['discord_channel_label'], 'string'],
         ['telegram_bot_enabled', !empty($settings['telegram_bot_enabled']) ? '1' : '0', 'bool'],
+        ['telegram_member_push_enabled', !empty($settings['telegram_member_push_enabled']) ? '1' : '0', 'bool'],
         ['telegram_bot_token', (string) $settings['telegram_bot_token'], 'string'],
         ['telegram_chat_id', (string) $settings['telegram_chat_id'], 'string'],
         ['telegram_channel_label', (string) $settings['telegram_channel_label'], 'string'],
@@ -623,7 +632,11 @@ function sr_notification_member_external_channels(PDO $pdo, int $accountId): arr
         return [];
     }
 
-    $settings = sr_notification_settings($pdo);
+    try {
+        $settings = sr_notification_settings($pdo);
+    } catch (Throwable) {
+        return [];
+    }
     $channels = [];
     foreach (sr_notification_member_external_channel_keys() as $channel) {
         if (sr_notification_member_external_provider_is_ready($channel, $settings)
@@ -643,14 +656,14 @@ function sr_notification_account_event_channels(PDO $pdo, int $accountId, array 
         return ['site'];
     }
 
-    $needsMemberExternalLookup = false;
+    $hasExplicitMemberExternalChannel = false;
     foreach ($channels as $channel) {
         if (in_array($channel, sr_notification_member_external_channel_keys(), true)) {
-            $needsMemberExternalLookup = true;
+            $hasExplicitMemberExternalChannel = true;
             break;
         }
     }
-    $memberExternalChannels = $needsMemberExternalLookup ? sr_notification_member_external_channels($pdo, $accountId) : [];
+    $memberExternalChannels = sr_notification_member_external_channels($pdo, $accountId);
     $filtered = [];
     foreach ($channels as $channel) {
         if (in_array($channel, sr_notification_member_external_channel_keys(), true)) {
@@ -663,6 +676,11 @@ function sr_notification_account_event_channels(PDO $pdo, int $accountId, array 
             continue;
         }
         $filtered[] = $channel;
+    }
+    if (!$hasExplicitMemberExternalChannel) {
+        foreach ($memberExternalChannels as $memberExternalChannel) {
+            $filtered[] = $memberExternalChannel;
+        }
     }
 
     return $filtered === [] ? ['site'] : array_values(array_unique($filtered));
@@ -1065,6 +1083,19 @@ function sr_notification_create(PDO $pdo, array $data): int
     $recipient = sr_notification_clean_single_line((string) ($data['recipient'] ?? ''), 255);
     if ($channels === []) {
         throw new InvalidArgumentException('Notification requires at least one delivery channel.');
+    }
+    $hasExplicitMemberExternalChannel = false;
+    foreach ($channels as $channel) {
+        if (in_array($channel, sr_notification_member_external_channel_keys(), true)) {
+            $hasExplicitMemberExternalChannel = true;
+            break;
+        }
+    }
+    if ($audience === 'account' && $accountId !== null && !$hasExplicitMemberExternalChannel) {
+        foreach (sr_notification_member_external_channels($pdo, $accountId) as $memberExternalChannel) {
+            $channels[] = $memberExternalChannel;
+        }
+        $channels = array_values(array_unique($channels));
     }
     $externalChannels = sr_notification_external_channels($channels);
     $emailRecipients = in_array('email', $channels, true)
