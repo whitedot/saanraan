@@ -61,6 +61,7 @@ return [
         'delete_sql' => "UPDATE sr_coupon_redemptions
          SET account_id = 0,
              refunded_by_account_id = NULL,
+             dedupe_key = CONCAT('anonymized:', id),
              refund_note = '',
              target_snapshot_json = NULL
          WHERE account_id > 0
@@ -69,6 +70,7 @@ return [
         'delete_limited_sql' => "UPDATE sr_coupon_redemptions
          SET account_id = 0,
              refunded_by_account_id = NULL,
+             dedupe_key = CONCAT('anonymized:', id),
              refund_note = '',
              target_snapshot_json = NULL
          WHERE id IN (
@@ -105,6 +107,8 @@ return [
         'delete_sql' => "UPDATE sr_coupon_claim_logs
          SET account_id = 0,
              occupying_account_id = NULL,
+             dedupe_key = CONCAT('anonymized:', id),
+             dedupe_hash = SHA2(CONCAT('anonymized:', id), 256),
              source_context_json = '{}',
              failure_message = ''
          WHERE account_id > 0
@@ -114,6 +118,8 @@ return [
         'delete_limited_sql' => "UPDATE sr_coupon_claim_logs
          SET account_id = 0,
              occupying_account_id = NULL,
+             dedupe_key = CONCAT('anonymized:', id),
+             dedupe_hash = SHA2(CONCAT('anonymized:', id), 256),
              source_context_json = '{}',
              failure_message = ''
          WHERE id IN (

@@ -250,6 +250,21 @@ if (!str_contains($assetExchangeLegalSql, "failure_reason = ''")) {
     sr_retention_check_error($errors, 'Asset exchange legal retention target must clear failure reason text.');
 }
 
+foreach ([
+    'coupon_legal_redemptions' => ['dedupe_key = CONCAT('],
+    'coupon_legal_claim_logs' => ['dedupe_key = CONCAT(', 'dedupe_hash = SHA2('],
+] as $couponLegalTargetKey => $requiredMarkers) {
+    $targetSql = implode("\n", [
+        (string) ($targets[$couponLegalTargetKey]['delete_sql'] ?? ''),
+        (string) ($targets[$couponLegalTargetKey]['delete_limited_sql'] ?? ''),
+    ]);
+    foreach ($requiredMarkers as $requiredMarker) {
+        if (!str_contains($targetSql, $requiredMarker)) {
+            sr_retention_check_error($errors, 'Coupon legal retention target must tombstone dedupe identifiers: ' . $couponLegalTargetKey);
+        }
+    }
+}
+
 $bannerClickSql = implode("\n", [
     (string) ($targets['banner_clicks']['count_sql'] ?? ''),
     (string) ($targets['banner_clicks']['delete_sql'] ?? ''),

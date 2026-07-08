@@ -113,7 +113,7 @@
 | 모듈 | 보존 사유 | 고위험 필드/연결 | 1.0 전 검토 항목 |
 | --- | --- | --- | --- |
 | `asset_exchange` | 환전 실행 증빙, 정정 로그, 중복 환전 방지 | `account_id`, `created_by_account_id`, 환전 묶음 ID와 자산 원장 reference | 탈퇴/익명화 계정의 5년 만료 로그는 retention target에서 account/actor 연결과 실패 사유를 제거한다. 실패 사유는 3년 만료 시 먼저 비운다. |
-| `coupon` | 쿠폰 지급/사용/환불 권리 증빙과 중복 사용 방지 | `account_id`, `issued_by_account_id`, `refunded_by_account_id`, 쿠폰 사용 reference, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 공개 발급 campaign/source 로그 | 탈퇴/익명화 계정의 5년 만료 지급/사용/발급 로그는 retention target에서 account/actor 연결과 snapshot을 제거한다. 환불 메모는 3년 만료 시 먼저 비운다. |
+| `coupon` | 쿠폰 지급/사용/환불 권리 증빙과 중복 사용 방지 | `account_id`, `issued_by_account_id`, `refunded_by_account_id`, 쿠폰 사용 reference, 발급/사용 dedupe, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 공개 발급 campaign/source 로그 | 탈퇴/익명화 계정의 5년 만료 지급/사용/발급 로그는 retention target에서 account/actor 연결과 snapshot을 제거하고, 발급/사용 dedupe 원문은 고유 tombstone으로 바꾼다. 환불 메모는 3년 만료 시 먼저 비운다. |
 | `deposit` | 현금성 예치금 원장, 환불 신청, 처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 환불 신청 금액/상태/거래 연결. 은행명/계좌번호/예금주와 요청자/관리자 note는 탈퇴/익명화 cleanup에서 빈 값 처리 | 계좌정보 마스킹 기준은 탈퇴/익명화 cleanup에서 즉시 적용한다. 탈퇴/익명화 계정의 5년 만료 원장/환불 신청은 retention target에서 account/actor 연결과 원장 사유를 제거한다. |
 | `notification` | 회원 알림 제공 이력, delivery 실패 추적, 운영 알림 읽음 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, delivery destination/metadata, push endpoint ciphertext | 대상 회원 delivery만 export하고 다른 회원 recipient는 제외한다. 발송 완료/실패 delivery의 주소 마스킹과 재발송 가능 기간, 탈퇴/익명화 시 push endpoint ciphertext 제거 |
 | `point` | 포인트 원장, 만료 소비 매핑, 환불/회수 증빙 | `account_id`, `created_by_account_id`, 만료 source/consume transaction 연결 | 탈퇴/익명화 계정의 5년 만료 원장/만료 소비 연결은 retention target에서 account/actor 연결과 원장 사유를 제거한다. |
