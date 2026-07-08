@@ -47,7 +47,7 @@ function sr_retention_check_contract_fixture_pdo(bool $withTables): PDO
     $pdo = new PDO('sqlite::memory:');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
-    foreach (['member', 'content', 'community', 'banner', 'notification', 'identity_verification'] as $moduleKey) {
+    foreach (['member', 'content', 'community', 'banner', 'notification', 'identity_verification', 'point', 'reward', 'deposit', 'coupon', 'asset_exchange'] as $moduleKey) {
         $stmt = $pdo->prepare('INSERT INTO sr_modules (module_key, status) VALUES (:module_key, :status)');
         $stmt->execute(['module_key' => $moduleKey, 'status' => 'enabled']);
     }
@@ -67,9 +67,21 @@ function sr_retention_check_contract_fixture_pdo(bool $withTables): PDO
             'sr_identity_verification_attempts',
             'sr_identity_verification_results',
             'sr_identity_verification_links',
+            'sr_point_transactions',
+            'sr_point_expiration_consumptions',
+            'sr_reward_transactions',
+            'sr_reward_expiration_consumptions',
+            'sr_reward_withdrawal_requests',
+            'sr_deposit_transactions',
+            'sr_deposit_refund_requests',
+            'sr_coupon_issues',
+            'sr_coupon_redemptions',
+            'sr_coupon_claim_logs',
+            'sr_asset_exchange_logs',
         ] as $tableName) {
             $pdo->exec('CREATE TABLE ' . $tableName . ' (id INTEGER PRIMARY KEY AUTOINCREMENT)');
         }
+        $pdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL)');
         $pdo->exec('CREATE TABLE sr_content_asset_access_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
         $pdo->exec('CREATE TABLE sr_content_asset_action_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
         $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
@@ -99,6 +111,19 @@ $expectedKeys = [
     'module_backups',
     'identity_verification_closed_attempts',
     'identity_verification_expired_results',
+    'point_legal_transactions',
+    'point_legal_expiration_consumptions',
+    'reward_legal_transactions',
+    'reward_legal_expiration_consumptions',
+    'reward_legal_withdrawal_requests',
+    'deposit_legal_transactions',
+    'deposit_legal_refund_requests',
+    'coupon_legal_issues',
+    'coupon_legal_redemptions',
+    'coupon_legal_claim_logs',
+    'coupon_dispute_notes',
+    'asset_exchange_legal_logs',
+    'asset_exchange_dispute_notes',
 ];
 
 $retentionPdo = sr_retention_check_contract_fixture_pdo(true);
@@ -145,10 +170,10 @@ foreach ($targets as $key => $target) {
         (string) ($target['delete_limited_sql'] ?? ''),
     ]);
     foreach ($forbiddenRetentionTables as $tableName) {
-        if (preg_match('/\b' . preg_quote($tableName, '/') . '\b/', $targetSql) === 1) {
-            if (!str_ends_with($key, '_pending_logs') || strpos($targetSql, "log_status = 'pending'") === false || strpos($targetSql, 'transaction_id = 0') !== false) {
-                sr_retention_check_error($errors, 'Retention target must not delete asset history table without pending status marker ' . $tableName . ': ' . $key);
-            }
+            if (preg_match('/\b' . preg_quote($tableName, '/') . '\b/', $targetSql) === 1 && (string) ($target['operation'] ?? '') !== 'anonymize') {
+                if (!str_ends_with($key, '_pending_logs') || strpos($targetSql, "log_status = 'pending'") === false || strpos($targetSql, 'transaction_id = 0') !== false) {
+                    sr_retention_check_error($errors, 'Retention target must not delete asset history table without pending status marker ' . $tableName . ': ' . $key);
+                }
         }
     }
 }
@@ -172,6 +197,35 @@ if ($cleanupKeys !== $sortedExpectedKeys) {
 $defaults = sr_admin_retention_default_values();
 if (($defaults['banner_clicks_days'] ?? null) !== 180) {
     sr_retention_check_error($errors, 'Banner click hash retention default must stay 180 days.');
+}
+
+$legalCutoffDays = sr_admin_retention_legal_cutoff_days();
+if (($legalCutoffDays['commerce_records'] ?? null) !== 1825
+    || ($legalCutoffDays['commerce_disputes'] ?? null) !== 1095
+    || ($legalCutoffDays['commerce_advertising'] ?? null) !== 183
+) {
+    sr_retention_check_error($errors, 'Legal retention cutoff days changed unexpectedly.');
+}
+
+foreach ([
+    'point_legal_transactions',
+    'reward_legal_withdrawal_requests',
+    'deposit_legal_refund_requests',
+    'coupon_legal_redemptions',
+    'asset_exchange_legal_logs',
+] as $legalTargetKey) {
+    $targetSql = implode("\n", [
+        (string) ($targets[$legalTargetKey]['count_sql'] ?? ''),
+        (string) ($targets[$legalTargetKey]['delete_sql'] ?? ''),
+        (string) ($targets[$legalTargetKey]['delete_limited_sql'] ?? ''),
+    ]);
+    if (($targets[$legalTargetKey]['operation'] ?? '') !== 'anonymize'
+        || ($targets[$legalTargetKey]['auto_scope'] ?? '') !== 'admin'
+        || !str_contains($targetSql, "status IN ('withdrawn', 'anonymized')")
+        || !str_contains($targetSql, 'account_id = 0')
+        || str_contains($targetSql, 'DELETE FROM')) {
+        sr_retention_check_error($errors, 'Legal financial retention target must anonymize terminal account links: ' . $legalTargetKey);
+    }
 }
 
 $bannerClickSql = implode("\n", [

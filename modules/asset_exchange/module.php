@@ -27,6 +27,7 @@ return [
             'admin-menu.php',
             'menu-links.php',
             'privacy-export.php',
+            'retention-targets.php',
             'member-action-rows.php',
             'dashboard.php',
         ],

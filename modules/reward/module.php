@@ -28,6 +28,7 @@ return [
             'menu-links.php',
             'privacy-export.php',
             'privacy-cleanup.php',
+            'retention-targets.php',
             'asset-exchange.php',
             'member-assets.php',
             'member-withdrawal-assets.php',

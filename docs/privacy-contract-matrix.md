@@ -112,9 +112,9 @@
 
 | 모듈 | 보존 사유 | 고위험 필드/연결 | 1.0 전 검토 항목 |
 | --- | --- | --- | --- |
-| `asset_exchange` | 환전 실행 증빙, 정정 로그, 중복 환전 방지 | `account_id`, `created_by_account_id`, 환전 묶음 ID와 자산 원장 reference | 완료 환전 정정 후 보존 기간과 관리자 조회 범위 |
-| `coupon` | 쿠폰 지급/사용/환불 권리 증빙과 중복 사용 방지 | `account_id`, `issued_by_account_id`, `refunded_by_account_id`, 쿠폰 사용 reference, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 공개 발급 campaign/source 로그 | 만료/환불 완료 쿠폰의 표시명, 메모, 관리자 접근 범위 |
-| `deposit` | 현금성 예치금 원장, 환불 신청, 처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 환불 신청 금액/상태/거래 연결. 은행명/계좌번호/예금주와 요청자/관리자 note는 탈퇴/익명화 cleanup에서 빈 값 처리 | 계좌정보 마스킹 기준은 탈퇴/익명화 cleanup에서 즉시 적용한다. 전자상거래법상 계약·청약철회와 대금결제·공급 기록 5년, 소비자 불만·분쟁처리 기록 3년 기준을 보관기간 clock으로 연결하는 후속 retention target은 #418에서 추적 |
+| `asset_exchange` | 환전 실행 증빙, 정정 로그, 중복 환전 방지 | `account_id`, `created_by_account_id`, 환전 묶음 ID와 자산 원장 reference | 탈퇴/익명화 계정의 5년 만료 로그는 retention target에서 account/actor 연결을 제거한다. 실패 사유는 3년 만료 시 먼저 비운다. |
+| `coupon` | 쿠폰 지급/사용/환불 권리 증빙과 중복 사용 방지 | `account_id`, `issued_by_account_id`, `refunded_by_account_id`, 쿠폰 사용 reference, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 공개 발급 campaign/source 로그 | 탈퇴/익명화 계정의 5년 만료 지급/사용/발급 로그는 retention target에서 account/actor 연결과 snapshot을 제거한다. 환불 메모는 3년 만료 시 먼저 비운다. |
+| `deposit` | 현금성 예치금 원장, 환불 신청, 처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 환불 신청 금액/상태/거래 연결. 은행명/계좌번호/예금주와 요청자/관리자 note는 탈퇴/익명화 cleanup에서 빈 값 처리 | 계좌정보 마스킹 기준은 탈퇴/익명화 cleanup에서 즉시 적용한다. 탈퇴/익명화 계정의 5년 만료 원장/환불 신청은 retention target에서 account/actor 연결을 제거한다. |
 | `notification` | 회원 알림 제공 이력, delivery 실패 추적, 운영 알림 읽음 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, delivery destination/metadata, push endpoint ciphertext | 대상 회원 delivery만 export하고 다른 회원 recipient는 제외한다. 발송 완료/실패 delivery의 주소 마스킹과 재발송 가능 기간, 탈퇴/익명화 시 push endpoint ciphertext 제거 |
-| `point` | 포인트 원장, 만료 소비 매핑, 환불/회수 증빙 | `account_id`, `created_by_account_id`, 만료 source/consume transaction 연결 | 탈퇴 후 회원 식별자 노출 최소화와 오래된 만료 소비 매핑 보존 기간 |
-| `reward` | 적립금 원장, 출금 신청, 회수/처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 출금 신청 금액/상태/거래 연결. 은행명/계좌번호/예금주와 요청자/관리자 note는 탈퇴/익명화 cleanup에서 빈 값 처리 | 세무 snapshot을 추가할 때 법정 보존 clock과 은행 PII cleanup 경계를 필드 단위로 재확인 |
+| `point` | 포인트 원장, 만료 소비 매핑, 환불/회수 증빙 | `account_id`, `created_by_account_id`, 만료 source/consume transaction 연결 | 탈퇴/익명화 계정의 5년 만료 원장/만료 소비 연결은 retention target에서 account/actor 연결을 제거한다. |
+| `reward` | 적립금 원장, 출금 신청, 회수/처리 증빙 | `account_id`, `created_by_account_id`, `processed_by_account_id`, 출금 신청 금액/상태/거래 연결. 은행명/계좌번호/예금주와 요청자/관리자 note는 탈퇴/익명화 cleanup에서 빈 값 처리 | 탈퇴/익명화 계정의 5년 만료 원장/만료 소비 연결/출금 신청은 retention target에서 account/actor 연결을 제거한다. 세무 snapshot을 추가할 때 법정 보존 clock과 은행 PII cleanup 경계를 필드 단위로 재확인 |

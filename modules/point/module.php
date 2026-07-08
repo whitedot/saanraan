@@ -27,6 +27,7 @@ return [
             'operational-status.php',
             'menu-links.php',
             'privacy-export.php',
+            'retention-targets.php',
             'asset-exchange.php',
             'member-assets.php',
             'member-withdrawal-assets.php',

@@ -127,6 +127,19 @@ $retentionTargetLabels = [
     'module_backups' => sr_t('admin::ui.text.b7aa8533'),
     'identity_verification_closed_attempts' => sr_t('admin::retention.identity_verification_closed_attempts'),
     'identity_verification_expired_results' => sr_t('admin::retention.identity_verification_expired_results'),
+    'point_legal_transactions' => '포인트 법정 보관 만료 거래 익명화',
+    'point_legal_expiration_consumptions' => '포인트 법정 보관 만료 소비 연결 익명화',
+    'reward_legal_transactions' => '적립금 법정 보관 만료 거래 익명화',
+    'reward_legal_expiration_consumptions' => '적립금 법정 보관 만료 소비 연결 익명화',
+    'reward_legal_withdrawal_requests' => '적립금 법정 보관 만료 출금 신청 익명화',
+    'deposit_legal_transactions' => '예치금 법정 보관 만료 거래 익명화',
+    'deposit_legal_refund_requests' => '예치금 법정 보관 만료 환불 신청 익명화',
+    'coupon_legal_issues' => '쿠폰 법정 보관 만료 지급 기록 익명화',
+    'coupon_legal_redemptions' => '쿠폰 법정 보관 만료 사용 기록 익명화',
+    'coupon_legal_claim_logs' => '쿠폰 법정 보관 만료 발급 로그 익명화',
+    'coupon_dispute_notes' => '쿠폰 분쟁 보관 만료 메모 정리',
+    'asset_exchange_legal_logs' => '환전 법정 보관 만료 로그 익명화',
+    'asset_exchange_dispute_notes' => '환전 분쟁 보관 만료 실패 사유 정리',
 ];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

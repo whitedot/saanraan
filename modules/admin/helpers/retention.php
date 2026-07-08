@@ -54,6 +54,15 @@ function sr_admin_retention_setting_keys(): array
     ];
 }
 
+function sr_admin_retention_legal_cutoff_days(): array
+{
+    return [
+        'commerce_records' => 1825,
+        'commerce_disputes' => 1095,
+        'commerce_advertising' => 183,
+    ];
+}
+
 function sr_admin_retention_int_setting_value(mixed $value, int $default, int $min, int $max): int
 {
     if (is_int($value) && $value >= $min && $value <= $max) {
@@ -552,7 +561,7 @@ function sr_admin_retention_delete_target(PDO $pdo, array $target, array $cutoff
 
 function sr_admin_retention_preview_cutoffs(array $values): array
 {
-    return [
+    $cutoffs = [
         'auth_logs' => sr_admin_retention_cutoff($values['auth_logs_days']),
         'audit_logs' => sr_admin_retention_cutoff($values['audit_logs_days']),
         'used_tokens' => sr_admin_retention_cutoff($values['used_tokens_days']),
@@ -561,6 +570,11 @@ function sr_admin_retention_preview_cutoffs(array $values): array
         'notifications' => sr_admin_retention_cutoff($values['notifications_days']),
         'module_backups' => sr_admin_retention_cutoff($values['module_backups_days']),
     ];
+    foreach (sr_admin_retention_legal_cutoff_days() as $key => $days) {
+        $cutoffs[$key] = sr_admin_retention_cutoff($days);
+    }
+
+    return $cutoffs;
 }
 
 function sr_admin_retention_preview_counts(PDO $pdo, array $previewCutoffs): array
