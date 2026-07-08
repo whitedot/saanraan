@@ -72,12 +72,26 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     }
 
     if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
-        $stmt = $pdo->prepare('UPDATE sr_content_file_download_logs SET account_id = NULL WHERE account_id = :account_id');
+        $fileDownloadSetSql = $columnExists($pdo, 'sr_content_file_download_logs', 'coupon_dedupe_key')
+            ? "account_id = NULL,\n                 coupon_dedupe_key = ''"
+            : 'account_id = NULL';
+        $stmt = $pdo->prepare(
+            'UPDATE sr_content_file_download_logs
+             SET ' . $fileDownloadSetSql . '
+             WHERE account_id = :account_id'
+        );
         $stmt->execute(['account_id' => $accountId]);
         $fileDownloadLogAnonymizedCount = $stmt->rowCount();
     }
 
-    $stmt = $pdo->prepare('UPDATE sr_content_view_payment_logs SET account_id = NULL WHERE account_id = :account_id');
+    $viewPaymentSetSql = $columnExists($pdo, 'sr_content_view_payment_logs', 'coupon_dedupe_key')
+        ? "account_id = NULL,\n             coupon_dedupe_key = ''"
+        : 'account_id = NULL';
+    $stmt = $pdo->prepare(
+        'UPDATE sr_content_view_payment_logs
+         SET ' . $viewPaymentSetSql . '
+         WHERE account_id = :account_id'
+    );
     $stmt->execute(['account_id' => $accountId]);
     $viewPaymentLogAnonymizedCount = $stmt->rowCount();
 

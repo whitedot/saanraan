@@ -82,9 +82,15 @@ function sr_retention_check_contract_fixture_pdo(bool $withTables): PDO
             $pdo->exec('CREATE TABLE ' . $tableName . ' (id INTEGER PRIMARY KEY AUTOINCREMENT)');
         }
         $pdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, status TEXT NOT NULL)');
-        $pdo->exec('CREATE TABLE sr_content_asset_access_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
-        $pdo->exec('CREATE TABLE sr_content_asset_action_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
-        $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, log_status TEXT NOT NULL)');
+        $pdo->exec('CREATE TABLE sr_content_asset_access_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL DEFAULT 0, log_status TEXT NOT NULL, dedupe_key TEXT NOT NULL DEFAULT \'\', created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_content_asset_action_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL DEFAULT 0, log_status TEXT NOT NULL, dedupe_key TEXT NOT NULL DEFAULT \'\', created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_content_author_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NOT NULL DEFAULT 0, created_by_account_id INTEGER NULL, status TEXT NOT NULL DEFAULT \'\', failure_reason TEXT NULL, dedupe_key TEXT NOT NULL DEFAULT \'\', created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_content_view_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\', payment_dedupe_key TEXT NOT NULL DEFAULT \'\', refund_note TEXT NOT NULL DEFAULT \'\', refunded_by_account_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_content_file_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\', refund_note TEXT NOT NULL DEFAULT \'\', refunded_by_account_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL DEFAULT 0, log_status TEXT NOT NULL, dedupe_key TEXT NOT NULL DEFAULT \'\', created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, downloader_account_id INTEGER NOT NULL DEFAULT 0, publisher_account_id INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT \'\', failure_message TEXT NULL, dedupe_key TEXT NOT NULL DEFAULT \'\', created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_community_post_read_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\', payment_dedupe_key TEXT NOT NULL DEFAULT \'\', refund_note TEXT NOT NULL DEFAULT \'\', refunded_by_account_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT \'\')');
+        $pdo->exec('CREATE TABLE sr_community_attachment_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\', refund_note TEXT NOT NULL DEFAULT \'\', refunded_by_account_id INTEGER NULL, created_at TEXT NOT NULL DEFAULT \'\')');
     }
 
     return $pdo;
@@ -100,7 +106,16 @@ $expectedKeys = [
     'rate_limits',
     'content_asset_access_pending_logs',
     'content_asset_action_pending_logs',
+    'content_legal_asset_access_logs',
+    'content_legal_asset_action_logs',
+    'content_legal_author_reward_logs',
+    'content_legal_view_payment_logs',
+    'content_legal_file_download_logs',
     'community_asset_pending_logs',
+    'community_legal_asset_logs',
+    'community_legal_publisher_reward_logs',
+    'community_legal_post_read_payment_logs',
+    'community_legal_attachment_download_logs',
     'module_upload_work_dirs',
     'banner_clicks',
     'notifications',
@@ -212,6 +227,8 @@ foreach ([
     'reward_legal_withdrawal_requests',
     'deposit_legal_refund_requests',
     'coupon_legal_redemptions',
+    'content_legal_asset_access_logs',
+    'community_legal_asset_logs',
     'asset_exchange_legal_logs',
 ] as $legalTargetKey) {
     $targetSql = implode("\n", [
@@ -253,6 +270,15 @@ if (!str_contains($assetExchangeLegalSql, "failure_reason = ''")) {
 foreach ([
     'coupon_legal_redemptions' => ['dedupe_key = CONCAT('],
     'coupon_legal_claim_logs' => ['dedupe_key = CONCAT(', 'dedupe_hash = SHA2('],
+    'content_legal_asset_access_logs' => ['dedupe_key = CONCAT('],
+    'content_legal_asset_action_logs' => ['dedupe_key = CONCAT('],
+    'content_legal_author_reward_logs' => ['dedupe_key = CONCAT(', 'created_by_account_id = NULL'],
+    'content_legal_view_payment_logs' => ['account_id IS NOT NULL', 'coupon_dedupe_key = \'\'', 'payment_dedupe_key = CONCAT('],
+    'content_legal_file_download_logs' => ['account_id IS NOT NULL', 'coupon_dedupe_key = \'\''],
+    'community_legal_asset_logs' => ['dedupe_key = CONCAT('],
+    'community_legal_publisher_reward_logs' => ['dedupe_key = CONCAT(', 'downloader_account_id = CASE', 'publisher_account_id = CASE'],
+    'community_legal_post_read_payment_logs' => ['account_id IS NOT NULL', 'coupon_dedupe_key = \'\'', 'payment_dedupe_key = CONCAT('],
+    'community_legal_attachment_download_logs' => ['account_id IS NOT NULL', 'coupon_dedupe_key = \'\''],
 ] as $couponLegalTargetKey => $requiredMarkers) {
     $targetSql = implode("\n", [
         (string) ($targets[$couponLegalTargetKey]['delete_sql'] ?? ''),

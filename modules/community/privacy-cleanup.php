@@ -214,18 +214,24 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     }
 
     if ($columnExists($pdo, 'sr_community_attachment_download_logs', 'account_id')) {
+        $attachmentDownloadSetSql = $columnExists($pdo, 'sr_community_attachment_download_logs', 'coupon_dedupe_key')
+            ? "account_id = NULL,\n                 coupon_dedupe_key = ''"
+            : 'account_id = NULL';
         $stmt = $pdo->prepare(
             'UPDATE sr_community_attachment_download_logs
-             SET account_id = NULL
+             SET ' . $attachmentDownloadSetSql . '
              WHERE account_id = :account_id'
         );
         $stmt->execute(['account_id' => $accountId]);
         $attachmentDownloadLogAnonymizedCount = $stmt->rowCount();
     }
 
+    $postReadPaymentSetSql = $columnExists($pdo, 'sr_community_post_read_payment_logs', 'coupon_dedupe_key')
+        ? "account_id = NULL,\n             coupon_dedupe_key = ''"
+        : 'account_id = NULL';
     $stmt = $pdo->prepare(
         'UPDATE sr_community_post_read_payment_logs
-         SET account_id = NULL
+         SET ' . $postReadPaymentSetSql . '
          WHERE account_id = :account_id'
     );
     $stmt->execute(['account_id' => $accountId]);

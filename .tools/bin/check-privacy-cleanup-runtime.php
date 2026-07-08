@@ -206,13 +206,15 @@ function sr_privacy_cleanup_runtime_check_content(): void
     $pdo->exec(
         'CREATE TABLE sr_content_file_download_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NULL
+            account_id INTEGER NULL,
+            coupon_dedupe_key TEXT NOT NULL DEFAULT \'\'
         )'
     );
     $pdo->exec(
         'CREATE TABLE sr_content_view_payment_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NULL
+            account_id INTEGER NULL,
+            coupon_dedupe_key TEXT NOT NULL DEFAULT \'\'
         )'
     );
     $pdo->exec(
@@ -266,8 +268,8 @@ function sr_privacy_cleanup_runtime_check_content(): void
     );
 
     $pdo->exec("INSERT INTO sr_content_comments (author_account_id, author_public_name_snapshot) VALUES (7, 'name7'), (8, 'name8')");
-    $pdo->exec("INSERT INTO sr_content_file_download_logs (account_id) VALUES (7), (8)");
-    $pdo->exec("INSERT INTO sr_content_view_payment_logs (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_content_file_download_logs (account_id, coupon_dedupe_key) VALUES (7, 'content.download:coupon:7:1'), (8, 'content.download:coupon:8:1')");
+    $pdo->exec("INSERT INTO sr_content_view_payment_logs (account_id, coupon_dedupe_key) VALUES (7, 'content.view:coupon:7:1'), (8, 'content.view:coupon:8:1')");
     $pdo->exec("INSERT INTO sr_content_author_applications (account_id, application_note, review_note, updated_at) VALUES (7, 'apply7', 'review7', ''), (8, 'apply8', 'review8', '')");
     $pdo->exec("INSERT INTO sr_content_access_entitlements (account_id, source_reference, anonymized_at) VALUES (7, 'ref7', NULL), (8, 'ref8', NULL)");
     $pdo->exec("INSERT INTO sr_content_asset_access_logs (account_id) VALUES (7), (8)");
@@ -293,6 +295,8 @@ function sr_privacy_cleanup_runtime_check_content(): void
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_content_comments WHERE id = 1') === '', 'content cleanup must clear target comment public name snapshot.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_file_download_logs WHERE account_id IS NULL') === 1, 'content cleanup must anonymize target file download logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_view_payment_logs WHERE account_id IS NULL') === 1, 'content cleanup must anonymize target view payment logs.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_content_file_download_logs WHERE id = 1') === '', 'content cleanup must clear target file download coupon dedupe key.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_content_view_payment_logs WHERE id = 1') === '', 'content cleanup must clear target view payment coupon dedupe key.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_content_asset_access_logs WHERE id = 1') === 7, 'content cleanup must retain account id on asset access logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_content_asset_action_logs WHERE id = 1') === 7, 'content cleanup must retain account id on asset action logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_account_id FROM sr_content_author_reward_logs WHERE id = 1') === 7, 'content cleanup must retain author account id on reward logs.');
@@ -301,6 +305,8 @@ function sr_privacy_cleanup_runtime_check_content(): void
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_series WHERE id = 1 AND created_by IS NULL AND updated_by IS NULL') === 1, 'content cleanup must clear target series metadata.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_content_series_items WHERE id = 1 AND created_by IS NULL') === 1, 'content cleanup must clear target series item metadata.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_content_comments WHERE id = 2') === 'name8', 'content cleanup must not alter other account comments.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_content_file_download_logs WHERE id = 2') === 'content.download:coupon:8:1', 'content cleanup must not alter other file download coupon dedupe key.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_content_view_payment_logs WHERE id = 2') === 'content.view:coupon:8:1', 'content cleanup must not alter other view payment coupon dedupe key.');
     sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT source_reference FROM sr_content_access_entitlements WHERE id = 2') === 'ref8', 'content cleanup must not alter other account entitlements.');
 }
 
@@ -334,7 +340,8 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_community_post_read_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL)');
+	    $pdo->exec('CREATE TABLE sr_community_post_read_payment_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
+	    $pdo->exec('CREATE TABLE sr_community_attachment_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
     $pdo->exec('CREATE TABLE sr_community_report_auto_actions (id INTEGER PRIMARY KEY AUTOINCREMENT, target_hidden_by_account_id INTEGER NULL, reviewer_account_id INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_asset_recovery_failures (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL, actor_account_id INTEGER NULL, operation_context_json TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_publisher_reward_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, downloader_account_id INTEGER NOT NULL, publisher_account_id INTEGER NOT NULL)');
@@ -358,7 +365,8 @@ function sr_privacy_cleanup_runtime_check_community(): void
     $pdo->exec("INSERT INTO sr_community_series_items (created_by) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_community_series_scraps (account_id) VALUES (7), (8)");
     $pdo->exec("INSERT INTO sr_community_asset_logs (account_id) VALUES (7), (8)");
-    $pdo->exec("INSERT INTO sr_community_post_read_payment_logs (account_id) VALUES (7), (8)");
+    $pdo->exec("INSERT INTO sr_community_post_read_payment_logs (account_id, coupon_dedupe_key) VALUES (7, 'community.post.read:coupon:7:1'), (8, 'community.post.read:coupon:8:1')");
+    $pdo->exec("INSERT INTO sr_community_attachment_download_logs (account_id, coupon_dedupe_key) VALUES (7, 'community.attachment.download:coupon:7:1'), (8, 'community.attachment.download:coupon:8:1')");
     $pdo->exec("INSERT INTO sr_community_report_auto_actions (target_hidden_by_account_id, reviewer_account_id) VALUES (7, 7), (8, 7), (8, 8)");
     $pdo->exec("INSERT INTO sr_community_asset_recovery_failures (account_id, actor_account_id, operation_context_json) VALUES (7, 7, '{\"route_context\":\"admin.community.posts\"}'), (8, 7, '{\"route_context\":\"admin.community.posts\"}')");
     $pdo->exec("INSERT INTO sr_community_publisher_reward_logs (downloader_account_id, publisher_account_id) VALUES (7, 8), (8, 7)");
@@ -379,6 +387,7 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((int) ($result['community_post_extra_values_anonymized_count'] ?? -1) === 1, 'community cleanup must report post extra value snapshot anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_post_field_values_anonymized_count'] ?? -1) === 2, 'community cleanup must report post field values anonymization count including legacy policy rows.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_submission_consent_anonymized_count'] ?? -1) === 1, 'community cleanup must report submission consent anonymization count.');
+    sr_privacy_cleanup_runtime_assert((int) ($result['community_attachment_download_log_anonymized_count'] ?? -1) === 1, 'community cleanup must report attachment download log anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_post_read_payment_log_anonymized_count'] ?? -1) === 1, 'community cleanup must report post read payment log anonymization count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_report_auto_action_actor_links_cleared'] ?? -1) === 2, 'community cleanup must report report auto action actor link cleanup count.');
     sr_privacy_cleanup_runtime_assert((int) ($result['community_asset_recovery_failure_anonymized_count'] ?? -1) === 1, 'community cleanup must report asset recovery failure anonymization count.');
@@ -403,7 +412,12 @@ function sr_privacy_cleanup_runtime_check_community(): void
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_series_items WHERE id = 1 AND created_by IS NULL') === 1, 'community cleanup must clear target series item metadata.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_community_asset_logs WHERE id = 1') === 7, 'community cleanup must retain account id on asset logs.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_post_read_payment_logs WHERE id = 1 AND account_id IS NULL') === 1, 'community cleanup must anonymize target post read payment logs.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_community_post_read_payment_logs WHERE id = 1') === '', 'community cleanup must clear target post read payment coupon dedupe key.');
+    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_attachment_download_logs WHERE id = 1 AND account_id IS NULL') === 1, 'community cleanup must anonymize target attachment download logs.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_community_attachment_download_logs WHERE id = 1') === '', 'community cleanup must clear target attachment download coupon dedupe key.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT account_id FROM sr_community_post_read_payment_logs WHERE id = 2') === 8, 'community cleanup must not alter other post read payment logs.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_community_post_read_payment_logs WHERE id = 2') === 'community.post.read:coupon:8:1', 'community cleanup must not alter other post read payment coupon dedupe key.');
+    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT coupon_dedupe_key FROM sr_community_attachment_download_logs WHERE id = 2') === 'community.attachment.download:coupon:8:1', 'community cleanup must not alter other attachment download coupon dedupe key.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_report_auto_actions WHERE id = 1 AND target_hidden_by_account_id IS NULL AND reviewer_account_id IS NULL') === 1, 'community cleanup must clear target report auto action actor links.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_report_auto_actions WHERE id = 2 AND target_hidden_by_account_id = 8 AND reviewer_account_id IS NULL') === 1, 'community cleanup must clear reviewer-only report auto action links.');
     sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_community_report_auto_actions WHERE id = 3 AND target_hidden_by_account_id = 8 AND reviewer_account_id = 8') === 1, 'community cleanup must not alter unrelated report auto action links.');
