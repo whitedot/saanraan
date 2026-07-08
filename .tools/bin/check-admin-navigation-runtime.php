@@ -157,8 +157,8 @@ $notificationMenuPaths = array_map(
     array_values(array_filter((array) ($moduleGroups['notification']['items'] ?? []), 'is_array'))
 );
 sr_admin_navigation_runtime_assert(
-    array_search('/admin/admin-notifications', $notificationMenuPaths, true) === array_search('/admin/notifications/settings', $notificationMenuPaths, true) - 1,
-    'Admin navigation runtime fixture must place admin notifications directly before notification settings.'
+    ($notificationMenuPaths[0] ?? '') === '/admin/notifications/settings',
+    'Admin navigation runtime fixture must place notification settings first in the notification submenu.'
 );
 
 sr_admin_navigation_runtime_assert(sr_admin_first_permitted_menu_path($pdo, 2) === '/admin/seo', 'Admin navigation runtime fixture must return first permitted module menu for limited admin.');

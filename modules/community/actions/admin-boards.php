@@ -212,7 +212,7 @@ if (sr_request_method() === 'POST') {
         $deleteConfirmText = is_array($deleteBoard) ? '삭제 ' . (string) ($deleteBoard['board_key'] ?? '') : '';
         if (!is_array($deleteBoard)) {
             $errors[] = sr_t('community::action.error.board_not_found');
-        } elseif (sr_post_string('delete_confirm_text', 80) !== $deleteConfirmText) {
+        } elseif (trim(sr_post_string('delete_confirm_text', 80)) !== $deleteConfirmText) {
             $errors[] = '게시판 삭제 확인 문구가 일치하지 않습니다.';
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],

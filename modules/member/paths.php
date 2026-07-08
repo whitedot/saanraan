@@ -11,6 +11,7 @@ return [
     'GET /member/mention-search' => 'actions/mention-search.php',
     'POST /member/follow' => 'actions/follow.php',
     'GET /account' => 'actions/account.php',
+    'GET /accout' => 'actions/account-redirect.php',
     'POST /account' => 'actions/account.php',
     'GET /mypage' => 'actions/account.php',
     'POST /mypage' => 'actions/account.php',

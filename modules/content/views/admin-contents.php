@@ -323,9 +323,51 @@ $contentPermanentDeleteModalHtml = static function (array $content): string {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>">취소</button>
-                    <button type="submit" class="btn btn-outline-danger modal-action">영구 삭제</button>
+                    <button type="submit" class="btn btn-solid-danger modal-action">영구 삭제</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <?php
+    return (string) ob_get_clean();
+};
+$contentDeletedDetailModalHtml = static function (array $content): string {
+    $contentId = (int) ($content['id'] ?? 0);
+    if ($contentId < 1) {
+        return '';
+    }
+    $modalId = 'content-deleted-detail-modal-' . (string) $contentId;
+    ob_start();
+    ?>
+    <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-label" aria-hidden="true" inert>
+        <div class="modal-dialog">
+            <div class="modal-content admin-form ui-form-theme">
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($modalId); ?>-label" class="modal-title">삭제 상세</h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('admin::ui.close.1e8c1020')); ?>" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="admin-meta-list">
+                        <dt>내부 ID</dt>
+                        <dd>#<?php echo sr_e((string) $contentId); ?></dd>
+                        <dt>삭제 판정</dt>
+                        <dd>status=deleted</dd>
+                        <dt>삭제 시각</dt>
+                        <dd><?php echo sr_content_time_html((string) ($content['updated_at'] ?? '')); ?></dd>
+                        <dt>redaction</dt>
+                        <dd>완료</dd>
+                        <dt>보존 로그</dt>
+                        <dd><?php echo sr_e(number_format((int) ($content['preserved_log_count'] ?? 0))); ?>건</dd>
+                        <dt>cleanup 대기</dt>
+                        <dd><?php echo sr_e(number_format((int) ($content['cleanup_pending_count'] ?? 0))); ?>건</dd>
+                        <dt>영구 삭제</dt>
+                        <dd>가능</dd>
+                    </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>">닫기</button>
+                </div>
+            </div>
         </div>
     </div>
     <?php
@@ -1132,7 +1174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php echo sr_admin_filter_toggle_group_html('modules_content_admin_contents_status', 'status', sr_content_admin_status_filter_options(), $selectedContentStatuses, sr_t('content::ui.all.a4b69faf')); ?>
                     </div>
                     <div class="filtering-field admin-content-filter-group">
-                        <span class="filtering-label"><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></span>
+                        <label for="modules_content_admin_contents_content_group_id" class="filtering-label"><?php echo sr_e(sr_t('content::ui.text.5d908ddd')); ?></label>
                         <?php
                         $contentGroupFilterOptions = [];
                         foreach ($pageGroups as $pageGroup) {
@@ -1141,9 +1183,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 $contentGroupFilterOptions[$pageGroupId] = (string) ($pageGroup['title'] ?? $pageGroup['group_key']);
                             }
                         }
-                        $selectedContentGroupIds = (int) ($filters['content_group_id'] ?? 0) > 0 ? [(string) (int) $filters['content_group_id']] : [];
-                        echo sr_admin_filter_radio_toggle_group_html('modules_content_admin_contents_content_group_id', 'content_group_id', $contentGroupFilterOptions, $selectedContentGroupIds, sr_t('content::ui.all.a4b69faf'));
                         ?>
+                        <select id="modules_content_admin_contents_content_group_id" name="content_group_id" class="form-select filtering-input">
+                            <option value="0"<?php echo (int) ($filters['content_group_id'] ?? 0) === 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('content::ui.all.a4b69faf')); ?></option>
+                            <?php foreach ($contentGroupFilterOptions as $contentGroupFilterValue => $contentGroupFilterLabel) { ?>
+                                <option value="<?php echo sr_e((string) $contentGroupFilterValue); ?>"<?php echo (int) ($filters['content_group_id'] ?? 0) === (int) $contentGroupFilterValue ? ' selected' : ''; ?>>
+                                    <?php echo sr_e((string) $contentGroupFilterLabel); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
                     </div>
                 </div>
                 <div class="filtering-actions">
@@ -1233,15 +1281,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } ?>
                                     <?php if ($pageIsDeleted) { ?>
                                         <br>
-                                        <span class="admin-summary-meta">
-                                            내부 ID #<?php echo sr_e((string) (int) $page['id']); ?>
-                                            · 삭제 판정 status=deleted
-                                            · 삭제 시각 <?php echo sr_content_time_html((string) ($page['updated_at'] ?? '')); ?>
-                                            · redaction 완료
-                                            · 보존 로그 <?php echo sr_e(number_format((int) ($page['preserved_log_count'] ?? 0))); ?>건
-                                            · cleanup 대기 <?php echo sr_e(number_format((int) ($page['cleanup_pending_count'] ?? 0))); ?>건
-                                            · 영구 삭제 가능
-                                        </span>
+                                        <?php
+                                        $contentDeletedDetailModalId = 'content-deleted-detail-modal-' . (string) (int) $page['id'];
+                                        $contentPermanentDeleteModals .= $contentDeletedDetailModalHtml($page);
+                                        ?>
+                                        <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDeletedDetailModalId); ?>" data-overlay="#<?php echo sr_e($contentDeletedDetailModalId); ?>">삭제 상세</button>
                                     <?php } ?>
                                 </td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($page['content_group_title'] ?? '')); ?></td>
@@ -1292,7 +1336,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             $contentPermanentDeleteModalId = 'content-permanent-delete-modal-' . (string) (int) $page['id'];
                                             $contentPermanentDeleteModals .= $contentPermanentDeleteModalHtml($page);
                                             ?>
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 영구 삭제" title="영구 삭제" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentPermanentDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentPermanentDeleteModalId); ?>"><?php echo sr_material_icon_html('delete_forever'); ?></button>
+                                            <button type="button" class="btn btn-sm btn-icon btn-solid-danger" aria-label="콘텐츠 영구 삭제" title="영구 삭제" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentPermanentDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentPermanentDeleteModalId); ?>"><?php echo sr_material_icon_html('delete_forever'); ?></button>
                                         <?php } ?>
                                     </div>
                                 </td>

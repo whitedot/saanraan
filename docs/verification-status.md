@@ -98,8 +98,8 @@ php .tools/bin/smoke-http.php
 
 현재 기준:
 
-- `.tools/bin/check-member-session-lifetime-runtime.php`는 SQLite fixture로 기본 86400초, 설정값 기반 신규 세션 `expires_at`, 설정값 clamp, 설정 단축의 `created_at + 현재 lifetime` 읽기 시점 무효화, 설정 연장 시 저장된 `expires_at` 초과 부활 방지, cleanup의 `created_at` 기준 삭제, 설정 테이블 누락과 설정 helper 누락 시 86400초 fallback을 확인한다.
-- `.tools/bin/check-member-auth-policy.php`는 세션 lifetime helper의 `function_exists()` guard, `Throwable` fallback, `sr_member_create_session($pdo, $accountId)` 시그니처 유지, `sr_member_session_is_current()`의 `created_at` SELECT와 effective expiry 계산, cleanup의 `created_at` 조건, 회원 설정 감사 metadata의 정수 설정 snapshot marker를 확인한다.
+- `.tools/bin/check-member-session-lifetime-runtime.php`는 SQLite fixture로 기본 86400초, 설정값 기반 신규 세션 `expires_at`, 설정값 clamp, 유효 기간 안 활동 시 `last_seen_at`과 `expires_at` 연장, 만료 세션 부활 방지, cleanup의 만료 row 삭제, 설정 테이블 누락과 설정 helper 누락 시 86400초 fallback을 확인한다.
+- `.tools/bin/check-member-auth-policy.php`는 세션 lifetime helper의 `function_exists()` guard, `Throwable` fallback, `sr_member_create_session($pdo, $accountId)` 시그니처 유지, `sr_member_session_is_current()`의 활동 기준 expiry 갱신, cleanup의 만료 조건, 회원 설정 감사 metadata의 정수 설정 snapshot marker를 확인한다.
 
 ### HTML sanitizer와 CKEditor
 

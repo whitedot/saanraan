@@ -94,6 +94,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small class="form-help">수신 정책이 지정 회원 그룹일 때 적용합니다. 발신자가 관리자 권한을 가진 경우 운영 처리를 위해 수신 제한을 우회할 수 있습니다.</small>
                 </div>
             </div>
+            <div class="form-row">
+                <span class="form-label">정책 시뮬레이션</span>
+                <div class="form-field">
+                    <dl class="admin-meta-list" data-message-policy-simulation>
+                        <dt>일반 회원 발신</dt>
+                        <dd data-message-policy-simulation-send>확인 중</dd>
+                        <dt>일반 회원 수신</dt>
+                        <dd data-message-policy-simulation-receive>확인 중</dd>
+                        <dt>관리자 발신</dt>
+                        <dd data-message-policy-simulation-staff>운영 권한이 있으면 발신/수신 정책을 우회</dd>
+                    </dl>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -123,14 +136,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="message_admin_create_window_seconds">발송 제한 시간 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
-                    <input id="message_admin_create_window_seconds" type="number" name="message_create_window_seconds" min="60" max="86400" required class="form-input" value="<?php echo sr_e((string) ($settings['message_create_window_seconds'] ?? 300)); ?>">
-                    <small class="form-help">초 단위입니다. 60초부터 86400초까지 입력합니다.</small>
+                    <div class="input-group admin-input-unit">
+                        <input id="message_admin_create_window_seconds" type="number" name="message_create_window_seconds" min="60" max="86400" required class="form-input" value="<?php echo sr_e((string) ($settings['message_create_window_seconds'] ?? 300)); ?>">
+                        <span class="input-group-text">초</span>
+                    </div>
+                    <small class="form-help">60초부터 86400초까지 입력합니다.</small>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="message_admin_create_limit">발송 제한 건수 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
-                    <input id="message_admin_create_limit" type="number" name="message_create_limit" min="1" max="200" required class="form-input" value="<?php echo sr_e((string) ($settings['message_create_limit'] ?? 20)); ?>">
+                    <div class="input-group admin-input-unit">
+                        <input id="message_admin_create_limit" type="number" name="message_create_limit" min="1" max="200" required class="form-input" value="<?php echo sr_e((string) ($settings['message_create_limit'] ?? 20)); ?>">
+                        <span class="input-group-text">건</span>
+                    </div>
                     <small class="form-help">위 시간 안에 같은 회원이 보낼 수 있는 최대 쪽지 수입니다. 1건부터 200건까지 입력합니다.</small>
                 </div>
             </div>
@@ -178,26 +197,81 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
+    function policyLabel(value) {
+        if (value === 'all') {
+            return '전체 회원 허용';
+        }
+        if (value === 'group') {
+            return '선택 그룹 회원만 허용';
+        }
+        if (value === 'opt_in') {
+            return '수신 허용 row가 있는 회원만 허용';
+        }
+        if (value === 'disabled') {
+            return '차단';
+        }
+
+        return '확인 필요';
+    }
+
+    function updatePolicySimulation() {
+        var sendPolicy = form.querySelector('[data-message-policy="send"]');
+        var receivePolicy = form.querySelector('[data-message-policy="receive"]');
+        var sendOutput = form.querySelector('[data-message-policy-simulation-send]');
+        var receiveOutput = form.querySelector('[data-message-policy-simulation-receive]');
+        var staffOutput = form.querySelector('[data-message-policy-simulation-staff]');
+        var sendValue = sendPolicy ? sendPolicy.value : 'all';
+        var receiveValue = receivePolicy ? receivePolicy.value : 'all';
+        var sendGroups = selectedGroupCount('send');
+        var receiveGroups = selectedGroupCount('receive');
+        var sendMessage = policyLabel(sendValue);
+        var receiveMessage = policyLabel(receiveValue);
+
+        if (sendValue === 'group') {
+            sendMessage += ' · 선택 ' + sendGroups + '개';
+        }
+        if (receiveValue === 'group') {
+            receiveMessage += ' · 선택 ' + receiveGroups + '개';
+        }
+        if (receiveValue !== 'disabled') {
+            receiveMessage += ' · 회원별 수신 거부는 차단';
+        }
+
+        if (sendOutput) {
+            sendOutput.textContent = sendMessage;
+        }
+        if (receiveOutput) {
+            receiveOutput.textContent = receiveMessage;
+        }
+        if (staffOutput) {
+            staffOutput.textContent = '운영 권한이 있으면 발신/수신 정책을 우회';
+        }
+    }
+
     ['send', 'receive'].forEach(function (kind) {
         var policy = form.querySelector('[data-message-policy="' + kind + '"]');
         var root = groupRoot(kind);
         if (policy) {
             policy.addEventListener('change', function () {
                 updateGroupRequirement(kind);
+                updatePolicySimulation();
             });
         }
         if (root) {
             root.addEventListener('click', function () {
                 window.setTimeout(function () {
                     updateGroupRequirement(kind);
+                    updatePolicySimulation();
                 }, 0);
             });
             root.addEventListener('change', function () {
                 updateGroupRequirement(kind);
+                updatePolicySimulation();
             });
         }
         updateGroupRequirement(kind);
     });
+    updatePolicySimulation();
 
     form.addEventListener('submit', function (event) {
         updateGroupRequirement('send');

@@ -208,18 +208,24 @@ sr_member_session_lifetime_check_assert(
 );
 
 sr_member_session_lifetime_put_setting($pdo, 1800);
-$retroToken = str_repeat('a', 64);
+$activeSlidingToken = str_repeat('a', 64);
 sr_member_session_lifetime_insert(
     $pdo,
     12,
-    $retroToken,
+    $activeSlidingToken,
     date('Y-m-d H:i:s', time() - 1900),
-    date('Y-m-d H:i:s', time() + 86400)
+    date('Y-m-d H:i:s', time() + 60)
 );
-$_SESSION['sr_session_token_hash'] = $retroToken;
+$_SESSION['sr_session_token_hash'] = $activeSlidingToken;
 sr_member_session_lifetime_check_assert(
-    sr_member_session_is_current($pdo, 12) === false,
-    'Shortened lifetime should invalidate existing rows whose created_at plus current lifetime has passed.'
+    sr_member_session_is_current($pdo, 12) === true,
+    'Active sessions should remain current until stored expires_at passes, even when created_at is older than the current lifetime.'
+);
+$activeSlidingRow = sr_member_session_lifetime_row($pdo, $activeSlidingToken);
+$activeSlidingExpiresAt = strtotime((string) ($activeSlidingRow['expires_at'] ?? ''));
+sr_member_session_lifetime_check_assert(
+    $activeSlidingExpiresAt !== false && $activeSlidingExpiresAt > time() + 1700,
+    'Active session check should extend expires_at from the latest activity time.'
 );
 
 sr_member_session_lifetime_put_setting($pdo, 2592000);
@@ -244,11 +250,11 @@ sr_member_session_lifetime_insert(
     14,
     $cleanupToken,
     date('Y-m-d H:i:s', time() - 1900),
-    date('Y-m-d H:i:s', time() + 86400)
+    date('Y-m-d H:i:s', time() - 10)
 );
 $cleanupCount = sr_member_cleanup_sessions($pdo);
-sr_member_session_lifetime_check_assert($cleanupCount > 0, 'Cleanup should delete rows invalidated by the current lifetime cap.');
-sr_member_session_lifetime_check_assert(sr_member_session_lifetime_row($pdo, $cleanupToken) === [], 'Cleanup should remove the lifetime-capped row.');
+sr_member_session_lifetime_check_assert($cleanupCount > 0, 'Cleanup should delete expired session rows.');
+sr_member_session_lifetime_check_assert(sr_member_session_lifetime_row($pdo, $cleanupToken) === [], 'Cleanup should remove the expired row.');
 
 $missingHelperCode = <<<'PHP'
 if (!defined('SR_ROOT')) {

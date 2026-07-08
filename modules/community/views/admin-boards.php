@@ -1469,14 +1469,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="form-row">
                             <label class="form-label" for="community_board_delete_confirm_text">삭제 확인 문구 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                             <div class="form-field">
-                                <input id="community_board_delete_confirm_text" type="text" name="delete_confirm_text" maxlength="80" class="form-input" required>
+                                <input id="community_board_delete_confirm_text" type="text" name="delete_confirm_text" maxlength="80" class="form-input" required data-confirm-phrase="<?php echo sr_e($boardDeleteConfirmText); ?>">
                                 <p class="form-help"><?php echo sr_e('삭제하려면 "' . $boardDeleteConfirmText . '"를 입력하세요.'); ?></p>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>">닫기</button>
-                        <button type="submit" class="btn btn-outline-danger modal-action">삭제</button>
+                        <button type="submit" class="btn btn-solid-danger modal-action">삭제</button>
                     </div>
                 </form>
             </div>

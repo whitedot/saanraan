@@ -887,6 +887,33 @@ document.addEventListener('DOMContentLoaded', function () {
         memberProfileFixedFieldWrite(root, fixedFields || memberProfileFixedFieldParse(root));
     }
 
+    function memberProfileFieldOrderMove(root, fromIndex, toIndex) {
+        var textarea = root ? root.querySelector('[data-member-profile-extra-fields-json]') : null;
+        var definitions = memberProfileExtraFieldParse(textarea);
+        var fixedFields = memberProfileFixedFieldParse(root);
+        var order = memberProfileFieldOrderParse(root, fixedFields, definitions);
+        if (fromIndex < 0 || fromIndex >= order.length || toIndex < 0 || toIndex > order.length || fromIndex === toIndex) {
+            return false;
+        }
+        var moved = order.splice(fromIndex, 1)[0];
+        if (toIndex > fromIndex) {
+            toIndex -= 1;
+        }
+        order.splice(toIndex, 0, moved);
+        memberProfileExtraFieldWrite(root, definitions, order, fixedFields);
+        memberProfileExtraFieldRender(root);
+        return true;
+    }
+
+    function memberProfileExtraFieldClearDropState(root) {
+        if (!root) {
+            return;
+        }
+        root.querySelectorAll('[data-member-profile-field-row]').forEach(function (row) {
+            row.classList.remove('is-dragging', 'is-drop-before', 'is-drop-after');
+        });
+    }
+
     function memberProfileExtraFieldRender(root) {
         var textarea = root ? root.querySelector('[data-member-profile-extra-fields-json]') : null;
         var list = root ? root.querySelector('[data-member-profile-field-list]') : null;
@@ -920,11 +947,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             var row = document.createElement('tr');
+            row.setAttribute('data-member-profile-field-row', '1');
+            row.setAttribute('data-member-profile-extra-field-index-value', String(index));
 
             var orderCell = document.createElement('td');
             orderCell.className = 'member-profile-extra-field-order-cell';
             var orderGroup = document.createElement('div');
             orderGroup.className = 'admin-row-actions';
+            var dragHandle = document.createElement('span');
+            dragHandle.className = 'admin-drag-handle';
+            dragHandle.draggable = true;
+            dragHandle.setAttribute('aria-label', '드래그해서 순서 변경');
+            dragHandle.setAttribute('title', '드래그해서 순서 변경');
+            dragHandle.setAttribute('data-member-profile-extra-field-drag-handle', '1');
+            dragHandle.setAttribute('data-member-profile-extra-field-index-value', String(index));
+            dragHandle.innerHTML = '<span class="material-symbols-outlined admin-drag-handle-icon" aria-hidden="true">apps</span>';
+            orderGroup.appendChild(dragHandle);
             [
                 ['up', '위로', 'arrow_upward'],
                 ['down', '아래로', 'arrow_downward']
@@ -1187,6 +1225,55 @@ document.addEventListener('DOMContentLoaded', function () {
                 memberProfileExtraFieldRender(root);
             });
         }
+        var draggedProfileFieldIndex = -1;
+        root.addEventListener('dragstart', function (event) {
+            var handle = event.target && event.target.closest ? event.target.closest('[data-member-profile-extra-field-drag-handle]') : null;
+            if (!handle || !root.contains(handle)) {
+                return;
+            }
+            draggedProfileFieldIndex = parseInt(handle.getAttribute('data-member-profile-extra-field-index-value') || '-1', 10);
+            var row = handle.closest('[data-member-profile-field-row]');
+            if (row) {
+                row.classList.add('is-dragging');
+            }
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', String(draggedProfileFieldIndex));
+            }
+        });
+        root.addEventListener('dragover', function (event) {
+            if (draggedProfileFieldIndex < 0) {
+                return;
+            }
+            var row = event.target && event.target.closest ? event.target.closest('[data-member-profile-field-row]') : null;
+            if (!row || !root.contains(row)) {
+                return;
+            }
+            event.preventDefault();
+            memberProfileExtraFieldClearDropState(root);
+            var rect = row.getBoundingClientRect();
+            row.classList.add(event.clientY > rect.top + (rect.height / 2) ? 'is-drop-after' : 'is-drop-before');
+        });
+        root.addEventListener('drop', function (event) {
+            if (draggedProfileFieldIndex < 0) {
+                return;
+            }
+            var row = event.target && event.target.closest ? event.target.closest('[data-member-profile-field-row]') : null;
+            if (!row || !root.contains(row)) {
+                return;
+            }
+            event.preventDefault();
+            var targetIndex = parseInt(row.getAttribute('data-member-profile-extra-field-index-value') || '-1', 10);
+            var rect = row.getBoundingClientRect();
+            var insertIndex = targetIndex + (event.clientY > rect.top + (rect.height / 2) ? 1 : 0);
+            memberProfileExtraFieldClearDropState(root);
+            memberProfileFieldOrderMove(root, draggedProfileFieldIndex, insertIndex);
+            draggedProfileFieldIndex = -1;
+        });
+        root.addEventListener('dragend', function () {
+            draggedProfileFieldIndex = -1;
+            memberProfileExtraFieldClearDropState(root);
+        });
         var type = memberProfileExtraFieldInput(modal, 'type');
         if (type) {
             type.addEventListener('change', function () {

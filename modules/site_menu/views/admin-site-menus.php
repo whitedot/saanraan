@@ -417,7 +417,13 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                 : '';
                             ?>
                             <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="site_menu_<?php echo sr_e((string) $row['menu_id']); ?>" data-sort-parent="<?php echo sr_e((string) ((int) ($row['parent_id'] ?? 0))); ?>" data-sort-key="<?php echo sr_e((string) $itemId); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
-                                <td><span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('site_menu::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span></td>
+                                <td>
+                                    <span class="admin-menu-move-controls" role="group" aria-label="메뉴 항목 이동 도구">
+                                        <span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('site_menu::ui.text.baef0d03')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span>
+                                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-menu-move-button" data-admin-sort-move="up" aria-label="<?php echo sr_e((string) $row['label'] . ' 위로 이동'); ?>" title="위로 이동"><?php echo sr_material_icon_html('keyboard_arrow_up'); ?></button>
+                                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-menu-move-button" data-admin-sort-move="down" aria-label="<?php echo sr_e((string) $row['label'] . ' 아래로 이동'); ?>" title="아래로 이동"><?php echo sr_material_icon_html('keyboard_arrow_down'); ?></button>
+                                    </span>
+                                </td>
                                 <td><span class="admin-menu-scope-badge admin-menu-scope-item"><?php echo sr_e((string) $rowDepth); ?><?php echo sr_e(sr_t('site_menu::ui.text.29ee1bb7')); ?></span></td>
                                 <td class="admin-menu-target-cell">
                                     <div class="admin-menu-target admin-menu-target-depth-<?php echo sr_e((string) $rowDepth); ?>">

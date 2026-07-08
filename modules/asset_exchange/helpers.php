@@ -418,7 +418,7 @@ function sr_asset_exchange_normalize_settings(array $settings): array
     $normalized['policy_default_rounding_mode'] = in_array($roundingMode, ['floor', 'round', 'ceil'], true) ? $roundingMode : 'floor';
 
     $feeTrigger = (string) ($normalized['policy_default_fee_trigger'] ?? 'none');
-    $normalized['policy_default_fee_trigger'] = in_array($feeTrigger, ['none', 'always', 'reexchange'], true) ? $feeTrigger : 'none';
+    $normalized['policy_default_fee_trigger'] = in_array($feeTrigger, ['none', 'always'], true) ? $feeTrigger : 'none';
 
     $feeType = (string) ($normalized['policy_default_fee_type'] ?? 'rate');
     $normalized['policy_default_fee_type'] = in_array($feeType, ['rate', 'fixed'], true) ? $feeType : 'rate';
@@ -497,7 +497,7 @@ function sr_asset_exchange_validate_settings(array $settings): array
         throw new InvalidArgumentException('공통 소수 처리 방식이 올바르지 않습니다.');
     }
     $rawFeeTrigger = (string) ($settings['policy_default_fee_trigger'] ?? '');
-    if (!in_array($rawFeeTrigger, ['none', 'always', 'reexchange'], true)) {
+    if (!in_array($rawFeeTrigger, ['none', 'always'], true)) {
         throw new InvalidArgumentException('공통 수수료 적용 조건이 올바르지 않습니다.');
     }
     if ($rawFeeTrigger !== 'none') {
@@ -1048,7 +1048,7 @@ function sr_asset_exchange_save_policy(PDO $pdo, array $data): int
     if (!in_array($roundingMode, ['floor', 'round', 'ceil'], true)) {
         throw new InvalidArgumentException('소수 처리 방식이 올바르지 않습니다.');
     }
-    if (!in_array($feeTrigger, ['none', 'always', 'reexchange'], true)) {
+    if (!in_array($feeTrigger, ['none', 'always'], true)) {
         throw new InvalidArgumentException('수수료 적용 조건이 올바르지 않습니다.');
     }
     if ($feeTrigger === 'none') {
@@ -1792,29 +1792,7 @@ function sr_asset_exchange_fee_applies(PDO $pdo, array $policy, int $accountId):
     if ($trigger === 'none') {
         return false;
     }
-    if ($trigger === 'always') {
-        return true;
-    }
-
-    $fromModuleKey = (string) ($policy['from_module_key'] ?? '');
-    $assets = sr_asset_exchange_assets($pdo);
-    if (empty($assets[$fromModuleKey]['cash_like'])) {
-        return false;
-    }
-
-    $stmt = $pdo->prepare(
-        "SELECT id FROM sr_asset_exchange_logs
-         WHERE account_id = :account_id
-           AND to_module_key = :from_module_key
-           AND status = 'completed'
-         LIMIT 1"
-    );
-    $stmt->execute([
-        'account_id' => $accountId,
-        'from_module_key' => $fromModuleKey,
-    ]);
-
-    return is_array($stmt->fetch());
+    return $trigger === 'always';
 }
 
 function sr_asset_exchange_fee_amount(array $policy, int $fromAmount, int $toAmount): int

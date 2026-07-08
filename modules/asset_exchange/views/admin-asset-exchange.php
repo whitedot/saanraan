@@ -7,7 +7,7 @@ $assets = isset($assets) && is_array($assets) ? $assets : [];
 $policySlots = isset($policySlots) && is_array($policySlots) ? $policySlots : [];
 $assetExchangePostedPolicies = isset($assetExchangePostedPolicies) && is_array($assetExchangePostedPolicies) ? $assetExchangePostedPolicies : [];
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
-$feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용', 'reexchange' => '환전으로 받은 예치금을 다시 바꿀 때'];
+$feeTriggerLabels = ['none' => '사용 안 함', 'always' => '항상 적용'];
 $feeBasisLabels = ['from_amount' => '출금액 기준', 'to_amount' => '입금액 기준'];
 $feeTypeLabels = ['rate' => '정률', 'fixed' => '정액'];
 $roundingModeLabels = ['floor' => '버림', 'round' => '반올림', 'ceil' => '올림'];
@@ -49,7 +49,7 @@ $assetExchangePolicyFeeLabel = static function (array $policy) use ($feeTriggerL
     }
 
     $feeType = $assetExchangePolicyFeeType($policy);
-    $parts = [(string) ($feeTriggerLabels[$feeTrigger] ?? $feeTrigger)];
+    $parts = [(string) ($feeTriggerLabels[$feeTrigger] ?? '사용 안 함')];
     if ($feeType === 'fixed') {
         $parts[] = '정액 ' . number_format((int) ($policy['fee_fixed_amount'] ?? 0));
     } else {
@@ -187,11 +187,17 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                         <div class="admin-asset-exchange-rate-grid">
                             <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_rate_denominator">
                                 <span>출금 기준값</span>
-                                <input id="<?php echo sr_e($fieldPrefix); ?>_rate_denominator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[rate_denominator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'rate_denominator')); ?>" class="form-input" min="1" required>
+                                <span class="input-group admin-input-unit">
+                                    <input id="<?php echo sr_e($fieldPrefix); ?>_rate_denominator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[rate_denominator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'rate_denominator')); ?>" class="form-input" min="1" required>
+                                    <span class="input-group-text"><?php echo sr_e($assetExchangeAssetUnitLabel($assets, $fromModuleKey)); ?></span>
+                                </span>
                             </label>
                             <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_rate_numerator">
                                 <span>입금 기준값</span>
-                                <input id="<?php echo sr_e($fieldPrefix); ?>_rate_numerator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[rate_numerator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'rate_numerator')); ?>" class="form-input" min="1" required>
+                                <span class="input-group admin-input-unit">
+                                    <input id="<?php echo sr_e($fieldPrefix); ?>_rate_numerator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[rate_numerator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'rate_numerator')); ?>" class="form-input" min="1" required>
+                                    <span class="input-group-text"><?php echo sr_e($assetExchangeAssetUnitLabel($assets, $toModuleKey)); ?></span>
+                                </span>
                             </label>
                         </div>
                         <p class="form-help">출금 기준값당 입금 기준값으로 계산합니다.</p>
@@ -208,11 +214,17 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                         <div class="admin-asset-exchange-rate-grid">
                             <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_min_amount">
                                 <span>최소 환전량 <span class="sr-required-label">(필수)</span></span>
-                                <input id="<?php echo sr_e($fieldPrefix); ?>_min_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[min_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'min_amount')); ?>" class="form-input" min="1" required aria-describedby="<?php echo sr_e($minAmountHelpId); ?>">
+                                <span class="input-group admin-input-unit">
+                                    <input id="<?php echo sr_e($fieldPrefix); ?>_min_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[min_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'min_amount')); ?>" class="form-input" min="1" required aria-describedby="<?php echo sr_e($minAmountHelpId); ?>">
+                                    <span class="input-group-text"><?php echo sr_e($assetExchangeAssetUnitLabel($assets, $fromModuleKey)); ?></span>
+                                </span>
                             </label>
                             <label class="admin-asset-exchange-rate-field" for="<?php echo sr_e($fieldPrefix); ?>_max_amount">
                                 <span>최대 환전량</span>
-                                <input id="<?php echo sr_e($fieldPrefix); ?>_max_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[max_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'max_amount')); ?>" class="form-input" min="0" aria-describedby="<?php echo sr_e($maxAmountHelpId); ?>">
+                                <span class="input-group admin-input-unit">
+                                    <input id="<?php echo sr_e($fieldPrefix); ?>_max_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[max_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'max_amount')); ?>" class="form-input" min="0" aria-describedby="<?php echo sr_e($maxAmountHelpId); ?>">
+                                    <span class="input-group-text"><?php echo sr_e($assetExchangeAssetUnitLabel($assets, $fromModuleKey)); ?></span>
+                                </span>
                             </label>
                         </div>
                         <p id="<?php echo sr_e($minAmountHelpId); ?>" class="form-help">최소 환전량은 회원이 한 번에 신청할 수 있는 최소 출금 수량입니다. 환산 기준과 소수 처리 방식에 따라 계산된 최소 허용값보다 작으면 저장할 수 없습니다.</p>
@@ -234,7 +246,7 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                                 <option value="<?php echo sr_e($value); ?>"<?php echo (string) ($policy['fee_trigger'] ?? 'none') === $value ? ' selected' : ''; ?>><?php echo sr_e($label); ?></option>
                             <?php } ?>
                         </select>
-                        <p class="form-help">환전으로 받은 예치금을 다시 바꿀 때는 회원이 이전 환전에서 예치금을 받은 적이 있고, 이번 환전에서 그 예치금을 포인트나 적립금으로 바꿀 때만 수수료를 적용합니다.</p>
+                        <p class="form-help">수수료를 쓰지 않거나 모든 환전 신청에 같은 수수료를 적용합니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-asset-exchange-fee-row>
@@ -262,28 +274,40 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                 <div class="form-row" data-asset-exchange-fee-row data-asset-exchange-fee-type="rate">
                     <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_fee_rate_numerator">정률 수수료 <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
-                        <input id="<?php echo sr_e($fieldPrefix); ?>_fee_rate_numerator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_rate_numerator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_rate_numerator')); ?>" class="form-input" min="0">
+                        <div class="input-group admin-input-unit">
+                            <input id="<?php echo sr_e($fieldPrefix); ?>_fee_rate_numerator" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_rate_numerator]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_rate_numerator')); ?>" class="form-input" min="0">
+                            <span class="input-group-text">%</span>
+                        </div>
                         <p class="form-help">5%라면 5를 입력합니다. 계산 결과의 소수점은 소수 처리 방식에 따라 처리합니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-asset-exchange-fee-row data-asset-exchange-fee-type="fixed">
                     <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_fee_fixed_amount">정액 수수료 <span class="sr-required-label">(필수)</span></label>
                     <div class="form-field">
-                        <input id="<?php echo sr_e($fieldPrefix); ?>_fee_fixed_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_fixed_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_fixed_amount')); ?>" class="form-input" min="0">
+                        <div class="input-group admin-input-unit">
+                            <input id="<?php echo sr_e($fieldPrefix); ?>_fee_fixed_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_fixed_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_fixed_amount')); ?>" class="form-input" min="0">
+                            <span class="input-group-text"><?php echo sr_e($assetExchangeAssetUnitLabel($assets, $toModuleKey)); ?></span>
+                        </div>
                         <p class="form-help">환전 1건마다 차감할 고정 수수료입니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-asset-exchange-fee-row>
                     <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_fee_min_amount">최소 수수료</label>
                     <div class="form-field">
-                        <input id="<?php echo sr_e($fieldPrefix); ?>_fee_min_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_min_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_min_amount')); ?>" class="form-input" min="0">
+                        <div class="input-group admin-input-unit">
+                            <input id="<?php echo sr_e($fieldPrefix); ?>_fee_min_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_min_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_min_amount')); ?>" class="form-input" min="0">
+                            <span class="input-group-text"><?php echo sr_e($assetExchangeAssetUnitLabel($assets, $toModuleKey)); ?></span>
+                        </div>
                         <p class="form-help">비워두면 최소 수수료를 강제하지 않습니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-asset-exchange-fee-row>
                     <label class="form-label" for="<?php echo sr_e($fieldPrefix); ?>_fee_max_amount">최대 수수료</label>
                     <div class="form-field">
-                        <input id="<?php echo sr_e($fieldPrefix); ?>_fee_max_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_max_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_max_amount')); ?>" class="form-input" min="0">
+                        <div class="input-group admin-input-unit">
+                            <input id="<?php echo sr_e($fieldPrefix); ?>_fee_max_amount" type="number" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_max_amount]" value="<?php echo sr_e($assetExchangePolicyFieldValue($policy, 'fee_max_amount')); ?>" class="form-input" min="0">
+                            <span class="input-group-text"><?php echo sr_e($assetExchangeAssetUnitLabel($assets, $toModuleKey)); ?></span>
+                        </div>
                         <p class="form-help">비워두면 최대 수수료를 제한하지 않습니다.</p>
                     </div>
                 </div>

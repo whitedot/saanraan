@@ -40,9 +40,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">환전 사용 여부</h2>
         </div>
         <div class="form-row">
-            <label class="form-label" for="asset_exchange_settings_exchange_enabled">환전 사용 여부<?php echo $assetExchangeAvailable ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></label>
+            <span class="form-label">환전 사용 여부</span>
             <div class="form-field">
-                <?php echo sr_admin_radio_toggle_group_html('asset_exchange_settings_exchange_enabled', 'exchange_enabled', ['0' => '끄기', '1' => '켜기'], $assetExchangeAvailable ? (string) ($settings['exchange_enabled'] ?? '1') : '0', true, $assetExchangeInputAttributes); ?>
+                <?php echo sr_admin_switch_html('asset_exchange_settings_exchange_enabled', 'exchange_enabled', '1', $assetExchangeAvailable && (string) ($settings['exchange_enabled'] ?? '1') === '1', '사용', '0', $assetExchangeInputAttributes); ?>
                 <p class="form-help">끄면 환전 정책이 사용 상태여도 회원 환전 신청, 예상 금액 계산, 확정 실행을 모두 막습니다. 기존 환전 로그 조회와 정정은 유지됩니다.</p>
                 <?php if (!$assetExchangeAvailable) { ?>
                     <p id="asset-exchange-settings-unavailable" class="form-help form-help-warning">

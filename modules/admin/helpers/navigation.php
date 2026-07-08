@@ -631,8 +631,18 @@ function sr_admin_apply_menu_overrides(PDO $pdo, array $groups): array
                 continue;
             }
 
-            usort($items, function (array $left, array $right): int {
-                return [$left['order'], $left['label'], $left['path']] <=> [$right['order'], $right['label'], $right['path']];
+            usort($items, function (array $left, array $right) use ($overrides, $moduleKey): int {
+                return [
+                    sr_admin_menu_item_settings_first_priority($overrides, $moduleKey, $left),
+                    $left['order'],
+                    $left['label'],
+                    $left['path'],
+                ] <=> [
+                    sr_admin_menu_item_settings_first_priority($overrides, $moduleKey, $right),
+                    $right['order'],
+                    $right['label'],
+                    $right['path'],
+                ];
             });
             $moduleGroup['items'] = $items;
             $moduleGroups[] = $moduleGroup;
@@ -662,6 +672,22 @@ function sr_admin_apply_menu_overrides(PDO $pdo, array $groups): array
     });
 
     return $visibleGroups;
+}
+
+function sr_admin_menu_item_settings_first_priority(array $overrides, string $moduleKey, array $item): int
+{
+    $path = (string) ($item['path'] ?? '');
+    $itemKey = sr_admin_menu_item_target_key($moduleKey, $path);
+    if (isset($overrides['item'][$itemKey])) {
+        return 0;
+    }
+
+    $label = (string) ($item['label'] ?? '');
+    if (str_contains($label, '환경설정') || str_ends_with($path, '/settings') || $path === '/admin/member-settings') {
+        return -1;
+    }
+
+    return 0;
 }
 
 function sr_admin_menu_item_target_key(string $moduleKey, string $path): string

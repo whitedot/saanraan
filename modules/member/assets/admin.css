@@ -51,6 +51,9 @@
 [data-member-profile-extra-field-table] th.member-profile-extra-field-order-cell{padding-inline:calc(var(--spacing) * 2)}
 [data-member-profile-extra-field-table] .member-profile-extra-field-order-cell:first-child{padding-left:calc(var(--spacing) * 2)}
 [data-member-profile-extra-field-table] .member-profile-extra-field-order-cell .admin-row-actions{justify-content:center;gap:calc(var(--spacing) * 1)}
+[data-member-profile-field-row].is-dragging{opacity:.55}
+[data-member-profile-field-row].is-drop-before>td{border-top:2px solid var(--color-primary)}
+[data-member-profile-field-row].is-drop-after>td{border-bottom:2px solid var(--color-primary)}
 [data-member-profile-extra-field-table] .member-profile-fixed-field-controls{align-items:center;flex-wrap:wrap;gap:calc(var(--spacing) * 2)}
 
 @media (max-width:1023px){

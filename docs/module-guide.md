@@ -1068,7 +1068,7 @@ return [
 - 확인 화면 이후 실행 전 잔액이 줄어든 경우와 구매력 snapshot, 통화 min-unit, rounding/carry `rounding_policy_version`이 바뀐 경우를 별도 무효화 사유로 기록하고 모두 재확인 대상으로 처리한다.
 - 운영자가 통화 min-unit 또는 rounding/carry `rounding_policy_version`을 변경하면 기존 확인 화면의 in-flight 요청이 fail-closed 재확인으로 떨어질 수 있음을 변경 워크플로에 안내한다.
 - 정적 체크는 계약 문구 회귀 방지용이며 transaction 동참, carry, overpay, lock 순서의 런타임 준수는 구현 시점 테스트 fixture로 검증한다. InnoDB의 미커밋 unique claim 중복 insert는 선행 트랜잭션 commit/rollback까지 블록될 수 있으므로 commit 후 duplicate-key, rollback 후 insert 성공, lock wait timeout 시 `processing` 응답을 함께 확인한다.
-- `cash_like`는 예치금처럼 회원이 환전으로 받은 뒤 다시 출금 항목으로 사용할 수 있는 금액성 자산을 표시하는 좁은 힌트다. 환전 정책 화면의 `환전으로 받은 예치금을 다시 바꿀 때` 수수료 옵션은 이 힌트와 회원의 기존 환전 로그를 함께 보고 적용 여부를 판단한다.
+- `cash_like`는 예치금처럼 회원이 환전으로 받은 뒤 다시 출금 항목으로 사용할 수 있는 금액성 자산을 표시하는 좁은 힌트다. 현재 환전 정책 화면은 수수료 적용 조건으로 `사용 안 함`과 `항상 적용`만 제공하며, cash-like 재환전 전용 수수료 조건은 지원하지 않는다.
 - 거래 유형은 기본적으로 `exchange_out`, `exchange_in`, `exchange_fee`이며 자산 모듈의 서버 측 거래 유형 검증에서 부호를 다시 확인해야 한다.
 - 자산 모듈은 자기 balance/transaction 테이블을 계속 소유하고, 환전 모듈은 `reference_type=asset_exchange`와 환전 묶음 ID를 넘겨 원장 간 연결만 남긴다.
 - 환전 사용 여부 환경설정은 환전 가능한 자산 모듈이 2개 이상 설치되어 있고 활성화된 경우에만 켤 수 있다. 0개 또는 1개만 사용할 수 있으면 설정 화면은 환전 사용 여부를 disabled 상태로 보여주고, 저장 action은 직접 전달된 켜기 값을 거부한 뒤 꺼짐으로 정규화한다.

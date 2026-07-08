@@ -740,14 +740,14 @@ if ($sessionHelper !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($sessionHelper, 'SELECT id, expires_at, revoked_at, created_at, last_seen_at') !== false
-            && strpos($sessionHelper, '$effectiveExpiresAt = min($storedExpiresAt, $createdAt + sr_member_session_lifetime_seconds($pdo));') !== false
-            && strpos($sessionHelper, 'if ($effectiveExpiresAt < time())') !== false,
-        'Member session current check should apply the stored expiry and current configured created_at lifetime cap.'
+            && strpos($sessionHelper, 'if ($storedExpiresAt < time())') !== false
+            && strpos($sessionHelper, 'UPDATE sr_member_sessions SET expires_at = :expires_at, last_seen_at = :last_seen_at WHERE id = :id') !== false,
+        'Member session current check should reject expired rows and extend active sessions from latest activity.'
     );
     sr_member_auth_policy_assert(
-        strpos($sessionHelper, '$createdBefore = date(\'Y-m-d H:i:s\', time() - sr_member_session_lifetime_seconds($pdo));') !== false
-            && strpos($sessionHelper, 'OR created_at < :created_before') !== false,
-        'Member session cleanup should delete rows invalidated by the current created_at lifetime cap.'
+        strpos($sessionHelper, 'WHERE expires_at < :now') !== false
+            && strpos($sessionHelper, 'created_before') === false,
+        'Member session cleanup should delete expired rows without applying a created_at lifetime cap.'
     );
     sr_member_auth_policy_assert(
         strpos($sessionHelper, 'function sr_member_login(PDO $pdo, array $account): bool') !== false

@@ -1966,18 +1966,15 @@ function sr_member_cleanup_sessions(PDO $pdo, int $revokedRetentionDays = 30): i
 
     $now = sr_now();
     $revokedBefore = date('Y-m-d H:i:s', time() - max(1, $revokedRetentionDays) * 86400);
-    $createdBefore = date('Y-m-d H:i:s', time() - sr_member_session_lifetime_seconds($pdo));
 
     try {
         $stmt = $pdo->prepare(
             'DELETE FROM sr_member_sessions
              WHERE expires_at < :now
-                OR created_at < :created_before
                 OR (revoked_at IS NOT NULL AND revoked_at < :revoked_before)'
         );
         $stmt->execute([
             'now' => $now,
-            'created_before' => $createdBefore,
             'revoked_before' => $revokedBefore,
         ]);
     } catch (PDOException $exception) {
@@ -2025,16 +2022,17 @@ function sr_member_session_is_current(PDO $pdo, int $accountId): bool
         return false;
     }
 
-    $effectiveExpiresAt = min($storedExpiresAt, $createdAt + sr_member_session_lifetime_seconds($pdo));
-    if ($effectiveExpiresAt < time()) {
+    if ($storedExpiresAt < time()) {
         return false;
     }
 
     $lastSeenAt = strtotime((string) $session['last_seen_at']);
     if ($lastSeenAt === false || $lastSeenAt <= time() - 300) {
-        $stmt = $pdo->prepare('UPDATE sr_member_sessions SET last_seen_at = :last_seen_at WHERE id = :id');
+        $stmt = $pdo->prepare('UPDATE sr_member_sessions SET expires_at = :expires_at, last_seen_at = :last_seen_at WHERE id = :id');
+        $now = time();
         $stmt->execute([
-            'last_seen_at' => sr_now(),
+            'expires_at' => date('Y-m-d H:i:s', $now + sr_member_session_lifetime_seconds($pdo)),
+            'last_seen_at' => date('Y-m-d H:i:s', $now),
             'id' => (int) $session['id'],
         ]);
     }
