@@ -92,7 +92,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT account_id, log_status, dedupe_key FROM sr_content_asset_access_logs LIMIT 1',
+            'SELECT account_id, log_status, dedupe_key, created_at FROM sr_content_asset_access_logs LIMIT 1',
         ],
     ],
     'content_legal_asset_action_logs' => [
@@ -140,7 +140,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT account_id, log_status, dedupe_key FROM sr_content_asset_action_logs LIMIT 1',
+            'SELECT account_id, log_status, dedupe_key, created_at FROM sr_content_asset_action_logs LIMIT 1',
         ],
     ],
     'content_legal_author_reward_logs' => [
@@ -192,7 +192,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT author_account_id, created_by_account_id, dedupe_key FROM sr_content_author_reward_logs LIMIT 1',
+            'SELECT author_account_id, created_by_account_id, status, failure_reason, dedupe_key, created_at FROM sr_content_author_reward_logs LIMIT 1',
         ],
     ],
     'content_legal_view_payment_logs' => [
@@ -243,7 +243,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT account_id, coupon_dedupe_key, payment_dedupe_key FROM sr_content_view_payment_logs LIMIT 1',
+            'SELECT account_id, coupon_dedupe_key, payment_dedupe_key, refund_note, refunded_by_account_id, created_at FROM sr_content_view_payment_logs LIMIT 1',
         ],
     ],
     'content_legal_file_download_logs' => [
@@ -292,7 +292,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT account_id, coupon_dedupe_key FROM sr_content_file_download_logs LIMIT 1',
+            'SELECT account_id, coupon_dedupe_key, refund_note, refunded_by_account_id, created_at FROM sr_content_file_download_logs LIMIT 1',
         ],
     ],
 ];

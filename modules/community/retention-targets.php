@@ -70,7 +70,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT account_id, log_status, dedupe_key FROM sr_community_asset_logs LIMIT 1',
+            'SELECT account_id, log_status, dedupe_key, created_at FROM sr_community_asset_logs LIMIT 1',
         ],
     ],
     'community_legal_publisher_reward_logs' => [
@@ -125,7 +125,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT downloader_account_id, publisher_account_id, dedupe_key FROM sr_community_publisher_reward_logs LIMIT 1',
+            'SELECT downloader_account_id, publisher_account_id, status, failure_message, dedupe_key, created_at FROM sr_community_publisher_reward_logs LIMIT 1',
         ],
     ],
     'community_legal_post_read_payment_logs' => [
@@ -176,7 +176,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT account_id, coupon_dedupe_key, payment_dedupe_key FROM sr_community_post_read_payment_logs LIMIT 1',
+            'SELECT account_id, coupon_dedupe_key, payment_dedupe_key, refund_note, refunded_by_account_id, created_at FROM sr_community_post_read_payment_logs LIMIT 1',
         ],
     ],
     'community_legal_attachment_download_logs' => [
@@ -225,7 +225,7 @@ return [
          )",
         'delete_params' => ['cutoff' => 'commerce_records'],
         'table_checks' => [
-            'SELECT account_id, coupon_dedupe_key FROM sr_community_attachment_download_logs LIMIT 1',
+            'SELECT account_id, coupon_dedupe_key, refund_note, refunded_by_account_id, created_at FROM sr_community_attachment_download_logs LIMIT 1',
         ],
     ],
 ];
