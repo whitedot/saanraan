@@ -22,6 +22,7 @@ $memberExportDownload = sr_get_string('download', 5) === '1';
 $memberExportColumnConfig = sr_admin_member_export_column_config_from_request();
 $memberExportColumns = $memberExportColumnConfig['selected'];
 $memberExportColumnError = $memberExportColumns === [] ? '다운로드할 컬럼을 하나 이상 선택하세요.' : '';
+$memberExportMaskOptions = sr_admin_member_export_mask_options_from_request();
 
 if (!$memberExportDownload || $memberExportColumnError !== '') {
     include SR_ROOT . '/modules/member/views/admin-members-export.php';
@@ -51,6 +52,8 @@ sr_audit_log($pdo, [
         'range_end' => (int) $memberExportRange['end'],
         'truncated' => !empty($memberExportRange['has_next']),
         'columns' => $memberExportColumns,
+        'mask_email' => !empty($memberExportMaskOptions['email']),
+        'mask_phone' => !empty($memberExportMaskOptions['phone']),
     ],
 ]);
 
@@ -83,7 +86,7 @@ while ($exportedCount < $expectedExportCount) {
         $marketingValues = sr_admin_member_marketing_consent_export_values(is_array($marketingConsent) ? $marketingConsent : null);
         $memberExportRowContext = $memberExportContext;
         $memberExportRowContext['sequence'] = (int) $memberExportRange['offset'] + $exportedCount + 1;
-        sr_admin_member_csv_row($output, sr_admin_member_export_row_values($memberExportColumns, $member, $marketingValues, $memberExportRowContext));
+        sr_admin_member_csv_row($output, sr_admin_member_export_row_values($memberExportColumns, $member, $marketingValues, $memberExportRowContext, $memberExportMaskOptions));
         $exportedCount++;
         if ($exportedCount >= $expectedExportCount) {
             break;

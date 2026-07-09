@@ -49,8 +49,9 @@ $memberExportColumnOrder = isset($memberExportColumnConfig['order']) && is_array
 $memberExportColumns = isset($memberExportColumns) && is_array($memberExportColumns) ? $memberExportColumns : (isset($memberExportColumnConfig['selected']) && is_array($memberExportColumnConfig['selected']) ? $memberExportColumnConfig['selected'] : array_keys($memberExportColumnDefinitions));
 $memberExportColumnRows = $memberExportColumns !== [] ? $memberExportColumns : $memberExportColumnOrder;
 $memberExportColumnError = isset($memberExportColumnError) ? (string) $memberExportColumnError : '';
+$memberExportMaskOptions = isset($memberExportMaskOptions) && is_array($memberExportMaskOptions) ? $memberExportMaskOptions : sr_admin_member_export_mask_options_from_request();
 $adminPageTitleUrl = sr_admin_page_title_reset_url(false, '/admin/members/export');
-$memberExportDownloadUrl = static function (int $page) use ($statusFilter, $searchFilter, $memberSort, $exportLimit, $memberExportColumnRows): string {
+$memberExportDownloadUrl = static function (int $page) use ($statusFilter, $searchFilter, $memberSort, $exportLimit, $memberExportColumnRows, $memberExportMaskOptions): string {
     $query = [
         'field' => (string) ($searchFilter['field'] ?? 'all'),
         'sort' => (string) ($memberSort['key'] ?? 'id'),
@@ -67,6 +68,12 @@ $memberExportDownloadUrl = static function (int $page) use ($statusFilter, $sear
     }
     if ($statusFilter !== []) {
         $query['status'] = array_values(array_map('strval', $statusFilter));
+    }
+    if (!empty($memberExportMaskOptions['email'])) {
+        $query['mask_email'] = '1';
+    }
+    if (!empty($memberExportMaskOptions['phone'])) {
+        $query['mask_phone'] = '1';
     }
 
     return sr_url('/admin/members/export?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986));
@@ -142,6 +149,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
                 <p class="form-help">실제 다운로드 대상은 실행 시점에 다시 계산됩니다. 한 파일에는 최대 <?php echo sr_e(number_format($memberExportMaxLimit)); ?>건까지 포함합니다.</p>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <span class="form-label">마스킹</span>
+            <div class="form-field">
+                <label class="form-check form-label" for="member_export_mask_email">
+                    <input id="member_export_mask_email" type="checkbox" name="mask_email" value="1" class="form-checkbox"<?php echo !empty($memberExportMaskOptions['email']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('이메일 마스킹'); ?>
+                </label>
+                <label class="form-check form-label" for="member_export_mask_phone">
+                    <input id="member_export_mask_phone" type="checkbox" name="mask_phone" value="1" class="form-checkbox"<?php echo !empty($memberExportMaskOptions['phone']) ? ' checked' : ''; ?>>
+                    <?php echo sr_admin_choice_label_html('휴대폰 번호 마스킹'); ?>
+                </label>
+                <p class="form-help">선택하지 않으면 해당 값은 원문으로 다운로드됩니다.</p>
             </div>
         </div>
 

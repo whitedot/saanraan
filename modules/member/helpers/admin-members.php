@@ -1418,7 +1418,10 @@ function sr_admin_member_export_limit_options(): array
         1000 => '1,000건',
         5000 => '5,000건',
         10000 => '10,000건',
-        65535 => '65,535건 (XLS 최대)',
+        20000 => '20,000건',
+        30000 => '30,000건',
+        50000 => '50,000건',
+        65535 => '65,535건',
     ];
 }
 
@@ -1467,12 +1470,21 @@ function sr_admin_member_export_range(int $totalCount, int $limit, int $page): a
     ];
 }
 
+function sr_admin_member_export_mask_options_from_request(): array
+{
+    return [
+        'email' => sr_get_string('mask_email', 1) === '1',
+        'phone' => sr_get_string('mask_phone', 1) === '1',
+    ];
+}
+
 function sr_admin_member_export_column_definitions(): array
 {
     return [
         'sequence' => ['label' => '순번'],
         'public_hash' => ['label' => '공개 해시'],
         'email' => ['label' => '이메일'],
+        'phone' => ['label' => '휴대폰 번호'],
         'public_name' => ['label' => '공개 이름'],
         'nickname' => ['label' => '닉네임'],
         'locale' => ['label' => '언어'],
@@ -1598,6 +1610,7 @@ function sr_admin_member_export_context(PDO $pdo, array $accountIds, array $colu
     })));
     $context = [
         'profiles' => [],
+        'phone' => [],
         'groups' => [],
         'oauth_providers' => [],
         'point_balance' => [],
@@ -1617,6 +1630,33 @@ function sr_admin_member_export_context(PDO $pdo, array $accountIds, array $colu
         $stmt->execute($accountParams);
         foreach ($stmt->fetchAll() as $row) {
             $context['profiles'][(int) ($row['account_id'] ?? 0)] = $row;
+        }
+    }
+
+    if (isset($needs['phone']) && sr_member_profile_field_values_table_exists($pdo)) {
+        $phoneKeys = ['phone', 'mobile', 'mobile_phone', 'phone_number'];
+        [$phoneKeyCondition, $phoneKeyParams] = sr_admin_sql_in_condition('field_key', 'member_export_phone_key', $phoneKeys);
+        $stmt = $pdo->prepare(
+            'SELECT account_id, field_key, value_text
+             FROM sr_member_profile_field_values
+             WHERE ' . $accountCondition . '
+               AND ' . $phoneKeyCondition . '
+             ORDER BY account_id ASC,
+                CASE field_key
+                    WHEN \'phone\' THEN 1
+                    WHEN \'mobile\' THEN 2
+                    WHEN \'mobile_phone\' THEN 3
+                    WHEN \'phone_number\' THEN 4
+                    ELSE 5
+                END ASC'
+        );
+        $stmt->execute($accountParams + $phoneKeyParams);
+        foreach ($stmt->fetchAll() as $row) {
+            $accountId = (int) ($row['account_id'] ?? 0);
+            $phoneValue = trim((string) ($row['value_text'] ?? ''));
+            if ($accountId > 0 && $phoneValue !== '' && !isset($context['phone'][$accountId])) {
+                $context['phone'][$accountId] = $phoneValue;
+            }
         }
     }
 
@@ -1690,10 +1730,12 @@ function sr_admin_member_export_context(PDO $pdo, array $accountIds, array $colu
     return $context;
 }
 
-function sr_admin_member_export_row_values(array $columnKeys, array $member, array $marketingValues, array $context = []): array
+function sr_admin_member_export_row_values(array $columnKeys, array $member, array $marketingValues, array $context = [], array $maskOptions = []): array
 {
     $values = [];
     $accountId = (int) ($member['id'] ?? 0);
+    $maskEmail = !empty($maskOptions['email']);
+    $maskPhone = !empty($maskOptions['phone']);
     foreach ($columnKeys as $columnKey) {
         switch ((string) $columnKey) {
             case 'sequence':
@@ -1703,7 +1745,11 @@ function sr_admin_member_export_row_values(array $columnKeys, array $member, arr
                 $values[] = (string) ($member['account_public_hash'] ?? '');
                 break;
             case 'email':
-                $values[] = sr_admin_member_email_display($member);
+                $values[] = $maskEmail ? sr_admin_member_email_display($member) : (string) ($member['email'] ?? '');
+                break;
+            case 'phone':
+                $phone = (string) ($context['phone'][$accountId] ?? '');
+                $values[] = $maskPhone ? sr_admin_member_phone_display($phone) : $phone;
                 break;
             case 'public_name':
                 $values[] = sr_admin_member_display_name_preview($member);
@@ -1765,6 +1811,39 @@ function sr_admin_member_export_row_values(array $columnKeys, array $member, arr
     }
 
     return $values;
+}
+
+function sr_admin_member_phone_display(string $phone): string
+{
+    $phone = trim($phone);
+    if ($phone === '') {
+        return '';
+    }
+
+    $digits = preg_replace('/\D+/', '', $phone) ?? '';
+    if (strlen($digits) < 7) {
+        return str_repeat('*', max(1, strlen($phone)));
+    }
+
+    $digitIndex = 0;
+    $masked = '';
+    $prefixLength = strlen($digits) >= 10 ? 3 : 2;
+    for ($i = 0, $length = strlen($phone); $i < $length; $i++) {
+        $char = $phone[$i];
+        if (ctype_digit($char)) {
+            $remainingDigits = strlen($digits) - $digitIndex;
+            $masked .= $digitIndex < $prefixLength || $remainingDigits <= 4 ? $char : '*';
+            $digitIndex++;
+            continue;
+        }
+        $masked .= $char;
+    }
+
+    if ($masked === $phone) {
+        return substr($digits, 0, $prefixLength) . '****' . substr($digits, -4);
+    }
+
+    return $masked;
 }
 
 function sr_admin_member_csv_cell(mixed $value): string
