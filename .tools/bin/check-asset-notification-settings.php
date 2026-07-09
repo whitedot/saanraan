@@ -174,14 +174,14 @@ sr_asset_notification_settings_require_markers('modules/asset_exchange/helpers.p
     "'transaction.exchange_fee'",
     "'save_settings_function'",
 ]);
-sr_asset_notification_settings_require_markers('modules/asset_exchange/actions/admin-asset-exchange-settings.php', [
+sr_asset_notification_settings_require_markers('modules/asset_exchange/actions/admin-asset-exchange.php', [
     '$notificationGroups = sr_asset_exchange_notification_groups($pdo);',
     '$postedNotificationCases = $_POST[\'notification_cases\'] ?? [];',
     '$notificationSettingsByModule',
     '$moduleSettings[\'notification_cases\'] = $notificationSettingsByModule[$moduleKey];',
     '\'notification_cases\' => $notificationSettingsByModule',
 ]);
-sr_asset_notification_settings_require_markers('modules/asset_exchange/views/admin-asset-exchange-settings.php', [
+sr_asset_notification_settings_require_markers('modules/asset_exchange/views/admin-asset-exchange.php', [
     '$notificationGroups',
     '$allNotificationCasesEnabled',
     'data-asset-exchange-notification-bulk-toggle',

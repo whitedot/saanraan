@@ -14,6 +14,17 @@ $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $assets = sr_asset_exchange_assets($pdo);
 $settings = sr_asset_exchange_settings($pdo);
+$assetExchangeAssets = $assets;
+$assetExchangeAvailable = count($assetExchangeAssets) >= 2;
+$notificationGroups = sr_asset_exchange_notification_groups($pdo);
+$assetExchangeIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
+    && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
+if ($assetExchangeIdentityVerificationModuleAvailable) {
+    require_once SR_ROOT . '/modules/identity_verification/helpers.php';
+}
+$assetExchangeIdentityAvailable = $assetExchangeIdentityVerificationModuleAvailable
+    && function_exists('sr_identity_verification_available')
+    && sr_identity_verification_available($pdo, 'asset.exchange');
 $assetExchangePostedSettings = [];
 $assetExchangePostedPolicies = [];
 
@@ -73,6 +84,64 @@ $assetExchangeFlashPostedForm = static function (array $postedSettings, array $p
         'policies' => $postedPolicies,
     ];
 };
+$assetExchangeNotificationSettingsFromPost = static function (array $notificationGroups, array &$errors): array {
+    $postedNotificationCases = $_POST['notification_cases'] ?? [];
+    $postedNotificationCases = is_array($postedNotificationCases) ? $postedNotificationCases : [];
+    $notificationSettingsByModule = [];
+    foreach ($notificationGroups as $moduleKey => $notificationGroup) {
+        $moduleKey = (string) $moduleKey;
+        $postedModuleCases = isset($postedNotificationCases[$moduleKey]) && is_array($postedNotificationCases[$moduleKey])
+            ? $postedNotificationCases[$moduleKey]
+            : [];
+        $allowedChannels = array_fill_keys((array) ($notificationGroup['channel_options'] ?? ['site']), true);
+        $moduleCaseSettings = is_array($notificationGroup['all_case_settings'] ?? null) ? $notificationGroup['all_case_settings'] : [];
+        $channelsFunction = (string) ($notificationGroup['channels_function'] ?? '');
+        foreach ((array) ($notificationGroup['cases'] ?? []) as $caseKey => $case) {
+            $caseKey = (string) $caseKey;
+            $casePost = isset($postedModuleCases[$caseKey]) && is_array($postedModuleCases[$caseKey]) ? $postedModuleCases[$caseKey] : [];
+            $postedChannels = $casePost['channels'] ?? [];
+            $postedChannels = is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [];
+            $channels = [];
+            foreach ($postedChannels as $channel) {
+                if (isset($allowedChannels[$channel])) {
+                    $channels[$channel] = $channel;
+                }
+            }
+
+            $moduleCaseSettings[$caseKey] = [
+                'event_key' => (string) ($case['event_key'] ?? ''),
+                'enabled' => sr_truthy($casePost['enabled'] ?? false),
+                'channels' => array_values($channels),
+            ];
+            if (!empty($moduleCaseSettings[$caseKey]['enabled']) && $moduleCaseSettings[$caseKey]['channels'] === []) {
+                $errors[] = (string) ($notificationGroup['label'] ?? $moduleKey) . ' ' . (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
+            }
+            if ($channelsFunction !== '' && function_exists($channelsFunction)) {
+                $moduleCaseSettings[$caseKey]['channels'] = $channelsFunction($moduleCaseSettings[$caseKey]['channels']);
+            }
+        }
+        $notificationSettingsByModule[$moduleKey] = $moduleCaseSettings;
+    }
+
+    return $notificationSettingsByModule;
+};
+$assetExchangeSaveNotificationSettings = static function (PDO $pdo, array $notificationGroups, array $notificationSettingsByModule): void {
+    foreach ($notificationGroups as $moduleKey => $notificationGroup) {
+        $settingsFunction = (string) ($notificationGroup['settings_function'] ?? '');
+        $saveSettingsFunction = (string) ($notificationGroup['save_settings_function'] ?? '');
+        if (!isset($notificationSettingsByModule[$moduleKey])
+            || $settingsFunction === ''
+            || $saveSettingsFunction === ''
+            || !function_exists($settingsFunction)
+            || !function_exists($saveSettingsFunction)
+        ) {
+            continue;
+        }
+        $moduleSettings = $settingsFunction($pdo);
+        $moduleSettings['notification_cases'] = $notificationSettingsByModule[$moduleKey];
+        $saveSettingsFunction($pdo, $moduleSettings);
+    }
+};
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -113,7 +182,7 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            sr_admin_flash_result(sr_admin_action_result([], '환산 기준을 저장하고 환전 정책 비율에 반영했습니다.'));
+            sr_admin_flash_result(sr_admin_action_result([], '환산 기준을 저장하고 방향별 환전 비율에 반영했습니다.'));
             sr_redirect('/admin/asset-exchange');
         } catch (Throwable $exception) {
             $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환산 기준 저장에 실패했습니다.';
@@ -140,10 +209,20 @@ if (sr_request_method() === 'POST') {
 
     if ($intent === 'save_all') {
         $postedSettings = $settings;
+        $postedExchangeEnabled = sr_post_string('exchange_enabled', 1) === '1';
+        $postedSettings['exchange_enabled'] = $assetExchangeAvailable && $postedExchangeEnabled ? '1' : '0';
+        $postedSettings['identity_exchange_required'] = sr_post_string('identity_exchange_required', 1) === '1' ? '1' : '0';
+        if (!$assetExchangeAvailable && $postedExchangeEnabled) {
+            $errors[] = '환전을 사용하려면 환전 가능한 자산 모듈을 2개 이상 설치하고 활성화하세요.';
+        }
+        if (!$assetExchangeIdentityAvailable && (string) $postedSettings['identity_exchange_required'] === '1') {
+            $errors[] = '환전 신청 본인확인을 사용하려면 본인확인 사용을 켜고 자산 환전 신청 목적을 지원하는 제공자를 설정하세요.';
+            $postedSettings['identity_exchange_required'] = '0';
+        }
 
         $postedPolicyRows = $_POST['policies'] ?? [];
         if (!is_array($postedPolicyRows)) {
-            sr_admin_flash_result(sr_admin_action_result(['환전 정책 입력값이 올바르지 않습니다.'], ''));
+            sr_admin_flash_result(sr_admin_action_result(['환전 환경설정 입력값이 올바르지 않습니다.'], ''));
             sr_redirect('/admin/asset-exchange');
         }
 
@@ -176,6 +255,12 @@ if (sr_request_method() === 'POST') {
                 'fee_min_amount' => (string) ($postedRow['fee_min_amount'] ?? ''),
                 'fee_max_amount' => (string) ($postedRow['fee_max_amount'] ?? ''),
             ];
+        }
+        $notificationSettingsByModule = $assetExchangeNotificationSettingsFromPost($notificationGroups, $errors);
+        if ($errors !== []) {
+            $assetExchangeFlashPostedForm($postedSettings, $postedPolicies);
+            sr_admin_flash_result(sr_admin_action_result($errors, ''));
+            sr_redirect('/admin/asset-exchange');
         }
 
         try {
@@ -219,6 +304,7 @@ if (sr_request_method() === 'POST') {
                         throw new InvalidArgumentException($policyLabel . ' 정책: ' . $exception->getMessage(), 0, $exception);
                     }
                 }
+                $assetExchangeSaveNotificationSettings($pdo, $notificationGroups, $notificationSettingsByModule);
 
                 if ($startedTransaction) {
                     $pdo->commit();
@@ -232,10 +318,32 @@ if (sr_request_method() === 'POST') {
 
             sr_clear_module_settings_cache('asset_exchange');
             $settings = sr_asset_exchange_settings($pdo);
+            $notificationGroups = sr_asset_exchange_notification_groups($pdo);
             $afterPolicies = [];
             foreach ($savedPolicyIds as $slotKey => $policyId) {
                 $afterPolicies[$slotKey] = $assetExchangePolicySnapshot(sr_asset_exchange_policy($pdo, (int) $policyId));
             }
+
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'asset_exchange.settings.updated',
+                'target_type' => 'module',
+                'target_id' => 'asset_exchange',
+                'result' => 'success',
+                'message' => 'Asset exchange settings updated.',
+                'metadata' => [
+                    'before' => [
+                        'exchange_enabled' => (string) ($beforeSettings['exchange_enabled'] ?? '1'),
+                        'identity_exchange_required' => (string) ($beforeSettings['identity_exchange_required'] ?? '0'),
+                    ],
+                    'after' => [
+                        'exchange_enabled' => (string) ($settings['exchange_enabled'] ?? '1'),
+                        'identity_exchange_required' => (string) ($settings['identity_exchange_required'] ?? '0'),
+                    ],
+                    'notification_cases' => $notificationSettingsByModule,
+                ],
+            ]);
 
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -265,11 +373,11 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            sr_admin_flash_result(sr_admin_action_result([], '환전 정책을 저장했습니다.'));
+            sr_admin_flash_result(sr_admin_action_result([], '환전 환경설정을 저장했습니다.'));
             sr_redirect('/admin/asset-exchange');
         } catch (Throwable $exception) {
             sr_clear_module_settings_cache('asset_exchange');
-            $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 정책 저장에 실패했습니다.';
+            $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 환경설정 저장에 실패했습니다.';
             if (!$exception instanceof InvalidArgumentException) {
                 sr_log_exception($exception, 'asset_exchange_policies_save_failed');
             }
@@ -333,10 +441,10 @@ if (sr_request_method() === 'POST') {
                 ],
             ]);
 
-            sr_admin_flash_result(sr_admin_action_result([], '환전 정책을 저장했습니다.'));
+            sr_admin_flash_result(sr_admin_action_result([], '환전 환경설정을 저장했습니다.'));
             sr_redirect('/admin/asset-exchange');
         } catch (Throwable $exception) {
-            $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 정책 저장에 실패했습니다.';
+            $message = $exception instanceof InvalidArgumentException ? $exception->getMessage() : '환전 환경설정 저장에 실패했습니다.';
             if (!$exception instanceof InvalidArgumentException) {
                 sr_log_exception($exception, 'asset_exchange_policy_save_failed');
             }
@@ -358,7 +466,7 @@ if (sr_request_method() === 'POST') {
         }
     }
 
-    sr_admin_flash_result(sr_admin_action_result(['알 수 없는 환전 정책 저장 요청입니다.'], ''));
+    sr_admin_flash_result(sr_admin_action_result(['알 수 없는 환전 환경설정 저장 요청입니다.'], ''));
     sr_redirect('/admin/asset-exchange');
 }
 

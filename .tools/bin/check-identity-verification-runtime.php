@@ -358,8 +358,8 @@ $identityConsumerFiles = [
         'error_marker' => '환불 신청 본인확인을 사용하려면 본인확인 사용을 켜고 예치금 환불 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
     'asset_exchange' => [
-        'action' => file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange-settings.php'),
-        'view' => file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange-settings.php'),
+        'action' => file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange.php'),
+        'view' => file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange.php'),
         'available_marker' => '$assetExchangeIdentityAvailable',
         'notice_marker' => 'asset-exchange-settings-identity-unavailable',
         'error_marker' => '환전 신청 본인확인을 사용하려면 본인확인 사용을 켜고 자산 환전 신청 목적을 지원하는 제공자를 설정하세요.',

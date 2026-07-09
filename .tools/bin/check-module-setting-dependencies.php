@@ -112,8 +112,8 @@ foreach ([
         'error' => '환불 신청 본인확인을 사용하려면 본인확인 사용을 켜고 예치금 환불 신청 목적을 지원하는 제공자를 설정하세요.',
     ],
     'asset_exchange' => [
-        'action' => 'modules/asset_exchange/actions/admin-asset-exchange-settings.php',
-        'view' => 'modules/asset_exchange/views/admin-asset-exchange-settings.php',
+        'action' => 'modules/asset_exchange/actions/admin-asset-exchange.php',
+        'view' => 'modules/asset_exchange/views/admin-asset-exchange.php',
         'available' => '$assetExchangeIdentityAvailable',
         'notice' => 'asset-exchange-settings-identity-unavailable',
         'error' => '환전 신청 본인확인을 사용하려면 본인확인 사용을 켜고 자산 환전 신청 목적을 지원하는 제공자를 설정하세요.',
@@ -131,11 +131,11 @@ foreach ([
     ], $moduleKey . ' identity settings view dependency state');
 }
 
-$mustContain('modules/asset_exchange/actions/admin-asset-exchange-settings.php', [
+$mustContain('modules/asset_exchange/actions/admin-asset-exchange.php', [
     '$assetExchangeAvailable = count($assetExchangeAssets) >= 2',
     '환전을 사용하려면 환전 가능한 자산 모듈을 2개 이상 설치하고 활성화하세요.',
 ], 'asset exchange enabled setting dependency guard');
-$mustContain('modules/asset_exchange/views/admin-asset-exchange-settings.php', [
+$mustContain('modules/asset_exchange/views/admin-asset-exchange.php', [
     '$assetExchangeAvailable',
     '$assetExchangeInputAttributes',
     'asset-exchange-settings-unavailable',

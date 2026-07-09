@@ -104,8 +104,6 @@ if (
 
 $adminExchangeAction = file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange.php');
 $adminExchangeView = file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange.php');
-$adminExchangeSettingsAction = file_get_contents($root . '/modules/asset_exchange/actions/admin-asset-exchange-settings.php');
-$adminExchangeSettingsView = file_get_contents($root . '/modules/asset_exchange/views/admin-asset-exchange-settings.php');
 $assetExchangeModule = file_get_contents($root . '/modules/asset_exchange/module.php');
 $canonicalUpdate = file_get_contents($root . '/modules/asset_exchange/updates/2026.06.001.sql');
 $coreDecisions = file_get_contents($root . '/docs/core-decisions.md');
@@ -211,22 +209,22 @@ if (is_string($adminExchangeView)) {
     }
 }
 if (
-    !is_string($adminExchangeSettingsAction)
-    || strpos($adminExchangeSettingsAction, 'policy_default_rate_ratio') !== false
-    || strpos($adminExchangeSettingsAction, 'policy_default_status') !== false
-    || strpos($adminExchangeSettingsAction, 'exchange_enabled') === false
-    || !is_string($adminExchangeSettingsView)
-    || strpos($adminExchangeSettingsView, 'policy_default_rate_ratio') !== false
-    || strpos($adminExchangeSettingsView, 'policy_default_status') !== false
-    || strpos($adminExchangeSettingsView, '공통 환전 조건') !== false
-    || strpos($adminExchangeSettingsView, '환전 사용 여부') === false
+    !is_string($adminExchangeAction)
+    || strpos($adminExchangeAction, 'policy_default_rate_ratio') !== false
+    || strpos($adminExchangeAction, 'policy_default_status') !== false
+    || strpos($adminExchangeAction, 'exchange_enabled') === false
+    || !is_string($adminExchangeView)
+    || strpos($adminExchangeView, 'policy_default_rate_ratio') !== false
+    || strpos($adminExchangeView, 'policy_default_status') !== false
+    || strpos($adminExchangeView, '공통 환전 조건') !== false
+    || strpos($adminExchangeView, '환전 사용 여부') === false
     || !is_string($assetExchangeModule)
     || strpos($assetExchangeModule, 'policy_default_rate_ratio') !== false
     || strpos($assetExchangeModule, 'policy_default_sort_order') !== false
     || strpos($assetExchangeModule, "'exchange_enabled' => '1'") === false
     || strpos($assetExchangeModule, "'relative_value_point' => '1'") === false
 ) {
-    $errors[] = 'Asset exchange settings must keep global enablement and notifications separate from policy conditions, with legacy settings removed.';
+    $errors[] = 'Asset exchange admin screen must keep global enablement, notifications, and policy conditions on the same page, with legacy settings removed.';
 }
 if (
     !is_string($installSql)

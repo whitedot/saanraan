@@ -5,7 +5,7 @@ return [
     'order' => 60,
     'items' => [
         [
-            'label' => '환전 정책',
+            'label' => '환전 환경설정',
             'path' => '/admin/asset-exchange',
             'order' => 10,
         ],
@@ -13,11 +13,6 @@ return [
             'label' => '환전 로그',
             'path' => '/admin/asset-exchange/logs',
             'order' => 20,
-        ],
-        [
-            'label' => '환전 환경설정',
-            'path' => '/admin/asset-exchange/settings',
-            'order' => 30,
         ],
     ],
 ];
