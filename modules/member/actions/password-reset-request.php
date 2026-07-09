@@ -53,12 +53,11 @@ if (sr_request_method() === 'POST') {
             $token = sr_member_create_password_reset($pdo, $config, (int) $activeAccount['id']);
             $resetUrl = sr_absolute_url($site, '/password/reset/confirm?token=' . rawurlencode($token));
             $showResetUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
-            $mailSent = sr_send_mail(
-                $site,
-                (string) $activeAccount['email'],
-                sr_t('member::action.password_reset.subject'),
-                sr_t('member::action.password_reset.body', ['url' => $resetUrl])
-            );
+            $mailSent = sr_delivery_template_send_mail($pdo, $site, 'member.password_reset', (string) $activeAccount['email'], [
+                'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
+                'reset_url' => $resetUrl,
+                'expires_minutes' => '30',
+            ]);
             if (!$mailSent) {
                 sr_member_log_auth($pdo, (int) $activeAccount['id'], 'password_reset_mail_failed', 'failure');
             }

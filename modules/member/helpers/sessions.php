@@ -461,15 +461,11 @@ function sr_member_mfa_send_email_challenge(PDO $pdo, array $site, array $config
         return ['sent' => false, 'reason' => 'challenge_expired'];
     }
 
-    $mailSent = sr_send_mail(
-        $site,
-        $email,
-        sr_t('member::action.login_mfa.email_subject'),
-        sr_t('member::action.login_mfa.email_body', [
-            'code' => $code,
-            'minutes' => (string) max(1, (int) ceil(($expiresAt - time()) / 60)),
-        ])
-    );
+    $mailSent = sr_delivery_template_send_mail($pdo, $site, 'member.login_mfa_email_code', $email, [
+        'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
+        'mfa_code' => $code,
+        'expires_minutes' => (string) max(1, (int) ceil(($expiresAt - time()) / 60)),
+    ]);
     if (!$mailSent) {
         unset($_SESSION['sr_debug_mfa_email_code']);
         return ['sent' => false, 'reason' => 'mail_failed'];

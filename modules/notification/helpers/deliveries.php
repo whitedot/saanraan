@@ -130,11 +130,47 @@ function sr_notification_absolute_link_url(array $site, string $linkUrl): string
     if ($baseUrl === '' && function_exists('sr_current_base_url')) {
         $baseUrl = rtrim(sr_current_base_url(), '/');
     }
-    if ($baseUrl !== '' && preg_match('#\Ahttps?://[^\s/$.?#].[^\s]*\z#i', $baseUrl) === 1) {
+    if ($baseUrl !== '' && preg_match('~\Ahttps?://[^\s/$.?#].[^\s]*\z~i', $baseUrl) === 1) {
         return $baseUrl . '/' . ltrim($linkUrl, '/');
     }
 
     return sr_url($linkUrl);
+}
+
+function sr_notification_body_contains_link_url(string $body, string $linkUrl, string $absoluteLinkUrl): bool
+{
+    $body = trim($body);
+    return $body !== '' && (
+        ($linkUrl !== '' && str_contains($body, $linkUrl))
+        || ($absoluteLinkUrl !== '' && str_contains($body, $absoluteLinkUrl))
+    );
+}
+
+function sr_notification_body_promote_relative_link_url(string $body, string $linkUrl, string $absoluteLinkUrl): string
+{
+    if ($body === '' || $linkUrl === '' || $absoluteLinkUrl === '' || sr_is_http_url($linkUrl) || $linkUrl === $absoluteLinkUrl) {
+        return $body;
+    }
+    if (str_contains($body, $absoluteLinkUrl)) {
+        return $body;
+    }
+
+    return str_replace($linkUrl, $absoluteLinkUrl, $body);
+}
+
+function sr_notification_body_with_link_url(string $body, array $site, string $linkUrl): string
+{
+    $linkUrl = sr_notification_clean_link_url($linkUrl);
+    if ($linkUrl === '') {
+        return $body;
+    }
+    $absoluteLinkUrl = sr_notification_absolute_link_url($site, $linkUrl);
+    $body = sr_notification_body_promote_relative_link_url($body, $linkUrl, $absoluteLinkUrl);
+    if ($absoluteLinkUrl === '' || sr_notification_body_contains_link_url($body, $linkUrl, $absoluteLinkUrl)) {
+        return $body;
+    }
+
+    return $body . ($body !== '' ? "\n\n" : '') . $absoluteLinkUrl;
 }
 
 function sr_notification_update_delivery_status_row(PDO $pdo, int $deliveryId, string $beforeStatus, string $targetStatus, string $now): array
@@ -1025,9 +1061,7 @@ function sr_notification_process_email_delivery(PDO $pdo, array $site, array $de
         $body = sr_markdown_plain_text_for_body($pdo, $body);
     }
     $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
-    if ($linkUrl !== '') {
-        $body .= ($body !== '' ? "\n\n" : '') . sr_notification_absolute_link_url($site, $linkUrl);
-    }
+    $body = sr_notification_body_with_link_url($body, $site, $linkUrl);
 
     $previousConfig = sr_runtime_config();
     $runnerConfig = $previousConfig;
@@ -1052,10 +1086,17 @@ function sr_notification_member_external_push_payload(string $channel, array $de
 {
     $siteName = sr_notification_clean_single_line((string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'), 80);
     $title = sr_notification_clean_single_line((string) ($delivery['title'] ?? '알림'), 160);
+    $body = (string) ($delivery['body_text'] ?? '');
+    if ((string) ($delivery['body_format'] ?? 'plain') === 'markdown' && ($GLOBALS['pdo'] ?? null) instanceof PDO) {
+        $body = sr_markdown_plain_text_for_body($GLOBALS['pdo'], $body);
+    } else {
+        $body = trim(strip_tags($body));
+    }
     $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
-    $lines = ['[' . $siteName . '] ' . $title, '사이트에서 내용을 확인해 주세요.'];
-    if ($linkUrl !== '') {
-        $lines[] = sr_notification_absolute_link_url($site, $linkUrl);
+    $body = sr_notification_body_with_link_url($body, $site, $linkUrl);
+    $lines = ['[' . $siteName . '] ' . $title];
+    if ($body !== '') {
+        $lines[] = sr_notification_clean_text($body, 1500);
     }
 
     if ($channel === 'telegram_bot') {
@@ -1197,12 +1238,10 @@ function sr_notification_external_push_text(array $delivery, array $site): strin
         $body = trim(strip_tags($body));
     }
     $linkUrl = sr_notification_clean_link_url((string) ($delivery['link_url'] ?? ''));
+    $body = sr_notification_body_with_link_url($body, $site, $linkUrl);
     $lines = ['[' . $siteName . '] ' . $title];
     if ($body !== '') {
         $lines[] = sr_notification_clean_text($body, 1500);
-    }
-    if ($linkUrl !== '') {
-        $lines[] = sr_notification_absolute_link_url($site, $linkUrl);
     }
 
     return implode("\n\n", $lines);

@@ -1266,7 +1266,7 @@ if ($registerAction !== '') {
     $registerTransaction = strpos($registerAction, '$pdo->beginTransaction();');
     $registerConsent = strpos($registerAction, 'sr_member_record_registration_policy_consents($pdo, $accountId, $transactionPolicyDocuments, $registrationConsentValues);');
     $registerCommit = strpos($registerAction, '$pdo->commit();');
-    $registerMail = strpos($registerAction, '$verificationMailSent = sr_send_mail');
+    $registerMail = strpos($registerAction, '$verificationMailSent = sr_delivery_template_send_mail');
     sr_member_auth_policy_assert(
         $registerTransaction !== false
             && $registerConsent !== false
@@ -1540,7 +1540,7 @@ if ($passwordResetRequestAction !== '') {
         'Password reset request action should reject overlong raw email inputs instead of truncating them.'
     );
     sr_member_auth_policy_assert(
-        strpos($passwordResetRequestAction, '$mailSent = sr_send_mail') !== false
+        strpos($passwordResetRequestAction, '$mailSent = sr_delivery_template_send_mail') !== false
             && strpos($passwordResetRequestAction, "'mail_sent' => \$mailSent") !== false,
         'Password reset request action should audit reset mail delivery result.'
     );

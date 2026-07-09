@@ -30,6 +30,7 @@ return [
             'menu-links.php',
             'privacy-export.php',
             'dashboard.php',
+            'delivery-templates.php',
             'member-group-references.php',
             'antispam-targets.php',
             'member-mfa-providers.php',

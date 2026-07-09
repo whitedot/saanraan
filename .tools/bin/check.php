@@ -1067,6 +1067,22 @@ function sr_check_installer_core_schema_version(): void
 
 function sr_check_admin_menu_paths(): void
 {
+    $adminGetRoutes = [];
+    foreach (sr_check_module_dirs() as $routeModuleDir) {
+        $routePathsFile = $routeModuleDir . '/paths.php';
+        if (!is_file($routePathsFile)) {
+            continue;
+        }
+        $routePaths = file_get_contents($routePathsFile);
+        if (!is_string($routePaths)) {
+            continue;
+        }
+        preg_match_all("/'GET\\s+(\\/admin\\/[^']*)'\\s*=>/", $routePaths, $routeMatches);
+        foreach ($routeMatches[1] as $routePath) {
+            $adminGetRoutes[$routePath] = true;
+        }
+    }
+
     foreach (sr_check_module_dirs() as $moduleDir) {
         $adminMenu = $moduleDir . '/admin-menu.php';
         $pathsFile = $moduleDir . '/paths.php';
@@ -1083,7 +1099,7 @@ function sr_check_admin_menu_paths(): void
 
         preg_match_all("/'path'\\s*=>\\s*'(\\/admin\\/[^']*)'/", $menu, $matches);
         foreach ($matches[1] as $path) {
-            if (preg_match("/'GET\\s+" . preg_quote($path, '/') . "'\\s*=>/", $paths) !== 1) {
+            if (preg_match("/'GET\\s+" . preg_quote($path, '/') . "'\\s*=>/", $paths) !== 1 && !isset($adminGetRoutes[$path])) {
                 sr_check_add_error('Admin menu path is missing from paths.php: ' . $moduleDir . ' ' . $path);
             }
         }
@@ -1855,6 +1871,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-risk-register.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-positioning.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-doc-links.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-delivery-templates.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-auth-policy.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-session-lifetime-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-identity-verification-runtime.php'));

@@ -7,7 +7,10 @@ $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 chdir($root);
 
+require_once $root . '/core/version.php';
 require_once $root . '/core/helpers/runtime.php';
+require_once $root . '/core/helpers/settings.php';
+require_once $root . '/core/helpers/delivery-templates.php';
 
 if (!function_exists('sr_now')) {
     function sr_now(): string
@@ -162,6 +165,39 @@ function sr_notification_runtime_pdo(): PDO
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     $pdo->exec(
+        'CREATE TABLE sr_modules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_key TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT \'enabled\'
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_module_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NOT NULL,
+            value_type TEXT NOT NULL DEFAULT \'string\'
+        )'
+    );
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, status) VALUES (1, 'notification', 'enabled')");
+    $pdo->exec(
+        "INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES
+            (1, 'external_push_enabled', '1', 'bool'),
+            (1, 'slack_webhook_enabled', '1', 'bool'),
+            (1, 'slack_member_push_enabled', '1', 'bool'),
+            (1, 'slack_webhook_url', 'https://hooks.slack.com/services/T000/B000/fixture', 'string'),
+            (1, 'discord_webhook_enabled', '1', 'bool'),
+            (1, 'discord_member_push_enabled', '1', 'bool'),
+            (1, 'discord_webhook_url', 'https://discord.com/api/webhooks/fixture/token', 'string'),
+            (1, 'discord_channel_label', '운영 Discord', 'string'),
+            (1, 'telegram_bot_enabled', '1', 'bool'),
+            (1, 'telegram_member_push_enabled', '1', 'bool'),
+            (1, 'telegram_bot_token', '123456789:ABCdef_ghi-jklmnopqrstuvwxyz123456', 'string'),
+            (1, 'telegram_chat_id', '@saanraan_ops', 'string'),
+            (1, 'telegram_channel_label', '운영 Telegram', 'string')"
+    );
+    $pdo->exec(
         'CREATE TABLE sr_member_accounts (
             id INTEGER PRIMARY KEY,
             email TEXT NOT NULL,
@@ -247,6 +283,23 @@ function sr_notification_runtime_pdo(): PDO
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             UNIQUE(module_key, event_key)
+        )'
+    );
+    $pdo->exec(
+        'CREATE TABLE sr_delivery_template_overrides (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            template_key TEXT NOT NULL,
+            owner_module TEXT NOT NULL,
+            category TEXT NOT NULL,
+            subject_template TEXT NOT NULL DEFAULT \'\',
+            body_template TEXT NULL,
+            link_template TEXT NOT NULL DEFAULT \'\',
+            channels_json TEXT NULL,
+            status TEXT NOT NULL DEFAULT \'active\',
+            updated_by_account_id INTEGER NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(template_key)
         )'
     );
     $pdo->exec(
@@ -347,7 +400,7 @@ sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELEC
 
 $pdo->exec("UPDATE sr_notification_event_templates SET title_template = '수정된 제목: {member_name}' WHERE module_key = 'community' AND event_key = 'comment.mention'");
 $storedEventNotification = $pdo->query('SELECT * FROM sr_notifications WHERE id = ' . (string) $notificationId)->fetch();
-sr_notification_runtime_assert(is_array($storedEventNotification) && sr_notification_title_from_row($pdo, $storedEventNotification) === '수정된 제목: 홍길동', 'notification runtime fixture must generate account event title from current event template and stored metadata.');
+sr_notification_runtime_assert(is_array($storedEventNotification) && sr_notification_title_from_row($pdo, $storedEventNotification) === '댓글에서 홍길동님이 언급했습니다.', 'notification runtime fixture must keep account event title snapshots after template changes.');
 $pdo->exec("UPDATE sr_notification_event_templates SET title_template = '댓글에서 {member_name}님이 언급했습니다.' WHERE module_key = 'community' AND event_key = 'comment.mention'");
 
 $summary = sr_notification_public_header_summary($pdo, 7, 5);
@@ -557,21 +610,65 @@ sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SE
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT recipient_masked FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberDiscordEndpointId]) === 'https://discord.com/[masked]', 'notification runtime fixture must mask member Discord webhook endpoint.');
 sr_notification_runtime_assert(in_array('slack_webhook', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Slack push channel when endpoint exists.');
 sr_notification_runtime_assert(in_array('discord_webhook', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Discord push channel when endpoint exists.');
+$overrideContract = sr_delivery_template_contract($pdo, 'community.comment.mention');
+sr_notification_runtime_assert(is_array($overrideContract), 'notification runtime fixture must expose legacy notification event as delivery template contract.');
+if (is_array($overrideContract)) {
+    sr_delivery_template_save_override(
+        $pdo,
+        $overrideContract,
+        '댓글 받아라~ {member_name}',
+        "{member_name}님이 회원님의 게시글에 댓글을 남겼습니다. {comment_excerpt}\n\n/community/post?id={post_id}",
+        '/community/post?id={post_id}',
+        ['site', 'slack_webhook'],
+        'active',
+        9
+    );
+}
+$overrideNotificationId = sr_notification_create_account_event($pdo, [
+    'account_id' => 7,
+    'module_key' => 'community',
+    'event_key' => 'comment.mention',
+    'metadata' => [
+        'member_name' => '홍길동',
+        'comment_excerpt' => 'ㅋㅋㅋㅋ',
+        'post_id' => '40040',
+    ],
+]);
+sr_notification_runtime_assert(is_int($overrideNotificationId) && $overrideNotificationId > 0, 'notification runtime fixture must create account event notification from delivery template override.');
+$overrideDelivery = $pdo->query(
+    'SELECT d.id, d.recipient, d.channel, n.title, n.body_text, n.body_format, n.link_url
+     FROM sr_notification_deliveries d
+     INNER JOIN sr_notifications n ON n.id = d.notification_id
+     WHERE d.notification_id = ' . (string) (int) $overrideNotificationId . " AND d.channel = 'slack_webhook'
+     LIMIT 1"
+)->fetch();
+sr_notification_runtime_assert(is_array($overrideDelivery), 'notification runtime fixture must queue Slack delivery from overridden notification event channels.');
+if (is_array($overrideDelivery)) {
+    $overridePayload = sr_notification_member_external_push_payload('slack_webhook', $overrideDelivery, ['site_name' => '산란', 'base_url' => 'https://dev.saanraan.test'], 'https://hooks.slack.com/services/T000/B000/member');
+    sr_notification_runtime_assert(str_contains((string) ($overridePayload['text'] ?? ''), '댓글 받아라~ 홍길동'), 'notification runtime fixture must include overridden title in member external push payload.');
+    sr_notification_runtime_assert(str_contains((string) ($overridePayload['text'] ?? ''), '홍길동님이 회원님의 게시글에 댓글을 남겼습니다. ㅋㅋㅋㅋ'), 'notification runtime fixture must include overridden body in member external push payload.');
+    sr_notification_runtime_assert(str_contains((string) ($overridePayload['text'] ?? ''), 'https://dev.saanraan.test/community/post?id=40040'), 'notification runtime fixture must promote body-relative notification links to absolute URLs for external push payloads.');
+    sr_notification_runtime_assert(substr_count((string) ($overridePayload['text'] ?? ''), 'community/post?id=40040') === 1, 'notification runtime fixture must not append a duplicate link when the overridden body already includes it.');
+    sr_notification_runtime_assert(!str_contains((string) ($overridePayload['text'] ?? ''), '사이트에서 내용을 확인해 주세요.'), 'notification runtime fixture must not replace overridden body with generic member external push text.');
+}
+sr_delivery_template_delete_override($pdo, 'community.comment.mention');
+$pdo->prepare('DELETE FROM sr_notification_deliveries WHERE notification_id = :notification_id')->execute(['notification_id' => (int) $overrideNotificationId]);
 $memberSlackNotificationId = sr_notification_create($pdo, [
     'account_id' => 7,
     'audience' => 'account',
     'title' => '회원 Slack 푸시 알림',
-    'body_text' => '민감 본문은 Slack 푸시에 그대로 보내지 않습니다.',
+    'body_text' => 'Slack 푸시에 보낼 본문입니다.',
     'link_url' => '/account/notifications',
     'channels' => ['site', 'slack_webhook'],
 ]);
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'slack_webhook\' AND recipient = :recipient', ['id' => $memberSlackNotificationId, 'recipient' => 'endpoint:' . (string) $memberSlackEndpointId]) === 1, 'notification runtime fixture must queue member Slack push delivery by endpoint reference.');
 $memberDiscordPayload = sr_notification_member_external_push_payload('discord_webhook', [
     'title' => '회원 Discord 푸시 알림',
-    'body_text' => '민감 본문',
+    'body_text' => 'Discord 푸시 본문',
     'link_url' => '/account/notifications',
 ], ['site_name' => '산란'], 'https://discord.com/api/webhooks/member/token');
 sr_notification_runtime_assert(isset($memberDiscordPayload['content']) && !isset($memberDiscordPayload['text']), 'notification runtime fixture must use Discord content payload for member push.');
+sr_notification_runtime_assert(str_contains((string) ($memberDiscordPayload['content'] ?? ''), 'Discord 푸시 본문'), 'notification runtime fixture must copy member notification body into Discord member push payload.');
 $claimedMemberSlack = sr_notification_claim_delivery($pdo, 'fixture-member-slack-lock', '2026-06-11 12:03:00', 300, ['slack_webhook']);
 sr_notification_runtime_assert(is_array($claimedMemberSlack) && (string) ($claimedMemberSlack['title'] ?? '') === '회원 Slack 푸시 알림', 'notification runtime fixture must claim member Slack push delivery with account notification title.');
 $pdo->prepare("UPDATE sr_notification_push_endpoints SET status = 'disabled', disabled_at = '2026-06-11 12:03:30' WHERE id = :id")->execute(['id' => $memberSlackEndpointId]);
@@ -617,17 +714,17 @@ $memberPushNotificationId = sr_notification_create($pdo, [
     'account_id' => 7,
     'audience' => 'account',
     'title' => '회원 푸시 알림',
-    'body_text' => '민감 본문은 외부 푸시에 그대로 보내지 않습니다.',
+    'body_text' => '외부 푸시에 보낼 본문입니다.',
     'link_url' => '/account/notifications',
     'channels' => ['site', 'telegram_bot'],
 ]);
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = :recipient', ['id' => $memberPushNotificationId, 'recipient' => 'endpoint:' . (string) $memberTelegramEndpointId]) === 1, 'notification runtime fixture must queue member push delivery by endpoint reference.');
 $memberPushPayload = sr_notification_member_external_push_payload('telegram_bot', [
     'title' => '회원 푸시 알림',
-    'body_text' => '민감 본문',
+    'body_text' => '외부 푸시 본문',
     'link_url' => '/account/notifications',
 ], ['site_name' => '산란'], '123456789');
-sr_notification_runtime_assert(!str_contains((string) ($memberPushPayload['text'] ?? ''), '민감 본문'), 'notification runtime fixture must not copy member notification body into external push payload.');
+sr_notification_runtime_assert(str_contains((string) ($memberPushPayload['text'] ?? ''), '외부 푸시 본문'), 'notification runtime fixture must copy member notification body into external push payload.');
 
 $claimedMemberPush = sr_notification_claim_delivery($pdo, 'fixture-member-lock', '2026-06-11 12:05:00', 300, ['telegram_bot']);
 sr_notification_runtime_assert(is_array($claimedMemberPush) && (string) ($claimedMemberPush['title'] ?? '') === '회원 푸시 알림', 'notification runtime fixture must claim member push delivery with account notification title.');
@@ -741,13 +838,17 @@ sr_notification_runtime_assert(sr_notification_queue_admin_external_deliveries($
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'slack_webhook\' AND recipient = \'운영 알림\'', ['id' => $adminNotificationId]) === 1, 'notification runtime fixture must queue slack_webhook delivery for admin notification.');
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'discord_webhook\' AND recipient = \'운영 Discord\'', ['id' => $adminNotificationId]) === 1, 'notification runtime fixture must queue discord_webhook delivery for admin notification.');
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = \'운영 Telegram\'', ['id' => $adminNotificationId]) === 1, 'notification runtime fixture must queue telegram_bot delivery for admin notification.');
-$notificationRuntimeSettings = ['discord_webhook_enabled' => false];
+$pdo->exec("UPDATE sr_module_settings SET setting_value = '0' WHERE module_id = 1 AND setting_key = 'discord_webhook_enabled'");
+$GLOBALS['sr_module_settings_cache_token_notification'] = (int) ($GLOBALS['sr_module_settings_cache_token_notification'] ?? 0) + 1;
 sr_notification_runtime_assert(sr_notification_queue_admin_external_deliveries($pdo, $adminNotificationId, ['discord_webhook']) === 0, 'notification runtime fixture must not queue explicitly requested disabled external providers.');
-$notificationRuntimeSettings = ['telegram_channel_label' => 'endpoint:999'];
+$pdo->exec("UPDATE sr_module_settings SET setting_value = '1' WHERE module_id = 1 AND setting_key = 'discord_webhook_enabled'");
+$pdo->exec("UPDATE sr_module_settings SET setting_value = 'endpoint:999' WHERE module_id = 1 AND setting_key = 'telegram_channel_label'");
+$GLOBALS['sr_module_settings_cache_token_notification'] = (int) ($GLOBALS['sr_module_settings_cache_token_notification'] ?? 0) + 1;
 sr_notification_runtime_assert(sr_notification_queue_admin_external_deliveries($pdo, $adminNotificationId, ['telegram_bot']) === 1, 'notification runtime fixture must queue admin Telegram even when label resembles an endpoint reference.');
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = \'endpoint:999\'', ['id' => $adminNotificationId]) === 0, 'notification runtime fixture must not store admin external recipient labels that look like endpoint references.');
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'telegram_bot\' AND recipient = \'telegram_bot\'', ['id' => $adminNotificationId]) === 1, 'notification runtime fixture must replace endpoint-like admin labels with the provider key.');
-$notificationRuntimeSettings = [];
+$pdo->exec("UPDATE sr_module_settings SET setting_value = '운영 Telegram' WHERE module_id = 1 AND setting_key = 'telegram_channel_label'");
+$GLOBALS['sr_module_settings_cache_token_notification'] = (int) ($GLOBALS['sr_module_settings_cache_token_notification'] ?? 0) + 1;
 
 $claimedSlack = sr_notification_claim_delivery($pdo, 'fixture-lock', '2026-06-11 12:10:00', 300, ['slack_webhook']);
 sr_notification_runtime_assert(is_array($claimedSlack) && (string) ($claimedSlack['title'] ?? '') === '운영 상태 경고', 'notification runtime fixture must claim slack_webhook delivery with admin notification title.');

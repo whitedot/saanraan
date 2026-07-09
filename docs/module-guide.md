@@ -88,6 +88,7 @@ modules/{module_key}/
 - extension-points.php (optional)
 - privacy-export.php (optional)
 - privacy-cleanup.php (optional)
+- delivery-templates.php (optional)
 - sitemap.php (optional)
 - menu-links.php (optional)
 - member-group-rules.php (optional)
@@ -1174,6 +1175,19 @@ return [
 - action URL은 관리자 내부 상대 경로만 허용하고, 알림 목록과 헤더 요약은 조회 시점에 관리자 권한을 다시 확인한다.
 - 알림 모듈이 비활성화되었거나 계약이 없으면 소비 모듈의 원래 업무 저장은 실패하지 않아야 한다.
 
+`delivery-templates.php`:
+
+- 배열을 반환한다.
+- 각 항목 key는 `{module_key}.{template_key}` 형식의 전역 발송 템플릿 key다. 같은 문구를 여러 호출부가 공유하면 호출부별로 키를 나누지 않고 하나의 key를 공유한다.
+- 각 항목은 `label`, `category`, `owner_module`, `channels`, `pipeline`, `disable_policy`, `subject_template`, 선택 `body_template`, 선택 `link_template`, `variables`, `required_variables`, `sensitive_variables`, `sample_values`를 제공한다.
+- `category`는 `transactional_email`, `notification_event`, `admin_operational` 중 하나다. 1차 범위에서 관리자 운영 알림은 inventory-only로 두고 대량 템플릿화하지 않는다.
+- transactional email의 기본 문구 canonical은 모듈 계약 PHP에 둔다. 관리자 override는 코어 소유 `sr_delivery_template_overrides`에 명시 row로 저장하고, 기본값 복원은 override row 삭제로 처리한다.
+- transactional email override가 없거나, 직접 DB 수정 등으로 필수 placeholder가 빠졌거나, 렌더 결과 subject/body 필수 위치가 비거나, 렌더 중 오류가 나면 계약 default로 fallback해야 한다.
+- notification event의 `disable_policy`는 `no_op`이며, inactive는 기존처럼 이벤트 생성 no-op으로 해석한다. transactional email의 `disable_policy`는 `fallback_to_default`다.
+- 템플릿 저장 검증은 선언 변수 allowlist와 필수 변수 포함 여부를 확인하지만, 런타임 렌더러는 metadata의 미선언 key도 관대하게 치환할 수 있다.
+- 이메일 본문은 1차 범위에서 `text/plain`만 사용한다. schema에는 향후 `body_format` 확장 여지를 남기되 HTML 이메일은 별도 결정으로 다룬다.
+- 정책 문서 안내메일은 1차 범위에서 subject만 계약으로 이동하고, body는 정책 문서 builder가 문서 데이터로 계속 생성한다.
+
 `privacy-export.php`:
 
 - 배열 또는 callable을 반환한다.
@@ -1407,6 +1421,7 @@ return [
 | `output-slots.php` | core output helper | 화면 소유 모듈이 `sr_render_output_slot()` 호출하거나 layout context의 `output_slots` asset을 선조회할 때 | 저장된 출력 규칙 렌더링과 필요한 public asset 선언 |
 | `privacy-export.php` | `privacy` 모듈 | 개인정보 사본 생성 | 모듈별 회원 귀속 데이터 수집 |
 | `privacy-cleanup.php` | `member` 모듈 | 회원 탈퇴/익명화 트랜잭션 | 설치된 모듈별 회원 재식별 개인정보 정리. 계약 로드 또는 실행 실패 시 탈퇴 처리를 중단 |
+| `delivery-templates.php` | core delivery template helper, `admin` 모듈 | 발송 전 렌더링, `/admin/delivery-templates` 목록/저장/테스트 발송 | 모듈 소유 transactional email/알림 이벤트 기본 문구와 변수 계약 수집. 중앙 override는 코어 테이블에 저장 |
 | `sitemap.php` | `seo` 모듈 | sitemap 응답 생성 | 모듈별 공개 URL 수집 |
 | `member-group-rules.php` | `member` 모듈 | 회원 그룹 자동화 관리자 화면과 재평가 | 모듈별 자동 그룹 부여 조건 후보 |
 | `dashboard.php` | `admin` 모듈 | 관리자 대시보드 렌더링 | 모듈별 대시보드 요약 섹션 |
@@ -1452,14 +1467,14 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php` | `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |
 | `identity_verification` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `operational-status.php` | `identity-provider.php` |
 | `identity_kcp` | `identity-provider.php` | 없음 |
 | `identity_inicis` | `identity-provider.php` | 없음 |
 | `privacy` | `paths.php`, `admin-menu.php` | `privacy-export.php`, `admin-notification-events.php` |
-| `policy_documents` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | 없음 |
+| `policy_documents` | `paths.php`, `admin-menu.php`, `delivery-templates.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | 없음 |
 | `asset_ledger` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | `member-assets.php`, `asset-recovery-targets.php` |
 | `payment_ledger` | `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | `payment-ledger-targets.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |

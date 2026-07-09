@@ -30,12 +30,11 @@ if (!empty($memberSettings['email_verification_enabled']) && $account['email_ver
     } else {
         $token = sr_member_create_email_verification($pdo, $config, (int) $account['id'], (string) $account['email']);
         $verificationUrl = sr_absolute_url($site, '/email/verify?token=' . rawurlencode($token));
-        $mailSent = sr_send_mail(
-            $site,
-            (string) $account['email'],
-            sr_t('member::action.email_verification.subject'),
-            sr_t('member::action.email_verification.body', ['url' => $verificationUrl])
-        );
+        $mailSent = sr_delivery_template_send_mail($pdo, $site, 'member.email_verification', (string) $account['email'], [
+            'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
+            'verification_url' => $verificationUrl,
+            'expires_minutes' => '30',
+        ]);
         $showVerificationUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
         if ($showVerificationUrl) {
             $_SESSION['sr_debug_email_verification_url'] = $verificationUrl;

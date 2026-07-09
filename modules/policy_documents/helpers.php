@@ -551,6 +551,24 @@ function sr_policy_document_notice_mail_body(PDO $pdo, int $versionId): string
     ]);
 }
 
+function sr_policy_document_notice_mail_subject(PDO $pdo, int $versionId): string
+{
+    $version = sr_policy_document_version_by_id($pdo, $versionId);
+    $metadata = [
+        'site_name' => '',
+        'document_title' => '',
+        'effective_date' => sr_t('policy_documents::ui.effective_from.empty'),
+    ];
+    if (is_array($version)) {
+        $metadata['document_title'] = (string) ($version['title_snapshot'] ?? '');
+        $metadata['effective_date'] = sr_policy_document_effective_date_label((string) ($version['effective_from'] ?? ''));
+    }
+
+    $rendered = sr_delivery_template_render($pdo, 'policy_documents.version_notice', $metadata);
+    $subject = sr_clean_single_line((string) ($rendered['subject'] ?? ''), 190);
+    return $subject !== '' ? $subject : '정책 문서 변경 안내';
+}
+
 function sr_policy_document_render_body_html(PDO $pdo, array $version): string
 {
     $bodyHtml = sr_policy_document_sanitize_body((string) ($version['body_html'] ?? ''));

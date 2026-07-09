@@ -956,6 +956,7 @@ function sr_module_known_contract_files(): array
         'extension-points.php',
         'privacy-export.php',
         'privacy-cleanup.php',
+        'delivery-templates.php',
         'sitemap.php',
         'menu-links.php',
         'member-group-rules.php',

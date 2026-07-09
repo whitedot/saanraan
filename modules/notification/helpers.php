@@ -107,19 +107,6 @@ function sr_notification_metadata_from_row(array $notification): array
 
 function sr_notification_title_from_row(PDO $pdo, array $notification): string
 {
-    $moduleKey = (string) ($notification['source_module_key'] ?? '');
-    $eventKey = (string) ($notification['event_key'] ?? '');
-    if ($moduleKey !== '' && $eventKey !== '') {
-        $template = sr_notification_event_template($pdo, $moduleKey, $eventKey);
-        $titleTemplate = is_array($template) ? (string) ($template['title_template'] ?? '') : '';
-        if ($titleTemplate !== '') {
-            $title = sr_notification_clean_single_line(sr_notification_render_template($titleTemplate, sr_notification_metadata_from_row($notification)), 160);
-            if ($title !== '') {
-                return $title;
-            }
-        }
-    }
-
     $title = sr_notification_clean_single_line((string) ($notification['title'] ?? ''), 160);
     return $title !== '' ? $title : '알림';
 }
@@ -779,6 +766,22 @@ function sr_notification_event_template(PDO $pdo, string $moduleKey, string $eve
 {
     if (!sr_is_safe_module_key($moduleKey) || preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1) {
         return null;
+    }
+
+    $templateKey = sr_delivery_template_key($moduleKey . '.' . $eventKey);
+    if ($templateKey !== '') {
+        $effective = sr_delivery_template_effective($pdo, $templateKey);
+        if (is_array($effective) && (string) ($effective['category'] ?? '') === 'notification_event') {
+            return [
+                'module_key' => $moduleKey,
+                'event_key' => $eventKey,
+                'title_template' => (string) ($effective['subject_template'] ?? ''),
+                'body_template' => (string) ($effective['body_template'] ?? ''),
+                'link_template' => (string) ($effective['link_template'] ?? ''),
+                'channels_json' => json_encode(array_values((array) ($effective['channels'] ?? ['site'])), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'status' => (string) ($effective['status'] ?? 'active'),
+            ];
+        }
     }
 
     try {

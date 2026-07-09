@@ -54,7 +54,7 @@ if (sr_request_method() === 'POST') {
                         $pdo,
                         $documentId,
                         $versionId,
-                        sr_t('policy_documents::mail.notice.subject'),
+                        sr_policy_document_notice_mail_subject($pdo, $versionId),
                         sr_policy_document_notice_mail_body($pdo, $versionId)
                     );
                 }
@@ -111,7 +111,7 @@ if (sr_request_method() === 'POST') {
                     $pdo,
                     $selectedDocumentId,
                     $versionId,
-                    sr_t('policy_documents::mail.notice.subject'),
+                    sr_policy_document_notice_mail_subject($pdo, $versionId),
                     sr_policy_document_notice_mail_body($pdo, $versionId)
                 );
             }
@@ -126,7 +126,7 @@ if (sr_request_method() === 'POST') {
                 $pdo,
                 (int) $publishResult['document_id'],
                 (int) $publishResult['version_id'],
-                sr_t('policy_documents::mail.notice.subject'),
+                sr_policy_document_notice_mail_subject($pdo, (int) $publishResult['version_id']),
                 sr_policy_document_notice_mail_body($pdo, (int) $publishResult['version_id'])
             );
             sr_admin_flash_result(sr_admin_action_result([], sr_t('policy_documents::notice.version_published')));

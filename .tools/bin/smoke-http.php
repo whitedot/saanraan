@@ -136,6 +136,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin delivery templates entry',
+        'path' => '/admin/delivery-templates',
+        'allowed_statuses' => [200, 302, 403],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'content missing slug entry',
         'path' => '/content/example',
         'allowed_statuses' => [200, 302, 404],

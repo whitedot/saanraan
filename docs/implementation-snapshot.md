@@ -73,7 +73,7 @@
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/asset-exchange`, `/account/coupons`, `/coupons` |
 | 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/rewards/settings`, `/admin/deposits`, `/admin/deposits/settings`, `/admin/asset-exchange`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions`, `/admin/coupons/campaigns`, `/admin/coupons/campaigns/logs`, `/admin/coupons/settings`, `/admin/coupons/embed-cache` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
-| 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/account/privacy-requests` 안내, `/admin/privacy-requests` |
+| 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/admin/delivery-templates`, `/account/privacy-requests` 안내, `/admin/privacy-requests` |
 | PWA | `/manifest.webmanifest`, `/service-worker.js` |
 
 ## 주요 DB 테이블
@@ -82,7 +82,7 @@
 
 | 영역 | 테이블 |
 | --- | --- |
-| 코어 | `sr_site_settings`, `sr_modules`, `sr_module_settings`, `sr_sessions`, `sr_rate_limits`, `sr_schema_versions`, `sr_audit_logs`, `sr_url_embed_cache` |
+| 코어 | `sr_site_settings`, `sr_modules`, `sr_module_settings`, `sr_sessions`, `sr_rate_limits`, `sr_schema_versions`, `sr_audit_logs`, `sr_url_embed_cache`, `sr_delivery_template_overrides` |
 | 관리자 | `sr_admin_account_permissions`, `sr_admin_account_roles`, `sr_admin_menu_overrides` |
 | 회원 | `sr_member_accounts`, `sr_member_profiles`, `sr_member_profile_field_values`, `sr_member_nicknames`, `sr_member_follows`, `sr_member_sessions`, `sr_member_mfa_factors`, `sr_member_mfa_recovery_codes`, `sr_member_auth_logs`, `sr_member_email_verifications`, `sr_member_password_resets`, `sr_member_consents`, `sr_member_groups`, `sr_member_group_memberships`, `sr_member_group_membership_logs`, `sr_member_group_rules` |
 | 회원 OAuth | `sr_member_oauth_accounts`, `sr_member_oauth_states` |

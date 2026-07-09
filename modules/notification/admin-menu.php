@@ -24,5 +24,10 @@ return [
             'path' => '/admin/notifications/settings',
             'order' => 30,
         ],
+        [
+            'label' => '발송 템플릿',
+            'path' => '/admin/delivery-templates',
+            'order' => 40,
+        ],
     ],
 ];

@@ -352,12 +352,11 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === [] && $accountId !== null) {
             if ($emailVerificationEnabled) {
-                $verificationMailSent = sr_send_mail(
-                    $site,
-                    $values['email'],
-                    sr_t('member::action.email_verification.subject'),
-                    sr_t('member::action.email_verification.body', ['url' => $verificationUrl])
-                );
+                $verificationMailSent = sr_delivery_template_send_mail($pdo, $site, 'member.email_verification', $values['email'], [
+                    'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
+                    'verification_url' => $verificationUrl,
+                    'expires_minutes' => '30',
+                ]);
                 $showVerificationUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
                 if ($showVerificationUrl) {
                     $_SESSION['sr_debug_email_verification_url'] = $verificationUrl;
