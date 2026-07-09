@@ -28,7 +28,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
 | 기본 설치 | `core + member + admin + policy_documents + privacy` |
-| 선택 번들 | 자동등록방지, OAuth 로그인, 본인확인, 커뮤니티, 콘텐츠, 퀴즈, 설문, 리액션, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 포인트/금액 환전, 쿠폰·이용권, CKEditor, OAuth/본인확인/captcha provider 플러그인 |
+| 선택 번들 | 자동등록방지, OAuth 로그인, 본인확인, 커뮤니티, 콘텐츠, 퀴즈, 설문, 리액션, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 포인트/금액 환전, 쿠폰·이용권, CKEditor, Markdown Editor, OAuth/본인확인/captcha provider 플러그인 |
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅, PHP-FPM 기반 nginx |
@@ -84,7 +84,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계, 보상 지급 |
 | 서비스 | `survey`, `reaction` | 설문 작성, 응답, 통계, CSV, 보상 지급, 공통 리액션 |
 | 운영 | `notification`, `policy_documents`, `privacy` | 알림, 발송 작업, 약관/방침 문서, 개인정보 요청/사본 제공 |
-| 플러그인 | `ckeditor`, `member_oauth_providers`, `identity_kcp`, `identity_inicis`, `antispam_captcha_providers` | CKEditor 5 에셋 로딩과 textarea 강화, OAuth/본인확인/captcha provider 계약 |
+| 플러그인 | `ckeditor`, `markdown_editor`, `member_oauth_providers`, `identity_kcp`, `identity_inicis`, `antispam_captcha_providers` | CKEditor 5 에셋 로딩, Markdown 입력/렌더링, OAuth/본인확인/captcha provider 계약 |
 
 ## 개발과 기여
 

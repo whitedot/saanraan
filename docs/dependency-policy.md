@@ -16,6 +16,7 @@
 | 대상 | 위치 | 성격 | 기준 |
 | --- | --- | --- | --- |
 | CKEditor 5 browser distribution | `modules/ckeditor/vendor/ckeditor5/` | CKEditor 플러그인의 직접 호스팅 asset | `modules/ckeditor/vendor/ckeditor5/README.md`에 버전, 출처, 라이선스를 기록하고, 릴리스 preflight에서 필수 asset과 라이선스 파일 포함 여부를 확인한다. |
+| HTML Purifier | `modules/htmlpurifier/vendor/ezyang/htmlpurifier/` | rich text sanitizer 권장 선행 정화 라이브러리 | `modules/htmlpurifier/DEPENDENCY.md`에 버전, 출처, 라이선스를 기록하고, `.tools/bin/check-htmlpurifier-vendor-integrity.php`와 릴리스 preflight에서 vendor/metadata drift를 확인한다. |
 
 ## HTML Purifier
 
