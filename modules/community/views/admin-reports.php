@@ -82,7 +82,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 isset($memberSettings) && is_array($memberSettings) ? $memberSettings : null
                             )); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_community_account_guard_type_label($accountGuardType)); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status is-blocked"><?php echo sr_e(sr_community_account_guard_status_label($accountGuardStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status is-warning"><?php echo sr_e(sr_community_account_guard_status_label($accountGuardStatus)); ?></span></td>
                             <td class="admin-table-break">
                                 <?php echo sr_e($accountGuardReason !== '' ? $accountGuardReason : '-'); ?>
                                 <?php if ($accountGuardSource !== '') { ?>
@@ -306,9 +306,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php
                     $reportStatus = (string) $report['status'];
                     $statusClass = match ($reportStatus) {
-                        'resolved' => 'is-normal',
-                        'open', 'reviewing' => 'is-blocked',
-                        default => 'is-left',
+                        'resolved' => 'is-success',
+                        'open', 'reviewing' => 'is-warning',
+                        default => 'is-danger',
                     };
                     $targetType = (string) $report['target_type'];
                     $targetLabel = (string) ($reportTargetLabels[$targetType] ?? sr_admin_code_label($targetType, 'target_type'));
@@ -334,10 +334,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap admin-community-report-reason-cell"><?php echo sr_e(sr_community_report_reason_label((string) $report['reason_key'])); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($reportStatus, 'report_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($reportStatus, 'report_status')); ?></span></td>
                         <td class="admin-table-nowrap">
                             <?php if (is_array($reportAutoAction)) { ?>
-                                <span class="admin-status is-blocked"><?php echo sr_e(sr_community_report_auto_action_status_label((string) ($reportAutoAction['status'] ?? 'active'))); ?></span>
+                                <span class="badge-status is-warning"><?php echo sr_e(sr_community_report_auto_action_status_label((string) ($reportAutoAction['status'] ?? 'active'))); ?></span>
                                 <span class="admin-table-subtext"><?php echo sr_e((string) (int) ($reportAutoAction['eligible_reporter_count'] ?? 0)); ?>/<?php echo sr_e((string) (int) ($reportAutoAction['threshold_value'] ?? 0)); ?></span>
                             <?php } else { ?>
                                 <span class="admin-table-subtext">-</span>

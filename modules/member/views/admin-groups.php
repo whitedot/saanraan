@@ -393,9 +393,9 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     $groupId = (int) $group['id'];
                     $groupStatus = (string) $group['status'];
                     $statusClass = match ($groupStatus) {
-                        'enabled' => 'is-normal',
-                        'disabled' => 'is-blocked',
-                        default => 'is-left',
+                        'enabled' => 'is-success',
+                        'disabled' => 'is-warning',
+                        default => 'is-danger',
                     };
                     $editGroupModalId = 'member-group-edit-modal-' . $groupId;
                     $manualAssignModalId = 'member-group-manual-assign-modal-' . $groupId;
@@ -407,7 +407,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
                     <tr>
                         <td class="admin-table-nowrap admin-member-group-key-cell"><?php echo sr_e((string) $group['group_key']); ?></td>
                         <td class="admin-member-group-title-cell"><?php echo sr_e((string) $group['title']); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-group-number-cell"><?php echo sr_e((string) $group['active_member_count']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">

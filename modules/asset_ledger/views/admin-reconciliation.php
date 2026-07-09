@@ -63,15 +63,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $assetStatus = (string) ($assetResult['status'] ?? '');
                     $assetStatusLabel = (string) ($assetStatusLabels[$assetStatus] ?? $assetStatus);
                     $assetStatusClass = match ($assetStatus) {
-                        'checked' => 'is-normal',
+                        'checked' => 'is-success',
                         'skipped' => 'is-warning',
                         'error' => 'is-danger',
-                        default => 'is-blocked',
+                        default => 'is-warning',
                     };
                     ?>
                     <tr>
                         <td><?php echo sr_e((string) ($assetResult['label'] ?? $assetResult['module_key'] ?? '')); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($assetStatusClass); ?>"><?php echo sr_e($assetStatusLabel); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($assetStatusClass); ?>"><?php echo sr_e($assetStatusLabel); ?></span></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($assetResult['total_accounts'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($assetResult['mismatch_count'] ?? 0))); ?></td>
                         <td><?php echo sr_e((string) ($assetResult['message'] ?? '')); ?></td>

@@ -390,7 +390,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                     </div>
                                 </td>
                                 <td></td>
-                                <td><span class="admin-status <?php echo (string) $row['status'] === 'enabled' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
+                                <td><span class="badge-status <?php echo (string) $row['status'] === 'enabled' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
                                 <td class="admin-menu-sort-order-cell"></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">
@@ -440,7 +440,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                     </div>
                                 </td>
                                 <td class="admin-table-break"><?php echo sr_e(trim((string) ($row['url'] ?? '')) !== '' ? (string) $row['url'] : '링크 없음'); ?></td>
-                                <td><span class="admin-status <?php echo (string) $row['status'] === 'enabled' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
+                                <td><span class="badge-status <?php echo (string) $row['status'] === 'enabled' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
                                 <td class="admin-menu-sort-order-cell">
                                     <input type="number" name="item_sort_order[<?php echo sr_e((string) $itemId); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" form="site-menu-order-form" data-admin-sort-order class="form-input admin-menu-sort-order-input">
                                 </td>

@@ -1051,9 +1051,9 @@ function sr_quiz_time_html(string $value): string
 function sr_quiz_admin_status_class(string $status): string
 {
     return match ($status) {
-        'active', 'submitted', 'scored', 'rewarded', 'granted' => 'is-normal',
-        'draft', 'paused', 'pending' => 'is-blocked',
-        default => 'is-left',
+        'active', 'submitted', 'scored', 'rewarded', 'granted' => 'is-success',
+        'draft', 'paused', 'pending' => 'is-warning',
+        default => 'is-danger',
     };
 }
 

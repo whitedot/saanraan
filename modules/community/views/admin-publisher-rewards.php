@@ -7,11 +7,11 @@ $publisherRewardFilters = isset($publisherRewardFilters) && is_array($publisherR
 $publisherRewardLogs = isset($publisherRewardLogs) && is_array($publisherRewardLogs) ? $publisherRewardLogs : [];
 $publisherRewardStatusClass = static function (string $status): string {
     return match ($status) {
-        'granted' => 'is-normal',
+        'granted' => 'is-success',
         'pending', 'held' => 'is-warning',
         'failed' => 'is-danger',
-        'reversed', 'cancelled' => 'is-left',
-        default => 'is-blocked',
+        'reversed', 'cancelled' => 'is-danger',
+        default => 'is-warning',
     };
 };
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/publisher-rewards');
@@ -89,7 +89,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-nowrap">#<?php echo sr_e((string) (int) ($rewardLog['id'] ?? 0)); ?></td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e($publisherRewardStatusClass($rewardStatus)); ?>"><?php echo sr_e(sr_community_publisher_reward_status_label($rewardStatus)); ?></span>
+                            <span class="badge-status <?php echo sr_e($publisherRewardStatusClass($rewardStatus)); ?>"><?php echo sr_e(sr_community_publisher_reward_status_label($rewardStatus)); ?></span>
                         </td>
                         <td class="admin-table-break admin-community-publisher-reward-subject-cell">
                             <?php if ($postId > 0) { ?>

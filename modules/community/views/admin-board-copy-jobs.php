@@ -11,12 +11,12 @@ $adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/boards'
     . '</a>';
 $communityBoardCopyJobStatusClass = static function (string $status): string {
     return match ($status) {
-        'completed' => 'is-normal',
+        'completed' => 'is-success',
         'pending', 'running', 'cleaning' => 'is-warning',
         'failed', 'cleanup_required' => 'is-danger',
-        'paused' => 'is-blocked',
-        'cancelled' => 'is-left',
-        default => 'is-blocked',
+        'paused' => 'is-warning',
+        'cancelled' => 'is-danger',
+        default => 'is-warning',
     };
 };
 $communityBoardCopyJobs = is_array($jobs ?? null) ? $jobs : [];
@@ -74,7 +74,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label"><?php echo sr_e('상태'); ?></span>
             <div class="form-field">
-                <p class="admin-form-static"><span class="admin-status <?php echo sr_e($communityBoardCopyJobStatusClass($jobStatus)); ?>"><?php echo sr_e(sr_community_board_copy_job_status_label($jobStatus)); ?></span></p>
+                <p class="admin-form-static"><span class="badge-status <?php echo sr_e($communityBoardCopyJobStatusClass($jobStatus)); ?>"><?php echo sr_e(sr_community_board_copy_job_status_label($jobStatus)); ?></span></p>
             </div>
         </div>
         <div class="form-row">
@@ -259,7 +259,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 ?>
                 <tr>
                     <td class="admin-table-nowrap"><?php echo sr_e('#' . (string) $rowJobId); ?></td>
-                    <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($communityBoardCopyJobStatusClass($rowStatus)); ?>"><?php echo sr_e(sr_community_board_copy_job_status_label($rowStatus)); ?></span></td>
+                    <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($communityBoardCopyJobStatusClass($rowStatus)); ?>"><?php echo sr_e(sr_community_board_copy_job_status_label($rowStatus)); ?></span></td>
                     <td class="admin-table-nowrap"><?php echo sr_e(sr_community_board_copy_job_stage_progress_label($rowStage)); ?></td>
                     <td class="admin-table-break"><?php echo sr_e((string) ($row['source_title'] ?? '') . ' #' . (string) (int) $row['source_board_id']); ?></td>
                     <td class="admin-table-break"><?php echo sr_e((string) ($row['target_title'] ?? '') . ' #' . (string) (int) $row['target_board_id']); ?></td>

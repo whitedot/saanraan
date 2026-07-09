@@ -18,7 +18,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if (!empty($currencyChangeCanSubmit)) { ?>
                 <button type="button" class="btn btn-sm btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="admin-currency-change-modal" data-overlay="#admin-currency-change-modal"><?php echo sr_material_icon_html('currency_exchange'); ?>변경</button>
             <?php } else { ?>
-                <span class="admin-status is-warning">변경 후보 없음</span>
+                <span class="badge-status is-warning">변경 후보 없음</span>
             <?php } ?>
         </div>
     </div>

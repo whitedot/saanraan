@@ -25,11 +25,11 @@ $surveyRewardReferenceTypeLabel = static function (string $referenceType): strin
 };
 $surveyRewardStatusClass = static function (string $status): string {
     return match ($status) {
-        'granted' => 'is-normal',
+        'granted' => 'is-success',
         'pending' => 'is-warning',
         'failed' => 'is-danger',
-        'duplicate' => 'is-left',
-        default => 'is-blocked',
+        'duplicate' => 'is-danger',
+        default => 'is-warning',
     };
 };
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/surveys/reward-logs');
@@ -122,7 +122,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-nowrap">#<?php echo sr_e((string) (int) ($rewardLog['id'] ?? 0)); ?></td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e($surveyRewardStatusClass($rewardStatus)); ?>"><?php echo sr_e(sr_survey_reward_log_status_label($rewardStatus)); ?></span>
+                            <span class="badge-status <?php echo sr_e($surveyRewardStatusClass($rewardStatus)); ?>"><?php echo sr_e(sr_survey_reward_log_status_label($rewardStatus)); ?></span>
                         </td>
                         <td class="admin-table-break admin-survey-reward-log-subject-cell">
                             <a href="<?php echo sr_e(sr_url('/admin/surveys?mode=edit&id=' . rawurlencode((string) (int) ($rewardLog['survey_id'] ?? 0)))); ?>" class="btn btn-sm btn-solid-light">설문</a>

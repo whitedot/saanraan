@@ -152,7 +152,7 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                                 <?php echo sr_e('비회원'); ?>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo $isPaid ? 'is-warning' : 'is-normal'; ?>"><?php echo $isPaid ? '유료' : '무료'; ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo $isPaid ? 'is-warning' : 'is-success'; ?>"><?php echo $isPaid ? '유료' : '무료'; ?></span></td>
                         <td class="admin-table-break">
                             <?php if ($isPaid) { ?>
                                 <?php echo sr_e(sr_community_asset_module_labels((string) ($downloadLog['asset_module'] ?? ''), $pdo)); ?>
@@ -173,17 +173,17 @@ $detailFilterOpen = (int) ($filters['board_id'] ?? 0) > 0
                         </td>
                         <td class="admin-table-nowrap">
                             <?php if ($refundStatus === 'refunded') { ?>
-                                <span class="admin-status is-normal">환불 완료</span>
+                                <span class="badge-status is-success">환불 완료</span>
                                 <p class="form-help"><?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?></p>
                             <?php } elseif ($refundStatus === 'access_revoked') { ?>
-                                <span class="admin-status is-left">접근권 회수</span>
+                                <span class="badge-status is-danger">접근권 회수</span>
                                 <p class="form-help"><?php echo sr_e((string) ($downloadLog['access_revoked_at'] ?? '')); ?></p>
                             <?php } elseif ($canRefund) { ?>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($refundModalId); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">
                                     처리
                                 </button>
                             <?php } else { ?>
-                                <span class="admin-status is-normal">미처리</span>
+                                <span class="badge-status is-success">미처리</span>
                             <?php } ?>
                         </td>
                     </tr>

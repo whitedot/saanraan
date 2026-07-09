@@ -119,7 +119,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <strong><?php echo sr_e((string) ($attachment['post_title'] ?? '')); ?></strong>
                             <small class="admin-summary-meta">#<?php echo sr_e((string) (int) ($attachment['post_id'] ?? 0)); ?> <?php echo sr_e((string) ($attachment['post_status'] ?? '')); ?></small>
                         </td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo $status === 'active' ? 'is-normal' : 'is-left'; ?>"><?php echo $status === 'active' ? '사용' : '숨김'; ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo $status === 'active' ? 'is-success' : 'is-danger'; ?>"><?php echo $status === 'active' ? '사용' : '숨김'; ?></span></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(sr_community_format_bytes((int) ($attachment['size_bytes'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($attachment['download_count'] ?? 0))); ?>회</td>
                         <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($attachment['created_at'] ?? '')); ?></td>

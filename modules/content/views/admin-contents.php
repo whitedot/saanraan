@@ -1275,9 +1275,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             $pageStatus = (string) $page['status'];
                             $pageIsDeleted = $pageStatus === 'deleted';
                             $statusClass = match ($pageStatus) {
-                                'published' => 'is-normal',
-                                'draft' => 'is-blocked',
-                                default => 'is-left',
+                                'published' => 'is-success',
+                                'draft' => 'is-warning',
+                                default => 'is-danger',
                             };
                             ?>
                             <tr>
@@ -1302,7 +1302,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php } ?>
                                 </td>
                                 <td class="admin-table-nowrap admin-content-slug-cell"><code><?php echo sr_e((string) $page['slug']); ?></code></td>
-                                <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($pageStatus, 'content_status')); ?></span></td>
+                                <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($pageStatus, 'content_status')); ?></span></td>
                                 <td>
                                     <?php if ((int) ($page['asset_access_enabled'] ?? 0) === 1) { ?>
                                         <?php echo sr_e(sr_content_asset_module_labels((string) ($page['asset_module'] ?? ''), $pdo)); ?>

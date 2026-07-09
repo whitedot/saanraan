@@ -25,9 +25,9 @@ $seriesCreateModalAriaHidden = $seriesCreateModalOpen ? 'false' : 'true';
 $seriesCreateModalInert = $seriesCreateModalOpen ? '' : ' inert';
 $seriesStatusClass = static function (string $status): string {
     return match ($status) {
-        'active' => 'is-normal',
-        'pending', 'hidden' => 'is-left',
-        default => 'is-blocked',
+        'active' => 'is-success',
+        'pending', 'hidden' => 'is-danger',
+        default => 'is-warning',
     };
 };
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/series');
@@ -158,7 +158,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                             <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="text" name="description" value="<?php echo sr_e((string) ($series['description'] ?? '')); ?>" maxlength="2000" class="form-input form-control-full" aria-label="설명">
                         </td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e($seriesStatusClass((string) $series['status'])); ?>"><?php echo sr_e(sr_content_series_status_label((string) $series['status'])); ?></span>
+                            <span class="badge-status <?php echo sr_e($seriesStatusClass((string) $series['status'])); ?>"><?php echo sr_e(sr_content_series_status_label((string) $series['status'])); ?></span>
                             <div class="admin-row-actions">
                                 <?php foreach (sr_content_series_statuses() as $status) { ?>
                                     <?php if ((string) $series['status'] === $status) { ?>
@@ -170,7 +170,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                             </div>
                         </td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo (string) $series['visibility'] === 'public' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_content_series_visibility_label((string) $series['visibility'])); ?></span>
+                            <span class="badge-status <?php echo (string) $series['visibility'] === 'public' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e(sr_content_series_visibility_label((string) $series['visibility'])); ?></span>
                             <div class="admin-row-actions">
                                 <?php foreach (sr_content_series_visibility_values() as $visibility) { ?>
                                     <?php if ((string) $series['visibility'] === $visibility) { ?>

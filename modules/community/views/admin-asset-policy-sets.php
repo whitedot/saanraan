@@ -86,15 +86,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php
                             $policyStatus = (string) ($policySet['status'] ?? '');
                             $statusClass = match ($policyStatus) {
-                                'enabled' => 'is-normal',
-                                'disabled' => 'is-blocked',
-                                default => 'is-left',
+                                'enabled' => 'is-success',
+                                'disabled' => 'is-warning',
+                                default => 'is-danger',
                             };
                             ?>
                             <tr>
                                 <td class="admin-table-break"><?php echo sr_e((string) ($policySet['title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap"><code><?php echo sr_e((string) ($policySet['set_key'] ?? '')); ?></code></td>
-                                <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($policyStatus, 'content_status')); ?></span></td>
+                                <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($policyStatus, 'content_status')); ?></span></td>
                                 <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($policySet['updated_at'] ?? '')); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">

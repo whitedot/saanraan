@@ -38,31 +38,31 @@ $definitionStatusLabels = [
     'disabled' => '사용 중지',
 ];
 $definitionStatusClasses = [
-    'active' => 'is-normal',
-    'issue_stopped' => 'is-left',
-    'disabled' => 'is-blocked',
+    'active' => 'is-success',
+    'issue_stopped' => 'is-danger',
+    'disabled' => 'is-warning',
 ];
 $issueStatusClasses = [
-    'active' => 'is-normal',
-    'used' => 'is-normal',
-    'expired' => 'is-blocked',
-    'revoked' => 'is-left',
-    'withdrawn_expired' => 'is-left',
-    'refund_requested' => 'is-blocked',
-    'refunded' => 'is-normal',
+    'active' => 'is-success',
+    'used' => 'is-success',
+    'expired' => 'is-warning',
+    'revoked' => 'is-danger',
+    'withdrawn_expired' => 'is-danger',
+    'refund_requested' => 'is-warning',
+    'refunded' => 'is-success',
 ];
 $redemptionStatusClasses = [
-    'redeemed' => 'is-normal',
-    'refunded' => 'is-normal',
+    'redeemed' => 'is-success',
+    'refunded' => 'is-success',
 ];
 $claimLogStatusClasses = [
-    'reserved' => 'is-blocked',
-    'pending_payment' => 'is-blocked',
-    'issued' => 'is-normal',
-    'failed' => 'is-left',
-    'cancelled' => 'is-left',
-    'expired' => 'is-left',
-    'expired_unmaterialized' => 'is-left',
+    'reserved' => 'is-warning',
+    'pending_payment' => 'is-warning',
+    'issued' => 'is-success',
+    'failed' => 'is-danger',
+    'cancelled' => 'is-danger',
+    'expired' => 'is-danger',
+    'expired_unmaterialized' => 'is-danger',
 ];
 $definitionFilters = isset($definitionFilters) && is_array($definitionFilters) ? $definitionFilters : ['status' => [], 'target_type' => [], 'q' => ''];
 $issueFilters = isset($issueFilters) && is_array($issueFilters) ? $issueFilters : ['status' => [], 'target_type' => [], 'coupon_q' => '', 'account' => ['field' => 'all', 'keyword' => '']];
@@ -107,10 +107,10 @@ $claimCampaignFormDateTime = static function (?string $value): string {
     return date('Y-m-d\TH:i', $timestamp);
 };
 $claimCampaignStatusClasses = [
-    'draft' => 'is-left',
-    'active' => 'is-normal',
-    'paused' => 'is-blocked',
-    'ended' => 'is-left',
+    'draft' => 'is-danger',
+    'active' => 'is-success',
+    'paused' => 'is-warning',
+    'ended' => 'is-danger',
 ];
 $claimCampaignStatusLabels = [];
 foreach (sr_coupon_claim_campaign_statuses() as $campaignStatusOption) {
@@ -563,7 +563,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <br><small><code><?php echo sr_e((string) ($log['coupon_key'] ?? '')); ?></code></small>
                             </td>
                             <td class="admin-table-break"><?php echo sr_e($accountLabel); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($claimLogStatusClasses[$displayStatus] ?? 'is-left')); ?>"><?php echo sr_e(sr_coupon_claim_log_status_label($displayStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e((string) ($claimLogStatusClasses[$displayStatus] ?? 'is-danger')); ?>"><?php echo sr_e(sr_coupon_claim_log_status_label($displayStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e($claimLogSourceLabels[(string) ($log['claim_source'] ?? '')] ?? sr_coupon_claim_source_label((string) ($log['claim_source'] ?? ''))); ?></td>
                             <td class="admin-table-nowrap"><?php echo (int) ($log['coupon_issue_id'] ?? 0) > 0 ? '#' . sr_e((string) (int) $log['coupon_issue_id']) : sr_e('-'); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($log['reserved_until'] ?? ''), '-'); ?></td>
@@ -660,8 +660,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <br><small><?php echo sr_e(number_format((int) ($campaign['price_amount'] ?? 0)) . ' ' . (string) ($campaign['price_currency_code'] ?? '')); ?> · <?php echo sr_e(sr_coupon_asset_module_labels($pdo, $campaign['allowed_asset_modules_json'] ?? '')); ?></small>
                                 <?php } ?>
                             </td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($claimCampaignStatusClasses[$campaignStatus] ?? 'is-left')); ?>"><?php echo sr_e(sr_coupon_claim_campaign_status_label($campaignStatus)); ?></span></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $campaignVisibility === 'public' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e($campaignVisibility === 'public' ? '공개' : '숨김'); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e((string) ($claimCampaignStatusClasses[$campaignStatus] ?? 'is-danger')); ?>"><?php echo sr_e(sr_coupon_claim_campaign_status_label($campaignStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo $campaignVisibility === 'public' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e($campaignVisibility === 'public' ? '공개' : '숨김'); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo (int) ($campaign['total_claim_limit'] ?? 0) > 0 ? sr_e(number_format((int) $campaign['total_claim_limit'])) : sr_e('제한 없음'); ?> / <?php echo sr_e('회원당 ' . number_format((int) ($campaign['per_account_limit'] ?? 1))); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -832,7 +832,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td><?php echo sr_e(sr_coupon_definition_benefit_label($definition)); ?></td>
                         <td><?php echo sr_e(sr_coupon_definition_validity_label($definition)); ?></td>
                         <td><?php echo sr_e(sr_coupon_target_display((string) $definition['target_type'], (string) $definition['target_id'], $pdo)); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? sr_coupon_status_label((string) $definition['status']))); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e((string) ($definitionStatusClasses[(string) $definition['status']] ?? 'is-warning')); ?>"><?php echo sr_e((string) ($definitionStatusLabels[(string) $definition['status']] ?? sr_coupon_status_label((string) $definition['status']))); ?></span></td>
                         <td class="admin-table-actions-cell">
                             <?php
                             $definitionId = (int) ($definition['id'] ?? 0);
@@ -1516,7 +1516,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td><?php echo sr_e(sr_coupon_target_display((string) ($issue['target_type'] ?? ''), (string) ($issue['target_id'] ?? ''), $pdo)); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($issueStatusClasses[(string) $issue['status']] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issue['status'])); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e((string) ($issueStatusClasses[(string) $issue['status']] ?? 'is-warning')); ?>"><?php echo sr_e(sr_coupon_issue_status_label((string) $issue['status'])); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) $issue['used_count']); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) $issue['issued_at']); ?></td>
                         <td class="admin-table-actions-cell">
@@ -1725,7 +1725,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span class="text-muted">-</span>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($redemptionStatusClasses[$redemptionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e((string) ($redemptionStatusClasses[$redemptionStatus] ?? 'is-warning')); ?>"><?php echo sr_e(sr_coupon_redemption_status_label($redemptionStatus)); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_coupon_time_html((string) ($redemption['redeemed_at'] ?? '')); ?></td>
                         <td class="admin-table-nowrap">
                             <?php echo sr_coupon_time_html((string) ($redemption['refunded_at'] ?? ''), '-'); ?>

@@ -200,7 +200,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $focusBannerModalId = 'banner-reference-focus-modal-' . (string) (int) $focusBannerId;
                     $bannerReferenceModals .= sr_admin_read_reference_modal_html($focusBannerModalId, '배너 참조 현황', $focusReferenceResult);
                     ?>
-                    <span class="admin-status is-blocked"><?php echo sr_e('#' . (string) (int) $focusBannerId . ' ' . (string) ($focusBannerRow['title'] ?? '배너')); ?></span>
+                    <span class="badge-status is-warning"><?php echo sr_e('#' . (string) (int) $focusBannerId . ' ' . (string) ($focusBannerRow['title'] ?? '배너')); ?></span>
                     <?php echo sr_admin_read_reference_button_html($focusBannerModalId, $focusReferenceResult); ?>
                 <?php } ?>
             </div>
@@ -522,9 +522,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         }
                         $bannerStatus = (string) $banner['status'];
                         $statusClass = match ($bannerStatus) {
-                            'enabled' => 'is-normal',
-                            'draft' => 'is-blocked',
-                            default => 'is-left',
+                            'enabled' => 'is-success',
+                            'draft' => 'is-warning',
+                            default => 'is-danger',
                         };
                         ?>
                         <tr>
@@ -534,7 +534,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td class="admin-table-break admin-banner-title-cell"><?php echo sr_e((string) $banner['title']); ?></td>
                             <td class="admin-table-nowrap">
-                                <span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($bannerStatus, 'content_status')); ?></span>
+                                <span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($bannerStatus, 'content_status')); ?></span>
                             </td>
                             <?php $bannerRowSkinKey = sr_banner_skin_key(['banner_skin_key' => (string) ($banner['skin_key'] ?? 'basic')]); ?>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) ($bannerSkinOptions[$bannerRowSkinKey]['label'] ?? $bannerRowSkinKey)); ?> / <?php echo sr_e(sr_banner_content_type_label((string) ($banner['content_type'] ?? 'text'))); ?></td>

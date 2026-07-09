@@ -49,7 +49,7 @@
     margin-bottom: calc(var(--spacing) * 5);
 }
 
-.admin-survey-question-table .admin-status {
+.admin-survey-question-table .badge-status {
     font-size: var(--type-caption-size);
     line-height: 1;
     font-weight: var(--font-weight-semibold);
@@ -62,13 +62,13 @@
     display: inline-flex;
 }
 
-.admin-survey-question-table .admin-status.is-normal {
+.admin-survey-question-table .badge-status.is-success {
     background: var(--color-default-50);
     background: color-mix(in oklab, var(--color-success) 14%, var(--color-card));
     color: var(--color-success-hover);
 }
 
-.admin-survey-question-table .admin-status.is-left {
+.admin-survey-question-table .badge-status.is-danger {
     background: var(--color-default-50);
     background: color-mix(in oklab, var(--color-danger) 12%, var(--color-card));
     color: var(--color-danger-hover);

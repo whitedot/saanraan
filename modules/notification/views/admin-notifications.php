@@ -149,10 +149,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php
                         $deliveryStatus = (string) $delivery['status'];
                         $deliveryStatusClass = match ($deliveryStatus) {
-                            'sent' => 'is-normal',
-                            'failed', 'canceled', 'dead' => 'is-left',
+                            'sent' => 'is-success',
+                            'failed', 'canceled', 'dead' => 'is-danger',
                             'processing' => 'is-ready',
-                            default => 'is-blocked',
+                            default => 'is-warning',
                         };
                         $deliveryRecipient = (string) ($delivery['recipient'] ?? '');
                         $deliveryRecipientLabel = $deliveryRecipient !== '' ? sr_notification_mask_recipient($deliveryRecipient) : '-';
@@ -175,7 +175,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_admin_code_label((string) $delivery['channel'], 'notification_channel')); ?></td>
                             <td class="admin-table-break admin-notification-delivery-recipient-cell" title="<?php echo sr_e($deliveryRecipient !== '' ? sr_notification_mask_recipient($deliveryRecipient) : '-'); ?>"><?php echo sr_e($deliveryRecipientLabel); ?></td>
                             <td class="admin-table-nowrap">
-                                <span class="admin-status <?php echo sr_e($deliveryStatusClass); ?>"<?php echo $deliveryStatusTitle !== '' ? ' title="' . sr_e($deliveryStatusTitle) . '"' : ''; ?>><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span>
+                                <span class="badge-status <?php echo sr_e($deliveryStatusClass); ?>"<?php echo $deliveryStatusTitle !== '' ? ' title="' . sr_e($deliveryStatusTitle) . '"' : ''; ?>><?php echo sr_e(sr_admin_code_label($deliveryStatus, 'delivery_status')); ?></span>
                                 <?php if ((string) ($delivery['error_message'] ?? '') !== '') { ?>
                                     <br><span class="admin-summary-meta"><?php echo sr_e((string) $delivery['error_message']); ?></span>
                                 <?php } ?>
@@ -303,9 +303,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php
                         $notificationStatus = (string) $notification['status'];
                         $statusClass = match ($notificationStatus) {
-                            'active' => 'is-normal',
-                            'deleted' => 'is-left',
-                            default => 'is-blocked',
+                            'active' => 'is-success',
+                            'deleted' => 'is-danger',
+                            default => 'is-warning',
                         };
                         ?>
                         <tr>
@@ -315,7 +315,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </td>
                             <td class="admin-table-break admin-notification-title-cell"><?php echo sr_e((string) ($notification['title'] ?? '')); ?></td>
                             <td class="admin-table-nowrap admin-notification-audience-cell"><?php echo sr_e(sr_admin_code_label((string) $notification['audience'], 'notification_audience')); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($notificationStatus, 'notification_status')); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($notificationStatus, 'notification_status')); ?></span></td>
                             <td class="admin-table-nowrap admin-notification-date-cell"><?php echo sr_notification_time_html((string) $notification['created_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">

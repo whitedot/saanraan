@@ -346,10 +346,10 @@ function sr_survey_status_label(string $status): string
 function sr_survey_admin_status_class(string $status): string
 {
     return match ($status) {
-        'active', 'approved', 'accepted' => 'is-normal',
-        'paused', 'needs_fix', 'flagged' => 'is-blocked',
-        'draft', 'unchecked' => 'is-left',
-        default => 'is-left',
+        'active', 'approved', 'accepted' => 'is-success',
+        'paused', 'needs_fix', 'flagged' => 'is-warning',
+        'draft', 'unchecked' => 'is-danger',
+        default => 'is-danger',
     };
 }
 

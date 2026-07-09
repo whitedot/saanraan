@@ -173,7 +173,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e(sr_identity_verification_attempt_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_identity_verification_attempt_status_label($attemptStatus)); ?></span>
+                            <span class="badge-status <?php echo sr_e(sr_identity_verification_attempt_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_identity_verification_attempt_status_label($attemptStatus)); ?></span>
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($attempt['verified_at'] ?? '')); ?></td>
                         <td>
@@ -221,7 +221,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="admin-summary-stats identity-verification-detail-summary">
                         <span class="badge badge-pill badge-soft-secondary"><?php echo sr_e($identityProviderLabel($attemptProviderKey)); ?></span>
                         <span class="badge badge-pill badge-soft-info"><?php echo sr_e(sr_identity_verification_purpose_label((string) ($attempt['purpose'] ?? ''))); ?></span>
-                        <span class="admin-status <?php echo sr_e(sr_identity_verification_attempt_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_identity_verification_attempt_status_label($attemptStatus)); ?></span>
+                        <span class="badge-status <?php echo sr_e(sr_identity_verification_attempt_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_identity_verification_attempt_status_label($attemptStatus)); ?></span>
                         <span class="badge badge-pill badge-outline-default"><?php echo sr_admin_time_html((string) ($attempt['requested_at'] ?? '')); ?></span>
                     </div>
 
@@ -231,7 +231,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <div class="form-row-label"><?php echo sr_e($label); ?></div>
                                 <div class="form-field">
                                     <?php if ($field === 'status') { ?>
-                                        <span class="admin-status <?php echo sr_e(sr_identity_verification_attempt_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_identity_verification_attempt_status_label($attemptStatus)); ?></span>
+                                        <span class="badge-status <?php echo sr_e(sr_identity_verification_attempt_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_identity_verification_attempt_status_label($attemptStatus)); ?></span>
                                     <?php } elseif ($field === 'provider_key') { ?>
                                         <?php echo sr_e($identityProviderLabel($attemptProviderKey)); ?>
                                         <small class="admin-summary-meta"><?php echo sr_e($attemptProviderKey); ?></small>

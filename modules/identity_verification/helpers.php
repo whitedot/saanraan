@@ -126,10 +126,10 @@ function sr_identity_verification_attempt_status_label(string $status): string
 function sr_identity_verification_attempt_status_class(string $status): string
 {
     return match ($status) {
-        'verified' => 'is-normal',
+        'verified' => 'is-success',
         'ready', 'pending' => 'is-warning',
-        'failed', 'expired', 'canceled' => 'is-left',
-        default => 'is-blocked',
+        'failed', 'expired', 'canceled' => 'is-danger',
+        default => 'is-warning',
     };
 }
 

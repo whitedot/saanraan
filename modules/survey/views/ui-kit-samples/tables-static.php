@@ -6,7 +6,7 @@ $uiKitTableRows = [
         'hash' => '9d36663b12b9c46cd57e7455ed64979f',
         'name' => '테스트',
         'status' => '정상',
-        'status_class' => 'is-normal',
+        'status_class' => 'is-success',
         'email_verified_at' => '2026-06-02 13:19:10',
         'last_login_at' => '2026-06-02 13:53:34',
         'sessions' => '1',
@@ -17,7 +17,7 @@ $uiKitTableRows = [
         'hash' => 'b838148e8455a19e7d9224fb6bb3b0b8',
         'name' => '회원261636',
         'status' => '정상',
-        'status_class' => 'is-normal',
+        'status_class' => 'is-success',
         'email_verified_at' => '2026-05-20 17:54:02',
         'last_login_at' => '2026-06-02 09:40:54',
         'sessions' => '25',
@@ -178,7 +178,7 @@ $uiKitTableRows = [
                                     <span class="table-meta"><?php echo sr_e($uiKitTableRow['hash']); ?></span>
                                 </td>
                                 <td class="table-nowrap"><?php echo sr_e($uiKitTableRow['name']); ?></td>
-                                <td class="table-nowrap"><span class="table-status <?php echo sr_e($uiKitTableRow['status_class']); ?>"><?php echo sr_e($uiKitTableRow['status']); ?></span></td>
+                                <td class="table-nowrap"><span class="badge-status <?php echo sr_e($uiKitTableRow['status_class']); ?>"><?php echo sr_e($uiKitTableRow['status']); ?></span></td>
                                 <td class="table-nowrap"><?php echo sr_e($uiKitTableRow['email_verified_at']); ?></td>
                                 <td class="table-nowrap"><?php echo sr_e($uiKitTableRow['last_login_at']); ?></td>
                                 <td class="table-nowrap table-align-end"><?php echo sr_e($uiKitTableRow['sessions']); ?></td>

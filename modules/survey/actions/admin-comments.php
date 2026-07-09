@@ -135,7 +135,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <br><span class="admin-summary-meta">비밀 댓글</span>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class($currentStatus)); ?>"><?php echo sr_e(sr_survey_comment_status_label($currentStatus)); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e(sr_survey_admin_status_class($currentStatus)); ?>"><?php echo sr_e(sr_survey_comment_status_label($currentStatus)); ?></span></td>
                         <td class="admin-table-actions-cell text-end">
                             <?php if ($canEditComments) { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/comments' . $commentActionSuffix)); ?>" class="admin-row-actions">

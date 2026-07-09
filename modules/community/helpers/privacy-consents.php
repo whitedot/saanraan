@@ -406,7 +406,7 @@ function sr_community_privacy_consent_admin_summary_html(array $row): string
     $latestAt = (string) ($row['privacy_consent_latest_at'] ?? '');
     $latestHtml = $latestAt !== '' ? '<br><small>' . sr_community_time_html($latestAt) . '</small>' : '';
 
-    return '<span class="admin-status is-normal">동의 ' . sr_e((string) $count) . '</span>' . $latestHtml;
+    return '<span class="badge-status is-success">동의 ' . sr_e((string) $count) . '</span>' . $latestHtml;
 }
 
 function sr_community_record_submission_consents(PDO $pdo, int $boardId, int $accountId, string $subjectType, int $subjectId, array $actionKeys, array $board): int

@@ -154,9 +154,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php
                             $groupStatus = (string) ($pageGroup['status'] ?? '');
                             $statusClass = match ($groupStatus) {
-                                'enabled' => 'is-normal',
-                                'disabled' => 'is-blocked',
-                                default => 'is-left',
+                                'enabled' => 'is-success',
+                                'disabled' => 'is-warning',
+                                default => 'is-danger',
                             };
                             ?>
                             <tr>
@@ -166,7 +166,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </td>
                                 <td class="admin-table-break"><?php echo sr_e((string) ($pageGroup['title'] ?? '')); ?></td>
                                 <td class="admin-table-nowrap"><code><?php echo sr_e((string) ($pageGroup['group_key'] ?? '')); ?></code></td>
-                                <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
+                                <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($pageGroup['content_count'] ?? 0))); ?></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) ($pageGroup['sort_order'] ?? 0)); ?></td>
                                 <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) ($pageGroup['updated_at'] ?? '')); ?></td>

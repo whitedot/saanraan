@@ -121,13 +121,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 $severity = (string) ($adminNotification['severity'] ?? 'info');
                 $statusClass = match ($status) {
                     'open' => 'is-warning',
-                    'processed' => 'is-normal',
+                    'processed' => 'is-success',
                     default => 'is-muted',
                 };
                 $severityClass = match ($severity) {
-                    'danger' => 'is-left',
+                    'danger' => 'is-danger',
                     'warning' => 'is-warning',
-                    default => 'is-normal',
+                    default => 'is-success',
                 };
                 $sourceModuleKey = (string) ($adminNotification['source_module_key'] ?? '');
                 $eventKey = (string) ($adminNotification['event_key'] ?? '');
@@ -140,8 +140,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <label class="sr-only" for="admin_notification_bulk_select_<?php echo sr_e((string) $notificationId); ?>"><?php echo sr_e((string) ($adminNotification['title'] ?? '')); ?> 선택</label>
                         <input id="admin_notification_bulk_select_<?php echo sr_e((string) $notificationId); ?>" type="checkbox" name="selected_admin_notification_ids[]" value="<?php echo sr_e((string) $notificationId); ?>" class="form-checkbox" form="admin-notification-bulk-form" data-admin-notification-row-select>
                     </td>
-                    <td class="admin-table-nowrap admin-notification-status-cell"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($adminNotificationStatusLabels[$status] ?? $status); ?></span></td>
-                    <td class="admin-table-nowrap admin-notification-severity-cell"><span class="admin-status <?php echo sr_e($severityClass); ?>"><?php echo sr_e($adminNotificationSeverityLabels[$severity] ?? $severity); ?></span></td>
+                    <td class="admin-table-nowrap admin-notification-status-cell"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($adminNotificationStatusLabels[$status] ?? $status); ?></span></td>
+                    <td class="admin-table-nowrap admin-notification-severity-cell"><span class="badge-status <?php echo sr_e($severityClass); ?>"><?php echo sr_e($adminNotificationSeverityLabels[$severity] ?? $severity); ?></span></td>
                     <td class="admin-table-break admin-notification-message-cell">
                         <strong><?php echo sr_e((string) ($adminNotification['title'] ?? '')); ?></strong>
                         <?php if ((string) ($adminNotification['body_text'] ?? '') !== '') { ?>

@@ -187,7 +187,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php foreach ($downloadFiles as $downloadFile) { ?>
                             <?php
                             $downloadFileStatus = (string) ($downloadFile['status'] ?? 'active');
-                            $statusClass = $downloadFileStatus === 'active' ? 'is-normal' : 'is-left';
+                            $statusClass = $downloadFileStatus === 'active' ? 'is-success' : 'is-danger';
                             ?>
                             <tr>
                                 <td class="admin-table-checkbox-cell content-file-select-cell">
@@ -196,7 +196,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 </td>
                                 <td class="admin-table-break"><strong><?php echo sr_e((string) $downloadFile['title']); ?></strong></td>
                                 <td class="admin-table-break"><?php echo sr_e((string) $downloadFile['original_name']); ?></td>
-                                <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo $downloadFileStatus === 'active' ? '사용' : '숨김'; ?></span></td>
+                                <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo $downloadFileStatus === 'active' ? '사용' : '숨김'; ?></span></td>
                                 <td class="admin-table-nowrap text-end"><?php echo sr_e(sr_content_format_bytes((int) $downloadFile['size_bytes'])); ?></td>
                                 <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($downloadFile['linked_content_count'] ?? 0))); ?>개</td>
                                 <td class="admin-table-break">

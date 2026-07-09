@@ -308,7 +308,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     ? sr_e(sr_t('logo_manager::ui.public_symbol.yes'))
                                     : sr_e(sr_t('logo_manager::ui.public_symbol.no')); ?>
                             </td>
-                            <td><span class="admin-status <?php echo (string) $logo['status'] === 'active' ? 'is-normal' : 'is-left'; ?>"><?php echo sr_e(sr_logo_manager_status_label((string) $logo['status'])); ?></span></td>
+                            <td><span class="badge-status <?php echo (string) $logo['status'] === 'active' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e(sr_logo_manager_status_label((string) $logo['status'])); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) ($logo['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) ($logo['ends_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(sr_logo_manager_duration_label($logo['starts_at'] ?? null, $logo['ends_at'] ?? null)); ?></td>

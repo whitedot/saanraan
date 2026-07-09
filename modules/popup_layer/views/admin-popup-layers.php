@@ -194,7 +194,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $focusPopupModalId = 'popup-layer-reference-focus-modal-' . (string) (int) $focusPopupId;
                     $popupLayerReferenceModals .= sr_admin_read_reference_modal_html($focusPopupModalId, '팝업레이어 참조 현황', $focusReferenceResult);
                     ?>
-                    <span class="admin-status is-blocked"><?php echo sr_e('#' . (string) (int) $focusPopupId . ' ' . (string) ($focusPopupRow['title'] ?? '팝업레이어')); ?></span>
+                    <span class="badge-status is-warning"><?php echo sr_e('#' . (string) (int) $focusPopupId . ' ' . (string) ($focusPopupRow['title'] ?? '팝업레이어')); ?></span>
                     <?php echo sr_admin_read_reference_button_html($focusPopupModalId, $focusReferenceResult); ?>
                 <?php } ?>
             </div>
@@ -476,9 +476,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         }
                         $popupStatus = (string) $popup['status'];
                         $statusClass = match ($popupStatus) {
-                            'enabled' => 'is-normal',
-                            'draft' => 'is-blocked',
-                            default => 'is-left',
+                            'enabled' => 'is-success',
+                            'draft' => 'is-warning',
+                            default => 'is-danger',
                         };
                         ?>
                         <tr>
@@ -487,7 +487,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="popup_layer_bulk_select_<?php echo sr_e((string) (int) $popup['id']); ?>" type="checkbox" name="selected_popup_ids[]" value="<?php echo sr_e((string) (int) $popup['id']); ?>" class="form-checkbox" form="popup-layer-bulk-status-form" data-popup-layer-row-select>
                             </td>
                             <td class="admin-table-break admin-popup-layer-title-cell"><?php echo sr_e((string) $popup['title']); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($popupStatus, 'content_status')); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($popupStatus, 'content_status')); ?></span></td>
                             <td class="admin-table-break admin-popup-layer-target-cell">
                                 <?php echo sr_e($popupTargetLabel); ?><br>
                                 <?php echo sr_e((string) ($popupLayerMatchTypeOptions[(string) ($popup['match_type'] ?? 'all')] ?? (string) ($popup['match_type'] ?? 'all')) . ((string) ($popup['subject_id'] ?? '') !== '' ? ': ' . (string) $popup['subject_id'] : '')); ?>

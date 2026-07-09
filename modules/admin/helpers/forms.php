@@ -138,9 +138,9 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
                                         <?php
                                         $status = (string) ($row['status'] ?? 'unknown');
                                         $statusClass = match ($status) {
-                                            'ok' => 'is-normal',
-                                            'stale', 'disabled_target' => 'is-blocked',
-                                            default => 'is-left',
+                                            'ok' => 'is-success',
+                                            'stale', 'disabled_target' => 'is-warning',
+                                            default => 'is-danger',
                                         };
                                         $statusLabel = match ($status) {
                                             'ok' => '정상',
@@ -157,7 +157,7 @@ function sr_admin_read_reference_modal_html(string $modalId, string $title, arra
                                                 <?php echo sr_e((string) ($row['title'] ?? '')); ?><br>
                                                 <span class="admin-summary-meta"><?php echo sr_e(sr_admin_code_label((string) ($row['reference_type'] ?? ''), 'reference_type') . ' #' . (string) ($row['reference_id'] ?? '')); ?></span>
                                             </td>
-                                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($statusLabel); ?></span></td>
+                                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($statusLabel); ?></span></td>
                                             <td class="admin-table-break"><?php echo sr_e((string) ($row['message'] ?? ($row['policy_status'] ?? ''))); ?></td>
                                             <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($row['updated_at'] ?? '')); ?></td>
                                             <td class="admin-table-actions-cell">

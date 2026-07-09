@@ -185,16 +185,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $grantedCount = (int) ($attempt['granted_count'] ?? 0);
                     $failedCount = (int) ($attempt['failed_count'] ?? 0);
                     $attemptGrants = (array) ($attemptRewardGrants[$attemptId] ?? []);
-                    $rewardStatusClass = 'is-blocked';
+                    $rewardStatusClass = 'is-warning';
                     $rewardLabel = '보상 없음';
                     if ($failedCount > 0) {
-                        $rewardStatusClass = 'is-left';
+                        $rewardStatusClass = 'is-danger';
                         $rewardLabel = '실패 ' . number_format($failedCount) . '건';
                     } elseif ($pendingCount > 0) {
-                        $rewardStatusClass = 'is-blocked';
+                        $rewardStatusClass = 'is-warning';
                         $rewardLabel = '대기 ' . number_format($pendingCount) . '건';
                     } elseif ($grantedCount > 0) {
-                        $rewardStatusClass = 'is-normal';
+                        $rewardStatusClass = 'is-success';
                         $rewardLabel = '지급 ' . number_format($grantedCount) . '건';
                     }
                     ?>
@@ -214,7 +214,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <span class="admin-summary-meta"><?php echo sr_e('회원 정보 없음'); ?></span>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_quiz_attempt_status_label($attemptStatus)); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e(sr_quiz_admin_status_class($attemptStatus)); ?>"><?php echo sr_e(sr_quiz_attempt_status_label($attemptStatus)); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) ($attempt['total_score'] ?? '-')); ?></td>
                         <td class="admin-table-nowrap"><?php echo ((int) ($attempt['passed'] ?? 0) === 1) ? '예' : '아니오'; ?></td>
                         <td class="admin-table-break">
@@ -231,7 +231,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-break">
-                            <span class="admin-status <?php echo sr_e($rewardStatusClass); ?>"><?php echo sr_e($rewardLabel); ?></span>
+                            <span class="badge-status <?php echo sr_e($rewardStatusClass); ?>"><?php echo sr_e($rewardLabel); ?></span>
                             <?php if ($grantCount > 0) { ?>
                                 <br><span class="admin-summary-meta"><?php echo sr_e($attemptRewardModuleLabel((string) ($attempt['reward_modules'] ?? ''))); ?> <?php echo sr_e(number_format((int) ($attempt['reward_amount_total'] ?? 0))); ?></span>
                             <?php } ?>
@@ -258,7 +258,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         }
                                         ?>
                                         <div class="admin-summary-meta admin-quiz-reward-grant">
-                                            <span class="admin-status <?php echo sr_e(sr_quiz_admin_status_class($grantStatus)); ?>"><?php echo sr_e(sr_quiz_reward_grant_status_label($grantStatus)); ?></span>
+                                            <span class="badge-status <?php echo sr_e(sr_quiz_admin_status_class($grantStatus)); ?>"><?php echo sr_e(sr_quiz_reward_grant_status_label($grantStatus)); ?></span>
                                             <span><?php echo sr_e(sr_quiz_reward_provider_label((string) ($grant['reward_provider'] ?? ''))); ?> · <?php echo sr_e($attemptRewardModuleLabel((string) ($grant['reward_module'] ?? ''))); ?> <?php echo sr_e(number_format((int) ($grant['reward_amount'] ?? 0))); ?></span>
                                             <?php if ($grantRemainingAmount > 0) { ?>
                                                 <span>회수 가능 <?php echo sr_e(number_format($grantRemainingAmount)); ?></span>

@@ -96,7 +96,7 @@ $memberAdminProfileExtraFieldHtml = static function (array $definition, array $v
 };
 $memberMarketingConsentBadgeHtml = static function (?array $consent): string {
     if ($consent === null) {
-        return '<span class="badge badge-outline-secondary">기록 없음</span>';
+        return '<span class="badge-status is-warning">기록 없음</span>';
     }
 
     $consented = !empty($consent['consented']);
@@ -114,7 +114,7 @@ $memberMarketingConsentBadgeHtml = static function (?array $consent): string {
         $titleParts[] = '기록: ' . $createdAt;
     }
 
-    return '<span class="badge ' . ($consented ? 'badge-soft-success' : 'badge-soft-danger') . '"' . ($titleParts !== [] ? ' title="' . sr_e(implode(' · ', $titleParts)) . '"' : '') . '>'
+    return '<span class="badge-status ' . ($consented ? 'is-success' : 'is-danger') . '"' . ($titleParts !== [] ? ' title="' . sr_e(implode(' · ', $titleParts)) . '"' : '') . '>'
         . sr_e($consented ? '동의' : '미동의')
         . '</span>';
 };
@@ -514,7 +514,7 @@ foreach ($allowedStatuses as $status) {
             <div id="member_admin_detail_filters" class="filtering-body" data-filtering-body<?php echo $memberDetailFilterOpen ? '' : ' hidden'; ?>>
                 <div class="filtering-field admin-member-filter-status">
                     <span class="filtering-label"><?php echo sr_e(sr_t('member::ui.status.e10195a1')); ?></span>
-                    <?php echo sr_admin_filter_toggle_group_html('admin-status-filter', 'status', $memberStatusFilterOptions, $selectedMemberStatuses, sr_t('member::ui.all.a4b69faf')); ?>
+                    <?php echo sr_admin_filter_toggle_group_html('member-status-filter', 'status', $memberStatusFilterOptions, $selectedMemberStatuses, sr_t('member::ui.all.a4b69faf')); ?>
                 </div>
             </div>
             <div class="filtering-actions">
@@ -589,9 +589,9 @@ foreach ($allowedStatuses as $status) {
                     $memberAnonymizeConfirmMessage = sr_admin_member_terminal_status_confirm_message('anonymized', $memberWithdrawalAssetWarning);
                     $memberRiskModalId = 'member-risk-modal-' . (int) ($member['id'] ?? 0);
                     $statusClass = match ($memberStatus) {
-                        'active' => 'is-normal',
-                        'suspended', 'pending' => 'is-blocked',
-                        default => 'is-left',
+                        'active' => 'is-success',
+                        'suspended', 'pending' => 'is-warning',
+                        default => 'is-danger',
                     };
                     ?>
                     <tr>
@@ -614,7 +614,7 @@ foreach ($allowedStatuses as $status) {
                         <?php if ($memberListShowNicknameColumn) { ?>
                             <td class="admin-table-nowrap admin-member-mobile-optional"><?php echo sr_e(trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '-'); ?></td>
                         <?php } ?>
-                        <td class="admin-table-nowrap admin-member-mobile-optional"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
+                        <td class="admin-table-nowrap admin-member-mobile-optional"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-member-marketing-cell admin-member-mobile-optional">
                             <?php $memberMarketingConsent = isset($member['marketing_consent']) && is_array($member['marketing_consent']) ? $member['marketing_consent'] : null; ?>
                             <?php echo $memberMarketingConsentBadgeHtml($memberMarketingConsent); ?>

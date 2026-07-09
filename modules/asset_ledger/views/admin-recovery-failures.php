@@ -21,9 +21,9 @@ $recoveryFailureAssetOptions = ['point' => '포인트', 'reward' => '적립금',
 $statusClass = static function (string $status): string {
     return match ($status) {
         'open' => 'is-warning',
-        'recovered', 'manually_resolved' => 'is-normal',
-        'cancelled' => 'is-left',
-        default => 'is-blocked',
+        'recovered', 'manually_resolved' => 'is-success',
+        'cancelled' => 'is-danger',
+        default => 'is-warning',
     };
 };
 $assetLabel = static function (string $assetModule): string {
@@ -135,7 +135,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     ?>
                     <tr>
                         <td class="admin-table-nowrap">#<?php echo sr_e((string) $failureId); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass($status)); ?>"><?php echo sr_e(sr_asset_recovery_status_label($status)); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass($status)); ?>"><?php echo sr_e(sr_asset_recovery_status_label($status)); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e(sr_asset_recovery_source_label($sourceModule)); ?></td>
                         <td class="admin-table-break">
                             <strong>#<?php echo sr_e((string) (int) ($failure['account_id'] ?? 0)); ?></strong>

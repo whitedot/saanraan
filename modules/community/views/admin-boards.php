@@ -370,16 +370,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php
                     $boardStatus = (string) $board['status'];
                     $statusClass = match ($boardStatus) {
-                        'enabled' => 'is-normal',
-                        'disabled' => 'is-blocked',
-                        default => 'is-left',
+                        'enabled' => 'is-success',
+                        'disabled' => 'is-warning',
+                        default => 'is-danger',
                     };
                     ?>
                     <tr>
                         <td class="admin-table-nowrap admin-community-board-key-cell"><?php echo sr_e((string) $board['board_key']); ?></td>
                         <td class="admin-table-break admin-community-board-title-cell"><?php echo sr_e((string) $board['title']); ?></td>
                         <td class="admin-table-break admin-community-board-group-cell"><?php echo sr_e((string) ($board['board_group_title'] ?? '')); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($boardStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($boardStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>" class="btn btn-sm btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
@@ -1668,7 +1668,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <span class="admin-summary-meta"><?php echo sr_e((string) $category['description']); ?></span>
                                     <?php } ?>
                                 </td>
-                                <td class="admin-table-nowrap"><span class="admin-status <?php echo (string) ($category['status'] ?? '') === 'enabled' ? 'is-normal' : 'is-blocked'; ?>"><?php echo sr_e(sr_admin_code_label((string) $category['status'], 'content_status')); ?></span></td>
+                                <td class="admin-table-nowrap"><span class="badge-status <?php echo (string) ($category['status'] ?? '') === 'enabled' ? 'is-success' : 'is-warning'; ?>"><?php echo sr_e(sr_admin_code_label((string) $category['status'], 'content_status')); ?></span></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e((string) $category['sort_order']); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">

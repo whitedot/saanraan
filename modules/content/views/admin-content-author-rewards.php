@@ -7,10 +7,10 @@ $authorRewardFilters = isset($authorRewardFilters) && is_array($authorRewardFilt
 $authorRewardLogs = isset($authorRewardLogs) && is_array($authorRewardLogs) ? $authorRewardLogs : [];
 $authorRewardStatusClass = static function (string $status): string {
     return match ($status) {
-        'granted' => 'is-normal',
+        'granted' => 'is-success',
         'pending' => 'is-warning',
         'failed' => 'is-danger',
-        default => 'is-blocked',
+        default => 'is-warning',
     };
 };
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/author-rewards');
@@ -87,7 +87,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-nowrap">#<?php echo sr_e((string) (int) ($rewardLog['id'] ?? 0)); ?></td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e($authorRewardStatusClass($rewardStatus)); ?>"><?php echo sr_e(sr_content_author_reward_status_label($rewardStatus)); ?></span>
+                            <span class="badge-status <?php echo sr_e($authorRewardStatusClass($rewardStatus)); ?>"><?php echo sr_e(sr_content_author_reward_status_label($rewardStatus)); ?></span>
                         </td>
                         <td class="admin-table-break admin-content-author-reward-subject-cell">
                             <?php if ($contentSlug !== '') { ?>

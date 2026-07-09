@@ -11,10 +11,10 @@ $adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/boards'
     . '</a>';
 $communityBoardDeleteJobStatusClass = static function (string $status): string {
     return match ($status) {
-        'completed' => 'is-normal',
+        'completed' => 'is-success',
         'pending', 'running' => 'is-warning',
         'failed', 'cleanup_required' => 'is-danger',
-        default => 'is-blocked',
+        default => 'is-warning',
     };
 };
 $communityBoardDeleteJobs = is_array($jobs ?? null) ? $jobs : [];
@@ -56,7 +56,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <span class="form-label"><?php echo sr_e('상태'); ?></span>
             <div class="form-field">
-                <p class="admin-form-static"><span class="admin-status <?php echo sr_e($communityBoardDeleteJobStatusClass($jobStatus)); ?>"><?php echo sr_e(sr_community_board_delete_job_status_label($jobStatus)); ?></span></p>
+                <p class="admin-form-static"><span class="badge-status <?php echo sr_e($communityBoardDeleteJobStatusClass($jobStatus)); ?>"><?php echo sr_e(sr_community_board_delete_job_status_label($jobStatus)); ?></span></p>
             </div>
         </div>
         <div class="form-row">
@@ -232,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 ?>
                 <tr>
                     <td class="admin-table-nowrap"><?php echo sr_e('#' . (string) $rowJobId); ?></td>
-                    <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($communityBoardDeleteJobStatusClass($rowStatus)); ?>"><?php echo sr_e(sr_community_board_delete_job_status_label($rowStatus)); ?></span></td>
+                    <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($communityBoardDeleteJobStatusClass($rowStatus)); ?>"><?php echo sr_e(sr_community_board_delete_job_status_label($rowStatus)); ?></span></td>
                     <td class="admin-table-nowrap"><?php echo sr_e(sr_community_board_delete_job_stage_progress_label($rowStage)); ?></td>
                     <td class="admin-table-break"><?php echo sr_e($rowBoardLabel); ?></td>
                     <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) $row['created_at']); ?></td>

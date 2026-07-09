@@ -161,10 +161,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php
                     $postStatus = (string) $post['status'];
                     $statusClass = match ($postStatus) {
-                        'published' => 'is-normal',
-                        'pending' => 'is-blocked',
-                        'hidden' => 'is-left',
-                        default => 'is-left',
+                        'published' => 'is-success',
+                        'pending' => 'is-warning',
+                        'hidden' => 'is-danger',
+                        default => 'is-danger',
                     };
                     ?>
                     <tr>
@@ -188,7 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php echo sr_community_extra_fields_admin_summary_html(sr_community_extra_field_values_from_json((string) ($post['extra_values_json'] ?? ''))); ?>
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_community_privacy_consent_admin_summary_html($post); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($postStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($postStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) ($post['view_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) $post['published_comment_count']); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e((string) ($post['active_attachment_count'] ?? 0)); ?></td>
@@ -328,9 +328,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php
                     $commentStatus = (string) $comment['status'];
                     $statusClass = match ($commentStatus) {
-                        'published' => 'is-normal',
-                        'hidden' => 'is-left',
-                        default => 'is-left',
+                        'published' => 'is-success',
+                        'hidden' => 'is-danger',
+                        default => 'is-danger',
                     };
                     ?>
                     <tr>
@@ -350,12 +350,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         )); ?></td>
                         <td class="admin-table-break admin-community-comment-body-cell">
                             <?php if ((int) ($comment['is_secret'] ?? 0) === 1) { ?>
-                                <span class="admin-status is-left"><?php echo sr_e('비밀'); ?></span>
+                                <span class="badge-status is-danger"><?php echo sr_e('비밀'); ?></span>
                             <?php } ?>
                             <?php echo sr_community_plain_text_html((string) $comment['body_text']); ?>
                         </td>
                         <td class="admin-table-nowrap"><?php echo sr_community_privacy_consent_admin_summary_html($comment); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($commentStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($commentStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap admin-community-comment-date-cell"><?php echo sr_community_time_html((string) $comment['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">

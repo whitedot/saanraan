@@ -184,7 +184,7 @@ function sr_member_oauth_provider_admin_status(array $provider, string $callback
     return [
         'visible' => $visible,
         'label' => $visible ? '로그인 버튼 노출 가능' : '로그인 버튼 노출 대기',
-        'class' => $visible ? 'is-normal' : 'is-warning',
+        'class' => $visible ? 'is-success' : 'is-warning',
         'items' => $items,
     ];
 }

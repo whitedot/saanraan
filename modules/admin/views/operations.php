@@ -8,11 +8,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 $statusClass = static function (string $status): string {
     return match ($status) {
-        'ok' => 'is-normal',
+        'ok' => 'is-success',
         'warning' => 'is-warning',
         'overdue', 'error' => 'is-danger',
-        'acknowledged' => 'is-blocked',
-        'skipped' => 'is-blocked',
+        'acknowledged' => 'is-warning',
+        'skipped' => 'is-warning',
         default => 'is-danger',
     };
 };
@@ -64,7 +64,7 @@ $statusClass = static function (string $status): string {
                     ?>
                     <tr>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e($statusClass($rowStatus)); ?>">
+                            <span class="badge-status <?php echo sr_e($statusClass($rowStatus)); ?>">
                                 <?php echo sr_e((string) ($row['status_label'] ?? '오류')); ?>
                             </span>
                         </td>

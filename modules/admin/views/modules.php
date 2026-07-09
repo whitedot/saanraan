@@ -167,7 +167,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                             </td>
                             <td class="admin-table-nowrap"><code><?php echo sr_e($moduleKey); ?></code></td>
                             <td class="admin-table-nowrap">
-                                <span class="admin-status <?php echo $canInstall ? 'is-normal' : 'is-blocked'; ?>"><?php echo sr_e($canInstall ? sr_t('admin::ui.text.24a5a830') : sr_t('admin::ui.text.944c1818')); ?></span>
+                                <span class="badge-status <?php echo $canInstall ? 'is-success' : 'is-warning'; ?>"><?php echo sr_e($canInstall ? sr_t('admin::ui.text.24a5a830') : sr_t('admin::ui.text.944c1818')); ?></span>
                                 <?php if ($moduleErrors !== []) { ?>
                                     <span class="table-meta"><?php echo sr_e(sr_t('admin::ui.text.afad906d')); ?></span>
                                 <?php } ?>
@@ -347,7 +347,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                         <?php $statusLocked = $isRequired || $requiredByModules !== []; ?>
                         <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
                         <?php $moduleStatus = (string) $module['status']; ?>
-                        <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-normal' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-left' : 'is-blocked'); ?>
+                        <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-success' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-danger' : 'is-warning'); ?>
                         <tr>
                             <td class="admin-table-break admin-module-name-column">
                                 <?php echo $moduleManagementClassificationBadgeHtml($module, $requiredModules); ?>
@@ -356,7 +356,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                             </td>
                             <td class="admin-table-nowrap"><code><?php echo sr_e($moduleKey); ?></code></td>
                             <td class="admin-table-nowrap">
-                                <span class="admin-status <?php echo sr_e($moduleStatusClass); ?>"><?php echo sr_e(sr_admin_code_label($moduleStatus, 'module_status')); ?></span>
+                                <span class="badge-status <?php echo sr_e($moduleStatusClass); ?>"><?php echo sr_e(sr_admin_code_label($moduleStatus, 'module_status')); ?></span>
                                 <?php if ($moduleStatus === 'enabled' && $moduleErrors !== []) { ?>
                                     <span class="table-meta"><?php echo sr_e(sr_t('admin::ui.text.2de2b3ad')); ?></span>
                                 <?php } ?>
@@ -443,7 +443,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
     <?php $statusLocked = $isRequired || $requiredByModules !== []; ?>
     <?php $moduleErrors = isset($module['metadata_errors']) && is_array($module['metadata_errors']) ? $module['metadata_errors'] : []; ?>
     <?php $moduleStatus = (string) $module['status']; ?>
-    <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-normal' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-left' : 'is-blocked'); ?>
+    <?php $moduleStatusClass = $moduleStatus === 'enabled' ? 'is-success' : (in_array($moduleStatus, ['failed', 'installing'], true) ? 'is-danger' : 'is-warning'); ?>
         <div id="<?php echo sr_e($moduleModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($moduleModalId); ?>-label">
             <div class="modal-dialog modal-dialog-lg">
                 <div class="modal-content">
@@ -560,7 +560,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                                 <div class="form-row">
                                     <span class="form-label"><?php echo sr_e(sr_t('admin::ui.status.a00fce68')); ?></span>
                                     <div class="form-field">
-                                        <span class="admin-status <?php echo sr_e($moduleStatusClass); ?>">
+                                        <span class="badge-status <?php echo sr_e($moduleStatusClass); ?>">
                                             <?php echo sr_e(sr_admin_code_label($moduleStatus, 'module_status')); ?>
                                         </span>
                                     </div>

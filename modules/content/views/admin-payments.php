@@ -148,7 +148,7 @@ $detailFilterOpen = (int) ($filters['target_id'] ?? 0) > 0
                     <tr>
                         <td class="admin-table-nowrap"><?php echo sr_content_time_html((string) ($paymentLog['created_at'] ?? '')); ?></td>
                         <td class="admin-table-break">
-                            <span class="admin-status is-normal"><?php echo sr_e((string) ($kindLabels[$sourceKind] ?? $sourceKind)); ?></span>
+                            <span class="badge-status is-success"><?php echo sr_e((string) ($kindLabels[$sourceKind] ?? $sourceKind)); ?></span>
                             <strong><?php echo sr_e((string) ($paymentLog['target_title'] ?? '삭제된 대상')); ?></strong>
                             <small class="admin-summary-meta">콘텐츠 #<?php echo sr_e((string) (int) ($paymentLog['content_id'] ?? 0)); ?><?php echo (int) ($paymentLog['file_id'] ?? 0) > 0 ? ' · 파일 #' . sr_e((string) (int) ($paymentLog['file_id'] ?? 0)) : ''; ?></small>
                         </td>
@@ -163,7 +163,7 @@ $detailFilterOpen = (int) ($filters['target_id'] ?? 0) > 0
                             <?php } ?>
                         </td>
                         <td class="admin-table-break">
-                            <span class="admin-status <?php echo $settlementKind === $legacySettlementKind || $settlementKind === '' ? 'is-blocked' : 'is-warning'; ?>"><?php echo sr_e((string) ($paymentTypeLabels[$paymentType] ?? $paymentType)); ?></span>
+                            <span class="badge-status is-warning"><?php echo sr_e((string) ($paymentTypeLabels[$paymentType] ?? $paymentType)); ?></span>
                             <p class="form-help"><?php echo sr_e((string) ($settlementKindLabels[$settlementKind] ?? $settlementKind)); ?> · <?php echo sr_e(number_format((int) ($paymentLog['settlement_amount'] ?? 0))); ?> <?php echo sr_e((string) ($paymentLog['settlement_currency'] ?? 'KRW')); ?></p>
                         </td>
                         <td class="admin-table-break">
@@ -182,22 +182,22 @@ $detailFilterOpen = (int) ($filters['target_id'] ?? 0) > 0
                         </td>
                         <td class="admin-table-break">
                             <?php if ($refundStatus === 'refunded') { ?>
-                                <span class="admin-status is-normal">환불 완료</span>
+                                <span class="badge-status is-success">환불 완료</span>
                                 <p class="form-help"><?php echo sr_e((string) ($paymentLog['refunded_at'] ?? '')); ?></p>
                             <?php } elseif ($refundStatus === 'access_revoked') { ?>
-                                <span class="admin-status is-left">접근권 회수</span>
+                                <span class="badge-status is-danger">접근권 회수</span>
                                 <p class="form-help"><?php echo sr_e((string) ($paymentLog['access_revoked_at'] ?? '')); ?></p>
                             <?php } elseif ($canProcess) { ?>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($modalId); ?>" data-overlay="#<?php echo sr_e($modalId); ?>">
                                     <?php echo (int) ($paymentLog['settlement_amount'] ?? 0) > 0 ? '수동 환불' : '접근권 회수'; ?>
                                 </button>
                             <?php } elseif ($settlementKind === $legacySettlementKind || $settlementKind === '') { ?>
-                                <span class="admin-status is-blocked">수동 확인</span>
+                                <span class="badge-status is-warning">수동 확인</span>
                                 <p class="form-help">레거시 정산 불명 row는 자동 처리하지 않습니다.</p>
                             <?php } elseif (!$canEditContentPayments) { ?>
-                                <span class="admin-status is-left">조회 전용</span>
+                                <span class="badge-status is-danger">조회 전용</span>
                             <?php } else { ?>
-                                <span class="admin-status is-blocked">처리 불가</span>
+                                <span class="badge-status is-warning">처리 불가</span>
                             <?php } ?>
                         </td>
                     </tr>

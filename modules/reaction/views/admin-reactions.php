@@ -16,19 +16,19 @@ $presetStatuses = sr_reaction_preset_statuses();
 $iconTypes = sr_reaction_icon_types();
 $reactionMaterialIconNames = function_exists('sr_admin_common_material_icon_names') ? sr_admin_common_material_icon_names() : ['favorite', 'sentiment_satisfied', 'thumb_up', 'mood'];
 $reactionStatusClasses = [
-    'active' => 'is-normal',
-    'disabled' => 'is-blocked',
+    'active' => 'is-success',
+    'disabled' => 'is-warning',
 ];
 $reactionTargetStatusClasses = [
-    'active' => 'is-normal',
-    'published' => 'is-normal',
-    'enabled' => 'is-normal',
-    'private' => 'is-left',
-    'unknown' => 'is-left',
-    'broken' => 'is-blocked',
-    'deleted' => 'is-blocked',
-    'disabled' => 'is-blocked',
-    'hidden' => 'is-blocked',
+    'active' => 'is-success',
+    'published' => 'is-success',
+    'enabled' => 'is-success',
+    'private' => 'is-danger',
+    'unknown' => 'is-danger',
+    'broken' => 'is-warning',
+    'deleted' => 'is-warning',
+    'disabled' => 'is-warning',
+    'hidden' => 'is-warning',
 ];
 $reactionTargetStatusLabels = [
     'active' => '사용',
@@ -192,7 +192,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <td class="admin-table-nowrap">
-                            <span class="admin-status <?php echo sr_e((string) ($reactionTargetStatusClasses[$recordTargetStatus] ?? 'is-blocked')); ?>"><?php echo sr_e((string) ($reactionTargetStatusLabels[$recordTargetStatus] ?? '확인 필요')); ?></span>
+                            <span class="badge-status <?php echo sr_e((string) ($reactionTargetStatusClasses[$recordTargetStatus] ?? 'is-warning')); ?>"><?php echo sr_e((string) ($reactionTargetStatusLabels[$recordTargetStatus] ?? '확인 필요')); ?></span>
                             <?php if (is_array($recordTarget) && empty($recordTarget['can_write'])) { ?>
                                 <br><span class="admin-summary-meta">쓰기 불가</span>
                             <?php } ?>
@@ -261,7 +261,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <?php $definitionStatus = (string) ($definition['status'] ?? ''); ?>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($reactionStatusClasses[$definitionStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label($definitionStatus, 'module_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e((string) ($reactionStatusClasses[$definitionStatus] ?? 'is-warning')); ?>"><?php echo sr_e(sr_admin_code_label($definitionStatus, 'module_status')); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($definition['sort_order'] ?? 100)); ?></td>
                         <td class="admin-table-actions-cell">
@@ -371,7 +371,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </td>
                         <?php $presetStatus = (string) ($preset['status'] ?? ''); ?>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e((string) ($reactionStatusClasses[$presetStatus] ?? 'is-blocked')); ?>"><?php echo sr_e(sr_admin_code_label($presetStatus, 'module_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e((string) ($reactionStatusClasses[$presetStatus] ?? 'is-warning')); ?>"><?php echo sr_e(sr_admin_code_label($presetStatus, 'module_status')); ?></span></td>
                         <td class="admin-table-nowrap"><?php echo sr_e((string) (int) ($preset['visible_key_limit'] ?? 6)); ?>개</td>
                         <td class="admin-table-break">
                             <?php if ($selectedKeys === []) { ?>

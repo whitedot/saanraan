@@ -120,11 +120,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php foreach ($requests as $request) { ?>
                 <?php
                 $requestStatus = (string) $request['status'];
-                $statusClass = 'is-blocked';
+                $statusClass = 'is-warning';
                 if ($requestStatus === 'completed') {
-                    $statusClass = 'is-normal';
+                    $statusClass = 'is-success';
                 } elseif (in_array($requestStatus, ['rejected', 'cancelled'], true)) {
-                    $statusClass = 'is-left';
+                    $statusClass = 'is-danger';
                 }
                 $requestId = (string) $request['id'];
                 $storedAdminNote = trim((string) ($request['admin_note'] ?? ''));
@@ -133,7 +133,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 ?>
                 <tr>
                     <td><?php echo sr_e(sr_admin_code_label((string) $request['request_type'], 'privacy_request_type')); ?></td>
-                    <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($requestStatus, 'privacy_request_status')); ?></span></td>
+                    <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($requestStatus, 'privacy_request_status')); ?></span></td>
                     <td><?php echo sr_e(sr_admin_privacy_request_requester_display($request)); ?></td>
                     <td><?php echo sr_e(sr_admin_privacy_request_list_preview($request['request_message'] ?? null)); ?></td>
                     <td><?php echo sr_privacy_time_html((string) ($request['handled_at'] ?? '')); ?></td>

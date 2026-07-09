@@ -215,13 +215,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($surveyIsDeleted ? 'is-left' : sr_survey_admin_status_class($surveyStatus)); ?>"><?php echo sr_e($surveyIsDeleted ? '삭제됨' : sr_survey_status_label($surveyStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($surveyIsDeleted ? 'is-danger' : sr_survey_admin_status_class($surveyStatus)); ?>"><?php echo sr_e($surveyIsDeleted ? '삭제됨' : sr_survey_status_label($surveyStatus)); ?></span></td>
                             <td class="admin-table-break"><?php echo $periodLabel === '~' || $periodLabel === '' ? '상시' : sr_e($periodLabel); ?></td>
                             <td class="admin-table-break"><?php echo $listGroupKeys === [] ? '전체' : sr_e(implode(', ', $listGroupKeys)); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class($surveyQaStatus)); ?>"><?php echo sr_e(sr_survey_qa_status_label($surveyQaStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e(sr_survey_admin_status_class($surveyQaStatus)); ?>"><?php echo sr_e(sr_survey_qa_status_label($surveyQaStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) $survey['response_count'])); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($survey['view_count'] ?? 0))); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '사용안함'; ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo $rewardEnabled ? 'is-success' : 'is-warning'; ?>"><?php echo $rewardEnabled ? '사용' : '사용안함'; ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_survey_time_html((string) $survey['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">
@@ -1015,7 +1015,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <td class="admin-table-nowrap"><?php echo $questionKey !== '' ? '<code>' . sr_e($questionKey) . '</code>' : '<span class="admin-summary-meta">미등록</span>'; ?></td>
                                 <td class="admin-table-break"><strong><?php echo sr_e($questionPrompt !== '' ? $questionPrompt : '문항 없음'); ?></strong></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e(sr_survey_question_type_label((string) ($question['question_type'] ?? 'single_choice'))); ?></td>
-                                <td class="admin-table-nowrap"><span class="admin-status <?php echo (int) ($question['required'] ?? 1) === 1 ? 'is-normal' : 'is-left'; ?>"><?php echo (int) ($question['required'] ?? 1) === 1 ? '필수' : '선택'; ?></span></td>
+                                <td class="admin-table-nowrap"><span class="badge-status <?php echo (int) ($question['required'] ?? 1) === 1 ? 'is-success' : 'is-danger'; ?>"><?php echo (int) ($question['required'] ?? 1) === 1 ? '필수' : '선택'; ?></span></td>
                                 <td class="admin-table-nowrap"><?php echo sr_e(number_format(count($questionChoices))); ?></td>
                                 <td class="admin-table-actions-cell">
                                     <div class="admin-row-actions">

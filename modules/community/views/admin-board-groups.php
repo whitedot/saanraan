@@ -313,15 +313,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php
                     $boardGroupStatus = (string) $boardGroup['status'];
                     $statusClass = match ($boardGroupStatus) {
-                        'enabled' => 'is-normal',
-                        'disabled' => 'is-blocked',
-                        default => 'is-left',
+                        'enabled' => 'is-success',
+                        'disabled' => 'is-warning',
+                        default => 'is-danger',
                     };
                     ?>
                     <tr>
                         <td class="admin-table-nowrap admin-community-board-group-key-cell"><?php echo sr_e((string) $boardGroup['group_key']); ?></td>
                         <td class="admin-table-break admin-community-board-group-title-cell"><?php echo sr_e((string) $boardGroup['title']); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($boardGroupStatus, 'content_status')); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($boardGroupStatus, 'content_status')); ?></span></td>
                         <td class="admin-table-nowrap">
                             <a href="<?php echo sr_e(sr_url('/admin/community/boards?group_id=' . rawurlencode((string) $boardGroup['id']))); ?>" class="btn btn-sm btn-solid-light">
                                 <?php echo sr_e((string) ($boardGroup['board_count'] ?? 0)); ?><?php echo sr_e(sr_t('community::ui.text.8a680106')); ?>

@@ -98,7 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) $log['request_amount'])); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) $log['deposit_amount'])); ?></td>
                         <td class="admin-table-nowrap text-end"><?php echo sr_e(number_format((int) $log['fee_amount'])); ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo (string) $log['status'] === 'completed' ? 'is-normal' : 'is-blocked'; ?>"><?php echo sr_e((string) ($logStatusLabels[(string) $log['status']] ?? $log['status'])); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo (string) $log['status'] === 'completed' ? 'is-success' : 'is-warning'; ?>"><?php echo sr_e((string) ($logStatusLabels[(string) $log['status']] ?? $log['status'])); ?></span></td>
                         <td class="admin-table-break"><?php echo sr_e($failureReason !== '' ? $failureReason : '-'); ?></td>
                         <td class="admin-table-nowrap">
                             <?php if ($canCorrectLog) { ?>

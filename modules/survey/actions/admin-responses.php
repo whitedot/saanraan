@@ -186,7 +186,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="admin-summary-meta">(<?php echo sr_e((string) ($response['survey_key'] ?? '')); ?>) · 응답 #<?php echo sr_e((string) (int) ($response['id'] ?? 0)); ?></span>
                         </td>
                         <td class="admin-table-nowrap"><?php echo (int) ($response['account_id'] ?? 0) > 0 ? sr_e((string) (int) $response['account_id']) : '익명'; ?></td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e(sr_survey_admin_status_class((string) ($response['quality_status'] ?? 'accepted'))); ?>"><?php echo sr_e(sr_survey_quality_status_label((string) ($response['quality_status'] ?? 'accepted'))); ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e(sr_survey_admin_status_class((string) ($response['quality_status'] ?? 'accepted'))); ?>"><?php echo sr_e(sr_survey_quality_status_label((string) ($response['quality_status'] ?? 'accepted'))); ?></span></td>
                         <td class="admin-table-break"><code><?php echo sr_e(sr_survey_admin_preview_text((string) ($response['answer_snapshot_json'] ?? ''))); ?></code></td>
                         <td>
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/responses' . $responseActionSuffix)); ?>" class="admin-inline-form">

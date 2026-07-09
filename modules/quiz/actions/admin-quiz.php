@@ -341,7 +341,7 @@ if ($mode === 'list') {
                                     </span>
                                 <?php } ?>
                             </td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($quizIsDeleted ? 'is-left' : sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e($quizIsDeleted ? '삭제됨' : sr_quiz_status_label($quizStatus)); ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($quizIsDeleted ? 'is-danger' : sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e($quizIsDeleted ? '삭제됨' : sr_quiz_status_label($quizStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['source_count'] ?? 0))); ?></td>
                             <td class="admin-table-break">
@@ -349,7 +349,7 @@ if ($mode === 'list') {
                                 <span class="admin-summary-meta">제한 <?php echo sr_e(sr_quiz_attempt_limit_policy_label((string) ($quiz['attempt_limit_policy'] ?? 'unlimited'))); ?> · 통과 점수 <?php echo sr_e((string) ($quiz['pass_score'] ?? '-')); ?> · 회원 조건 <?php echo sr_e(number_format($memberGroupCount)); ?>개</span>
                             </td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['view_count'] ?? 0))); ?></td>
-                            <td class="admin-table-nowrap"><span class="admin-status <?php echo $rewardEnabled ? 'is-normal' : 'is-blocked'; ?>"><?php echo $rewardEnabled ? '사용' : '사용안함'; ?></span></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo $rewardEnabled ? 'is-success' : 'is-warning'; ?>"><?php echo $rewardEnabled ? '사용' : '사용안함'; ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_quiz_time_html((string) $quiz['updated_at']); ?></td>
                             <td class="admin-table-actions-cell">
                                 <div class="admin-row-actions">

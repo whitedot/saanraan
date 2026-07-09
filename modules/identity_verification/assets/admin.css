@@ -27,13 +27,13 @@
 }
 
 .identity-verification-detail-summary .badge,
-.identity-verification-detail-summary .admin-status {
+.identity-verification-detail-summary .badge-status {
     font-size: var(--type-meta-size);
     padding-block: .35rem;
     padding-inline: .65rem;
 }
 
-.identity-verification-admin-verifications .modal-body .admin-status {
+.identity-verification-admin-verifications .modal-body .badge-status {
     align-items: center;
     border-radius: 999px;
     display: inline-flex;
@@ -46,19 +46,17 @@
     white-space: nowrap;
 }
 
-.identity-verification-admin-verifications .modal-body .admin-status.is-normal {
+.identity-verification-admin-verifications .modal-body .badge-status.is-success {
     background: color-mix(in oklab, var(--color-success) 14%, var(--color-card));
     color: var(--color-success-hover);
 }
 
-.identity-verification-admin-verifications .modal-body .admin-status.is-warning,
-.identity-verification-admin-verifications .modal-body .admin-status.is-blocked {
+.identity-verification-admin-verifications .modal-body .badge-status.is-warning {
     background: color-mix(in oklab, var(--color-warning) 14%, var(--color-card));
     color: var(--color-warning-hover);
 }
 
-.identity-verification-admin-verifications .modal-body .admin-status.is-danger,
-.identity-verification-admin-verifications .modal-body .admin-status.is-left {
+.identity-verification-admin-verifications .modal-body .badge-status.is-danger {
     background: color-mix(in oklab, var(--color-danger) 12%, var(--color-card));
     color: var(--color-danger-hover);
 }

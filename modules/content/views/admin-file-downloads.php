@@ -138,7 +138,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                                 <?php echo sr_e('비회원'); ?>
                             <?php } ?>
                         </td>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo $isPaid ? 'is-warning' : 'is-normal'; ?>"><?php echo $isPaid ? '유료' : '무료'; ?></span></td>
+                        <td class="admin-table-nowrap"><span class="badge-status <?php echo $isPaid ? 'is-warning' : 'is-success'; ?>"><?php echo $isPaid ? '유료' : '무료'; ?></span></td>
                         <td class="admin-table-break">
                             <?php if ($isPaid) { ?>
                                 <?php if (!$hasRefundAccessLogs && $downloadAmount <= 0) { ?>
@@ -163,7 +163,7 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                         </td>
                         <td class="admin-table-break">
                             <?php if ($refundStatus === 'refunded') { ?>
-                                <span class="admin-status is-normal">환불 완료</span>
+                                <span class="badge-status is-success">환불 완료</span>
                                 <p class="form-help">
                                     <?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?>
                                     <?php if ((string) ($downloadLog['refund_note'] ?? '') !== '') { ?>
@@ -171,18 +171,18 @@ $downloadLogDetailFilterOpen = (int) ($filters['content_id'] ?? 0) > 0
                                     <?php } ?>
                                 </p>
                             <?php } elseif ($refundStatus === 'access_revoked') { ?>
-                                <span class="admin-status is-left">접근권 회수</span>
+                                <span class="badge-status is-danger">접근권 회수</span>
                                 <p class="form-help"><?php echo sr_e((string) ($downloadLog['refunded_at'] ?? '')); ?></p>
                             <?php } elseif (!$isPaid) { ?>
-                                <span class="admin-status is-normal">대상 아님</span>
+                                <span class="badge-status is-success">대상 아님</span>
                             <?php } elseif ($canRefund) { ?>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($refundModalId); ?>" data-overlay="#<?php echo sr_e($refundModalId); ?>">
                                     <?php echo $downloadAmount > 0 ? '수동 환불' : '접근권 회수'; ?>
                                 </button>
                             <?php } elseif (!$canEditFileDownloads) { ?>
-                                <span class="admin-status is-left">조회 전용</span>
+                                <span class="badge-status is-danger">조회 전용</span>
                             <?php } else { ?>
-                                <span class="admin-status is-blocked">처리 불가</span>
+                                <span class="badge-status is-warning">처리 불가</span>
                             <?php } ?>
                         </td>
                     </tr>
