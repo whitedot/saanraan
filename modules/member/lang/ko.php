@@ -375,7 +375,7 @@ return [
     'ui.member.hash.5a5dbe2b' => '회원 공개 해시',
     'ui.member.list.5e737292' => '회원관리 목록',
     'ui.member.list.7b664c16' => '회원 그룹 목록',
-    'ui.member.list.d8e6279a' => '회원 목록',
+    'ui.member.list.d8e6279a' => '회원 관리',
     'ui.member.profile_updated_at.8f8c0f24' => '프로필 수정일',
     'ui.member.settings.6b4c84f7' => '회원 환경설정',
     'ui.member.settings.df7b9920' => '회원 설정',

@@ -5,7 +5,7 @@ return [
     'order' => 12,
     'items' => [
         [
-            'label' => '환경설정',
+            'label' => '본인확인 환경설정',
             'path' => '/admin/identity-providers',
             'order' => 10,
         ],

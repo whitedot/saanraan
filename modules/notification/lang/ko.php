@@ -33,7 +33,7 @@ return [
     'ui.notification.create.notification.email.active.d3635deb' => '이메일은 대상 회원 정보의 이메일 주소로 발송 작업을 만듭니다.',
     'ui.notification.e8d3fbb5' => '사이트 알림과 알림 발송 작업을 관리합니다.',
     'ui.notification.id.ccc3eb79' => '알림 ID',
-    'ui.notification.list.7475cac1' => '알림 목록',
+    'ui.notification.list.7475cac1' => '알림 관리',
     'ui.path.https.example.com.a67f0fa1' => '/path 또는 https://example.com',
     'ui.required.1f227c67' => '(필수)',
     'ui.save.5fb92622' => '저장',

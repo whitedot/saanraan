@@ -28,7 +28,7 @@ return [
     'ui.document.empty' => '등록된 정책 문서가 없습니다.',
     'ui.document.create' => '약관/방침 추가',
     'ui.document.form_description' => '약관, 개인정보 수집 동의, 운영 고지처럼 버전을 쌓아 관리할 약관/방침을 추가합니다.',
-    'ui.document.list' => '약관/방침 목록',
+    'ui.document.list' => '약관/방침 관리',
     'ui.document.selected' => '선택 문서',
     'ui.document_description' => '설명',
     'ui.document_title' => '문서 제목',

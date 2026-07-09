@@ -3,7 +3,7 @@
 return [
     'ui.save.5fb92622' => '저장',
     'ui.seo.point.ea9a7371' => '사이트맵과 robots.txt 운영 설정을 관리하는 SEO 모듈입니다.',
-    'ui.seo.settings.604d83e6' => 'SEO 설정',
+    'ui.seo.settings.604d83e6' => 'SEO 환경설정',
     'ui.settings.7ce8a229' => '로봇 설정',
     'ui.sitemap.copy.1f43e9aa' => '사이트맵 URL 복사',
     'ui.sitemap.copy.fail.54a85d2b' => '복사 실패',

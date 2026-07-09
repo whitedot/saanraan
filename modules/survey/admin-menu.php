@@ -30,7 +30,7 @@ return [
             'order' => 35,
         ],
         [
-            'label' => '환경설정',
+            'label' => '설문·여론조사 환경설정',
             'path' => '/admin/surveys/settings',
             'order' => 40,
         ],

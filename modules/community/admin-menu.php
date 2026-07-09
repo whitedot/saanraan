@@ -71,7 +71,7 @@ return [
             'order' => 80,
         ],
         [
-            'label' => '회원 그룹별 설정',
+            'label' => '회원 그룹별 환경설정',
             'path' => '/admin/community/asset-policy-sets',
             'order' => 90,
         ],

@@ -63,6 +63,8 @@ function sr_admin_navigation_runtime_pdo(): PDO
             ('identity_verification', 'enabled'),
             ('message', 'enabled'),
             ('community', 'enabled'),
+            ('banner', 'enabled'),
+            ('antispam', 'enabled'),
             ('seo', 'enabled'),
             ('notification', 'enabled')"
     );
@@ -95,6 +97,8 @@ foreach ($groups as $group) {
 
 sr_admin_navigation_runtime_assert(isset($allItems['/admin']), 'Admin navigation runtime fixture must include built-in dashboard.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/seo']), 'Admin navigation runtime fixture must include SEO menu item with GET route.');
+sr_admin_navigation_runtime_assert(isset($allItems['/admin/banners']), 'Admin navigation runtime fixture must include banner list menu item with GET route.');
+sr_admin_navigation_runtime_assert(isset($allItems['/admin/banners/settings']), 'Admin navigation runtime fixture must include banner settings menu item with GET route.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/storage-cache']), 'Admin navigation runtime fixture must include storage cache menu item with GET route.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/notifications']), 'Admin navigation runtime fixture must include notification menu item with GET route.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/notification-deliveries']), 'Admin navigation runtime fixture must include notification deliveries menu item with GET route.');
@@ -119,9 +123,35 @@ sr_admin_navigation_runtime_assert(isset($moduleGroups['member_oauth']), 'Admin 
 sr_admin_navigation_runtime_assert(isset($moduleGroups['identity_verification']), 'Admin navigation runtime fixture must expose identity verification module menu group.');
 sr_admin_navigation_runtime_assert(isset($moduleGroups['message']), 'Admin navigation runtime fixture must expose message module menu group.');
 sr_admin_navigation_runtime_assert(isset($moduleGroups['community']), 'Admin navigation runtime fixture must expose community module menu group.');
+sr_admin_navigation_runtime_assert(isset($moduleGroups['banner']), 'Admin navigation runtime fixture must expose banner module menu group.');
+sr_admin_navigation_runtime_assert(isset($moduleGroups['antispam']), 'Admin navigation runtime fixture must expose antispam module menu group.');
 sr_admin_navigation_runtime_assert(isset($moduleGroups['notification']), 'Admin navigation runtime fixture must expose notification module menu group.');
 sr_admin_navigation_runtime_assert((int) ($moduleGroups['seo']['order'] ?? 0) === 50, 'Admin navigation runtime fixture must use SEO module admin menu order.');
 sr_admin_navigation_runtime_assert((int) ($moduleGroups['message']['order'] ?? 0) === 13, 'Admin navigation runtime fixture must place message directly after identity verification in the member category.');
+sr_admin_navigation_runtime_assert(
+    (string) ($moduleGroups['message']['admin_icon']['name'] ?? '') === 'message-circle',
+    'Admin navigation runtime fixture must use the message-circle icon for the message module.'
+);
+sr_admin_navigation_runtime_assert(
+    (string) ($allItems['/admin/identity-providers']['label'] ?? '') === '본인확인 환경설정',
+    'Identity verification module must provide a module-prefixed environment settings menu label.'
+);
+sr_admin_navigation_runtime_assert(
+    (string) ($allItems['/admin/antispam/settings']['label'] ?? '') === '자동등록방지 환경설정',
+    'Antispam module must provide a module-prefixed environment settings menu label.'
+);
+sr_admin_navigation_runtime_assert(
+    (string) ($allItems['/admin/banners/settings']['label'] ?? '') === '배너 환경설정',
+    'Banner module must provide an environment settings menu label.'
+);
+sr_admin_navigation_runtime_assert(
+    (string) ($allItems['/admin/members']['label'] ?? '') === '회원 관리',
+    'Member module must provide a management menu label instead of a list label.'
+);
+sr_admin_navigation_runtime_assert(
+    (string) ($allItems['/admin/banners']['label'] ?? '') === '배너 관리',
+    'Banner module must provide a management menu label instead of a list label.'
+);
 $memberGroupKeys = [];
 foreach ($groups as $group) {
     if ((string) ($group['category'] ?? '') !== 'member') {

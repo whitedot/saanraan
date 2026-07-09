@@ -2,5 +2,5 @@
 
 return [
     'ui.member_oauth' => '회원 OAuth',
-    'ui.settings' => 'OAuth 설정',
+    'ui.settings' => '회원 OAuth 환경설정',
 ];

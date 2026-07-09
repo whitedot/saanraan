@@ -5,7 +5,7 @@ return [
     'order' => 20,
     'items' => [
         [
-            'label' => '설정',
+            'label' => 'Markdown Editor 환경설정',
             'path' => '/admin/markdown-editor/settings',
             'order' => 10,
         ],

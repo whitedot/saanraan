@@ -10,7 +10,7 @@ return [
         'category_label' => '회원',
         'category_order' => 10,
         'menu_order' => 13,
-        'icon' => ['type' => 'symbol', 'name' => 'mail'],
+        'icon' => ['type' => 'symbol', 'name' => 'message-circle'],
     ],
     'saanraan' => [
         'min_version' => '0.2.0',

@@ -25,7 +25,7 @@ return [
             'order' => 40,
         ],
         [
-            'label' => '환경설정',
+            'label' => '쿠폰·이용권 환경설정',
             'path' => '/admin/coupons/settings',
             'order' => 50,
         ],
