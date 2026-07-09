@@ -16,7 +16,7 @@ $assets = sr_asset_exchange_assets($pdo);
 $settings = sr_asset_exchange_settings($pdo);
 $assetExchangeAssets = $assets;
 $assetExchangeAvailable = count($assetExchangeAssets) >= 2;
-$notificationGroups = sr_asset_exchange_notification_groups($pdo);
+$notificationGroups = [];
 $assetExchangeIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
 if ($assetExchangeIdentityVerificationModuleAvailable) {
@@ -84,65 +84,6 @@ $assetExchangeFlashPostedForm = static function (array $postedSettings, array $p
         'policies' => $postedPolicies,
     ];
 };
-$assetExchangeNotificationSettingsFromPost = static function (array $notificationGroups, array &$errors): array {
-    $postedNotificationCases = $_POST['notification_cases'] ?? [];
-    $postedNotificationCases = is_array($postedNotificationCases) ? $postedNotificationCases : [];
-    $notificationSettingsByModule = [];
-    foreach ($notificationGroups as $moduleKey => $notificationGroup) {
-        $moduleKey = (string) $moduleKey;
-        $postedModuleCases = isset($postedNotificationCases[$moduleKey]) && is_array($postedNotificationCases[$moduleKey])
-            ? $postedNotificationCases[$moduleKey]
-            : [];
-        $allowedChannels = array_fill_keys((array) ($notificationGroup['channel_options'] ?? ['site']), true);
-        $moduleCaseSettings = is_array($notificationGroup['all_case_settings'] ?? null) ? $notificationGroup['all_case_settings'] : [];
-        $channelsFunction = (string) ($notificationGroup['channels_function'] ?? '');
-        foreach ((array) ($notificationGroup['cases'] ?? []) as $caseKey => $case) {
-            $caseKey = (string) $caseKey;
-            $casePost = isset($postedModuleCases[$caseKey]) && is_array($postedModuleCases[$caseKey]) ? $postedModuleCases[$caseKey] : [];
-            $postedChannels = $casePost['channels'] ?? [];
-            $postedChannels = is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [];
-            $channels = [];
-            foreach ($postedChannels as $channel) {
-                if (isset($allowedChannels[$channel])) {
-                    $channels[$channel] = $channel;
-                }
-            }
-
-            $moduleCaseSettings[$caseKey] = [
-                'event_key' => (string) ($case['event_key'] ?? ''),
-                'enabled' => sr_truthy($casePost['enabled'] ?? false),
-                'channels' => array_values($channels),
-            ];
-            if (!empty($moduleCaseSettings[$caseKey]['enabled']) && $moduleCaseSettings[$caseKey]['channels'] === []) {
-                $errors[] = (string) ($notificationGroup['label'] ?? $moduleKey) . ' ' . (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
-            }
-            if ($channelsFunction !== '' && function_exists($channelsFunction)) {
-                $moduleCaseSettings[$caseKey]['channels'] = $channelsFunction($moduleCaseSettings[$caseKey]['channels']);
-            }
-        }
-        $notificationSettingsByModule[$moduleKey] = $moduleCaseSettings;
-    }
-
-    return $notificationSettingsByModule;
-};
-$assetExchangeSaveNotificationSettings = static function (PDO $pdo, array $notificationGroups, array $notificationSettingsByModule): void {
-    foreach ($notificationGroups as $moduleKey => $notificationGroup) {
-        $settingsFunction = (string) ($notificationGroup['settings_function'] ?? '');
-        $saveSettingsFunction = (string) ($notificationGroup['save_settings_function'] ?? '');
-        if (!isset($notificationSettingsByModule[$moduleKey])
-            || $settingsFunction === ''
-            || $saveSettingsFunction === ''
-            || !function_exists($settingsFunction)
-            || !function_exists($saveSettingsFunction)
-        ) {
-            continue;
-        }
-        $moduleSettings = $settingsFunction($pdo);
-        $moduleSettings['notification_cases'] = $notificationSettingsByModule[$moduleKey];
-        $saveSettingsFunction($pdo, $moduleSettings);
-    }
-};
-
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/asset-exchange', 'edit');
@@ -256,7 +197,7 @@ if (sr_request_method() === 'POST') {
                 'fee_max_amount' => (string) ($postedRow['fee_max_amount'] ?? ''),
             ];
         }
-        $notificationSettingsByModule = $assetExchangeNotificationSettingsFromPost($notificationGroups, $errors);
+        $notificationSettingsByModule = [];
         if ($errors !== []) {
             $assetExchangeFlashPostedForm($postedSettings, $postedPolicies);
             sr_admin_flash_result(sr_admin_action_result($errors, ''));
@@ -304,8 +245,6 @@ if (sr_request_method() === 'POST') {
                         throw new InvalidArgumentException($policyLabel . ' 정책: ' . $exception->getMessage(), 0, $exception);
                     }
                 }
-                $assetExchangeSaveNotificationSettings($pdo, $notificationGroups, $notificationSettingsByModule);
-
                 if ($startedTransaction) {
                     $pdo->commit();
                 }
@@ -318,7 +257,7 @@ if (sr_request_method() === 'POST') {
 
             sr_clear_module_settings_cache('asset_exchange');
             $settings = sr_asset_exchange_settings($pdo);
-            $notificationGroups = sr_asset_exchange_notification_groups($pdo);
+            $notificationGroups = [];
             $afterPolicies = [];
             foreach ($savedPolicyIds as $slotKey => $policyId) {
                 $afterPolicies[$slotKey] = $assetExchangePolicySnapshot(sr_asset_exchange_policy($pdo, (int) $policyId));
@@ -341,7 +280,6 @@ if (sr_request_method() === 'POST') {
                         'exchange_enabled' => (string) ($settings['exchange_enabled'] ?? '1'),
                         'identity_exchange_required' => (string) ($settings['identity_exchange_required'] ?? '0'),
                     ],
-                    'notification_cases' => $notificationSettingsByModule,
                 ],
             ]);
 

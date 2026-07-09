@@ -19,5 +19,10 @@ return [
             'path' => '/admin/reactions/records',
             'order' => 30,
         ],
+        [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/reactions/notification-templates',
+            'order' => 40,
+        ],
     ],
 ];

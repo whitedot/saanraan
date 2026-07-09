@@ -6,6 +6,8 @@ return [
     'POST /admin/points' => 'actions/admin-points.php',
     'GET /admin/points/settings' => 'actions/admin-points-settings.php',
     'POST /admin/points/settings' => 'actions/admin-points-settings.php',
+    'GET /admin/points/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/points/notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/points/adjust' => 'actions/admin-points-adjust.php',
     'POST /admin/points/adjust' => 'actions/admin-points-adjust.php',
     'GET /admin/points/balances' => 'actions/admin-points-balances.php',

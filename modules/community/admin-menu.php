@@ -66,6 +66,11 @@ return [
             'order' => 70,
         ],
         [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/community/notification-templates',
+            'order' => 75,
+        ],
+        [
             'label' => sr_t('community::ui.text.b2845de5'),
             'path' => '/admin/community/levels',
             'order' => 80,

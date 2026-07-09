@@ -32,7 +32,7 @@ $requiredModules = [
     ],
     'admin' => [
         'name' => '관리자',
-        'version' => '2026.06.003',
+        'version' => '2026.06.002',
         'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],
@@ -200,7 +200,7 @@ $optionalModules = [
     ],
     'notification' => [
         'name' => '알림',
-        'version' => '2026.06.014',
+        'version' => '2026.06.015',
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
     ],

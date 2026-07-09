@@ -19,5 +19,10 @@ return [
             'path' => '/admin/points/settings',
             'order' => 40,
         ],
+        [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/points/notification-templates',
+            'order' => 45,
+        ],
     ],
 ];

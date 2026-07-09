@@ -43,6 +43,7 @@ foreach ([
     'point' => [
         'label' => '포인트',
         'settings_path' => '/admin/points/settings',
+        'template_path' => '/admin/points/notification-templates',
         'default_case_enabled' => 'false',
         'events' => [
             'transaction.grant',
@@ -59,6 +60,7 @@ foreach ([
     'reward' => [
         'label' => '적립금',
         'settings_path' => '/admin/rewards/settings',
+        'template_path' => '/admin/rewards/notification-templates',
         'default_case_enabled' => 'true',
         'events' => [
             'transaction.grant',
@@ -77,6 +79,7 @@ foreach ([
     'deposit' => [
         'label' => '예치금',
         'settings_path' => '/admin/deposits/settings',
+        'template_path' => '/admin/deposits/notification-templates',
         'default_case_enabled' => 'true',
         'events' => [
             'transaction.deposit',
@@ -97,8 +100,10 @@ foreach ([
         $actionPath = 'modules/point/actions/admin-points-settings.php';
     }
     $viewPath = 'modules/' . $moduleKey . '/views/admin-settings.php';
+    $templateActionPath = 'modules/' . $moduleKey . '/actions/admin-notification-templates.php';
+    $pathsPath = 'modules/' . $moduleKey . '/paths.php';
+    $menuPath = 'modules/' . $moduleKey . '/admin-menu.php';
     $prefix = 'sr_' . $moduleKey;
-    $dataPrefix = $moduleKey . '-notification';
 
     sr_asset_notification_settings_require_markers($helperPath, [
         "'notification_cases' => " . $prefix . '_default_notification_case_settings()',
@@ -127,27 +132,30 @@ foreach ([
     }
 
     sr_asset_notification_settings_require_markers($actionPath, [
-        '$notificationCases = ' . $prefix . '_notification_cases();',
-        '$notificationChannelOptions = ' . $prefix . '_notification_channel_options($pdo);',
-        '$postedCases = $_POST[\'notification_cases\'] ?? [];',
-        '$allowedChannels = array_fill_keys($notificationChannelOptions, true);',
         'notification_cases',
-        '$caseSettings',
+        $prefix . '_notification_case_settings_from_value($settings[\'notification_cases\'] ?? [])',
         '\'notification_cases\' => (array) ($settings[\'notification_cases\'] ?? [])',
     ]);
 
-    sr_asset_notification_settings_require_markers($viewPath, [
-        '$notificationCases',
-        '$notificationCaseSettings = ' . $prefix . '_notification_case_settings_from_value($settings[\'notification_cases\'] ?? []);',
-        '$allNotificationCasesEnabled',
-        'notification_cases[',
-        'data-' . $dataPrefix . '-bulk-toggle',
-        'data-' . $dataPrefix . '-case-toggle',
-        'data-' . $dataPrefix . '-channel',
-        'data-' . $dataPrefix . '-required-label',
-        '전체활성',
-        '전체비활성',
-        '알림 채널을 하나 이상 선택하세요.',
+    $viewContents = sr_asset_notification_settings_file($viewPath);
+    if (str_contains($viewContents, 'notification_cases[')) {
+        sr_asset_notification_settings_error($viewPath . ' must not edit notification_cases directly after module notification template pages own those settings.');
+    }
+
+    sr_asset_notification_settings_require_markers($templateActionPath, [
+        "require_once SR_ROOT . '/modules/" . $moduleKey . "/helpers.php';",
+        "sr_notification_event_template_admin_handle(\$pdo, \$site ?? null, [",
+        "'module_key' => '" . $moduleKey . "'",
+        "'return_path' => '" . (string) ($module['template_path'] ?? '') . "'",
+    ]);
+    sr_asset_notification_settings_require_markers($pathsPath, [
+        "'GET " . (string) ($module['template_path'] ?? '') . "'",
+        "'POST " . (string) ($module['template_path'] ?? '') . "'",
+        "'actions/admin-notification-templates.php'",
+    ]);
+    sr_asset_notification_settings_require_markers($menuPath, [
+        '알림 템플릿',
+        (string) ($module['template_path'] ?? ''),
     ]);
 }
 
@@ -157,13 +165,18 @@ sr_asset_notification_settings_require_markers('modules/coupon/helpers.php', [
 ]);
 sr_asset_notification_settings_require_markers('modules/coupon/actions/admin-coupon-settings.php', [
     '\'notification_cases\' => $caseSettings',
+    'sr_coupon_notification_case_settings_from_value($settings[\'notification_cases\'] ?? [])',
     '\'notification_cases\' => (array) ($settings[\'notification_cases\'] ?? [])',
 ]);
-sr_asset_notification_settings_require_markers('modules/coupon/views/admin-settings.php', [
-    '$allNotificationCasesEnabled',
-    'data-coupon-notification-bulk-toggle',
-    '전체활성',
-    '전체비활성',
+$couponSettingsView = sr_asset_notification_settings_file('modules/coupon/views/admin-settings.php');
+if (str_contains($couponSettingsView, 'notification_cases[')) {
+    sr_asset_notification_settings_error('modules/coupon/views/admin-settings.php must not edit notification_cases directly after coupon notification template page owns those settings.');
+}
+sr_asset_notification_settings_require_markers('modules/coupon/actions/admin-notification-templates.php', [
+    "require_once SR_ROOT . '/modules/coupon/helpers.php';",
+    "sr_notification_event_template_admin_handle(\$pdo, \$site ?? null, [",
+    "'module_key' => 'coupon'",
+    "'return_path' => '/admin/coupons/notification-templates'",
 ]);
 
 sr_asset_notification_settings_require_markers('modules/asset_exchange/helpers.php', [
@@ -175,36 +188,25 @@ sr_asset_notification_settings_require_markers('modules/asset_exchange/helpers.p
     "'save_settings_function'",
 ]);
 sr_asset_notification_settings_require_markers('modules/asset_exchange/actions/admin-asset-exchange.php', [
-    '$notificationGroups = sr_asset_exchange_notification_groups($pdo);',
-    '$postedNotificationCases = $_POST[\'notification_cases\'] ?? [];',
-    '$notificationSettingsByModule',
-    '$moduleSettings[\'notification_cases\'] = $notificationSettingsByModule[$moduleKey];',
-    '\'notification_cases\' => $notificationSettingsByModule',
+    '$notificationGroups = [];',
 ]);
-sr_asset_notification_settings_require_markers('modules/asset_exchange/views/admin-asset-exchange.php', [
-    '$notificationGroups',
-    '$allNotificationCasesEnabled',
-    'data-asset-exchange-notification-bulk-toggle',
-    'data-asset-exchange-notification-case-toggle',
-    'data-asset-exchange-notification-channel',
-    'data-asset-exchange-notification-required-label',
-    '전체활성',
-    '전체비활성',
-    '알림 채널을 하나 이상 선택하세요.',
-]);
+$assetExchangeView = sr_asset_notification_settings_file('modules/asset_exchange/views/admin-asset-exchange.php');
+if (str_contains($assetExchangeView, 'notification_cases[') || str_contains($assetExchangeView, 'data-asset-exchange-notification-')) {
+    sr_asset_notification_settings_error('modules/asset_exchange/views/admin-asset-exchange.php must not edit asset notification cases after owner module template pages own those settings.');
+}
 
 sr_asset_notification_settings_require_markers('docs/module-guide.md', [
-    '포인트, 적립금, 예치금, 쿠폰 모듈은 각 환경설정 화면에서 거래/지급/사용/환불/상태 변경 같은 회원 알림 케이스별 사용 여부와 채널을 저장한다.',
-    '환전 환경설정 화면은 포인트/적립금/예치금이 소유한 `transaction.exchange_out`, `transaction.exchange_in`, `transaction.exchange_fee` 케이스를 함께 편집하며 저장값은 각 자산 모듈의 알림 케이스 설정에 반영한다.',
+    '포인트, 적립금, 예치금, 쿠폰 모듈은 각 알림 템플릿 관리 화면에서 거래/지급/사용/환불/상태 변경 같은 회원 알림 케이스별 제목, 본문, 사용 여부와 채널을 저장한다.',
+    '환전 출금/입금/수수료 알림도 포인트/적립금/예치금 모듈의 알림 템플릿 관리 화면에서 편집한다.',
     '포인트 모듈의 회원 알림 케이스 기본값은 사용 안 함이고, 적립금/예치금/쿠폰 모듈은 기존 동작 보존을 위해 케이스 기본값을 사용으로 둔다.',
 ]);
 sr_asset_notification_settings_require_markers('docs/security-model.md', [
-    '포인트/적립금/예치금/쿠폰 환경설정의 케이스별 알림 채널',
-    '환전 환경설정 화면에서 바꾸는 환전 알림도 각 자산 모듈의 케이스별 채널 설정으로 저장한다.',
+    '포인트/적립금/예치금/쿠폰 알림 템플릿 관리 화면의 케이스별 알림 채널',
+    '환전 알림도 각 자산 모듈의 케이스별 채널 설정으로 저장한다.',
 ]);
 sr_asset_notification_settings_require_markers('docs/core-decisions.md', [
-    '포인트/적립금/예치금/쿠폰 모듈은 자기 환경설정에서 케이스별 회원 알림 사용 여부와 채널을 저장하고',
-    '환전 환경설정 화면은 자산 모듈이 소유한 환전 출금/입금/수수료 알림 케이스를 함께 편집하고 각 자산 모듈 설정에 저장합니다.',
+    '포인트/적립금/예치금/쿠폰 모듈은 자기 알림 템플릿 관리 화면에서 케이스별 회원 알림 제목, 본문, 사용 여부와 채널을 저장하고',
+    '환전 출금/입금/수수료 알림 케이스도 자산 모듈의 알림 템플릿 관리 화면에서 편집합니다.',
     '포인트 회원 알림 케이스의 기본값은 사용 안 함',
 ]);
 

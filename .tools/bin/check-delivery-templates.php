@@ -203,27 +203,18 @@ sr_delivery_template_check_assert(isset($contracts['member.password_reset']), 'd
 sr_delivery_template_check_assert(isset($contracts['member.login_mfa_email_code']), 'delivery template contracts must include member.login_mfa_email_code.');
 sr_delivery_template_check_assert(isset($contracts['policy_documents.version_notice']), 'delivery template contracts must collect installed-but-disabled policy_documents contracts.');
 sr_delivery_template_check_assert(($contracts['policy_documents.version_notice']['module_enabled'] ?? true) === false, 'delivery template contracts must mark disabled installed modules without hiding them.');
-sr_delivery_template_check_assert(isset($contracts['point.transaction.grant']), 'delivery template contracts must expose legacy notification event rows until explicit module contracts replace them.');
-sr_delivery_template_check_assert((string) ($contracts['point.transaction.grant']['link_template'] ?? '') === '/point/history', 'legacy notification event contracts must use link_template schema field.');
-sr_delivery_template_check_assert(in_array('email', (array) ($contracts['point.transaction.grant']['channels'] ?? []), true), 'legacy notification event contracts must read channels_json schema field.');
-sr_delivery_template_check_assert(in_array('slack_webhook', (array) ($contracts['point.transaction.grant']['available_channels'] ?? []), true), 'notification event template options must include current member external channels.');
-sr_delivery_template_check_assert(in_array('discord_webhook', (array) ($contracts['point.transaction.grant']['available_channels'] ?? []), true), 'notification event template options must include Discord as an external channel.');
-sr_delivery_template_check_assert(in_array('telegram_bot', (array) ($contracts['point.transaction.grant']['available_channels'] ?? []), true), 'notification event template options must include Telegram as an external channel.');
+sr_delivery_template_check_assert(!isset($contracts['point.transaction.grant']), 'delivery template contracts must not collect module notification event rows for a central editor.');
 sr_delivery_template_check_assert(sr_delivery_template_variable_label('member_name') === '회원 이름', 'delivery template variable helper text must be operator-readable.');
 sr_delivery_template_check_assert(sr_delivery_template_variable_label('link_url') === '연결 주소', 'delivery template link_url variable helper text must be operator-readable.');
 sr_delivery_template_check_assert(sr_delivery_template_body_template_for_editor("본문\n\n/point/history", '/point/history') === "본문\n\n/point/history", 'admin editor body must not duplicate a link template that is already in the body.');
 sr_delivery_template_check_assert(sr_delivery_template_body_template_for_editor('<code>본문</code>', '/point/history') === "본문\n\n/point/history", 'admin editor body must unwrap a code wrapper and append the link template into editable content.');
-$pointRendered = sr_delivery_template_render($pdo, 'point.transaction.grant', ['amount' => '100']);
-sr_delivery_template_check_assert(str_contains((string) ($pointRendered['body'] ?? ''), '/point/history'), 'notification event render must treat link_template as editable body content.');
 
 $notificationInstallSql = (string) file_get_contents($root . '/modules/notification/install.sql');
 foreach (sr_delivery_template_check_expected_notification_events() as $moduleKey => $eventKeys) {
     foreach ($eventKeys as $eventKey) {
-        $templateKey = $moduleKey . '.' . $eventKey;
-        sr_delivery_template_check_assert(isset($contracts[$templateKey]), 'delivery template list must include notification event template: ' . $templateKey);
         sr_delivery_template_check_assert(
             str_contains($notificationInstallSql, "('" . $moduleKey . "', '" . $eventKey . "'"),
-            'notification install.sql must seed notification event template: ' . $templateKey
+            'notification install.sql must seed notification event template: ' . $moduleKey . '.' . $eventKey
         );
     }
 }

@@ -24,5 +24,10 @@ return [
             'path' => '/admin/deposits/settings',
             'order' => 50,
         ],
+        [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/deposits/notification-templates',
+            'order' => 55,
+        ],
     ],
 ];

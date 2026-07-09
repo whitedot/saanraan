@@ -25,6 +25,8 @@ return [
     'POST /admin/content/series' => 'actions/admin-series.php',
     'GET /admin/content/settings' => 'actions/admin-settings.php',
     'POST /admin/content/settings' => 'actions/admin-settings.php',
+    'GET /admin/content/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/content/notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/content/submissions' => 'actions/admin-content-submissions.php',
     'POST /admin/content/submissions' => 'actions/admin-content-submissions.php',
     'GET /admin/content/author-rewards' => 'actions/admin-content-author-rewards.php',

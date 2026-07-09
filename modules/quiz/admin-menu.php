@@ -25,6 +25,11 @@ return [
             'order' => 30,
         ],
         [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/quiz/notification-templates',
+            'order' => 32,
+        ],
+        [
             'label' => '임베드 캐시',
             'path' => '/admin/quiz/embed-cache',
             'order' => 35,

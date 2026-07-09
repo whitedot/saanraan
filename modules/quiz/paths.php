@@ -15,6 +15,8 @@ return [
     'POST /admin/quiz/comments' => 'actions/admin-comments.php',
     'GET /admin/quiz/settings' => 'actions/admin-settings.php',
     'POST /admin/quiz/settings' => 'actions/admin-settings.php',
+    'GET /admin/quiz/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/quiz/notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/quiz/embed-cache' => 'actions/admin-embed-cache.php',
     'POST /admin/quiz/embed-cache' => 'actions/admin-embed-cache.php',
     'GET /admin/quiz/attempts' => 'actions/admin-attempts.php',

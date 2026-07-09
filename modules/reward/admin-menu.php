@@ -24,5 +24,10 @@ return [
             'path' => '/admin/rewards/settings',
             'order' => 50,
         ],
+        [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/rewards/notification-templates',
+            'order' => 55,
+        ],
     ],
 ];

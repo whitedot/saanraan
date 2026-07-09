@@ -18,8 +18,6 @@ return [
     'POST /admin/updates' => 'actions/updates.php',
     'GET /admin/operations' => 'actions/operations.php',
     'POST /admin/operations' => 'actions/operations.php',
-    'GET /admin/delivery-templates' => 'actions/delivery-templates.php',
-    'POST /admin/delivery-templates' => 'actions/delivery-templates.php',
     'GET /admin/storage-cache' => 'actions/storage-cache.php',
     'POST /admin/storage-cache' => 'actions/storage-cache.php',
     'GET /admin/roles' => 'actions/roles.php',

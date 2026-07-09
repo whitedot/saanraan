@@ -20,6 +20,8 @@ return [
     'GET /admin/surveys/export' => 'actions/admin-export.php',
     'GET /admin/surveys/settings' => 'actions/admin-settings.php',
     'POST /admin/surveys/settings' => 'actions/admin-settings.php',
+    'GET /admin/surveys/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/surveys/notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/surveys/embed-cache' => 'actions/admin-embed-cache.php',
     'POST /admin/surveys/embed-cache' => 'actions/admin-embed-cache.php',
 ];

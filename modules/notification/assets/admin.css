@@ -22,6 +22,23 @@
 .admin-page-notification-delivery-list .admin-notification-delivery-date-cell{white-space:nowrap}
 .admin-page-notification-delivery-list .admin-notification-delivery-table .admin-row-actions{gap:.5rem}
 .admin-page-notification-delivery-list .admin-notification-delivery-table td form{align-items:center;gap:.5rem;display:flex;margin:0}
+.admin-page-notification-event-templates .admin-delivery-template-variable-list,
+.admin-page-notification-event-templates .notification-template-variable-list{width:100%}
+.admin-page-notification-event-templates .admin-delivery-template-variable-list .badge-list-item,
+.admin-page-notification-event-templates .notification-template-variable-list .badge-list-item{max-width:100%}
+.admin-page-notification-event-templates .admin-delivery-template-variable-list,
+.admin-page-notification-event-templates .notification-template-variable-list{margin-top:calc(var(--spacing) * 1.5)}
+.admin-page-notification-event-templates .admin-delivery-template-variable-button,
+.admin-page-notification-event-templates .notification-template-variable-button{cursor:pointer;font:inherit;text-align:left}
+.admin-page-notification-event-templates .admin-delivery-template-variable-button:focus-visible,
+.admin-page-notification-event-templates .notification-template-variable-button:focus-visible{box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 16%,transparent);outline:none}
+@media (hover:hover){.admin-page-notification-event-templates .admin-delivery-template-variable-button:hover,.admin-page-notification-event-templates .notification-template-variable-button:hover{filter:saturate(1.06) brightness(.98)}}
+.admin-page-notification-event-templates .admin-notification-template-bulk-form{margin:0}
+.admin-page-notification-event-templates .admin-notification-template-bulk-form .form-check{margin:0}
+.admin-page-notification-event-templates .admin-notification-template-label-cell{min-width:10rem}
+.admin-page-notification-event-templates .admin-notification-template-title-cell{max-width:34rem;overflow-wrap:anywhere}
+.admin-page-notification-event-templates .admin-notification-template-channel-cell{min-width:10rem}
+.admin-page-notification-event-templates .admin-notification-template-channel-cell .badge-list{gap:.35rem}
 @media (max-width:1023px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .filtering-submit{grid-column:1 / -1}.admin-page-notification-list .admin-notification-filter .filtering-submit{width:100%}}
 @media (max-width:767px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:1fr}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .filtering-submit{grid-column:auto}}
 @media (max-width:767px){.admin-page-notification-list .admin-notification-table :is(th,td):nth-child(2),.admin-page-notification-list .admin-notification-table :is(th,td):nth-child(4){display:none}}

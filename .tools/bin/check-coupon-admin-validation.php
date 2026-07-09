@@ -269,6 +269,7 @@ if (!is_string($coreDecisions)
 
 $settingsAction = file_get_contents($root . '/modules/coupon/actions/admin-coupon-settings.php');
 $settingsView = file_get_contents($root . '/modules/coupon/views/admin-settings.php');
+$notificationTemplatesAction = file_get_contents($root . '/modules/coupon/actions/admin-notification-templates.php');
 $paths = file_get_contents($root . '/modules/coupon/paths.php');
 $adminMenu = file_get_contents($root . '/modules/coupon/admin-menu.php');
 if (!is_string($settingsAction)
@@ -276,39 +277,43 @@ if (!is_string($settingsAction)
     || strpos($settingsAction, "\$permissionPath, 'view'") === false
     || strpos($settingsAction, "\$permissionPath, 'edit'") === false
     || strpos($settingsAction, '대량 발송될 수 있으므로') === false
-    || strpos($settingsAction, '$notificationCases = sr_coupon_notification_cases()') === false
     || strpos($settingsAction, "\$couponZoneLabel = sr_coupon_normalize_zone_label(sr_post_string('coupon_zone_label', 40))") === false
-    || strpos($settingsAction, '$postedCases = $_POST[\'notification_cases\'] ?? []') === false
-    || strpos($settingsAction, '채널을 하나 이상 선택하세요.') === false
+    || strpos($settingsAction, 'sr_coupon_notification_case_settings_from_value($settings[\'notification_cases\'] ?? [])') === false
     || strpos($settingsAction, "'notification_cases' => \$caseSettings") === false
     || strpos($settingsAction, 'sr_coupon_save_settings($pdo, $postedSettings)') === false
     || strpos($settingsAction, "event_type' => 'coupon.settings.updated'") === false
 ) {
-    $errors[] = 'Coupon settings action must validate permissions, save notification case settings, and audit changes.';
+    $errors[] = 'Coupon settings action must validate permissions, preserve notification case settings, and audit changes.';
+}
+if (!is_string($notificationTemplatesAction)
+    || strpos($notificationTemplatesAction, '대량 발송될 수 있으므로') === false
+    || strpos($notificationTemplatesAction, "'module_key' => 'coupon'") === false
+    || strpos($notificationTemplatesAction, "'return_path' => '/admin/coupons/notification-templates'") === false
+) {
+    $errors[] = 'Coupon notification template action must own coupon alert content/channel management and show the bulk email warning.';
 }
 if (!is_string($settingsView)
-    || strpos($settingsView, '$notificationCases') === false
     || strpos($settingsView, 'name="coupon_zone_label"') === false
     || strpos($settingsView, '쿠폰존 명칭') === false
-    || strpos($settingsView, 'notification_cases[') === false
-    || strpos($settingsView, 'form-choice-toggle-input sr-only') === false
-    || strpos($settingsView, 'data-coupon-notification-case') === false
-    || strpos($settingsView, 'data-coupon-notification-channel') === false
-    || strpos($settingsView, 'setCustomValidity') === false
+    || strpos($settingsView, 'notification_cases[') !== false
+    || strpos($settingsView, 'data-coupon-notification-case') !== false
     || strpos($settingsView, 'disabled_reclaim_notification_event_key') !== false
     || strpos($settingsView, 'sr_admin_feedback_toasts($notice, $errors)') === false
 ) {
-    $errors[] = 'Coupon settings view must expose notification cases with checkbox toggle channel selection, browser validation, and toast feedback.';
+    $errors[] = 'Coupon settings view must keep coupon base settings only and leave notification cases to the coupon notification template page.';
 }
 if (!is_string($paths)
     || strpos($paths, "'GET /admin/coupons/settings' => 'actions/admin-coupon-settings.php'") === false
     || strpos($paths, "'POST /admin/coupons/settings' => 'actions/admin-coupon-settings.php'") === false
+    || strpos($paths, "'GET /admin/coupons/notification-templates' => 'actions/admin-notification-templates.php'") === false
+    || strpos($paths, "'POST /admin/coupons/notification-templates' => 'actions/admin-notification-templates.php'") === false
     || !is_string($adminMenu)
     || strpos($adminMenu, "'label' => '쿠폰·이용권'") === false
     || strpos($adminMenu, "'label' => '쿠폰·이용권 관리'") === false
     || strpos($adminMenu, "'path' => '/admin/coupons/settings'") === false
+    || strpos($adminMenu, "'path' => '/admin/coupons/notification-templates'") === false
 ) {
-    $errors[] = 'Coupon settings route and admin menu entry must be registered with the restored coupon/pass module label.';
+    $errors[] = 'Coupon settings and notification template routes/menu entries must be registered with the restored coupon/pass module label.';
 }
 
 $assetAdjustJs = file_get_contents($root . '/modules/admin/assets/asset-adjust.js');

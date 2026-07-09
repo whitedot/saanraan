@@ -1,18 +1,7 @@
 <?php
 
-$notificationCases = isset($notificationCases) && is_array($notificationCases) ? $notificationCases : sr_coupon_notification_cases();
-$notificationCaseSettings = sr_coupon_notification_case_settings_from_value($settings['notification_cases'] ?? []);
-$notificationChannelOptions = isset($notificationChannelOptions) && is_array($notificationChannelOptions) ? $notificationChannelOptions : ['site'];
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 $couponZoneLabel = sr_coupon_normalize_zone_label((string) ($settings['coupon_zone_label'] ?? ''));
-$allNotificationCasesEnabled = $notificationCases !== [];
-foreach ($notificationCases as $notificationCaseKey => $_notificationCase) {
-    $notificationCaseKey = (string) $notificationCaseKey;
-    if (empty($notificationCaseSettings[$notificationCaseKey]['enabled'])) {
-        $allNotificationCasesEnabled = false;
-        break;
-    }
-}
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -39,145 +28,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card admin-coupon-notification-settings">
-        <div class="card-header">
-            <h2 class="card-title">회원 알림</h2>
-            <div class="type-small">
-                <?php echo sr_admin_switch_html('coupon_notification_bulk_toggle', 'coupon_notification_bulk_toggle', '1', $allNotificationCasesEnabled, $allNotificationCasesEnabled ? '전체비활성' : '전체활성', '', ' data-coupon-notification-bulk-toggle'); ?>
-            </div>
-        </div>
-        <p class="form-help">전체 설정 스위치는 아래 알림 항목의 사용 여부를 한 번에 켜거나 끕니다.</p>
-        <?php foreach ($notificationCases as $caseKey => $case): ?>
-            <?php
-            $caseKey = (string) $caseKey;
-            $caseSetting = isset($notificationCaseSettings[$caseKey]) && is_array($notificationCaseSettings[$caseKey]) ? $notificationCaseSettings[$caseKey] : ['enabled' => true, 'channels' => ['site']];
-            $caseEnabled = !empty($caseSetting['enabled']);
-            $caseChannels = sr_coupon_notification_channels_from_value($caseSetting['channels'] ?? ['site']);
-            $caseId = 'coupon_notification_case_' . $caseKey;
-            ?>
-            <div class="form-row admin-coupon-notification-case" data-coupon-notification-case="<?php echo sr_e($caseKey); ?>">
-                <label class="form-label" for="<?php echo sr_e($caseId); ?>"><?php echo sr_e((string) ($case['label'] ?? '알림') . ' 사용 여부'); ?></label>
-                <div class="form-field">
-                    <?php echo sr_admin_switch_html($caseId, 'notification_cases[' . $caseKey . '][enabled]', '1', $caseEnabled, '사용', '0', ' data-coupon-notification-case-toggle data-coupon-notification-case-key="' . sr_e($caseKey) . '"'); ?>
-                    <p class="form-help"><?php echo sr_e((string) ($case['description'] ?? '')); ?></p>
-                </div>
-            </div>
-            <div class="form-row admin-coupon-notification-case-channel-row" data-coupon-notification-case="<?php echo sr_e($caseKey); ?>">
-                <label class="form-label"><?php echo sr_e((string) ($case['label'] ?? '알림') . ' 채널'); ?> <span class="sr-required-label" data-coupon-notification-required-label data-coupon-notification-case-key="<?php echo sr_e($caseKey); ?>">(필수)</span></label>
-                <div class="form-field">
-                    <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group" aria-label="<?php echo sr_e((string) ($case['label'] ?? '알림') . ' 채널'); ?>" data-coupon-notification-channels>
-                        <?php foreach ($notificationChannelOptions as $channelIndex => $channel): ?>
-                            <?php
-                            $channel = (string) $channel;
-                            $channelInputId = $caseId . '_channel_' . (string) $channelIndex;
-                            $groupClass = $channelIndex === 0 ? 'btn-group-start' : ($channelIndex === count($notificationChannelOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                            ?>
-                            <span class="filtering-toggle-item">
-                                <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="notification_cases[<?php echo sr_e($caseKey); ?>][channels][]" value="<?php echo sr_e($channel); ?>" class="form-choice-toggle-input sr-only" data-coupon-notification-channel data-coupon-notification-case-key="<?php echo sr_e($caseKey); ?>"<?php echo in_array($channel, $caseChannels, true) ? ' checked' : ''; ?>>
-                                <label for="<?php echo sr_e($channelInputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>"><?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?></label>
-                            </span>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </section>
-
     <div class="form-sticky-actions form-actions form-actions-primary">
         <button type="submit" class="btn btn-solid-primary">저장</button>
     </div>
 </form>
-
-<script>
-(function () {
-    var form = document.querySelector('form[action="<?php echo sr_e(sr_url('/admin/coupons/settings')); ?>"]');
-    if (!form) {
-        return;
-    }
-    var bulkToggle = form.querySelector('[data-coupon-notification-bulk-toggle]');
-    var caseKeys = [];
-    Array.prototype.slice.call(form.querySelectorAll('[data-coupon-notification-case-key]')).forEach(function (control) {
-        var caseKey = control.getAttribute('data-coupon-notification-case-key') || '';
-        if (caseKey && caseKeys.indexOf(caseKey) === -1) {
-            caseKeys.push(caseKey);
-        }
-    });
-    function syncCase(caseKey) {
-        var toggle = form.querySelector('[data-coupon-notification-case-toggle][data-coupon-notification-case-key="' + caseKey + '"]');
-        var channels = Array.prototype.slice.call(form.querySelectorAll('[data-coupon-notification-channel][data-coupon-notification-case-key="' + caseKey + '"]'));
-        var enabled = !toggle || toggle.checked;
-        var selected = channels.some(function (channel) {
-            return channel.checked;
-        });
-        channels.forEach(function (channel) {
-            channel.disabled = !enabled;
-        });
-        Array.prototype.slice.call(form.querySelectorAll('[data-coupon-notification-required-label][data-coupon-notification-case-key="' + caseKey + '"]')).forEach(function (label) {
-            label.hidden = !enabled;
-        });
-        if (channels[0] && typeof channels[0].setCustomValidity === 'function') {
-            channels[0].setCustomValidity(!enabled || selected ? '' : '알림 채널을 하나 이상 선택하세요.');
-        }
-    }
-    function setBulkLabel(text) {
-        var label = bulkToggle && bulkToggle.closest ? bulkToggle.closest('label') : null;
-        if (!label) {
-            return;
-        }
-        for (var index = label.childNodes.length - 1; index >= 0; index -= 1) {
-            if (label.childNodes[index].nodeType === 3 && label.childNodes[index].nodeValue.trim() !== '') {
-                label.childNodes[index].nodeValue = text;
-                return;
-            }
-        }
-        label.appendChild(document.createTextNode(text));
-    }
-    function syncBulkToggle() {
-        if (!bulkToggle) {
-            return;
-        }
-        var toggles = Array.prototype.slice.call(form.querySelectorAll('[data-coupon-notification-case-toggle]'));
-        var allEnabled = toggles.length > 0 && toggles.every(function (toggle) {
-            return toggle.checked;
-        });
-        bulkToggle.checked = allEnabled;
-        setBulkLabel(allEnabled ? '전체비활성' : '전체활성');
-    }
-    if (bulkToggle) {
-        bulkToggle.addEventListener('change', function () {
-            Array.prototype.slice.call(form.querySelectorAll('[data-coupon-notification-case-toggle]')).forEach(function (toggle) {
-                toggle.checked = bulkToggle.checked;
-            });
-            caseKeys.forEach(syncCase);
-            syncBulkToggle();
-        });
-    }
-    caseKeys.forEach(function (caseKey) {
-        Array.prototype.slice.call(form.querySelectorAll('[data-coupon-notification-case-key="' + caseKey + '"]')).forEach(function (control) {
-            control.addEventListener('change', function () {
-                syncCase(caseKey);
-                syncBulkToggle();
-            });
-        });
-        syncCase(caseKey);
-    });
-    syncBulkToggle();
-    form.addEventListener('submit', function (event) {
-        var invalidChannel = null;
-        caseKeys.forEach(function (caseKey) {
-            syncCase(caseKey);
-            if (!invalidChannel) {
-                invalidChannel = Array.prototype.slice.call(form.querySelectorAll('[data-coupon-notification-channel][data-coupon-notification-case-key="' + caseKey + '"]')).find(function (channel) {
-                    return !channel.validity.valid;
-                }) || null;
-            }
-        });
-        if (invalidChannel) {
-            event.preventDefault();
-            invalidChannel.reportValidity();
-        }
-    });
-}());
-</script>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

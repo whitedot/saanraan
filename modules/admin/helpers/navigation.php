@@ -148,7 +148,6 @@ function sr_admin_builtin_menu_groups(PDO $pdo): array
                 ['label' => sr_t('admin::nav.modules'), 'path' => '/admin/modules', 'order' => 30],
                 ['label' => sr_t('admin::nav.updates'), 'path' => '/admin/updates', 'order' => 50],
                 ['label' => '운영 지연/실패 점검', 'path' => '/admin/operations', 'order' => 60],
-                ['label' => '발송 템플릿', 'path' => '/admin/delivery-templates', 'order' => 70],
                 ['label' => '썸네일 파일 캐시', 'path' => '/admin/storage-cache', 'order' => 80],
                 ['label' => sr_t('admin::nav.retention'), 'path' => '/admin/retention', 'order' => 90],
                 ['label' => sr_t('admin::nav.menu'), 'path' => '/admin/menu', 'order' => 100],

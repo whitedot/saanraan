@@ -60,6 +60,11 @@ return [
             'order' => 31,
         ],
         [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/content/notification-templates',
+            'order' => 31.5,
+        ],
+        [
             'label' => '임베드 캐시',
             'path' => '/admin/content/embed-cache',
             'order' => 32,

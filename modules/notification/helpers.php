@@ -768,22 +768,6 @@ function sr_notification_event_template(PDO $pdo, string $moduleKey, string $eve
         return null;
     }
 
-    $templateKey = sr_delivery_template_key($moduleKey . '.' . $eventKey);
-    if ($templateKey !== '') {
-        $effective = sr_delivery_template_effective($pdo, $templateKey);
-        if (is_array($effective) && (string) ($effective['category'] ?? '') === 'notification_event') {
-            return [
-                'module_key' => $moduleKey,
-                'event_key' => $eventKey,
-                'title_template' => (string) ($effective['subject_template'] ?? ''),
-                'body_template' => (string) ($effective['body_template'] ?? ''),
-                'link_template' => (string) ($effective['link_template'] ?? ''),
-                'channels_json' => json_encode(array_values((array) ($effective['channels'] ?? ['site'])), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                'status' => (string) ($effective['status'] ?? 'active'),
-            ];
-        }
-    }
-
     try {
         $stmt = $pdo->prepare(
             "SELECT module_key, event_key, title_template, body_template, link_template, channels_json, status

@@ -7,6 +7,8 @@ return [
     'POST /admin/rewards' => 'actions/admin-rewards.php',
     'GET /admin/rewards/settings' => 'actions/admin-rewards-settings.php',
     'POST /admin/rewards/settings' => 'actions/admin-rewards-settings.php',
+    'GET /admin/rewards/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/rewards/notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/rewards/adjust' => 'actions/admin-rewards-adjust.php',
     'POST /admin/rewards/adjust' => 'actions/admin-rewards-adjust.php',
     'GET /admin/rewards/balances' => 'actions/admin-rewards-balances.php',

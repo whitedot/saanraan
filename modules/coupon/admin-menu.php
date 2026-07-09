@@ -30,6 +30,11 @@ return [
             'order' => 50,
         ],
         [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/coupons/notification-templates',
+            'order' => 52,
+        ],
+        [
             'label' => '임베드 캐시',
             'path' => '/admin/coupons/embed-cache',
             'order' => 55,

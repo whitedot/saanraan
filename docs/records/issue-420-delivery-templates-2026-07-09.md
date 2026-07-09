@@ -1,12 +1,13 @@
 # Issue #420 Delivery Template Decisions
 
-이 기록은 발송 템플릿 중앙 편집 기능의 구현 기준이다.
+이 기록은 발송 템플릿과 회원 알림 이벤트 템플릿 관리 기능의 구현 기준이다.
 
 ## 결정
 
 - 기본 문구의 canonical 소유자는 각 모듈의 `delivery-templates.php` 계약이다. 새 transactional email 기본값은 SQL seed에 두지 않는다.
 - 관리자 override는 코어 테이블 `sr_delivery_template_overrides`의 명시 row로 저장한다. 기본값 복원은 row 삭제다.
-- 기존 알림 이벤트 DB 템플릿은 호환 계약으로 계속 읽되, 새 중앙 화면은 `link_template`과 `channels_json` 실제 스키마명을 기준으로 비교하고 표시한다.
+- 회원 알림 이벤트 템플릿은 중앙 편집 화면이 아니라 해당 이벤트를 만드는 모듈의 알림 템플릿 관리 화면에서 관리한다. 제목/본문은 `sr_notification_event_templates`에 저장하고, 포인트/적립금/예치금/쿠폰처럼 기존 케이스별 사용 여부와 채널 설정을 가진 모듈은 같은 화면에서 모듈 설정도 함께 저장한다.
+- 환전 출금/입금/수수료 알림은 환전 모듈이 아니라 포인트/적립금/예치금 모듈의 알림 템플릿 관리 화면에서 관리한다.
 - `member.email_verification`은 가입, 재발송, 로그인 유발 재발송, OAuth 가입 완료에서 공유하는 단일 key다.
 - 정책 문서 변경 안내는 1차 범위에서 subject만 계약으로 이동하고 body builder는 유지한다.
 - transactional email은 override가 없거나, 필수 placeholder가 없거나, 렌더 결과 subject/body 필수 위치가 비거나, 렌더 중 오류가 나면 계약 default로 fallback한다.

@@ -29,32 +29,7 @@ if (sr_request_method() === 'POST') {
             'unit_label' => sr_point_clean_text(sr_post_string('unit_label', 40), 20),
             'default_expiration_days' => $defaultExpirationDaysInput,
         ];
-        $postedCases = $_POST['notification_cases'] ?? [];
-        $postedCases = is_array($postedCases) ? $postedCases : [];
-        $allowedChannels = array_fill_keys($notificationChannelOptions, true);
-        $caseSettings = [];
-        foreach ($notificationCases as $caseKey => $case) {
-            $caseKey = (string) $caseKey;
-            $casePost = isset($postedCases[$caseKey]) && is_array($postedCases[$caseKey]) ? $postedCases[$caseKey] : [];
-            $postedChannels = $casePost['channels'] ?? [];
-            $postedChannels = is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [];
-            $channels = [];
-            foreach ($postedChannels as $channel) {
-                if (isset($allowedChannels[$channel])) {
-                    $channels[$channel] = $channel;
-                }
-            }
-
-            $caseSettings[$caseKey] = [
-                'event_key' => (string) ($case['event_key'] ?? ''),
-                'enabled' => sr_truthy($casePost['enabled'] ?? false),
-                'channels' => array_values($channels),
-            ];
-            if (!empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
-                $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
-            }
-        }
-        $postedSettings['notification_cases'] = $caseSettings;
+        $postedSettings['notification_cases'] = sr_point_notification_case_settings_from_value($settings['notification_cases'] ?? []);
         $postedSettings['default_expiration_days'] = (string) sr_point_normalize_expiration_days($postedSettings['default_expiration_days']);
         $settings = array_merge($settings, $postedSettings);
 

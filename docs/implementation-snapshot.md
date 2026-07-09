@@ -73,7 +73,7 @@
 | 회원 자산 | `/account/points`, `/account/rewards`, `/account/deposits`, `/account/asset-exchange`, `/account/coupons`, `/coupons` |
 | 회원 자산 관리자 | `/admin/points`, `/admin/rewards`, `/admin/rewards/settings`, `/admin/deposits`, `/admin/deposits/settings`, `/admin/asset-exchange`, `/admin/asset-exchange/logs`, `/admin/coupons`, `/admin/coupons/issues`, `/admin/coupons/redemptions`, `/admin/coupons/campaigns`, `/admin/coupons/campaigns/logs`, `/admin/coupons/settings`, `/admin/coupons/embed-cache` |
 | 사이트 운영 | `/admin/site-menus`, `/admin/logo-manager`, `/admin/banners`, `/admin/popup-layers`, `/admin/seo`, `/robots.txt`, `/sitemap.xml` |
-| 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/admin/delivery-templates`, `/account/privacy-requests` 안내, `/admin/privacy-requests` |
+| 알림/개인정보 | `/account/notifications`, `/admin/admin-notifications`, `/admin/notifications`, `/admin/notification-deliveries`, `/admin/notifications/templates`, 각 발송 모듈의 알림 템플릿 관리 화면, `/account/privacy-requests` 안내, `/admin/privacy-requests` |
 | PWA | `/manifest.webmanifest`, `/service-worker.js` |
 
 ## 주요 DB 테이블

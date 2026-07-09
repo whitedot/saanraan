@@ -7,6 +7,8 @@ return [
     'POST /admin/deposits' => 'actions/admin-deposits.php',
     'GET /admin/deposits/settings' => 'actions/admin-deposits-settings.php',
     'POST /admin/deposits/settings' => 'actions/admin-deposits-settings.php',
+    'GET /admin/deposits/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/deposits/notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/deposits/adjust' => 'actions/admin-deposits-adjust.php',
     'POST /admin/deposits/adjust' => 'actions/admin-deposits-adjust.php',
     'GET /admin/deposits/balances' => 'actions/admin-deposits-balances.php',

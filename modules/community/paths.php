@@ -33,6 +33,8 @@ return [
     'POST /community/skin-action' => 'actions/skin-action.php',
     'GET /admin/community/settings' => 'actions/admin-settings.php',
     'POST /admin/community/settings' => 'actions/admin-settings.php',
+    'GET /admin/community/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/community/notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/community/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
     'POST /admin/community/asset-policy-sets' => 'actions/admin-asset-policy-sets.php',
     'GET /admin/community/publisher-rewards' => 'actions/admin-publisher-rewards.php',

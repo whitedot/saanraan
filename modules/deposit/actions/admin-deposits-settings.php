@@ -41,31 +41,7 @@ if (sr_request_method() === 'POST') {
     }
     $postedGroupKeys = $_POST['refund_allowed_group_keys'] ?? [];
     $allowedGroupKeys = sr_deposit_normalize_group_keys(is_array($postedGroupKeys) ? $postedGroupKeys : []);
-    $postedCases = $_POST['notification_cases'] ?? [];
-    $postedCases = is_array($postedCases) ? $postedCases : [];
-    $allowedChannels = array_fill_keys($notificationChannelOptions, true);
-    $caseSettings = [];
-    foreach ($notificationCases as $caseKey => $case) {
-        $caseKey = (string) $caseKey;
-        $casePost = isset($postedCases[$caseKey]) && is_array($postedCases[$caseKey]) ? $postedCases[$caseKey] : [];
-        $postedChannels = $casePost['channels'] ?? [];
-        $postedChannels = is_array($postedChannels) ? array_values(array_filter($postedChannels, 'is_string')) : [];
-        $channels = [];
-        foreach ($postedChannels as $channel) {
-            if (isset($allowedChannels[$channel])) {
-                $channels[$channel] = $channel;
-            }
-        }
-
-        $caseSettings[$caseKey] = [
-            'event_key' => (string) ($case['event_key'] ?? ''),
-            'enabled' => sr_truthy($casePost['enabled'] ?? false),
-            'channels' => array_values($channels),
-        ];
-        if (!empty($caseSettings[$caseKey]['enabled']) && $caseSettings[$caseKey]['channels'] === []) {
-            $errors[] = (string) ($case['label'] ?? '알림') . ' 채널을 하나 이상 선택하세요.';
-        }
-    }
+    $caseSettings = sr_deposit_notification_case_settings_from_value($settings['notification_cases'] ?? []);
     if ($displayName === '') {
         $errors[] = '예치금 표시명을 입력하세요.';
     }

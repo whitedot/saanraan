@@ -191,11 +191,6 @@ function sr_delivery_template_contracts(PDO $pdo): array
             }
         }
     }
-    foreach (sr_delivery_template_legacy_notification_contracts($pdo) as $templateKey => $contract) {
-        if (!isset($contracts[$templateKey])) {
-            $contracts[$templateKey] = $contract;
-        }
-    }
     ksort($contracts);
     return $contracts;
 }

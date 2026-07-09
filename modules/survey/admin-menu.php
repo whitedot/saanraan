@@ -35,6 +35,11 @@ return [
             'order' => 40,
         ],
         [
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/surveys/notification-templates',
+            'order' => 42,
+        ],
+        [
             'label' => '임베드 캐시',
             'path' => '/admin/surveys/embed-cache',
             'order' => 45,

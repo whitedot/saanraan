@@ -25,9 +25,9 @@ return [
             'order' => 30,
         ],
         [
-            'label' => '발송 템플릿',
-            'path' => '/admin/delivery-templates',
-            'order' => 40,
+            'label' => '알림 템플릿 관리',
+            'path' => '/admin/notifications/templates',
+            'order' => 35,
         ],
     ],
 ];
