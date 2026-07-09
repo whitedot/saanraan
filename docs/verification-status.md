@@ -18,13 +18,13 @@ README와 특장점 문서에서 기능을 나열할 때는 가능하면 이 등
 
 ## 기본 게이트
 
-코드 변경 후 최소 게이트:
+영향 범위가 넓은 코드 변경 후 통합 게이트:
 
 ```sh
 php .tools/bin/check.php
 ```
 
-이 게이트는 PHP 문법, SQL 파일, 모듈 계약, 관리자 route, 보안/정합성 정적 기준을 확인한다. 통과는 운영 검증의 시작점이지 전체 보증이 아니다.
+작은 표시명-only 변경은 `git diff --check`, 변경 PHP 파일의 `php -l`, 관련 전용 fixture/check로 검증할 수 있다. `php .tools/bin/check.php`는 공유 helper, 라우팅, 보안/권한, DB/schema, 설치/업데이트, cross-module contract, 공통 UI shell처럼 영향 범위가 넓거나 릴리스 판단이 필요한 변경에서 실행한다. 이 게이트는 PHP 문법, SQL 파일, 모듈 계약, 관리자 route, 보안/정합성 정적 기준을 확인한다. 통과는 운영 검증의 시작점이지 전체 보증이 아니다.
 
 릴리스 후보 게이트:
 

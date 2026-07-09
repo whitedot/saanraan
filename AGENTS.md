@@ -99,10 +99,12 @@
 
 ## 검증과 스모크 테스트
 
-- 코드 변경 후 완료를 보고하기 전에 관련 자동 검사를 실행합니다. PHP를 사용할 수 있고 문서 전용 변경이 아니라면 최소한 `php .tools/bin/check.php`를 실행합니다.
+- 코드 변경 후 완료를 보고하기 전에 변경 범위에 맞는 관련 자동 검사를 실행합니다. 기본 검증은 `git diff --check`, 변경한 PHP 파일의 `php -l`, 그리고 가장 가까운 전용 fixture/check로 합니다.
+- `php .tools/bin/check.php`는 공유 helper, 라우팅, 보안/권한, DB/schema, 설치/업데이트, cross-module contract, 공통 UI shell처럼 영향 범위가 넓은 변경이나 릴리스 판단이 필요한 변경에서 실행합니다.
+- 문구, 번역, 관리자 메뉴 라벨, 아이콘 메타데이터처럼 request flow, route, schema, public contract, asset serving에 영향이 없는 표시명-only 변경은 관련 navigation/runtime fixture와 문법 검사로 충분하면 `php .tools/bin/check.php`를 생략할 수 있습니다.
 - 문서 전용 변경은 최소한 `git diff --check`를 실행하고, 렌더링될 Markdown 구조 또는 diff에서 깨진 heading, list, link, 실수로 노출된 credential이 없는지 확인합니다.
 - 로컬 커밋이나 코드 변경이 포함된 working tree를 검토할 때는 자동 검사와 smoke-test 상태를 포함합니다. 검사나 smoke test를 건너뛰었다면 구체적인 이유를 적습니다.
-- 로컬 또는 staging base URL이 있거나, 비밀값/프로덕션 데이터 없이 로컬 PHP built-in server를 안전하게 시작할 수 있으면 HTTP smoke test를 기본 후속 검증으로 취급합니다. 사용 가능한 포트로 `php -S 127.0.0.1:<port> -t .tools/public .tools/bin/dev-router.php`를 실행한 뒤 `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> php .tools/bin/smoke-http.php`를 실행합니다.
+- HTTP smoke test는 라우팅, public/admin entry, asset serving, 접근 보호, auth guard, layout shell, 보안 헤더처럼 실제 HTTP 요청 흐름에 영향이 있을 때 기본 후속 검증으로 취급합니다. 필요한 경우 사용 가능한 포트로 `php -S 127.0.0.1:<port> -t .tools/public .tools/bin/dev-router.php`를 실행한 뒤 `SR_SMOKE_BASE_URL=http://127.0.0.1:<port> php .tools/bin/smoke-http.php`를 실행합니다.
 - 대상 환경에 community 모듈이 설치되어 있어야 한다면 HTTP smoke test에 `SR_SMOKE_EXPECT_COMMUNITY=1`을 사용합니다.
 - `php .tools/bin/smoke-community-auth.php` 같은 인증 smoke test는 로컬 또는 staging 데이터베이스에서만 실행하고, 명시적인 smoke-test credential이 있을 때만 실행합니다. 이 테스트는 데이터를 생성하고 수정하므로 production에서 실행하지 않습니다.
 - 이 파일에 실제, 공유, release-sensitive credential을 저장하지 않습니다. 임시 인증 smoke-test credential은 커밋된 agent 지침 밖의 local 또는 staging 전용 노트에 둡니다.

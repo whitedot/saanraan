@@ -43,17 +43,21 @@
 
 ## 검증 명령
 
-PHP 코드 변경 후 최소 다음 명령을 실행한다.
+코드 변경 후에는 변경 범위에 맞는 자동 검사를 실행한다. 기본 검증은 `git diff --check`, 변경한 PHP 파일의 `php -l`, 그리고 가장 가까운 전용 fixture/check다. 예를 들어 관리자 메뉴 계약만 바꿨다면 `php .tools/bin/check-admin-navigation-runtime.php`처럼 해당 영역의 runtime fixture를 우선 실행한다.
+
+공유 helper, 라우팅, 보안/권한, DB/schema, 설치/업데이트, cross-module contract, 공통 UI shell처럼 영향 범위가 넓은 변경이나 릴리스 판단이 필요한 변경은 통합 게이트를 실행한다.
 
 ```bash
 php .tools/bin/check.php
 ```
 
+문구, 번역, 관리자 메뉴 라벨, 아이콘 메타데이터처럼 request flow, route, schema, public contract, asset serving에 영향이 없는 표시명-only 변경은 관련 fixture와 문법 검사로 충분하면 통합 게이트를 생략할 수 있다. 이 경우 완료 보고에 생략 이유를 남긴다.
+
 문서를 추가하거나 링크를 바꾼 경우 통합 점검 안의 `.tools/bin/check-doc-links.php`가 로컬 Markdown 링크 대상 파일 존재 여부와 문서에 적힌 `.tools/bin/*.php` 명령의 실제 파일 존재 여부를 확인한다. 외부 URL의 생존 여부를 보증하지는 않지만, 저장소 안 문서 이동과 삭제로 생기는 링크 부패와 오래된 로컬 점검 명령은 이 단계에서 잡아야 한다.
 
 새 `check-*.php` 검증 도구를 추가할 때는 `.tools/bin/check.php` 통합 게이트에 연결한다. 오래 걸리는 deep QA처럼 의도적으로 독립 실행해야 하는 도구만 `.tools/bin/check-tool-gate-coverage.php`의 standalone 목록에 이유를 두고 남기며, 이 점검은 새 도구가 통합 게이트에서 빠지는 상태를 실패로 처리한다. 새 `smoke-*.php` 실행 도구를 추가할 때는 실행 조건과 위험을 해당 GitHub 이슈나 마일스톤 체크리스트에 기록한다.
 
-HTTP 요청 흐름, 설치 화면, 공개/관리자 route, 보호 파일 노출에 영향이 있으면 로컬 서버와 HTTP smoke를 함께 실행한다.
+HTTP 요청 흐름, 설치 화면, 공개/관리자 route, asset serving, auth guard, layout shell, 보안 헤더, 보호 파일 노출에 영향이 있으면 로컬 서버와 HTTP smoke를 함께 실행한다.
 
 ```bash
 php -S 127.0.0.1:8097 -t .tools/public .tools/bin/dev-router.php
