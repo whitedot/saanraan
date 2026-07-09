@@ -25,9 +25,14 @@ return [
             'order' => 30,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '알림 모듈 알림/메일 관리',
             'path' => '/admin/notifications/templates',
             'order' => 35,
+        ],
+        [
+            'label' => '발송 템플릿 관리',
+            'path' => '/admin/delivery-templates',
+            'order' => 36,
         ],
     ],
 ];

@@ -102,6 +102,9 @@ sr_admin_navigation_runtime_assert(isset($allItems['/admin/banners/settings']), 
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/storage-cache']), 'Admin navigation runtime fixture must include storage cache menu item with GET route.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/notifications']), 'Admin navigation runtime fixture must include notification menu item with GET route.');
 sr_admin_navigation_runtime_assert(isset($allItems['/admin/notification-deliveries']), 'Admin navigation runtime fixture must include notification deliveries menu item with GET route.');
+sr_admin_navigation_runtime_assert(isset($allItems['/admin/member-notification-templates']), 'Admin navigation runtime fixture must include member notification/mail menu when notification module is enabled.');
+sr_admin_navigation_runtime_assert(isset($allItems['/admin/message/notification-templates']), 'Admin navigation runtime fixture must include message notification/mail menu when notification module is enabled.');
+sr_admin_navigation_runtime_assert(isset($allItems['/admin/community/notification-templates']), 'Admin navigation runtime fixture must include community notification/mail menu when notification module is enabled.');
 sr_admin_navigation_runtime_assert(!isset($allItems['/admin/notifications/new']), 'Admin navigation runtime fixture must not expose non-menu GET routes.');
 foreach ($allItems as $path => $item) {
     if (preg_match('/\A\/admin(?:\/[a-z0-9][a-z0-9_-]*)*\z/', $path) !== 1) {
@@ -194,6 +197,21 @@ sr_admin_navigation_runtime_assert(
     ($notificationMenuPaths[0] ?? '') === '/admin/notifications/settings',
     'Admin navigation runtime fixture must place notification settings first in the notification submenu.'
 );
+
+$pdoWithoutNotification = sr_admin_navigation_runtime_pdo();
+$pdoWithoutNotification->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'notification'");
+$groupsWithoutNotification = sr_admin_navigation_groups($pdoWithoutNotification);
+$itemsWithoutNotification = [];
+foreach ($groupsWithoutNotification as $group) {
+    foreach ((array) ($group['items'] ?? []) as $item) {
+        if (is_array($item)) {
+            $itemsWithoutNotification[(string) ($item['path'] ?? '')] = $item;
+        }
+    }
+}
+sr_admin_navigation_runtime_assert(!isset($itemsWithoutNotification['/admin/member-notification-templates']), 'Admin navigation must hide member notification/mail menu when notification module is disabled.');
+sr_admin_navigation_runtime_assert(!isset($itemsWithoutNotification['/admin/message/notification-templates']), 'Admin navigation must hide message notification/mail menu when notification module is disabled.');
+sr_admin_navigation_runtime_assert(!isset($itemsWithoutNotification['/admin/community/notification-templates']), 'Admin navigation must hide community notification/mail menu when notification module is disabled.');
 
 sr_admin_navigation_runtime_assert(sr_admin_first_permitted_menu_path($pdo, 2) === '/admin/seo', 'Admin navigation runtime fixture must return first permitted module menu for limited admin.');
 sr_admin_navigation_runtime_assert(sr_admin_first_permitted_menu_path($pdo, 3) === '/admin/operations', 'Admin navigation runtime fixture must return first permitted built-in menu for limited admin.');

@@ -9,5 +9,11 @@ return [
             'path' => '/admin/message/settings',
             'order' => 10,
         ],
+        [
+            'label' => '쪽지 알림/메일 관리',
+            'path' => '/admin/message/notification-templates',
+            'requires_modules' => ['notification'],
+            'order' => 20,
+        ],
     ],
 ];

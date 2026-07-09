@@ -35,9 +35,15 @@
 @media (hover:hover){.admin-page-notification-event-templates .admin-delivery-template-variable-button:hover,.admin-page-notification-event-templates .notification-template-variable-button:hover{filter:saturate(1.06) brightness(.98)}}
 .admin-page-notification-event-templates .admin-notification-template-bulk-form{margin:0}
 .admin-page-notification-event-templates .admin-notification-template-bulk-form .form-check{margin:0}
+.admin-page-notification-event-templates .admin-notification-template-table{table-layout:auto}
+.admin-page-notification-event-templates .admin-notification-template-status-cell,
+.admin-page-notification-event-templates .admin-notification-template-table .admin-table-actions-cell{width:1%;white-space:nowrap}
+.admin-page-notification-event-templates .admin-notification-template-table .admin-table-actions-cell{min-width:0;text-align:center}
+.admin-page-notification-event-templates .admin-notification-template-table .admin-row-actions{justify-content:center}
 .admin-page-notification-event-templates .admin-notification-template-label-cell{min-width:10rem}
-.admin-page-notification-event-templates .admin-notification-template-title-cell{max-width:34rem;overflow-wrap:anywhere}
-.admin-page-notification-event-templates .admin-notification-template-channel-cell{min-width:10rem}
+.admin-page-notification-event-templates .admin-notification-template-title-cell{min-width:16rem;overflow-wrap:anywhere;width:auto}
+.admin-page-notification-event-templates td.admin-notification-template-title-cell{white-space:normal}
+.admin-page-notification-event-templates .admin-notification-template-channel-cell{min-width:20rem;white-space:normal;width:34%}
 .admin-page-notification-event-templates .admin-notification-template-channel-cell .badge-list{gap:.35rem}
 @media (max-width:1023px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .filtering-submit{grid-column:1 / -1}.admin-page-notification-list .admin-notification-filter .filtering-submit{width:100%}}
 @media (max-width:767px){.admin-page-notification-list .admin-notification-search-grid{grid-template-columns:1fr}.admin-page-notification-list .admin-notification-filter-keyword,.admin-page-notification-list .admin-notification-filter .filtering-submit{grid-column:auto}}

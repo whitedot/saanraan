@@ -9,6 +9,8 @@ return [
     'POST /admin/notifications/settings' => 'actions/admin-notification-settings.php',
     'GET /admin/notifications/templates' => 'actions/admin-event-templates.php',
     'POST /admin/notifications/templates' => 'actions/admin-event-templates.php',
+    'GET /admin/delivery-templates' => 'actions/admin-delivery-templates.php',
+    'POST /admin/delivery-templates' => 'actions/admin-delivery-templates.php',
     'GET /admin/notifications/new' => 'actions/admin-notification-new.php',
     'POST /admin/notifications/create' => 'actions/admin-notification-create.php',
     'POST /admin/notifications/delete' => 'actions/admin-notification-delete.php',

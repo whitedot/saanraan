@@ -130,10 +130,13 @@ $pdo->exec("CREATE TABLE sr_member_group_membership_logs (id INTEGER PRIMARY KEY
 $pdo->exec("CREATE TABLE sr_message_member_settings (account_id INTEGER PRIMARY KEY, receive_enabled INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)");
 $pdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, version TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'enabled')");
 $pdo->exec("CREATE TABLE sr_module_settings (module_id INTEGER NOT NULL, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL DEFAULT '', value_type TEXT NOT NULL DEFAULT 'string', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(module_id, setting_key))");
+$pdo->exec("CREATE TABLE sr_notification_event_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, event_key TEXT NOT NULL, title_template TEXT NOT NULL, body_template TEXT NULL, link_template TEXT NOT NULL DEFAULT '', channels_json TEXT NULL, status TEXT NOT NULL DEFAULT 'active', created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(module_key, event_key))");
 
 $now = sr_now();
 $pdo->prepare('INSERT INTO sr_modules (id, module_key, version, status) VALUES (:id, :module_key, :version, :status)')
     ->execute(['id' => 1, 'module_key' => 'message', 'version' => 'fixture', 'status' => 'enabled']);
+$pdo->prepare('INSERT INTO sr_modules (id, module_key, version, status) VALUES (:id, :module_key, :version, :status)')
+    ->execute(['id' => 2, 'module_key' => 'notification', 'version' => 'fixture', 'status' => 'enabled']);
 $pdo->prepare('INSERT INTO sr_admin_account_roles (account_id, role_key, created_at) VALUES (:account_id, :role_key, :created_at)')
     ->execute(['account_id' => 1, 'role_key' => 'owner', 'created_at' => $now]);
 $pdo->prepare('INSERT INTO sr_admin_account_permissions (account_id, menu_path, action_key, created_at) VALUES (:account_id, :menu_path, :action_key, :created_at)')
@@ -504,6 +507,43 @@ sr_message_policy_assert(
         && (string) ($metadata['source'] ?? '') === 'default'
         && $receiveEnabled === 1,
     'Message registration save must ignore posted receive values while the message feature is disabled.'
+);
+
+sr_message_save_settings($pdo, [
+    'message_enabled' => true,
+    'send_policy' => 'all',
+    'receive_policy' => 'all',
+    'send_group_keys' => [],
+    'receive_group_keys' => [],
+    'member_receive_opt_enabled' => true,
+    'default_member_receive_enabled' => true,
+    'message_create_window_seconds' => 300,
+    'message_create_limit' => 20,
+    'notification_cases' => [
+        'message_received' => [
+            'event_key' => 'message.received',
+            'enabled' => false,
+            'channels' => ['site', 'telegram_bot', 'invalid'],
+        ],
+    ],
+]);
+$savedSettings = sr_message_settings($pdo);
+$messageNotificationSetting = sr_message_notification_setting_for_event($savedSettings, 'message.received');
+sr_message_policy_assert(
+    is_array($messageNotificationSetting)
+        && empty($messageNotificationSetting['enabled'])
+        && (array) ($messageNotificationSetting['channels'] ?? []) === ['site', 'telegram_bot'],
+    'Message settings must persist normalized notification case status and channels.'
+);
+
+sr_message_ensure_notification_templates($pdo);
+$template = $pdo->query("SELECT module_key, event_key, title_template, body_template, link_template, channels_json, status FROM sr_notification_event_templates WHERE module_key = 'message' AND event_key = 'message.received'")->fetch(PDO::FETCH_ASSOC);
+sr_message_policy_assert(
+    is_array($template)
+        && (string) ($template['title_template'] ?? '') === '새 쪽지가 도착했습니다.'
+        && (string) ($template['body_template'] ?? '') === '{sender_name}님이 쪽지를 보냈습니다.'
+        && (string) ($template['link_template'] ?? '') === '{link_url}',
+    'Message notification template seed must be available for the message.received account event.'
 );
 
 if ($errors !== []) {

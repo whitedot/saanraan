@@ -56,6 +56,48 @@ function sr_admin_privacy_request_admin_note_sanitize(?string $value): string
     return $text;
 }
 
+function sr_privacy_admin_notification_create_function(PDO $pdo): string
+{
+    return sr_module_contract_function($pdo, 'notification', 'admin-notification-events.php', 'create_function');
+}
+
+function sr_privacy_create_admin_request_notification(PDO $pdo, int $requestId, string $eventKey, array $metadata, int $createdByAccountId): void
+{
+    $createAdminNotificationFunction = sr_privacy_admin_notification_create_function($pdo);
+    if ($requestId < 1 || $createAdminNotificationFunction === '') {
+        return;
+    }
+
+    $requestType = (string) ($metadata['request_type'] ?? '');
+    $beforeStatus = (string) ($metadata['before_status'] ?? '');
+    $afterStatus = (string) ($metadata['after_status'] ?? '');
+    $statusText = $afterStatus !== '' ? '상태: ' . $afterStatus : '새 요청 기록이 추가되었습니다.';
+    if ($beforeStatus !== '' && $afterStatus !== '' && $beforeStatus !== $afterStatus) {
+        $statusText = '상태: ' . $beforeStatus . ' -> ' . $afterStatus;
+    }
+
+    try {
+        $createAdminNotificationFunction($pdo, [
+            'title' => $eventKey === 'request.created'
+                ? '개인정보 요청 대응 기록이 추가되었습니다.'
+                : '개인정보 요청 대응 기록이 변경되었습니다.',
+            'body_text' => '개인정보 요청 대응 기록을 확인해 주세요.' . "\n" . '요청 유형: ' . $requestType . "\n" . $statusText,
+            'severity' => $eventKey === 'request.created' ? 'warning' : 'info',
+            'source_module_key' => 'privacy',
+            'event_key' => $eventKey,
+            'target_type' => 'privacy_request',
+            'target_id' => (string) $requestId,
+            'action_url' => '/admin/privacy-requests?request_id=' . (string) $requestId,
+            'permission_path' => '/admin/privacy-requests',
+            'permission_action' => 'view',
+            'dedupe_key' => 'privacy.' . $eventKey . '.' . (string) $requestId . '.' . $afterStatus,
+            'created_by_account_id' => $createdByAccountId,
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'privacy_admin_notification_create');
+    }
+}
+
 function sr_admin_privacy_request_requester_display(array $request): string
 {
     $snapshot = (string) ($request['requester_snapshot'] ?? '');
@@ -165,6 +207,10 @@ function sr_admin_handle_privacy_request_create_post(PDO $pdo, array $account, a
                 'linked_account_id' => $linkedAccount !== null ? (int) $linkedAccount['id'] : null,
             ],
         ]);
+        sr_privacy_create_admin_request_notification($pdo, $requestId, 'request.created', [
+            'request_type' => (string) $requestType,
+            'after_status' => 'requested',
+        ], (int) $account['id']);
 
         $notice = '개인정보 요청 대응 기록을 추가했습니다.';
     }
@@ -276,6 +322,16 @@ function sr_admin_handle_privacy_request_post(PDO $pdo, array $account, array $a
                 ],
             ],
         ]);
+        if ($statusChanged) {
+            $requestTypeStmt = $pdo->prepare('SELECT request_type FROM sr_privacy_requests WHERE id = :id LIMIT 1');
+            $requestTypeStmt->execute(['id' => $requestId]);
+            $requestType = (string) $requestTypeStmt->fetchColumn();
+            sr_privacy_create_admin_request_notification($pdo, $requestId, 'request.updated', [
+                'request_type' => $requestType,
+                'before_status' => (string) $privacyRequest['status'],
+                'after_status' => $status,
+            ], (int) $account['id']);
+        }
 
         $notice = '개인정보 요청 대응 기록 상태를 저장했습니다.';
     }

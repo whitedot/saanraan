@@ -8,4 +8,6 @@ return [
     'POST /message/delete' => 'actions/message-delete.php',
     'GET /admin/message/settings' => 'actions/admin-settings.php',
     'POST /admin/message/settings' => 'actions/admin-settings.php',
+    'GET /admin/message/notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/message/notification-templates' => 'actions/admin-notification-templates.php',
 ];

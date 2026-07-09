@@ -139,13 +139,17 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
         foreach ($createdMessages as $createdMessage) {
-            sr_message_create_account_notification(
+            sr_message_create_account_event_notification(
                 $pdo,
                 (int) $createdMessage['recipient_account_id'],
-                '새 쪽지가 도착했습니다.',
-                $senderLabel . '님이 쪽지를 보냈습니다.',
-                '/message?id=' . (string) $createdMessage['id'],
-                (int) $account['id']
+                'message.received',
+                [
+                    'sender_name' => $senderLabel,
+                    'message_id' => (string) $createdMessage['id'],
+                    'link_url' => '/message?id=' . (string) $createdMessage['id'],
+                ],
+                (int) $account['id'],
+                $settings
             );
         }
         $_SESSION['sr_message_notice'] = '쪽지를 보냈습니다.';

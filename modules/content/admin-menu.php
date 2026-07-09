@@ -60,8 +60,9 @@ return [
             'order' => 31,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '콘텐츠 알림/메일 관리',
             'path' => '/admin/content/notification-templates',
+            'requires_modules' => ['notification'],
             'order' => 31.5,
         ],
         [

@@ -52,43 +52,17 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === []) {
-        $stmt = $pdo->prepare('SELECT id FROM sr_modules WHERE module_key = :module_key LIMIT 1');
-        $stmt->execute(['module_key' => 'message']);
-        $moduleId = (int) $stmt->fetchColumn();
-        if ($moduleId < 1) {
-            sr_render_error(500, 'message 모듈 정보를 찾을 수 없습니다.');
-        }
-
-        $rows = [
-            ['message_enabled', $messageEnabled ? '1' : '0', 'bool'],
-            ['send_policy', $sendPolicy, 'string'],
-            ['receive_policy', $receivePolicy, 'string'],
-            ['send_group_keys', json_encode($sendGroupKeys, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', 'json'],
-            ['receive_group_keys', json_encode($receiveGroupKeys, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', 'json'],
-            ['member_receive_opt_enabled', $memberReceiveOptEnabled ? '1' : '0', 'bool'],
-            ['default_member_receive_enabled', $defaultMemberReceiveEnabled ? '1' : '0', 'bool'],
-            ['message_create_window_seconds', (string) $windowSeconds, 'int'],
-            ['message_create_limit', (string) $limit, 'int'],
-        ];
-        $now = sr_now();
-        $saveStmt = $pdo->prepare(
-            'INSERT INTO sr_module_settings
-                (module_id, setting_key, setting_value, value_type, created_at, updated_at)
-             VALUES
-                (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
-             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), value_type = VALUES(value_type), updated_at = VALUES(updated_at)'
-        );
-        foreach ($rows as $row) {
-            $saveStmt->execute([
-                'module_id' => $moduleId,
-                'setting_key' => $row[0],
-                'setting_value' => $row[1],
-                'value_type' => $row[2],
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        }
-        sr_clear_module_settings_cache('message');
+        sr_message_save_settings($pdo, array_merge($settings, [
+            'message_enabled' => $messageEnabled,
+            'send_policy' => $sendPolicy,
+            'receive_policy' => $receivePolicy,
+            'send_group_keys' => $sendGroupKeys,
+            'receive_group_keys' => $receiveGroupKeys,
+            'member_receive_opt_enabled' => $memberReceiveOptEnabled,
+            'default_member_receive_enabled' => $defaultMemberReceiveEnabled,
+            'message_create_window_seconds' => $windowSeconds,
+            'message_create_limit' => $limit,
+        ]));
         $_SESSION['sr_message_admin_notice'] = '쪽지 환경설정을 저장했습니다.';
         sr_redirect('/admin/message/settings');
     }

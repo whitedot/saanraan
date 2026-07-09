@@ -10,6 +10,15 @@ sr_require_csrf();
 $account = sr_member_require_login($pdo);
 $oauthAccountId = (int) sr_post_string('oauth_account_id', 20);
 $activeOauthAccounts = sr_member_oauth_accounts_for_account($pdo, (int) $account['id']);
+$oauthProviderLabel = '';
+foreach ($activeOauthAccounts as $activeOauthAccount) {
+    if ((int) ($activeOauthAccount['id'] ?? 0) === $oauthAccountId) {
+        $oauthProviderKey = (string) ($activeOauthAccount['provider_key'] ?? '');
+        $oauthProviders = sr_member_oauth_providers($pdo);
+        $oauthProviderLabel = (string) ($oauthProviders[$oauthProviderKey]['label'] ?? $oauthProviderKey);
+        break;
+    }
+}
 if ($oauthAccountId < 1) {
     sr_render_error(400, 'OAuth account is invalid.');
 }
@@ -34,6 +43,9 @@ sr_audit_log($pdo, [
     'metadata' => [
         'oauth_account_id' => $oauthAccountId,
     ],
+]);
+sr_member_create_security_notification($pdo, (int) $account['id'], 'security.oauth_unlinked', [
+    'provider_label' => $oauthProviderLabel !== '' ? $oauthProviderLabel : '외부 로그인',
 ]);
 
 sr_redirect('/account');

@@ -2,7 +2,7 @@
 
 return [
     'name' => '개인정보',
-    'version' => '2026.05.002',
+    'version' => '2026.07.001',
     'type' => 'module',
     'description' => '관리자 전용 개인정보 요청 대응 기록과 사본 제공 보조 도구 모듈입니다.',
     'requires' => [

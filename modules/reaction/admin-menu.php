@@ -20,8 +20,9 @@ return [
             'order' => 30,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '리액션 알림/메일 관리',
             'path' => '/admin/reactions/notification-templates',
+            'requires_modules' => ['notification'],
             'order' => 40,
         ],
     ],

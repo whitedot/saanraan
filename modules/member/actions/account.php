@@ -354,6 +354,7 @@ if (sr_request_method() === 'POST') {
                     'rotated_session' => $rotatedSession,
                 ],
             ]);
+            sr_member_create_security_notification($pdo, (int) $account['id'], 'security.password_changed');
 
             $account = sr_member_current_account($pdo);
             $notice = sr_t('member::action.account.password_changed');
@@ -478,6 +479,7 @@ if (sr_request_method() === 'POST') {
                     'recovery_codes_created' => count($_SESSION['sr_member_mfa_recovery_codes_flash']),
                 ],
             ]);
+            sr_member_create_security_notification($pdo, (int) $account['id'], 'security.mfa_enabled');
         } else {
             $reason = (string) ($mfaResult['reason'] ?? '');
             if ($reason === 'active_exists') {
@@ -593,6 +595,7 @@ if (sr_request_method() === 'POST') {
                     'recovery_codes_created' => count($_SESSION['sr_member_mfa_recovery_codes_flash']),
                 ],
             ]);
+            sr_member_create_security_notification($pdo, (int) $account['id'], 'security.mfa_recovery_rotated');
         } elseif ($errors === [] && $intent === 'mfa_disable') {
             $notice = sr_t('member::action.account.mfa_disabled');
             sr_member_log_auth($pdo, (int) $account['id'], 'mfa_disabled', 'success');
@@ -610,6 +613,7 @@ if (sr_request_method() === 'POST') {
                     'recovery_codes_revoked' => (int) ($disableResult['recovery_codes_revoked'] ?? 0),
                 ],
             ]);
+            sr_member_create_security_notification($pdo, (int) $account['id'], 'security.mfa_disabled');
         } elseif ($errors !== [] && empty($reauthThrottle['limited']) && empty($mfaThrottle['limited'])) {
             $reauthMethod = (string) ($reauthResult['method'] ?? '');
             if ($reauthMethod === 'password' || $hasPasswordLogin) {

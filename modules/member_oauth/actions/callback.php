@@ -80,6 +80,10 @@ if ((string) $state['flow_type'] === 'link') {
                 'synced_fields' => $syncedFields,
             ],
         ]);
+        sr_member_create_security_notification($pdo, (int) $account['id'], 'security.oauth_linked', [
+            'provider_key' => $providerKey,
+            'provider_label' => (string) ($providers[$providerKey]['label'] ?? $providerKey),
+        ]);
     } elseif ($syncedFields !== []) {
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],

@@ -66,8 +66,9 @@ return [
             'order' => 70,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '커뮤니티 알림/메일 관리',
             'path' => '/admin/community/notification-templates',
+            'requires_modules' => ['notification'],
             'order' => 75,
         ],
         [

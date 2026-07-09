@@ -20,8 +20,9 @@ return [
             'order' => 40,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '포인트 알림/메일 관리',
             'path' => '/admin/points/notification-templates',
+            'requires_modules' => ['notification'],
             'order' => 45,
         ],
     ],

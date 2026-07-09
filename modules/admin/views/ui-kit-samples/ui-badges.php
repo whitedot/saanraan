@@ -207,13 +207,14 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-hint ui-kit-space-after-4">
-                                    표와 관리자 목록의 상태값은 <code>.badge-status</code>와 의미 기반 variant인 <code>.is-success</code>, <code>.is-warning</code>, <code>.is-danger</code>를 함께 사용합니다.
+                                    표와 관리자 목록의 상태값은 <code>.badge-status</code>와 의미 기반 variant인 <code>.is-success</code>, <code>.is-warning</code>, <code>.is-danger</code>, <code>.is-info</code>를 함께 사용합니다.
                                 </p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-2">
                                     <span class="badge-status is-success">정상</span>
                                     <span class="badge-status is-warning">확인 필요</span>
                                     <span class="badge-status is-danger">중지</span>
+                                    <span class="badge-status is-info">기본값</span>
                                 </div>
                             </div>
                             <!-- end card-body-->

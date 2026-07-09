@@ -2,7 +2,7 @@
 
 return [
     'name' => '쪽지',
-    'version' => '2026.07.001',
+    'version' => '2026.07.002',
     'type' => 'module',
     'description' => '회원 간 쪽지 수발신을 제공하는 모듈입니다.',
     'admin' => [
@@ -53,5 +53,12 @@ return [
         'message_charge_amounts_json' => '',
         'message_charge_group_policies_json' => '',
         'message_charge_policy_set_id' => 0,
+        'notification_cases' => [
+            'message_received' => [
+                'event_key' => 'message.received',
+                'enabled' => true,
+                'channels' => ['site'],
+            ],
+        ],
     ],
 ];

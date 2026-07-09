@@ -30,8 +30,9 @@ return [
             'order' => 50,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '쿠폰·이용권 알림/메일 관리',
             'path' => '/admin/coupons/notification-templates',
+            'requires_modules' => ['notification'],
             'order' => 52,
         ],
         [

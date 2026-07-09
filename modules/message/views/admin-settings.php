@@ -94,19 +94,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <small class="form-help">수신 정책이 지정 회원 그룹일 때 적용합니다. 발신자가 관리자 권한을 가진 경우 운영 처리를 위해 수신 제한을 우회할 수 있습니다.</small>
                 </div>
             </div>
-            <div class="form-row">
-                <span class="form-label">정책 시뮬레이션</span>
-                <div class="form-field">
-                    <dl class="admin-meta-list" data-message-policy-simulation>
-                        <dt>일반 회원 발신</dt>
-                        <dd data-message-policy-simulation-send>확인 중</dd>
-                        <dt>일반 회원 수신</dt>
-                        <dd data-message-policy-simulation-receive>확인 중</dd>
-                        <dt>관리자 발신</dt>
-                        <dd data-message-policy-simulation-staff>운영 권한이 있으면 발신/수신 정책을 우회</dd>
-                    </dl>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -197,81 +184,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
-    function policyLabel(value) {
-        if (value === 'all') {
-            return '전체 회원 허용';
-        }
-        if (value === 'group') {
-            return '선택 그룹 회원만 허용';
-        }
-        if (value === 'opt_in') {
-            return '수신 허용 row가 있는 회원만 허용';
-        }
-        if (value === 'disabled') {
-            return '차단';
-        }
-
-        return '확인 필요';
-    }
-
-    function updatePolicySimulation() {
-        var sendPolicy = form.querySelector('[data-message-policy="send"]');
-        var receivePolicy = form.querySelector('[data-message-policy="receive"]');
-        var sendOutput = form.querySelector('[data-message-policy-simulation-send]');
-        var receiveOutput = form.querySelector('[data-message-policy-simulation-receive]');
-        var staffOutput = form.querySelector('[data-message-policy-simulation-staff]');
-        var sendValue = sendPolicy ? sendPolicy.value : 'all';
-        var receiveValue = receivePolicy ? receivePolicy.value : 'all';
-        var sendGroups = selectedGroupCount('send');
-        var receiveGroups = selectedGroupCount('receive');
-        var sendMessage = policyLabel(sendValue);
-        var receiveMessage = policyLabel(receiveValue);
-
-        if (sendValue === 'group') {
-            sendMessage += ' · 선택 ' + sendGroups + '개';
-        }
-        if (receiveValue === 'group') {
-            receiveMessage += ' · 선택 ' + receiveGroups + '개';
-        }
-        if (receiveValue !== 'disabled') {
-            receiveMessage += ' · 회원별 수신 거부는 차단';
-        }
-
-        if (sendOutput) {
-            sendOutput.textContent = sendMessage;
-        }
-        if (receiveOutput) {
-            receiveOutput.textContent = receiveMessage;
-        }
-        if (staffOutput) {
-            staffOutput.textContent = '운영 권한이 있으면 발신/수신 정책을 우회';
-        }
-    }
-
     ['send', 'receive'].forEach(function (kind) {
         var policy = form.querySelector('[data-message-policy="' + kind + '"]');
         var root = groupRoot(kind);
         if (policy) {
             policy.addEventListener('change', function () {
                 updateGroupRequirement(kind);
-                updatePolicySimulation();
             });
         }
         if (root) {
             root.addEventListener('click', function () {
                 window.setTimeout(function () {
                     updateGroupRequirement(kind);
-                    updatePolicySimulation();
                 }, 0);
             });
             root.addEventListener('change', function () {
                 updateGroupRequirement(kind);
-                updatePolicySimulation();
             });
         }
         updateGroupRequirement(kind);
     });
-    updatePolicySimulation();
 
     form.addEventListener('submit', function (event) {
         updateGroupRequirement('send');

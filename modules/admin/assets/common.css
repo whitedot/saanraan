@@ -296,6 +296,7 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .badge-status.is-success,.admin-list-form .badge-status.is-success{background:color-mix(in oklab,var(--color-success) 14%,var(--color-card));color:var(--color-success-hover)}
 .badge-status.is-warning,.admin-list-form .badge-status.is-warning{background:color-mix(in oklab,var(--color-warning) 14%,var(--color-card));color:var(--color-warning-hover)}
 .badge-status.is-danger,.admin-list-form .badge-status.is-danger{background:color-mix(in oklab,var(--color-danger) 12%,var(--color-card));color:var(--color-danger-hover)}
+.badge-status.is-info,.admin-list-form .badge-status.is-info{background:color-mix(in oklab,var(--color-info) 14%,var(--color-card));color:var(--color-info-hover)}
 .table-sort-header,.admin-sort-header{align-items:center;display:flex;flex-wrap:nowrap;gap:calc(var(--spacing) * 1.5);white-space:nowrap}
 .table-sort-header-end{justify-content:flex-end}
 .table-sort-label,.admin-sort-label{font-weight:inherit}

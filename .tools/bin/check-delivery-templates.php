@@ -13,6 +13,7 @@ require_once $root . '/core/helpers/common.php';
 require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/delivery-templates.php';
 require_once $root . '/modules/notification/helpers.php';
+require_once $root . '/modules/notification/helpers/event-template-admin.php';
 
 if (!function_exists('sr_e')) {
     function sr_e(?string $value): string
@@ -89,6 +90,20 @@ function sr_delivery_template_check_pdo(): PDO
         )'
     );
     $pdo->exec(
+        'CREATE TABLE sr_notification_channel_template_bindings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_key TEXT NOT NULL,
+            event_key TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            provider_template_code TEXT NOT NULL DEFAULT \'\',
+            variables_json TEXT NULL,
+            status TEXT NOT NULL DEFAULT \'active\',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(module_key, event_key, channel)
+        )'
+    );
+    $pdo->exec(
         "INSERT INTO sr_notification_event_templates
             (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
          VALUES
@@ -144,6 +159,16 @@ function sr_delivery_template_check_expected_notification_events(): array
             'issue.refunded',
             'issue.status_updated',
             'issue.definition_disabled',
+        ],
+        'member' => [
+            'security.email_verified',
+            'security.password_changed',
+            'security.password_reset_completed',
+            'security.mfa_enabled',
+            'security.mfa_recovery_rotated',
+            'security.mfa_disabled',
+            'security.oauth_linked',
+            'security.oauth_unlinked',
         ],
         'content' => [
             'comment.created',
@@ -208,8 +233,51 @@ sr_delivery_template_check_assert(sr_delivery_template_variable_label('member_na
 sr_delivery_template_check_assert(sr_delivery_template_variable_label('link_url') === '연결 주소', 'delivery template link_url variable helper text must be operator-readable.');
 sr_delivery_template_check_assert(sr_delivery_template_body_template_for_editor("본문\n\n/point/history", '/point/history') === "본문\n\n/point/history", 'admin editor body must not duplicate a link template that is already in the body.');
 sr_delivery_template_check_assert(sr_delivery_template_body_template_for_editor('<code>본문</code>', '/point/history') === "본문\n\n/point/history", 'admin editor body must unwrap a code wrapper and append the link template into editable content.');
+sr_delivery_template_check_assert(sr_notification_channel_template_code('KA01_hello-1.test') === 'KA01_hello-1.test', 'Alimtalk template code helper must allow Kakao provider template codes.');
+sr_delivery_template_check_assert(sr_notification_channel_template_code('알림톡본문') === '', 'Alimtalk template code helper must reject editable Korean message bodies.');
+
+sr_notification_event_template_admin_save_channel_binding($pdo, 'point', 'transaction.grant', 'alimtalk', 'KA01_POINT_GRANT');
+$pointChannelBindings = sr_notification_event_template_admin_channel_bindings($pdo, 'point');
+sr_delivery_template_check_assert(
+    (string) ($pointChannelBindings['transaction.grant']['alimtalk']['provider_template_code'] ?? '') === 'KA01_POINT_GRANT',
+    'notification/mail admin must store Alimtalk provider template code separately from editable title/body.'
+);
+
+$memberDeliveryRows = sr_notification_event_template_admin_delivery_rows($pdo, 'member', [
+    'member.email_verification',
+    'member.password_reset',
+    'member.login_mfa_email_code',
+]);
+$memberDeliveryRowKeys = array_fill_keys(array_map(static fn(array $row): string => (string) ($row['template_key'] ?? ''), $memberDeliveryRows), true);
+foreach (['member.email_verification', 'member.password_reset', 'member.login_mfa_email_code'] as $templateKey) {
+    sr_delivery_template_check_assert(isset($memberDeliveryRowKeys[$templateKey]), 'member notification/mail admin rows must include delivery template: ' . $templateKey);
+}
+
+$notificationTemplateAdminActions = [
+    'community' => 'modules/community/actions/admin-notification-templates.php',
+    'content' => 'modules/content/actions/admin-notification-templates.php',
+    'coupon' => 'modules/coupon/actions/admin-notification-templates.php',
+    'deposit' => 'modules/deposit/actions/admin-notification-templates.php',
+    'member' => 'modules/member/actions/admin-notification-templates.php',
+    'message' => 'modules/message/actions/admin-notification-templates.php',
+    'point' => 'modules/point/actions/admin-notification-templates.php',
+    'quiz' => 'modules/quiz/actions/admin-notification-templates.php',
+    'reaction' => 'modules/reaction/actions/admin-notification-templates.php',
+    'reward' => 'modules/reward/actions/admin-notification-templates.php',
+    'survey' => 'modules/survey/actions/admin-notification-templates.php',
+];
+foreach ($notificationTemplateAdminActions as $moduleKey => $actionPath) {
+    $actionSource = is_file($root . '/' . $actionPath) ? file_get_contents($root . '/' . $actionPath) : false;
+    sr_delivery_template_check_assert(is_string($actionSource), 'notification/mail admin action must exist: ' . $moduleKey);
+    if (!is_string($actionSource)) {
+        continue;
+    }
+    sr_delivery_template_check_assert(str_contains($actionSource, "sr_module_enabled(\$pdo, 'notification')"), 'notification/mail admin action must guard missing notification module: ' . $moduleKey);
+    sr_delivery_template_check_assert(str_contains($actionSource, 'is_file($notificationTemplateAdminHelper)'), 'notification/mail admin action must guard missing notification helper file: ' . $moduleKey);
+}
 
 $notificationInstallSql = (string) file_get_contents($root . '/modules/notification/install.sql');
+sr_delivery_template_check_assert(str_contains($notificationInstallSql, 'sr_notification_channel_template_bindings'), 'notification install.sql must include channel template binding table.');
 foreach (sr_delivery_template_check_expected_notification_events() as $moduleKey => $eventKeys) {
     foreach ($eventKeys as $eventKey) {
         sr_delivery_template_check_assert(
@@ -218,6 +286,11 @@ foreach (sr_delivery_template_check_expected_notification_events() as $moduleKey
         );
     }
 }
+$notificationEventTemplateView = (string) file_get_contents($root . '/modules/notification/views/admin-event-templates.php');
+sr_delivery_template_check_assert(
+    !str_contains($notificationEventTemplateView, '<small><?php echo sr_e($label); ?></small>'),
+    'notification/mail admin list title cell must not append the event label next to the editable title.'
+);
 
 $emailContract = $contracts['member.email_verification'];
 try {

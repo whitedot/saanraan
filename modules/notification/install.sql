@@ -131,6 +131,21 @@ CREATE TABLE IF NOT EXISTS sr_notification_event_templates (
     KEY idx_sr_notification_event_templates_status (status, module_key, event_key)
 );
 
+CREATE TABLE IF NOT EXISTS sr_notification_channel_template_bindings (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    module_key VARCHAR(60) NOT NULL,
+    event_key VARCHAR(120) NOT NULL,
+    channel VARCHAR(30) NOT NULL,
+    provider_template_code VARCHAR(120) NOT NULL DEFAULT '',
+    variables_json TEXT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_notification_channel_template_binding (module_key, event_key, channel),
+    KEY idx_sr_notification_channel_template_bindings_status (channel, status, module_key, event_key)
+);
+
 INSERT INTO sr_notification_event_templates
     (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
 VALUES
@@ -179,6 +194,15 @@ VALUES
     ('survey', 'comment.mention', '설문 댓글에서 회원님을 언급했습니다.', '{member_name}님이 설문 댓글에서 회원님을 언급했습니다.\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('reaction', 'target.reacted', '새 리액션이 등록되었습니다.', '{member_name}님이 {target_label}에 {reaction_label} 리액션을 남겼습니다.\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('community', 'attachment.publisher_reward.granted', '첨부 다운로드 리워드가 지급되었습니다.', '지급 금액: {amount}{asset}\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
+    ('message', 'message.received', '새 쪽지가 도착했습니다.', '{sender_name}님이 쪽지를 보냈습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.email_verified', '이메일 인증이 완료되었습니다.', '회원님의 이메일 인증이 완료되었습니다.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.password_changed', '비밀번호가 변경되었습니다.', '회원님의 비밀번호가 변경되었습니다. 직접 변경한 것이 아니라면 즉시 관리자에게 문의하세요.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.password_reset_completed', '비밀번호 재설정이 완료되었습니다.', '회원님의 비밀번호 재설정이 완료되었습니다. 직접 진행한 것이 아니라면 즉시 관리자에게 문의하세요.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.mfa_enabled', '2차 인증이 설정되었습니다.', '회원님의 계정에 2차 인증이 설정되었습니다.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.mfa_recovery_rotated', '2차 인증 복구 코드가 재발급되었습니다.', '회원님의 2차 인증 복구 코드가 재발급되었습니다.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.mfa_disabled', '2차 인증이 해제되었습니다.', '회원님의 계정에서 2차 인증이 해제되었습니다. 직접 해제한 것이 아니라면 즉시 관리자에게 문의하세요.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.oauth_linked', '외부 로그인이 연결되었습니다.', '{provider_label} 외부 로그인이 회원님의 계정에 연결되었습니다.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
+    ('member', 'security.oauth_unlinked', '외부 로그인이 해제되었습니다.', '{provider_label} 외부 로그인이 회원님의 계정에서 해제되었습니다.', '/mypage/security', '["site"]', 'active', NOW(), NOW()),
     ('notification', 'member_push_endpoint.connected', '외부 푸시 수신처가 연결되었습니다.', '개인 외부 수신처가 알림 푸시에 연결되었습니다.', '/account/notifications', '["site"]', 'active', NOW(), NOW()),
     ('notification', 'member_push_endpoint.disabled', '외부 푸시 수신처가 해제되었습니다.', '개인 외부 수신처가 알림 푸시에서 해제되었습니다.', '/account/notifications', '["site"]', 'active', NOW(), NOW())
 ON DUPLICATE KEY UPDATE

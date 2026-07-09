@@ -232,8 +232,20 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'admin member notification templates entry',
+        'path' => '/admin/member-notification-templates',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'admin notification module templates entry',
         'path' => '/admin/notifications/templates',
+        'allowed_statuses' => [200, 302, 403, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'admin delivery templates entry',
+        'path' => '/admin/delivery-templates',
         'allowed_statuses' => [200, 302, 403, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],

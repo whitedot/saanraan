@@ -154,7 +154,7 @@ foreach ([
         "'actions/admin-notification-templates.php'",
     ]);
     sr_asset_notification_settings_require_markers($menuPath, [
-        '알림 템플릿',
+        '알림/메일',
         (string) ($module['template_path'] ?? ''),
     ]);
 }
@@ -196,17 +196,17 @@ if (str_contains($assetExchangeView, 'notification_cases[') || str_contains($ass
 }
 
 sr_asset_notification_settings_require_markers('docs/module-guide.md', [
-    '포인트, 적립금, 예치금, 쿠폰 모듈은 각 알림 템플릿 관리 화면에서 거래/지급/사용/환불/상태 변경 같은 회원 알림 케이스별 제목, 본문, 사용 여부와 채널을 저장한다.',
-    '환전 출금/입금/수수료 알림도 포인트/적립금/예치금 모듈의 알림 템플릿 관리 화면에서 편집한다.',
+    '포인트, 적립금, 예치금, 쿠폰 모듈은 각 알림/메일 관리 화면에서 거래/지급/사용/환불/상태 변경 같은 회원 알림 케이스별 제목, 본문, 사용 여부와 채널을 저장한다.',
+    '환전 출금/입금/수수료 알림도 포인트/적립금/예치금 모듈의 알림/메일 관리 화면에서 편집한다.',
     '포인트 모듈의 회원 알림 케이스 기본값은 사용 안 함이고, 적립금/예치금/쿠폰 모듈은 기존 동작 보존을 위해 케이스 기본값을 사용으로 둔다.',
 ]);
 sr_asset_notification_settings_require_markers('docs/security-model.md', [
-    '포인트/적립금/예치금/쿠폰 알림 템플릿 관리 화면의 케이스별 알림 채널',
+    '포인트/적립금/예치금/쿠폰 알림/메일 관리 화면의 케이스별 알림 채널',
     '환전 알림도 각 자산 모듈의 케이스별 채널 설정으로 저장한다.',
 ]);
 sr_asset_notification_settings_require_markers('docs/core-decisions.md', [
-    '포인트/적립금/예치금/쿠폰 모듈은 자기 알림 템플릿 관리 화면에서 케이스별 회원 알림 제목, 본문, 사용 여부와 채널을 저장하고',
-    '환전 출금/입금/수수료 알림 케이스도 자산 모듈의 알림 템플릿 관리 화면에서 편집합니다.',
+    '포인트/적립금/예치금/쿠폰 모듈은 자기 알림/메일 관리 화면에서 케이스별 회원 알림 제목, 본문, 사용 여부와 채널을 저장하고',
+    '환전 출금/입금/수수료 알림 케이스도 자산 모듈의 알림/메일 관리 화면에서 편집합니다.',
     '포인트 회원 알림 케이스의 기본값은 사용 안 함',
 ]);
 

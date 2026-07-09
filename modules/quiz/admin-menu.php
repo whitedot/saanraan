@@ -25,8 +25,9 @@ return [
             'order' => 30,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '퀴즈 알림/메일 관리',
             'path' => '/admin/quiz/notification-templates',
+            'requires_modules' => ['notification'],
             'order' => 32,
         ],
         [

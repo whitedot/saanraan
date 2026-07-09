@@ -109,6 +109,7 @@ if ($method === 'POST') {
                     'logged_out_current_session' => $loggedOutCurrentSession,
                 ],
             ]);
+            sr_member_create_security_notification($pdo, (int) $reset['account_id'], 'security.password_reset_completed');
 
             sr_redirect('/login?password_reset=1');
         } catch (Throwable $exception) {

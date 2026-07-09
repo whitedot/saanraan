@@ -40,6 +40,7 @@ sr_audit_log($pdo, [
     'result' => 'success',
     'message' => 'Member email verified.',
 ]);
+sr_member_create_security_notification($pdo, (int) $verification['account_id'], 'security.email_verified');
 
 unset($_SESSION['sr_debug_email_verification_url']);
 

@@ -25,8 +25,9 @@ return [
             'order' => 50,
         ],
         [
-            'label' => '알림 템플릿 관리',
+            'label' => '예치금 알림/메일 관리',
             'path' => '/admin/deposits/notification-templates',
+            'requires_modules' => ['notification'],
             'order' => 55,
         ],
     ],

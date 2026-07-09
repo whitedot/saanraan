@@ -26,13 +26,13 @@ $addInstallError = function (string $message, string $stepKey, array $fieldNames
 $requiredModules = [
     'member' => [
         'name' => '회원',
-        'version' => '2026.06.006',
+        'version' => '2026.07.001',
         'label' => sr_t('install.module.member.label'),
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
     'admin' => [
         'name' => '관리자',
-        'version' => '2026.06.002',
+        'version' => '2026.06.003',
         'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],
@@ -44,7 +44,7 @@ $requiredModules = [
     ],
     'privacy' => [
         'name' => '개인정보',
-        'version' => '2026.05.002',
+        'version' => '2026.07.001',
         'label' => sr_t('install.module.privacy.label'),
         'description' => '운영자 개인정보 대응 기록과 개인정보 사본 제공 보조 기능을 제공합니다.',
     ],
@@ -122,7 +122,7 @@ $optionalModules = [
     ],
     'message' => [
         'name' => '쪽지',
-        'version' => '2026.07.001',
+        'version' => '2026.07.002',
         'label' => '쪽지',
         'description' => '회원 간 쪽지 수발신과 수신 설정을 설치합니다.',
     ],
@@ -200,7 +200,7 @@ $optionalModules = [
     ],
     'notification' => [
         'name' => '알림',
-        'version' => '2026.06.015',
+        'version' => '2026.07.003',
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
     ],

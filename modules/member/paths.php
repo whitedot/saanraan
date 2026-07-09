@@ -34,6 +34,8 @@ return [
     'POST /admin/members/save' => 'actions/admin-members-save.php',
     'GET /admin/member-settings' => 'actions/admin-settings.php',
     'POST /admin/member-settings' => 'actions/admin-settings.php',
+    'GET /admin/member-notification-templates' => 'actions/admin-notification-templates.php',
+    'POST /admin/member-notification-templates' => 'actions/admin-notification-templates.php',
     'GET /admin/member-groups' => 'actions/admin-groups.php',
     'POST /admin/member-groups' => 'actions/admin-groups.php',
     'GET /admin/member-groups/new' => 'actions/admin-groups-new.php',

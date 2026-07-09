@@ -46,6 +46,110 @@ function sr_message_group_keys_from_setting(mixed $value): array
     return array_keys($keys);
 }
 
+function sr_message_notification_cases(): array
+{
+    return [
+        'message_received' => [
+            'event_key' => 'message.received',
+            'label' => '새 쪽지 알림',
+            'description' => '회원에게 새 쪽지가 도착했을 때 보냅니다.',
+            'default_enabled' => true,
+        ],
+    ];
+}
+
+function sr_message_notification_case_key_for_event(string $eventKey): string
+{
+    foreach (sr_message_notification_cases() as $caseKey => $case) {
+        if ((string) ($case['event_key'] ?? '') === $eventKey) {
+            return (string) $caseKey;
+        }
+    }
+
+    return '';
+}
+
+function sr_message_default_notification_case_settings(): array
+{
+    $settings = [];
+    foreach (sr_message_notification_cases() as $caseKey => $case) {
+        $settings[(string) $caseKey] = [
+            'event_key' => (string) ($case['event_key'] ?? ''),
+            'enabled' => !empty($case['default_enabled']),
+            'channels' => ['site'],
+        ];
+    }
+
+    return $settings;
+}
+
+function sr_message_account_notification_channel_keys(): array
+{
+    return ['site', 'email', 'slack_webhook', 'discord_webhook', 'telegram_bot'];
+}
+
+function sr_message_notification_channels_from_value(mixed $value): array
+{
+    $rawValues = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawValues)) {
+        $rawValues = ['site'];
+    }
+
+    $allowed = sr_message_account_notification_channel_keys();
+    $channels = [];
+    foreach ($rawValues as $channel) {
+        if (is_string($channel) && in_array($channel, $allowed, true)) {
+            $channels[$channel] = $channel;
+        }
+    }
+
+    return $channels === [] ? ['site'] : array_values($channels);
+}
+
+function sr_message_notification_case_settings_from_value(mixed $value): array
+{
+    $rawSettings = is_array($value) ? $value : json_decode((string) $value, true);
+    if (!is_array($rawSettings)) {
+        $rawSettings = [];
+    }
+
+    $caseKeyByEventKey = [];
+    foreach (sr_message_notification_cases() as $caseKey => $case) {
+        $caseKeyByEventKey[(string) ($case['event_key'] ?? '')] = (string) $caseKey;
+    }
+
+    $normalized = sr_message_default_notification_case_settings();
+    foreach ($rawSettings as $rawCaseKey => $rawCaseSettings) {
+        $caseKey = (string) $rawCaseKey;
+        if (!isset($normalized[$caseKey])) {
+            $caseKey = $caseKeyByEventKey[$caseKey] ?? '';
+        }
+        if ($caseKey === '' || !isset($normalized[$caseKey]) || !is_array($rawCaseSettings)) {
+            continue;
+        }
+
+        if (array_key_exists('enabled', $rawCaseSettings)) {
+            $normalized[$caseKey]['enabled'] = sr_message_bool_setting($rawCaseSettings['enabled']);
+        }
+        if (array_key_exists('channels', $rawCaseSettings)) {
+            $normalized[$caseKey]['channels'] = sr_message_notification_channels_from_value($rawCaseSettings['channels']);
+        }
+    }
+
+    return $normalized;
+}
+
+function sr_message_notification_setting_for_event(array $settings, string $eventKey): ?array
+{
+    $caseKey = sr_message_notification_case_key_for_event($eventKey);
+    if ($caseKey === '') {
+        return null;
+    }
+
+    $caseSettings = sr_message_notification_case_settings_from_value($settings['notification_cases'] ?? []);
+    return isset($caseSettings[$caseKey]) && is_array($caseSettings[$caseKey]) ? $caseSettings[$caseKey] : null;
+}
+
 function sr_message_settings(PDO $pdo): array
 {
     $settings = array_merge(sr_message_default_settings(), sr_module_settings($pdo, 'message'));
@@ -62,8 +166,78 @@ function sr_message_settings(PDO $pdo): array
     $settings['message_create_window_seconds'] = min(86400, max(60, (int) ($settings['message_create_window_seconds'] ?? 300)));
     $settings['message_create_limit'] = min(200, max(1, (int) ($settings['message_create_limit'] ?? 20)));
     $settings['message_charge_enabled'] = false;
+    $settings['notification_cases'] = sr_message_notification_case_settings_from_value($settings['notification_cases'] ?? []);
 
     return $settings;
+}
+
+function sr_message_save_settings(PDO $pdo, array $settings): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'message' LIMIT 1");
+    $stmt->execute();
+    $moduleId = (int) $stmt->fetchColumn();
+    if ($moduleId < 1) {
+        throw new RuntimeException('message 모듈 정보를 찾을 수 없습니다.');
+    }
+
+    $sendPolicy = sr_message_policy((string) ($settings['send_policy'] ?? 'all'), 'all');
+    if ($sendPolicy === 'opt_in') {
+        $sendPolicy = 'all';
+    }
+    $receivePolicy = sr_message_policy((string) ($settings['receive_policy'] ?? 'all'), 'all');
+    $sendGroupKeys = sr_message_group_keys_from_setting($settings['send_group_keys'] ?? []);
+    $receiveGroupKeys = sr_message_group_keys_from_setting($settings['receive_group_keys'] ?? []);
+    $notificationCases = array_key_exists('notification_cases', $settings)
+        ? sr_message_notification_case_settings_from_value($settings['notification_cases'])
+        : sr_message_notification_case_settings_from_value(sr_message_settings($pdo)['notification_cases'] ?? []);
+    $notificationCasesJson = json_encode($notificationCases, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_string($notificationCasesJson)) {
+        $notificationCasesJson = json_encode(sr_message_default_notification_case_settings(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    $rows = [
+        ['message_enabled', sr_message_bool_setting($settings['message_enabled'] ?? true) ? '1' : '0', 'bool'],
+        ['send_policy', $sendPolicy, 'string'],
+        ['receive_policy', $receivePolicy, 'string'],
+        ['send_group_keys', json_encode($sendGroupKeys, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', 'json'],
+        ['receive_group_keys', json_encode($receiveGroupKeys, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]', 'json'],
+        ['member_receive_opt_enabled', sr_message_bool_setting($settings['member_receive_opt_enabled'] ?? true) ? '1' : '0', 'bool'],
+        ['default_member_receive_enabled', sr_message_bool_setting($settings['default_member_receive_enabled'] ?? true) ? '1' : '0', 'bool'],
+        ['message_create_window_seconds', (string) min(86400, max(60, (int) ($settings['message_create_window_seconds'] ?? 300))), 'int'],
+        ['message_create_limit', (string) min(200, max(1, (int) ($settings['message_create_limit'] ?? 20))), 'int'],
+        ['notification_cases', (string) $notificationCasesJson, 'json'],
+    ];
+
+    $driver = '';
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    } catch (Throwable) {
+        $driver = '';
+    }
+    $upsertClause = $driver === 'sqlite'
+        ? 'ON CONFLICT(module_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value, value_type = excluded.value_type, updated_at = excluded.updated_at'
+        : 'ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), value_type = VALUES(value_type), updated_at = VALUES(updated_at)';
+
+    $now = sr_now();
+    $saveStmt = $pdo->prepare(
+        'INSERT INTO sr_module_settings
+            (module_id, setting_key, setting_value, value_type, created_at, updated_at)
+         VALUES
+            (:module_id, :setting_key, :setting_value, :value_type, :created_at, :updated_at)
+         ' . $upsertClause
+    );
+    foreach ($rows as $row) {
+        $saveStmt->execute([
+            'module_id' => $moduleId,
+            'setting_key' => (string) $row[0],
+            'setting_value' => (string) $row[1],
+            'value_type' => (string) $row[2],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    sr_clear_module_settings_cache('message');
 }
 
 function sr_message_enabled(PDO $pdo, ?array $settings = null): bool
@@ -201,6 +375,44 @@ function sr_message_notification_create_function(PDO $pdo): string
     return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_function');
 }
 
+function sr_message_notification_create_account_event_function(PDO $pdo): string
+{
+    return sr_module_contract_function($pdo, 'notification', 'notification-events.php', 'create_account_event_function');
+}
+
+function sr_message_ensure_notification_templates(PDO $pdo): void
+{
+    $createAccountEventFunction = sr_message_notification_create_account_event_function($pdo);
+    if ($createAccountEventFunction === '') {
+        return;
+    }
+
+    try {
+        $driver = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $insertVerb = $driver === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
+        $stmt = $pdo->prepare(
+            $insertVerb . ' INTO sr_notification_event_templates
+                (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
+             VALUES
+                (:module_key, :event_key, :title_template, :body_template, :link_template, :channels_json, :status, :created_at, :updated_at)'
+        );
+        $now = sr_now();
+        $stmt->execute([
+            'module_key' => 'message',
+            'event_key' => 'message.received',
+            'title_template' => '새 쪽지가 도착했습니다.',
+            'body_template' => '{sender_name}님이 쪽지를 보냈습니다.',
+            'link_template' => '{link_url}',
+            'channels_json' => '["site"]',
+            'status' => 'active',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'message_notification_template_ensure');
+    }
+}
+
 function sr_message_create_account_notification(
     PDO $pdo,
     int $accountId,
@@ -227,6 +439,44 @@ function sr_message_create_account_notification(
         return true;
     } catch (Throwable $exception) {
         sr_log_exception($exception, 'message_notification_create');
+    }
+
+    return false;
+}
+
+function sr_message_create_account_event_notification(
+    PDO $pdo,
+    int $accountId,
+    string $eventKey,
+    array $metadata,
+    ?int $createdByAccountId = null,
+    ?array $settings = null
+): bool {
+    $createAccountEventFunction = sr_message_notification_create_account_event_function($pdo);
+    if ($accountId < 1 || $createAccountEventFunction === '') {
+        return false;
+    }
+
+    $settings = is_array($settings) ? $settings : sr_message_settings($pdo);
+    $caseSetting = sr_message_notification_setting_for_event($settings, $eventKey);
+    if (!is_array($caseSetting) || empty($caseSetting['enabled'])) {
+        return false;
+    }
+
+    sr_message_ensure_notification_templates($pdo);
+    try {
+        $channels = sr_message_notification_channels_from_value($caseSetting['channels'] ?? ['site']);
+        $createAccountEventFunction($pdo, [
+            'account_id' => $accountId,
+            'module_key' => 'message',
+            'event_key' => $eventKey,
+            'metadata' => $metadata,
+            'channels' => $channels,
+            'created_by_account_id' => $createdByAccountId,
+        ]);
+        return true;
+    } catch (Throwable $exception) {
+        sr_log_exception($exception, 'message_account_event_notification_create');
     }
 
     return false;

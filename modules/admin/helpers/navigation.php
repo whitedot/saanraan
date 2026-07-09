@@ -196,6 +196,12 @@ function sr_admin_module_menu_groups(PDO $pdo): array
             if (!is_array($rawItem)) {
                 continue;
             }
+            $requiredModules = isset($rawItem['requires_modules']) && is_array($rawItem['requires_modules']) ? $rawItem['requires_modules'] : [];
+            foreach ($requiredModules as $requiredModule) {
+                if (!is_string($requiredModule) || !sr_module_enabled($pdo, $requiredModule)) {
+                    continue 2;
+                }
+            }
 
             $label = trim((string) ($rawItem['label'] ?? ''));
             $path = trim((string) ($rawItem['path'] ?? ''));
