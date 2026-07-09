@@ -19,11 +19,11 @@
 .admin-page-member-list .admin-member-table{table-layout:auto}
 .admin-page-member-list .admin-member-table th,.admin-page-member-list .admin-member-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-member-list .admin-member-table .admin-table-actions-cell{overflow:visible}
-.admin-page-member-list .admin-member-email-cell,.admin-page-member-list .admin-member-date-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-page-member-list .admin-member-email-cell,.admin-page-member-list .admin-member-date-cell,.admin-page-member-list .admin-member-marketing-cell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .admin-page-member-list .admin-member-email-value,.admin-page-member-list .admin-member-hash-value{display:block;overflow:hidden;text-overflow:ellipsis}
 .admin-page-member-list .admin-member-hash-value{color:var(--admin-muted-text);font-size:.8125rem;line-height:1.35}
-.admin-page-member-list .admin-member-table thead th:nth-child(2),.admin-page-member-list .admin-member-table thead th:nth-child(3),.admin-page-member-list .admin-member-table thead th:nth-child(4),.admin-page-member-list .admin-member-table thead th:nth-child(5),.admin-page-member-list .admin-member-table thead th:nth-child(6),.admin-page-member-list .admin-member-table thead th:nth-child(7),.admin-page-member-list .admin-member-table thead th:nth-child(8){width:1%}
-.admin-page-member-list .admin-member-session-cell,.admin-page-member-list .admin-member-table thead th:nth-child(6){text-align:center}
+.admin-page-member-list .admin-member-table thead th:nth-child(2),.admin-page-member-list .admin-member-table thead th:nth-child(3),.admin-page-member-list .admin-member-table thead th:nth-child(4),.admin-page-member-list .admin-member-table thead th:nth-child(5),.admin-page-member-list .admin-member-table thead th:nth-child(6),.admin-page-member-list .admin-member-table thead th:nth-child(7){width:1%}
+.admin-page-member-list .admin-member-session-cell{text-align:center}
 .admin-page-member-list .admin-member-table .admin-row-actions{gap:.5rem}
 .admin-page-member-groups .admin-member-group-filter{max-width:100%;width:100%}
 .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-search-grid{align-items:end;display:grid;gap:calc(var(--spacing) * 3);grid-template-columns:max-content max-content minmax(0,1fr) auto;justify-content:stretch;width:100%}
@@ -70,10 +70,7 @@
     .admin-member-edit-actions{flex-direction:column}
     .admin-member-edit-action-group-risk{justify-content:flex-start;margin-left:0}
     .admin-page-member-list .admin-member-search-grid{grid-template-columns:1fr}
-    .admin-page-member-list .admin-member-table :is(th,td):nth-child(4),
-    .admin-page-member-list .admin-member-table :is(th,td):nth-child(5),
-    .admin-page-member-list .admin-member-table :is(th,td):nth-child(6),
-    .admin-page-member-list .admin-member-table :is(th,td):nth-child(7){display:none}
+    .admin-page-member-list .admin-member-table :is(th,td).admin-member-mobile-optional{display:none}
     .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-search-grid{display:grid;grid-template-columns:1fr}
     .admin-page-member-groups .admin-member-group-filter-keyword{grid-column:auto}
     .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-rule-search-grid{display:grid;grid-template-columns:1fr}

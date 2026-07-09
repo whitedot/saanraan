@@ -1346,16 +1346,14 @@ function sr_admin_member_sort_options(): array
         'name' => ['columns' => ['a.display_name', 'a.id']],
         'nickname' => ['columns' => ['n.nickname', 'a.id']],
         'status' => ['columns' => ['a.status', 'a.id']],
-        'email_verified_at' => ['columns' => ['a.email_verified_at', 'a.id']],
-        'last_login_at' => ['columns' => ['a.last_login_at', 'a.id']],
         'active_session_count' => ['columns' => ['active_session_count', 'a.id']],
-        'created_at' => ['columns' => ['a.created_at', 'a.id']],
+        'id' => ['columns' => ['a.id']],
     ];
 }
 
 function sr_admin_member_default_sort(): array
 {
-    return sr_admin_sort_default('created_at', 'desc');
+    return sr_admin_sort_default('id', 'desc');
 }
 
 function sr_admin_members(PDO $pdo, array $statusFilter, array $searchFilter = [], int $limit = 0, int $offset = 0, array $sort = []): array

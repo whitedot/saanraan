@@ -51,6 +51,92 @@ function sr_member_latest_consents(PDO $pdo, int $accountId): array
     return $stmt->fetchAll();
 }
 
+function sr_member_latest_consent(PDO $pdo, int $accountId, string $consentKey): ?array
+{
+    $consentKey = trim($consentKey);
+    if ($accountId < 1 || $consentKey === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT c.id, c.account_id, c.consent_key, c.consent_version, c.policy_document_key_snapshot,
+                c.policy_version_key_snapshot, c.policy_document_version_id, c.consent_title_snapshot,
+                c.consent_body_hash, c.consent_required, c.consented, c.ip_address, c.user_agent, c.created_at
+         FROM sr_member_consents c
+         INNER JOIN (
+            SELECT MAX(id) AS max_id
+            FROM sr_member_consents
+            WHERE account_id = :account_id
+              AND consent_key = :consent_key
+         ) latest ON latest.max_id = c.id
+         LIMIT 1'
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'consent_key' => $consentKey,
+    ]);
+    $consent = $stmt->fetch();
+
+    return is_array($consent) ? $consent : null;
+}
+
+function sr_member_latest_consents_by_account_ids(PDO $pdo, array $accountIds, string $consentKey): array
+{
+    $consentKey = trim($consentKey);
+    if ($consentKey === '') {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($accountIds as $accountId) {
+        $accountId = (int) $accountId;
+        if ($accountId > 0) {
+            $ids[$accountId] = $accountId;
+        }
+    }
+    if ($ids === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = ['consent_key' => $consentKey];
+    $index = 0;
+    foreach (array_values($ids) as $accountId) {
+        $key = 'account_id_' . (string) $index;
+        $placeholders[] = ':' . $key;
+        $params[$key] = $accountId;
+        $index++;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT c.id, c.account_id, c.consent_key, c.consent_version, c.policy_document_key_snapshot,
+                c.policy_version_key_snapshot, c.policy_document_version_id, c.consent_title_snapshot,
+                c.consent_body_hash, c.consent_required, c.consented, c.ip_address, c.user_agent, c.created_at
+         FROM sr_member_consents c
+         INNER JOIN (
+            SELECT account_id, MAX(id) AS max_id
+            FROM sr_member_consents
+            WHERE consent_key = :consent_key
+              AND account_id IN (' . implode(', ', $placeholders) . ')
+            GROUP BY account_id
+         ) latest ON latest.max_id = c.id
+         ORDER BY c.account_id ASC'
+    );
+    foreach ($params as $paramKey => $paramValue) {
+        $stmt->bindValue($paramKey, $paramValue, is_int($paramValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+
+    $consents = [];
+    foreach ($stmt->fetchAll() as $consent) {
+        if (is_array($consent)) {
+            $consents[(int) ($consent['account_id'] ?? 0)] = $consent;
+        }
+    }
+
+    return $consents;
+}
+
 function sr_member_record_consent_withdrawals(PDO $pdo, int $accountId): int
 {
     $count = 0;

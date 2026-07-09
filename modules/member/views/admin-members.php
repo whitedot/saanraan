@@ -40,6 +40,7 @@ $memberEditWithdrawalAssetSummary = trim((string) ($memberEditWithdrawalAssetWar
 if ($memberEditWithdrawalAssetSummary === '') {
     $memberEditWithdrawalAssetSummary = '없음';
 }
+$memberEditMarketingConsent = isset($memberEditMarketingConsent) && is_array($memberEditMarketingConsent) ? $memberEditMarketingConsent : null;
 $memberEditWithdrawConfirmMessage = sr_admin_member_terminal_status_confirm_message('withdrawn', $memberEditWithdrawalAssetWarning);
 $memberEditAnonymizeConfirmMessage = sr_admin_member_terminal_status_confirm_message('anonymized', $memberEditWithdrawalAssetWarning);
 $memberEditHasActionContext = $memberAdminPage === 'edit_form' && is_array($editMember ?? null);
@@ -92,6 +93,30 @@ $memberAdminProfileExtraFieldHtml = static function (array $definition, array $v
     $html .= '</div></div>';
 
     return $html;
+};
+$memberMarketingConsentBadgeHtml = static function (?array $consent): string {
+    if ($consent === null) {
+        return '<span class="badge badge-outline-secondary">기록 없음</span>';
+    }
+
+    $consented = !empty($consent['consented']);
+    $titleParts = [];
+    $documentTitle = trim((string) ($consent['consent_title_snapshot'] ?? ''));
+    if ($documentTitle !== '') {
+        $titleParts[] = '문서: ' . $documentTitle;
+    }
+    $version = trim((string) ($consent['consent_version'] ?? ''));
+    if ($version !== '') {
+        $titleParts[] = '버전: ' . $version;
+    }
+    $createdAt = trim((string) ($consent['created_at'] ?? ''));
+    if ($createdAt !== '') {
+        $titleParts[] = '기록: ' . $createdAt;
+    }
+
+    return '<span class="badge ' . ($consented ? 'badge-soft-success' : 'badge-soft-danger') . '"' . ($titleParts !== [] ? ' title="' . sr_e(implode(' · ', $titleParts)) . '"' : '') . '>'
+        . sr_e($consented ? '동의' : '미동의')
+        . '</span>';
 };
 $createStatuses = sr_admin_member_create_allowed_statuses();
 $memberLocaleOptions = sr_supported_locales($site ?? null);
@@ -368,6 +393,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </section>
+            <section class="card">
+                <h2>동의 정보</h2>
+                <div class="form-row">
+                    <span class="form-label">마케팅 수신동의</span>
+                    <div class="form-field">
+                        <?php echo $memberMarketingConsentBadgeHtml($memberEditMarketingConsent); ?>
+                        <?php if ($memberEditMarketingConsent === null) { ?>
+                            <small class="form-help">회원 모듈의 최신 marketing 동의 기록이 없습니다.</small>
+                        <?php } else { ?>
+                            <small class="form-help">기록 시각: <?php echo sr_admin_time_html((string) ($memberEditMarketingConsent['created_at'] ?? ''), '-'); ?></small>
+                            <?php if (trim((string) ($memberEditMarketingConsent['consent_title_snapshot'] ?? '')) !== '') { ?>
+                                <small class="form-help">문서: <?php echo sr_e((string) $memberEditMarketingConsent['consent_title_snapshot']); ?></small>
+                            <?php } ?>
+                            <?php if (trim((string) ($memberEditMarketingConsent['consent_version'] ?? '')) !== '') { ?>
+                                <small class="form-help">버전: <?php echo sr_e((string) $memberEditMarketingConsent['consent_version']); ?></small>
+                            <?php } ?>
+                        <?php } ?>
+                    </div>
+                </div>
+            </section>
             <?php if ($memberAdminProfileExtraFieldDefinitions !== []) { ?>
                 <section class="card">
                     <h2>선택 프로필</h2>
@@ -517,20 +562,18 @@ foreach ($allowedStatuses as $status) {
                     <th<?php echo sr_admin_sort_aria('email', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.3b7dbc4c') . ' / ' . sr_t('member::ui.text.4ca2f9ab'), 'email', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('name', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.public_name'), 'name', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <?php if ($memberListShowNicknameColumn) { ?>
-                        <th<?php echo sr_admin_sort_aria('nickname', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.nickname'), 'nickname', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                        <th class="admin-member-mobile-optional"<?php echo sr_admin_sort_aria('nickname', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.nickname'), 'nickname', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <?php } ?>
-                    <th<?php echo sr_admin_sort_aria('status', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
-                    <th<?php echo sr_admin_sort_aria('email_verified_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.email.2f905abd'), 'email_verified_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
-                    <th<?php echo sr_admin_sort_aria('last_login_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.login.677d154e'), 'last_login_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
-                    <th<?php echo sr_admin_sort_aria('active_session_count', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.fda1ae9a'), 'active_session_count', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
-                    <th<?php echo sr_admin_sort_aria('created_at', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.5efd3ddd'), 'created_at', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th class="admin-member-mobile-optional"<?php echo sr_admin_sort_aria('status', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.status.e10195a1'), 'status', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
+                    <th class="admin-member-mobile-optional">마케팅 동의</th>
+                    <th class="admin-member-session-cell"<?php echo sr_admin_sort_aria('active_session_count', $memberSort); ?>><?php echo sr_admin_sort_header_html(sr_t('member::ui.text.fda1ae9a'), 'active_session_count', $memberSort, sr_admin_member_sort_options(), sr_admin_member_default_sort()); ?></th>
                     <th class="text-end"><?php echo sr_e(sr_t('member::ui.text.29ae8f30')); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($members === []) { ?>
                     <tr>
-                        <td colspan="<?php echo $memberListShowNicknameColumn ? '10' : '9'; ?>" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
+                        <td colspan="<?php echo $memberListShowNicknameColumn ? '8' : '7'; ?>" class="admin-empty-state"><?php echo sr_e(sr_t('member::ui.member.d2605064')); ?></td>
                     </tr>
                 <?php } ?>
                 <?php foreach ($members as $member) { ?>
@@ -569,13 +612,17 @@ foreach ($allowedStatuses as $status) {
                             <?php } ?>
                         </td>
                         <?php if ($memberListShowNicknameColumn) { ?>
-                            <td class="admin-table-nowrap"><?php echo sr_e(trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '-'); ?></td>
+                            <td class="admin-table-nowrap admin-member-mobile-optional"><?php echo sr_e(trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '-'); ?></td>
                         <?php } ?>
-                        <td class="admin-table-nowrap"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
-                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_admin_time_html((string) ($member['email_verified_at'] ?? '')); ?></td>
-                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_admin_time_html((string) ($member['last_login_at'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap admin-member-mobile-optional"><span class="admin-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></span></td>
+                        <td class="admin-table-nowrap admin-member-marketing-cell admin-member-mobile-optional">
+                            <?php $memberMarketingConsent = isset($member['marketing_consent']) && is_array($member['marketing_consent']) ? $member['marketing_consent'] : null; ?>
+                            <?php echo $memberMarketingConsentBadgeHtml($memberMarketingConsent); ?>
+                            <?php if ($memberMarketingConsent !== null) { ?>
+                                <span class="admin-member-hash-value"><?php echo sr_admin_time_html((string) ($memberMarketingConsent['created_at'] ?? ''), '-'); ?></span>
+                            <?php } ?>
+                        </td>
                         <td class="admin-table-nowrap admin-member-session-cell"><?php echo sr_e((string) $member['active_session_count']); ?></td>
-                        <td class="admin-table-nowrap admin-member-date-cell"><?php echo sr_admin_time_html((string) $member['created_at']); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
                                 <a href="<?php echo sr_e(sr_url('/admin/members/edit?id=' . rawurlencode((string) $member['id']))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?>"><?php echo sr_material_icon_html('edit'); ?></a>

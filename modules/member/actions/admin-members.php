@@ -93,6 +93,12 @@ $memberPagination = sr_admin_pagination_from_total($pdo, $memberAdminPage === 'm
 $members = $memberAdminPage === 'members'
     ? sr_admin_member_rows_with_public_hash($runtimeConfig, sr_admin_members($pdo, $statusFilter, $searchFilter, (int) $memberPagination['per_page'], sr_admin_pagination_offset($memberPagination), $memberSort))
     : [];
+$memberMarketingConsents = $members !== []
+    ? sr_member_latest_consents_by_account_ids($pdo, array_column($members, 'id'), 'marketing')
+    : [];
+foreach ($members as $memberIndex => $member) {
+    $members[$memberIndex]['marketing_consent'] = $memberMarketingConsents[(int) ($member['id'] ?? 0)] ?? null;
+}
 $memberWithdrawalAssetWarnings = [];
 foreach ($members as $member) {
     $memberAccountId = (int) ($member['id'] ?? 0);
@@ -101,6 +107,7 @@ foreach ($members as $member) {
     }
 }
 $editMember = null;
+$memberEditMarketingConsent = null;
 $memberEditWithdrawalAssetWarning = ['assets' => [], 'lines' => [], 'summary' => ''];
 if ($memberAdminPage === 'edit_form') {
     $editMemberIdValue = sr_get_string('edit_id', 20);
@@ -116,6 +123,7 @@ if ($memberAdminPage === 'edit_form') {
         $memberAdminProfileExtraValues = sr_member_profile_extra_field_plain_values($pdo, (int) $editMember['id']);
     }
     if (is_array($editMember)) {
+        $memberEditMarketingConsent = sr_member_latest_consent($pdo, (int) $editMember['id'], 'marketing');
         $memberEditWithdrawalAssetWarning = sr_admin_member_withdrawal_asset_warning($pdo, (int) $editMember['id']);
     }
     if (!is_array($editMember) && $errors === []) {
