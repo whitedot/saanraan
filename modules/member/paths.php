@@ -25,6 +25,8 @@ return [
     'POST /mypage/privacy' => 'actions/account.php',
     'GET /admin/members' => 'actions/admin-members.php',
     'POST /admin/members' => 'actions/admin-members.php',
+    'GET /admin/members/export' => 'actions/admin-members-export.php',
+    'GET /admin/members/marketing-opt-out-sample' => 'actions/admin-member-marketing-opt-out-sample.php',
     'GET /admin/members/search' => 'actions/admin-member-search.php',
     'GET /admin/members/summary' => 'actions/admin-member-summary.php',
     'GET /admin/members/new' => 'actions/admin-members-new.php',

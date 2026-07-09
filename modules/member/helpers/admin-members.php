@@ -1404,3 +1404,942 @@ function sr_admin_members(PDO $pdo, array $statusFilter, array $searchFilter = [
 
     return $members;
 }
+
+function sr_admin_member_export_limit(): int
+{
+    return 10000;
+}
+
+function sr_admin_member_export_limit_options(): array
+{
+    return [
+        100 => '100건',
+        500 => '500건',
+        1000 => '1,000건',
+        5000 => '5,000건',
+        10000 => '10,000건',
+        65535 => '65,535건 (XLS 최대)',
+    ];
+}
+
+function sr_admin_member_export_limit_from_request(): int
+{
+    $requestedLimit = sr_admin_get_positive_int('export_limit', 10);
+    $allowedLimits = array_keys(sr_admin_member_export_limit_options());
+    if (!in_array($requestedLimit, $allowedLimits, true)) {
+        return sr_admin_member_export_limit();
+    }
+
+    return $requestedLimit;
+}
+
+function sr_admin_member_export_page_from_request(int $totalCount, int $limit): int
+{
+    $totalCount = max(0, $totalCount);
+    $limit = max(1, $limit);
+    $totalPages = max(1, (int) ceil($totalCount / $limit));
+    $requestedPage = sr_admin_get_positive_int('export_page', 10);
+    if ($requestedPage < 1) {
+        return 1;
+    }
+
+    return min($requestedPage, $totalPages);
+}
+
+function sr_admin_member_export_range(int $totalCount, int $limit, int $page): array
+{
+    $totalCount = max(0, $totalCount);
+    $limit = max(1, $limit);
+    $totalPages = max(1, (int) ceil($totalCount / $limit));
+    $page = max(1, min($page, $totalPages));
+    $offset = ($page - 1) * $limit;
+    $count = max(0, min($limit, $totalCount - $offset));
+
+    return [
+        'page' => $page,
+        'total_pages' => $totalPages,
+        'offset' => $offset,
+        'count' => $count,
+        'start' => $count > 0 ? $offset + 1 : 0,
+        'end' => $count > 0 ? $offset + $count : 0,
+        'has_previous' => $page > 1,
+        'has_next' => $page < $totalPages,
+    ];
+}
+
+function sr_admin_member_export_column_definitions(): array
+{
+    return [
+        'sequence' => ['label' => '순번'],
+        'public_hash' => ['label' => '공개 해시'],
+        'email' => ['label' => '이메일'],
+        'public_name' => ['label' => '공개 이름'],
+        'nickname' => ['label' => '닉네임'],
+        'locale' => ['label' => '언어'],
+        'status' => ['label' => '상태'],
+        'created_at' => ['label' => '가입일'],
+        'birth_date' => ['label' => '생년월일'],
+        'is_adult' => ['label' => '성인여부'],
+        'marketing_consent' => ['label' => '마케팅 동의'],
+        'groups' => ['label' => '소속그룹'],
+        'oauth_providers' => ['label' => 'OAuth 제공자'],
+        'point_balance' => ['label' => '포인트'],
+        'reward_balance' => ['label' => '적립금'],
+        'deposit_balance' => ['label' => '예치금'],
+        'coupon_count' => ['label' => '쿠폰'],
+    ];
+}
+
+function sr_admin_member_export_default_columns(): array
+{
+    return [
+        'sequence',
+        'public_hash',
+        'email',
+        'public_name',
+        'nickname',
+        'status',
+        'marketing_consent',
+    ];
+}
+
+function sr_admin_member_export_column_config_from_request(): array
+{
+    $definitions = sr_admin_member_export_column_definitions();
+    $defaultOrder = sr_admin_member_export_default_columns();
+    $postedOrder = $_GET['export_column'] ?? [];
+    $postedSelected = $_GET['export_column_enabled'] ?? [];
+    $hasPostedConfig = array_key_exists('export_columns_configured', $_GET);
+
+    if (!is_array($postedOrder)) {
+        $postedOrder = [];
+    }
+    if (!is_array($postedSelected)) {
+        $postedSelected = [];
+    }
+
+    $order = [];
+    foreach ($postedOrder as $columnKey) {
+        $columnKey = (string) $columnKey;
+        if (array_key_exists($columnKey, $definitions) && !in_array($columnKey, $order, true)) {
+            $order[] = $columnKey;
+        }
+    }
+    if ($order === [] && !$hasPostedConfig) {
+        $order = $defaultOrder;
+    }
+
+    $selectedMap = [];
+    foreach ($postedSelected as $columnKey) {
+        $columnKey = (string) $columnKey;
+        if (array_key_exists($columnKey, $definitions)) {
+            $selectedMap[$columnKey] = true;
+        }
+    }
+
+    $selected = [];
+    if (!$hasPostedConfig) {
+        $selected = $defaultOrder;
+    } elseif ($postedSelected === []) {
+        $selected = $order;
+    } else {
+        foreach ($order as $columnKey) {
+            if (!empty($selectedMap[$columnKey])) {
+                $selected[] = $columnKey;
+            }
+        }
+    }
+
+    return [
+        'definitions' => $definitions,
+        'order' => $order,
+        'selected' => $selected,
+    ];
+}
+
+function sr_admin_member_export_column_labels(array $columnKeys): array
+{
+    $definitions = sr_admin_member_export_column_definitions();
+    $labels = [];
+    foreach ($columnKeys as $columnKey) {
+        $columnKey = (string) $columnKey;
+        if (isset($definitions[$columnKey])) {
+            $labels[] = (string) ($definitions[$columnKey]['label'] ?? $columnKey);
+        }
+    }
+
+    return $labels;
+}
+
+function sr_admin_member_export_table_exists(PDO $pdo, string $tableName): bool
+{
+    static $cache = [];
+    if (!preg_match('/\\A[a-zA-Z0-9_]+\\z/', $tableName)) {
+        return false;
+    }
+    if (array_key_exists($tableName, $cache)) {
+        return $cache[$tableName];
+    }
+
+    try {
+        $pdo->query('SELECT 1 FROM ' . $tableName . ' LIMIT 1');
+        $cache[$tableName] = true;
+    } catch (Throwable) {
+        $cache[$tableName] = false;
+    }
+
+    return $cache[$tableName];
+}
+
+function sr_admin_member_export_context(PDO $pdo, array $accountIds, array $columnKeys): array
+{
+    $accountIds = array_values(array_unique(array_filter(array_map('intval', $accountIds), static function (int $accountId): bool {
+        return $accountId > 0;
+    })));
+    $context = [
+        'profiles' => [],
+        'groups' => [],
+        'oauth_providers' => [],
+        'point_balance' => [],
+        'reward_balance' => [],
+        'deposit_balance' => [],
+        'coupon_count' => [],
+    ];
+    if ($accountIds === []) {
+        return $context;
+    }
+
+    $needs = array_fill_keys(array_map('strval', $columnKeys), true);
+    [$accountCondition, $accountParams] = sr_admin_sql_in_condition('account_id', 'member_export_account', $accountIds);
+
+    if ((isset($needs['birth_date']) || isset($needs['is_adult'])) && sr_admin_member_export_table_exists($pdo, 'sr_member_profiles')) {
+        $stmt = $pdo->prepare('SELECT account_id, birth_date, is_adult FROM sr_member_profiles WHERE ' . $accountCondition);
+        $stmt->execute($accountParams);
+        foreach ($stmt->fetchAll() as $row) {
+            $context['profiles'][(int) ($row['account_id'] ?? 0)] = $row;
+        }
+    }
+
+    if (isset($needs['groups']) && sr_member_groups_table_exists($pdo)) {
+        $stmt = $pdo->prepare(
+            'SELECT m.account_id, g.title
+             FROM sr_member_group_memberships m
+             INNER JOIN sr_member_groups g ON g.id = m.group_id
+             WHERE ' . $accountCondition . "
+               AND m.status = 'active'
+             ORDER BY m.account_id ASC, g.sort_order ASC, g.id ASC"
+        );
+        $stmt->execute($accountParams);
+        foreach ($stmt->fetchAll() as $row) {
+            $accountId = (int) ($row['account_id'] ?? 0);
+            if ($accountId > 0) {
+                $context['groups'][$accountId][] = (string) ($row['title'] ?? '');
+            }
+        }
+    }
+
+    if (isset($needs['oauth_providers']) && sr_admin_member_export_table_exists($pdo, 'sr_member_oauth_accounts')) {
+        $stmt = $pdo->prepare(
+            'SELECT account_id, provider_key
+             FROM sr_member_oauth_accounts
+             WHERE ' . $accountCondition . '
+               AND revoked_at IS NULL
+             ORDER BY account_id ASC, provider_key ASC'
+        );
+        $stmt->execute($accountParams);
+        foreach ($stmt->fetchAll() as $row) {
+            $accountId = (int) ($row['account_id'] ?? 0);
+            if ($accountId > 0) {
+                $context['oauth_providers'][$accountId][] = (string) ($row['provider_key'] ?? '');
+            }
+        }
+    }
+
+    foreach ([
+        'point_balance' => 'sr_point_balances',
+        'reward_balance' => 'sr_reward_balances',
+        'deposit_balance' => 'sr_deposit_balances',
+    ] as $contextKey => $tableName) {
+        if (!isset($needs[$contextKey]) || !sr_admin_member_export_table_exists($pdo, $tableName)) {
+            continue;
+        }
+        $stmt = $pdo->prepare('SELECT account_id, balance FROM ' . $tableName . ' WHERE ' . $accountCondition);
+        $stmt->execute($accountParams);
+        foreach ($stmt->fetchAll() as $row) {
+            $context[$contextKey][(int) ($row['account_id'] ?? 0)] = (int) ($row['balance'] ?? 0);
+        }
+    }
+
+    if (isset($needs['coupon_count']) && sr_admin_member_export_table_exists($pdo, 'sr_coupon_issues')) {
+        $stmt = $pdo->prepare(
+            'SELECT account_id, COUNT(*) AS count_value
+             FROM sr_coupon_issues
+             WHERE ' . $accountCondition . "
+               AND status = 'active'
+               AND (expires_at IS NULL OR expires_at >= :now)
+             GROUP BY account_id"
+        );
+        $couponParams = $accountParams;
+        $couponParams['now'] = sr_now();
+        $stmt->execute($couponParams);
+        foreach ($stmt->fetchAll() as $row) {
+            $context['coupon_count'][(int) ($row['account_id'] ?? 0)] = (int) ($row['count_value'] ?? 0);
+        }
+    }
+
+    return $context;
+}
+
+function sr_admin_member_export_row_values(array $columnKeys, array $member, array $marketingValues, array $context = []): array
+{
+    $values = [];
+    $accountId = (int) ($member['id'] ?? 0);
+    foreach ($columnKeys as $columnKey) {
+        switch ((string) $columnKey) {
+            case 'sequence':
+                $values[] = (string) (int) ($context['sequence'] ?? 0);
+                break;
+            case 'public_hash':
+                $values[] = (string) ($member['account_public_hash'] ?? '');
+                break;
+            case 'email':
+                $values[] = sr_admin_member_email_display($member);
+                break;
+            case 'public_name':
+                $values[] = sr_admin_member_display_name_preview($member);
+                break;
+            case 'nickname':
+                $values[] = trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '';
+                break;
+            case 'locale':
+                $values[] = (string) ($member['locale'] ?? '');
+                break;
+            case 'status':
+                $values[] = sr_admin_code_label((string) ($member['status'] ?? ''), 'member_status');
+                break;
+            case 'created_at':
+                $values[] = (string) ($member['created_at'] ?? '');
+                break;
+            case 'birth_date':
+                $profile = $context['profiles'][$accountId] ?? [];
+                $values[] = is_array($profile) ? (string) ($profile['birth_date'] ?? '') : '';
+                break;
+            case 'is_adult':
+                $profile = $context['profiles'][$accountId] ?? [];
+                if (!is_array($profile) || !array_key_exists('is_adult', $profile) || $profile['is_adult'] === null) {
+                    $values[] = '';
+                } else {
+                    $values[] = (int) $profile['is_adult'] === 1 ? '예' : '아니오';
+                }
+                break;
+            case 'marketing_consent':
+                $values[] = (string) ($marketingValues['status'] ?? '');
+                break;
+            case 'groups':
+                $groups = $context['groups'][$accountId] ?? [];
+                $groups = is_array($groups) ? array_values(array_filter(array_map('strval', $groups), static function (string $value): bool {
+                    return $value !== '';
+                })) : [];
+                $values[] = implode(', ', $groups);
+                break;
+            case 'oauth_providers':
+                $providers = $context['oauth_providers'][$accountId] ?? [];
+                $providers = is_array($providers) ? array_values(array_filter(array_map('strval', $providers), static function (string $value): bool {
+                    return $value !== '';
+                })) : [];
+                $values[] = implode(', ', array_unique($providers));
+                break;
+            case 'point_balance':
+                $values[] = (string) (int) ($context['point_balance'][$accountId] ?? 0);
+                break;
+            case 'reward_balance':
+                $values[] = (string) (int) ($context['reward_balance'][$accountId] ?? 0);
+                break;
+            case 'deposit_balance':
+                $values[] = (string) (int) ($context['deposit_balance'][$accountId] ?? 0);
+                break;
+            case 'coupon_count':
+                $values[] = (string) (int) ($context['coupon_count'][$accountId] ?? 0);
+                break;
+        }
+    }
+
+    return $values;
+}
+
+function sr_admin_member_csv_cell(mixed $value): string
+{
+    $value = (string) $value;
+    if ($value !== '' && in_array($value[0], ['=', '+', '-', '@'], true)) {
+        return "'" . $value;
+    }
+
+    return $value;
+}
+
+function sr_admin_member_csv_row($output, array $row): void
+{
+    fputcsv($output, array_map('sr_admin_member_csv_cell', $row));
+}
+
+function sr_admin_member_marketing_consent_export_values(?array $consent): array
+{
+    if ($consent === null) {
+        return [
+            'status' => '기록 없음',
+            'created_at' => '',
+            'document_title' => '',
+            'version' => '',
+        ];
+    }
+
+    return [
+        'status' => !empty($consent['consented']) ? '동의' : '미동의',
+        'created_at' => (string) ($consent['created_at'] ?? ''),
+        'document_title' => (string) ($consent['consent_title_snapshot'] ?? ''),
+        'version' => (string) ($consent['consent_version'] ?? ''),
+    ];
+}
+
+function sr_admin_member_marketing_opt_out_upload_limit(): int
+{
+    return 5000;
+}
+
+function sr_admin_member_marketing_opt_out_sample_rows(): array
+{
+    return [
+        ['email'],
+        ['sample@example.com'],
+    ];
+}
+
+function sr_admin_member_marketing_opt_out_parse_upload(array $file, int $limit): array
+{
+    $errors = [];
+    $rows = [];
+    $truncated = false;
+    $uploadError = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        return [
+            'errors' => ['수신거부 명단 파일을 선택하세요.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $tmpName = (string) ($file['tmp_name'] ?? '');
+    if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+        return [
+            'errors' => ['업로드된 파일을 확인할 수 없습니다.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $name = (string) ($file['name'] ?? '');
+    $extension = strtolower((string) pathinfo($name, PATHINFO_EXTENSION));
+    if ($extension === 'csv') {
+        $parsed = sr_admin_member_marketing_opt_out_parse_csv($tmpName, $limit);
+    } elseif ($extension === 'xlsx') {
+        $parsed = sr_admin_member_marketing_opt_out_parse_xlsx($tmpName, $limit);
+    } else {
+        $parsed = [
+            'errors' => ['CSV 또는 XLSX 파일만 업로드할 수 있습니다.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $errors = array_merge($errors, (array) ($parsed['errors'] ?? []));
+    $rows = isset($parsed['rows']) && is_array($parsed['rows']) ? $parsed['rows'] : [];
+    $truncated = !empty($parsed['truncated']);
+
+    return [
+        'errors' => $errors,
+        'rows' => $rows,
+        'truncated' => $truncated,
+    ];
+}
+
+function sr_admin_member_marketing_opt_out_parse_csv(string $path, int $limit): array
+{
+    $handle = fopen($path, 'rb');
+    if ($handle === false) {
+        return [
+            'errors' => ['CSV 파일을 읽을 수 없습니다.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $rows = [];
+    $truncated = false;
+    while (($row = fgetcsv($handle)) !== false) {
+        if (count($rows) >= $limit + 1) {
+            $truncated = true;
+            break;
+        }
+        $rows[] = array_map(static function ($value): string {
+            return trim((string) $value);
+        }, $row);
+    }
+    fclose($handle);
+
+    return [
+        'errors' => [],
+        'rows' => $rows,
+        'truncated' => $truncated,
+    ];
+}
+
+function sr_admin_member_marketing_opt_out_parse_xlsx(string $path, int $limit): array
+{
+    if (!class_exists('ZipArchive') || !function_exists('simplexml_load_string')) {
+        return [
+            'errors' => ['현재 PHP 환경에서 XLSX 파일을 처리할 수 없습니다. CSV로 업로드하세요.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $zip = new ZipArchive();
+    if ($zip->open($path) !== true) {
+        return [
+            'errors' => ['XLSX 파일을 열 수 없습니다.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $sharedStrings = sr_admin_member_marketing_opt_out_xlsx_shared_strings($zip);
+    $sheetPath = sr_admin_member_marketing_opt_out_xlsx_first_sheet_path($zip);
+    $sheetXml = $sheetPath !== '' ? $zip->getFromName($sheetPath) : false;
+    if ($sheetXml === false) {
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+    }
+    if ($sheetXml === false) {
+        $zip->close();
+        return [
+            'errors' => ['XLSX 첫 번째 시트를 읽을 수 없습니다.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $xml = simplexml_load_string($sheetXml);
+    if (!$xml instanceof SimpleXMLElement) {
+        $zip->close();
+        return [
+            'errors' => ['XLSX 시트 형식이 올바르지 않습니다.'],
+            'rows' => [],
+            'truncated' => false,
+        ];
+    }
+
+    $rows = [];
+    $truncated = false;
+    foreach ($xml->sheetData->row as $rowNode) {
+        if (count($rows) >= $limit + 1) {
+            $truncated = true;
+            break;
+        }
+        $row = [];
+        foreach ($rowNode->c as $cellNode) {
+            $cellRef = (string) ($cellNode['r'] ?? '');
+            $cellIndex = sr_admin_member_marketing_opt_out_xlsx_cell_index($cellRef);
+            if ($cellIndex < 0) {
+                $cellIndex = count($row);
+            }
+            while (count($row) < $cellIndex) {
+                $row[] = '';
+            }
+            $row[$cellIndex] = sr_admin_member_marketing_opt_out_xlsx_cell_value($cellNode, $sharedStrings);
+        }
+        $rows[] = $row;
+    }
+    $zip->close();
+
+    return [
+        'errors' => [],
+        'rows' => $rows,
+        'truncated' => $truncated,
+    ];
+}
+
+function sr_admin_member_marketing_opt_out_xlsx_shared_strings(ZipArchive $zip): array
+{
+    $xmlString = $zip->getFromName('xl/sharedStrings.xml');
+    if ($xmlString === false) {
+        return [];
+    }
+
+    $xml = simplexml_load_string($xmlString);
+    if (!$xml instanceof SimpleXMLElement) {
+        return [];
+    }
+
+    $strings = [];
+    foreach ($xml->si as $item) {
+        $parts = [];
+        if (isset($item->t)) {
+            $parts[] = (string) $item->t;
+        }
+        foreach ($item->r as $run) {
+            if (isset($run->t)) {
+                $parts[] = (string) $run->t;
+            }
+        }
+        $strings[] = implode('', $parts);
+    }
+
+    return $strings;
+}
+
+function sr_admin_member_marketing_opt_out_xlsx_first_sheet_path(ZipArchive $zip): string
+{
+    $workbookXml = $zip->getFromName('xl/workbook.xml');
+    $relsXml = $zip->getFromName('xl/_rels/workbook.xml.rels');
+    if ($workbookXml === false || $relsXml === false) {
+        return '';
+    }
+
+    $workbook = simplexml_load_string($workbookXml);
+    $rels = simplexml_load_string($relsXml);
+    if (!$workbook instanceof SimpleXMLElement || !$rels instanceof SimpleXMLElement) {
+        return '';
+    }
+
+    $namespaces = $workbook->getNamespaces(true);
+    $relationshipNamespace = (string) ($namespaces['r'] ?? 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
+    $firstRelationshipId = '';
+    foreach ($workbook->sheets->sheet as $sheet) {
+        $attributes = $sheet->attributes($relationshipNamespace);
+        $firstRelationshipId = (string) ($attributes['id'] ?? '');
+        if ($firstRelationshipId !== '') {
+            break;
+        }
+    }
+    if ($firstRelationshipId === '') {
+        return '';
+    }
+
+    foreach ($rels->Relationship as $relationship) {
+        if ((string) ($relationship['Id'] ?? '') !== $firstRelationshipId) {
+            continue;
+        }
+        $target = ltrim((string) ($relationship['Target'] ?? ''), '/');
+        if ($target === '') {
+            return '';
+        }
+        return str_starts_with($target, 'xl/') ? $target : 'xl/' . $target;
+    }
+
+    return '';
+}
+
+function sr_admin_member_marketing_opt_out_xlsx_cell_index(string $cellRef): int
+{
+    if (preg_match('/\A([A-Z]+)[0-9]+\z/i', $cellRef, $matches) !== 1) {
+        return -1;
+    }
+
+    $letters = strtoupper($matches[1]);
+    $index = 0;
+    for ($i = 0, $length = strlen($letters); $i < $length; $i++) {
+        $index = ($index * 26) + (ord($letters[$i]) - 64);
+    }
+
+    return $index - 1;
+}
+
+function sr_admin_member_marketing_opt_out_xlsx_cell_value(SimpleXMLElement $cell, array $sharedStrings): string
+{
+    $type = (string) ($cell['t'] ?? '');
+    if ($type === 'inlineStr') {
+        return trim((string) ($cell->is->t ?? ''));
+    }
+
+    $value = trim((string) ($cell->v ?? ''));
+    if ($type === 's') {
+        $index = preg_match('/\A[0-9]+\z/', $value) === 1 ? (int) $value : -1;
+        return trim((string) ($sharedStrings[$index] ?? ''));
+    }
+
+    return $value;
+}
+
+function sr_admin_member_marketing_opt_out_identifier_rows(array $rows): array
+{
+    $header = [];
+    $headerRowIndex = -1;
+    foreach ($rows as $index => $row) {
+        $row = array_map('strval', is_array($row) ? $row : []);
+        $nonEmpty = array_filter($row, static function (string $value): bool {
+            return trim($value) !== '';
+        });
+        if ($nonEmpty !== []) {
+            $header = $row;
+            $headerRowIndex = (int) $index;
+            break;
+        }
+    }
+
+    if ($headerRowIndex < 0) {
+        return [
+            'errors' => ['업로드 파일에 처리할 행이 없습니다.'],
+            'items' => [],
+        ];
+    }
+
+    $headerMap = sr_admin_member_marketing_opt_out_header_map($header);
+    if ($headerMap === []) {
+        return [
+            'errors' => ['첫 행에 email, public_hash, login_id, account_id 중 하나의 컬럼명을 넣어 주세요.'],
+            'items' => [],
+        ];
+    }
+
+    $items = [];
+    $rowNumber = 0;
+    foreach ($rows as $index => $row) {
+        if ($index <= $headerRowIndex) {
+            continue;
+        }
+        $rowNumber = $index + 1;
+        $row = array_map('strval', is_array($row) ? $row : []);
+        $item = sr_admin_member_marketing_opt_out_identifier_from_row($row, $headerMap);
+        if ($item === null) {
+            continue;
+        }
+        $item['row'] = $rowNumber;
+        $items[] = $item;
+    }
+
+    if ($items === []) {
+        return [
+            'errors' => ['수신거부 처리할 회원 식별자가 없습니다.'],
+            'items' => [],
+        ];
+    }
+
+    return [
+        'errors' => [],
+        'items' => $items,
+    ];
+}
+
+function sr_admin_member_marketing_opt_out_header_map(array $header): array
+{
+    $aliases = [
+        'email' => ['email', 'emailaddress', '이메일', '메일', '전자우편'],
+        'hash' => ['publichash', 'hash', 'accounthash', 'memberhash', '공개해시', '회원해시', '회원공개해시'],
+        'login_id' => ['loginid', 'login_id', '아이디', '로그인id', '로그인아이디', '로그인ID'],
+        'account_id' => ['accountid', 'account_id', 'id', 'memberid'],
+    ];
+
+    $map = [];
+    foreach ($header as $index => $label) {
+        $normalized = sr_admin_member_marketing_opt_out_header_key((string) $label);
+        if ($normalized === '') {
+            continue;
+        }
+        foreach ($aliases as $field => $fieldAliases) {
+            if (in_array($normalized, array_map('sr_admin_member_marketing_opt_out_header_key', $fieldAliases), true)) {
+                $map[$field] = (int) $index;
+            }
+        }
+    }
+
+    return $map;
+}
+
+function sr_admin_member_marketing_opt_out_header_key(string $value): string
+{
+    $value = preg_replace('/^\xEF\xBB\xBF/', '', $value) ?? $value;
+    $value = strtolower(trim($value));
+    $value = preg_replace('/[\s\-\(\)\[\]\/\.]+/u', '', $value) ?? $value;
+
+    return $value;
+}
+
+function sr_admin_member_marketing_opt_out_identifier_from_row(array $row, array $headerMap): ?array
+{
+    foreach (['email', 'hash', 'login_id', 'account_id'] as $field) {
+        if (!isset($headerMap[$field])) {
+            continue;
+        }
+        $value = trim((string) ($row[(int) $headerMap[$field]] ?? ''));
+        if ($value === '') {
+            continue;
+        }
+
+        return [
+            'field' => $field,
+            'value' => $value,
+        ];
+    }
+
+    return null;
+}
+
+function sr_admin_member_marketing_opt_out_consent_snapshot(PDO $pdo): array
+{
+    $settings = sr_member_settings($pdo);
+    $specs = sr_member_registration_policy_document_specs($settings);
+    $documentKey = (string) ($specs['marketing']['document_key'] ?? '');
+    $snapshot = $documentKey !== '' ? sr_member_registration_policy_document_snapshot($pdo, $documentKey) : null;
+    if (is_array($snapshot)) {
+        $snapshot['required'] = false;
+        return [
+            'version' => (string) (int) ($snapshot['version_id'] ?? 0),
+            'snapshot' => $snapshot,
+        ];
+    }
+
+    return [
+        'version' => 'admin-opt-out',
+        'snapshot' => [
+            'document_key' => $documentKey,
+            'title' => '관리자 수신거부 업로드',
+            'body_hash' => '',
+            'required' => false,
+        ],
+    ];
+}
+
+function sr_admin_handle_member_marketing_opt_out_upload_post(PDO $pdo, array $account, array $config): array
+{
+    $limit = sr_admin_member_marketing_opt_out_upload_limit();
+    $file = isset($_FILES['marketing_opt_out_file']) && is_array($_FILES['marketing_opt_out_file']) ? $_FILES['marketing_opt_out_file'] : [];
+    $parsed = sr_admin_member_marketing_opt_out_parse_upload($file, $limit);
+    $errors = isset($parsed['errors']) && is_array($parsed['errors']) ? $parsed['errors'] : [];
+    if ($errors !== []) {
+        return sr_admin_action_result($errors, '');
+    }
+
+    $identifierResult = sr_admin_member_marketing_opt_out_identifier_rows((array) ($parsed['rows'] ?? []));
+    $errors = isset($identifierResult['errors']) && is_array($identifierResult['errors']) ? $identifierResult['errors'] : [];
+    if ($errors !== []) {
+        return sr_admin_action_result($errors, '');
+    }
+
+    $items = isset($identifierResult['items']) && is_array($identifierResult['items']) ? $identifierResult['items'] : [];
+    $summary = [
+        'uploaded_rows' => count($items),
+        'matched_count' => 0,
+        'updated_count' => 0,
+        'already_opted_out_count' => 0,
+        'duplicate_count' => 0,
+        'not_found_count' => 0,
+        'invalid_count' => 0,
+        'truncated' => !empty($parsed['truncated']),
+        'limit' => $limit,
+    ];
+
+    $accountIds = [];
+    $seenAccountIds = [];
+    foreach ($items as $item) {
+        $field = (string) ($item['field'] ?? '');
+        $value = trim((string) ($item['value'] ?? ''));
+        if ($value === '') {
+            $summary['invalid_count']++;
+            continue;
+        }
+
+        if ($field === 'account_id' && preg_match('/\A[1-9][0-9]*\z/', $value) !== 1) {
+            $summary['invalid_count']++;
+            continue;
+        }
+
+        $lookupField = $field === 'account_id' ? 'hash' : $field;
+        $accountId = sr_admin_member_account_id_from_lookup($pdo, $config, $lookupField, $value);
+        if ($accountId <= 0) {
+            $summary['not_found_count']++;
+            continue;
+        }
+
+        $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $accountId]);
+        if (!is_array($stmt->fetch())) {
+            $summary['not_found_count']++;
+            continue;
+        }
+
+        if (isset($seenAccountIds[$accountId])) {
+            $summary['duplicate_count']++;
+            continue;
+        }
+        $seenAccountIds[$accountId] = true;
+        $accountIds[] = $accountId;
+    }
+
+    if ($accountIds === []) {
+        return sr_admin_action_result(['매칭된 회원이 없습니다.'], '', ['marketing_opt_out' => $summary]);
+    }
+
+    $summary['matched_count'] = count($accountIds);
+    $latestConsents = sr_member_latest_consents_by_account_ids($pdo, $accountIds, 'marketing');
+    $consentData = sr_admin_member_marketing_opt_out_consent_snapshot($pdo);
+    try {
+        $pdo->beginTransaction();
+        foreach ($accountIds as $accountId) {
+            $latestConsent = $latestConsents[$accountId] ?? null;
+            if (is_array($latestConsent) && empty($latestConsent['consented'])) {
+                $summary['already_opted_out_count']++;
+                continue;
+            }
+
+            sr_member_record_consent(
+                $pdo,
+                $accountId,
+                'marketing',
+                (string) ($consentData['version'] ?? 'admin-opt-out'),
+                false,
+                is_array($consentData['snapshot'] ?? null) ? $consentData['snapshot'] : []
+            );
+            $summary['updated_count']++;
+        }
+        $pdo->commit();
+    } catch (Throwable) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        sr_audit_log($pdo, [
+            'actor_account_id' => (int) ($account['id'] ?? 0),
+            'actor_type' => 'admin',
+            'event_type' => 'member.marketing_opt_out.imported',
+            'target_type' => 'member_account',
+            'target_id' => 'batch',
+            'result' => 'failure',
+            'message' => 'Member marketing opt-out import failed.',
+            'metadata' => $summary,
+        ]);
+
+        return sr_admin_action_result(['수신거부 명단을 처리하지 못했습니다.'], '', ['marketing_opt_out' => $summary]);
+    }
+
+    sr_audit_log($pdo, [
+        'actor_account_id' => (int) ($account['id'] ?? 0),
+        'actor_type' => 'admin',
+        'event_type' => 'member.marketing_opt_out.imported',
+        'target_type' => 'member_account',
+        'target_id' => 'batch',
+        'result' => 'success',
+        'message' => 'Member marketing opt-out import completed.',
+        'metadata' => $summary,
+    ]);
+
+    $notice = '수신거부 명단을 처리했습니다. 거부 처리 ' . (string) $summary['updated_count'] . '명';
+    if ($summary['already_opted_out_count'] > 0) {
+        $notice .= ', 이미 거부 ' . (string) $summary['already_opted_out_count'] . '명';
+    }
+    if ($summary['not_found_count'] > 0 || $summary['invalid_count'] > 0 || $summary['duplicate_count'] > 0) {
+        $notice .= ', 제외 ' . (string) ($summary['not_found_count'] + $summary['invalid_count'] + $summary['duplicate_count']) . '건';
+    }
+    if (!empty($summary['truncated'])) {
+        $notice .= ', 최대 ' . (string) $limit . '건까지만 반영';
+    }
+
+    return sr_admin_action_result([], $notice, ['marketing_opt_out' => $summary]);
+}

@@ -54,6 +54,8 @@ $memberEditCanSuspend = $memberEditHasActionContext && !in_array($memberEditStat
 $memberEditCanWithdraw = $memberEditHasActionContext && !in_array($memberEditStatus, $memberTerminalStatuses, true);
 $memberEditCanAnonymize = $memberEditHasActionContext && $memberEditStatus !== 'anonymized';
 $memberEditCanEvaluateGroups = $memberEditHasActionContext && !in_array($memberEditStatus, $memberTerminalStatuses, true);
+$memberMarketingOptOutModalId = 'member-marketing-opt-out-modal';
+$memberMarketingOptOutUploadLimit = sr_admin_member_marketing_opt_out_upload_limit();
 $memberAdminProfileExtraFieldHtml = static function (array $definition, array $values): string {
     $key = (string) ($definition['key'] ?? '');
     if ($key === '') {
@@ -529,7 +531,11 @@ foreach ($allowedStatuses as $status) {
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.member.list.d8e6279a')); ?></h2>
-        <a href="<?php echo sr_e(sr_url('/admin/members/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('member::ui.member.9df41111')); ?></a>
+        <div class="admin-row-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($memberMarketingOptOutModalId); ?>" data-overlay="#<?php echo sr_e($memberMarketingOptOutModalId); ?>"><?php echo sr_material_icon_html('unsubscribe'); ?><span>수신거부</span></button>
+            <a href="<?php echo sr_e(sr_url('/admin/members/export')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_material_icon_html('download'); ?><span>CSV 다운로드</span></a>
+            <a href="<?php echo sr_e(sr_url('/admin/members/new')); ?>" class="btn btn-sm btn-outline-secondary"><?php echo sr_e(sr_t('member::ui.member.9df41111')); ?></a>
+        </div>
     </div>
     <div class="admin-list-summary-row">
         <?php if (empty($memberSort['is_default'])) { ?>
@@ -580,7 +586,6 @@ foreach ($allowedStatuses as $status) {
                     <?php
                     $memberStatus = (string) $member['status'];
                     $memberWithdrawalAssetWarning = $memberWithdrawalAssetWarnings[(int) ($member['id'] ?? 0)] ?? ['assets' => [], 'lines' => [], 'summary' => ''];
-                    $memberWithdrawalAssetLines = isset($memberWithdrawalAssetWarning['lines']) && is_array($memberWithdrawalAssetWarning['lines']) ? $memberWithdrawalAssetWarning['lines'] : [];
                     $memberWithdrawalAssetSummary = trim((string) ($memberWithdrawalAssetWarning['summary'] ?? ''));
                     if ($memberWithdrawalAssetSummary === '') {
                         $memberWithdrawalAssetSummary = '없음';
@@ -605,11 +610,6 @@ foreach ($allowedStatuses as $status) {
                         </td>
                         <td class="admin-table-nowrap">
                             <?php echo sr_e(sr_admin_member_display_name_preview($member)); ?>
-                            <?php if ($memberWithdrawalAssetLines !== []) { ?>
-                                <span class="admin-member-hash-value">자산: <?php echo sr_e($memberWithdrawalAssetSummary); ?></span>
-                            <?php } elseif (!empty($memberWithdrawalAssetWarning['lookup_failed'])) { ?>
-                                <span class="admin-member-hash-value">자산: <?php echo sr_e($memberWithdrawalAssetSummary); ?></span>
-                            <?php } ?>
                         </td>
                         <?php if ($memberListShowNicknameColumn) { ?>
                             <td class="admin-table-nowrap admin-member-mobile-optional"><?php echo sr_e(trim((string) ($member['nickname'] ?? '')) !== '' ? (string) $member['nickname'] : '-'); ?></td>
@@ -713,6 +713,37 @@ foreach ($allowedStatuses as $status) {
             </div>
         </div>
     <?php } ?>
+    <div id="<?php echo sr_e($memberMarketingOptOutModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($memberMarketingOptOutModalId); ?>-title" aria-hidden="true" inert>
+        <div class="modal-dialog modal-dialog-lg">
+            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" class="modal-content ui-form-theme" enctype="multipart/form-data" data-sr-validate-form>
+                <div class="modal-header">
+                    <h3 id="<?php echo sr_e($memberMarketingOptOutModalId); ?>-title" class="modal-title">마케팅 수신거부 명단 업데이트</h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($memberMarketingOptOutModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
+                </div>
+                <div class="modal-body">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
+                    <input type="hidden" name="intent" value="marketing_opt_out_upload">
+                    <div class="alert alert-info">
+                        CSV 또는 XLSX 파일의 회원 식별자를 기준으로 마케팅 수신동의를 거부 상태로 기록합니다. 기존에 동의한 회원도 최신 동의 상태가 미동의로 바뀝니다.
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label" for="member_marketing_opt_out_file">명단 파일 <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                        <div class="form-field">
+                            <input id="member_marketing_opt_out_file" type="file" name="marketing_opt_out_file" class="form-input form-control-full" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required data-overlay-focus>
+                            <p class="form-help">첫 행에는 email, public_hash, login_id, account_id 중 하나의 컬럼명이 필요합니다.</p>
+                            <p class="form-help">한 번에 최대 <?php echo sr_e((string) $memberMarketingOptOutUploadLimit); ?>건까지 처리합니다. 초과 행은 제외되고 처리 결과에 표시됩니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="<?php echo sr_e(sr_url('/admin/members/marketing-opt-out-sample')); ?>" class="btn btn-solid-light modal-action"><?php echo sr_material_icon_html('download'); ?><span>샘플 CSV</span></a>
+                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($memberMarketingOptOutModalId); ?>">닫기</button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_material_icon_html('unsubscribe'); ?><span>수신거부 처리</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('member::ui.edit.3537f0cc')); ?></span>
         <?php if ($memberMessageWriteAvailable) { ?>

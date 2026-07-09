@@ -25,6 +25,16 @@
 .admin-page-member-list .admin-member-table thead th:nth-child(2),.admin-page-member-list .admin-member-table thead th:nth-child(3),.admin-page-member-list .admin-member-table thead th:nth-child(4),.admin-page-member-list .admin-member-table thead th:nth-child(5),.admin-page-member-list .admin-member-table thead th:nth-child(6),.admin-page-member-list .admin-member-table thead th:nth-child(7){width:1%}
 .admin-page-member-list .admin-member-session-cell{text-align:center}
 .admin-page-member-list .admin-member-table .admin-row-actions{gap:.5rem}
+.admin-page-member-export .card-footer{justify-content:flex-end}
+.admin-page-member-export .admin-member-export-primary-actions{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);justify-content:flex-end;margin-left:auto}
+.admin-page-member-export .admin-member-export-column-list{display:grid;gap:calc(var(--spacing) * 2);width:100%}
+.admin-page-member-export .admin-member-export-column-row{align-items:center;display:grid;gap:calc(var(--spacing) * 1.5);grid-template-columns:max-content minmax(0,1fr) max-content;width:100%}
+.admin-page-member-export .admin-member-export-column-move:disabled{opacity:.38;pointer-events:none}
+.admin-page-member-export .admin-member-export-column-select{min-width:0;width:100%}
+.admin-page-member-export .admin-member-export-column-actions-cell{align-items:center;display:inline-flex;justify-content:center}
+.admin-page-member-export .admin-member-export-column-actions{padding-top:calc(var(--spacing) * 2)}
+.admin-page-member-export .admin-member-export-file-list{align-items:start;display:grid;gap:calc(var(--spacing) * 2);justify-items:start;width:100%}
+.admin-page-member-export .admin-member-export-file-button{justify-content:center;width:auto}
 .admin-page-member-groups .admin-member-group-filter{max-width:100%;width:100%}
 .admin-page-member-groups .filtering-form > .filtering-fields.admin-member-group-search-grid{align-items:end;display:grid;gap:calc(var(--spacing) * 3);grid-template-columns:max-content max-content minmax(0,1fr) auto;justify-content:stretch;width:100%}
 .admin-page-member-groups .admin-member-group-filter .filtering-field{min-width:0}

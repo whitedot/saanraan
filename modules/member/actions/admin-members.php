@@ -44,6 +44,8 @@ if (sr_request_method() === 'POST') {
     $intent = sr_post_string('intent', 40);
     if ($intent === 'batch_revoke_sessions') {
         $postResult = sr_admin_handle_member_batch_revoke_sessions_post($pdo, $account);
+    } elseif ($intent === 'marketing_opt_out_upload') {
+        $postResult = sr_admin_handle_member_marketing_opt_out_upload_post($pdo, $account, isset($config) && is_array($config) ? $config : sr_runtime_config());
     } else {
         $postResult = sr_admin_handle_members_post($pdo, $account, $allowedStatuses, is_array($site ?? null) ? $site : []);
     }
@@ -51,6 +53,10 @@ if (sr_request_method() === 'POST') {
     $notice = (string) $postResult['notice'];
     $postResultData = isset($postResult['data']) && is_array($postResult['data']) ? $postResult['data'] : [];
     if ($intent === 'batch_revoke_sessions') {
+        sr_admin_flash_result(sr_admin_action_result($errors, $notice, $postResultData));
+        sr_redirect(sr_admin_post_return_url('/admin/members'));
+    }
+    if ($intent === 'marketing_opt_out_upload') {
         sr_admin_flash_result(sr_admin_action_result($errors, $notice, $postResultData));
         sr_redirect(sr_admin_post_return_url('/admin/members'));
     }
