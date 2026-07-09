@@ -8,6 +8,7 @@ chdir($root);
 define('SR_ROOT', $root);
 
 require_once $root . '/core/helpers.php';
+require_once $root . '/modules/admin/helpers/action-results.php';
 require_once $root . '/modules/admin/helpers/operational-status.php';
 require_once $root . '/modules/point/helpers.php';
 
@@ -82,6 +83,40 @@ function sr_operational_status_fixture_check(PDO $pdo): void
         sr_operational_status_error('Fixture old pending queue should be overdue and use oldest timestamp.');
     }
 
+    $pdo->exec('CREATE TABLE sr_site_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, setting_key TEXT NOT NULL UNIQUE, setting_value TEXT NULL, value_type TEXT NOT NULL DEFAULT "string", created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
+    sr_admin_operational_status_save_acknowledgements($pdo, [
+        'fixture.queue.pending' => [
+            'fingerprint' => sr_admin_operational_status_fingerprint($row),
+            'disposition' => 'acknowledged',
+            'acknowledged_at' => date('Y-m-d H:i:s'),
+            'account_id' => 77,
+        ],
+    ]);
+    $acknowledgedRows = sr_admin_operational_status_apply_acknowledgements($pdo, [$row]);
+    if ((string) ($acknowledgedRows[0]['status'] ?? '') !== 'acknowledged' || (string) ($acknowledgedRows[0]['original_status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Fixture acknowledged operational row should be downgraded for admin UI only.');
+    }
+    sr_admin_operational_status_save_acknowledgements($pdo, [
+        'fixture.queue.pending' => [
+            'fingerprint' => sr_admin_operational_status_fingerprint($row),
+            'disposition' => 'treated_ok',
+            'acknowledged_at' => date('Y-m-d H:i:s'),
+            'account_id' => 77,
+            'treated_ok_at' => date('Y-m-d H:i:s'),
+            'treated_ok_by' => 88,
+        ],
+    ]);
+    $treatedRows = sr_admin_operational_status_apply_acknowledgements($pdo, [$row]);
+    if ((string) ($treatedRows[0]['status'] ?? '') !== 'ok' || (string) ($treatedRows[0]['status_label'] ?? '') !== '정상 취급') {
+        sr_operational_status_error('Fixture treated operational row should be shown as ok in admin UI.');
+    }
+    $stmt->execute(['status' => 'pending', 'updated_at' => date('Y-m-d H:i:s', time() - 8000)]);
+    $changedRow = sr_admin_operational_status_row($pdo, $baseCheck);
+    $changedAcknowledgedRows = sr_admin_operational_status_apply_acknowledgements($pdo, [$changedRow]);
+    if ((string) ($changedAcknowledgedRows[0]['status'] ?? '') !== 'overdue') {
+        sr_operational_status_error('Fixture changed operational row fingerprint should invalidate acknowledgement.');
+    }
+
     $stmt->execute(['status' => 'failed', 'updated_at' => date('Y-m-d H:i:s')]);
     $failedCheck = $baseCheck;
     $failedCheck['label'] = 'fixture.queue.failed';
@@ -146,10 +181,11 @@ function sr_operational_status_fixture_check(PDO $pdo): void
         ['status' => 'ok', 'count' => 0],
         ['status' => 'warning', 'count' => 1],
         ['status' => 'overdue', 'count' => 2],
+        ['status' => 'acknowledged', 'count' => 2],
         ['status' => 'skipped', 'count' => 0],
         ['status' => 'error', 'count' => 0],
     ]);
-    if ((int) ($summary['ok'] ?? 0) !== 1 || (int) ($summary['warning'] ?? 0) !== 1 || (int) ($summary['overdue'] ?? 0) !== 1 || (int) ($summary['skipped'] ?? 0) !== 1 || (int) ($summary['error'] ?? 0) !== 1 || (int) ($summary['total_count'] ?? 0) !== 3) {
+    if ((int) ($summary['ok'] ?? 0) !== 1 || (int) ($summary['warning'] ?? 0) !== 1 || (int) ($summary['overdue'] ?? 0) !== 1 || (int) ($summary['acknowledged'] ?? 0) !== 1 || (int) ($summary['skipped'] ?? 0) !== 1 || (int) ($summary['error'] ?? 0) !== 1 || (int) ($summary['total_count'] ?? 0) !== 5) {
         sr_operational_status_error('Fixture operational summary totals mismatch.');
     }
 
@@ -174,7 +210,7 @@ function sr_operational_status_fixture_check(PDO $pdo): void
     }
 
     $summaryLine = sr_admin_operational_status_cli_summary_line($summary);
-    if ($summaryLine !== "summary\tok=1\twarning=1\toverdue=1\tskipped=1\terror=1\ttotal_count=3") {
+    if ($summaryLine !== "summary\tok=1\twarning=1\toverdue=1\tskipped=1\terror=1\ttotal_count=5") {
         sr_operational_status_error('Fixture operational CLI summary line mismatch.');
     }
 }
@@ -601,7 +637,11 @@ foreach ([
 
 foreach ([
     'function sr_admin_operational_status_checks(?PDO $pdo = null): array',
-    'function sr_admin_operational_status_rows(PDO $pdo): array',
+    'function sr_admin_operational_status_rows(PDO $pdo, bool $applyAcknowledgements = false): array',
+    'function sr_admin_operational_status_acknowledge_current(PDO $pdo, string $label, int $accountId): array',
+    'function sr_admin_operational_status_treat_acknowledged_as_ok_current(PDO $pdo, string $label, int $accountId): array',
+    'function sr_admin_operational_status_apply_acknowledgements(PDO $pdo, array $rows): array',
+    'admin.operational_status.acknowledged',
     "sr_enabled_module_contract_files(\$pdo, 'operational-status.php')",
     'sr_module_enabled($pdo',
     'delay_tolerance',
@@ -719,12 +759,18 @@ foreach ([
     '지연/실패 신호',
     '지연되었거나 실패한 항목은 해당 관리 화면에서 처리해 주세요.',
     '지연 초과',
+    '확인됨',
+    '정상으로 취급',
     '허용 지연',
-    '<th class="text-center">바로가기</th>',
+    '<th class="text-end">관리</th>',
     '<th>대상</th>',
     'colspan="9"',
     '<div class="admin-operations-target-list">',
+    'class="admin-table-actions-cell"',
+    'class="admin-row-actions"',
     "\$rowActionUrl = \$rowStatus !== 'ok' ?",
+    "name=\"intent\" value=\"acknowledge\"",
+    "name=\"intent\" value=\"treat_as_ok\"",
     "\$row['action_url'] ?? ''",
     "\$rowActionLabel",
     'btn btn-sm btn-icon btn-outline-secondary',

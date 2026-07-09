@@ -11,12 +11,14 @@ $statusClass = static function (string $status): string {
         'ok' => 'is-normal',
         'warning' => 'is-warning',
         'overdue', 'error' => 'is-danger',
+        'acknowledged' => 'is-blocked',
         'skipped' => 'is-blocked',
         default => 'is-danger',
     };
 };
 ?>
 
+<?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">지연/실패 신호</h2>
@@ -25,6 +27,7 @@ $statusClass = static function (string $status): string {
         <div class="badge-list">
             <span class="badge badge-soft-danger">지연 초과 <?php echo sr_e((string) (int) ($operationStatusSummary['overdue'] ?? 0)); ?>개</span>
             <span class="badge badge-soft-warning">확인 필요 <?php echo sr_e((string) (int) ($operationStatusSummary['warning'] ?? 0)); ?>개</span>
+            <span class="badge badge-soft-secondary">확인됨 <?php echo sr_e((string) (int) ($operationStatusSummary['acknowledged'] ?? 0)); ?>개</span>
             <span class="badge badge-soft-secondary">점검 대상 <?php echo sr_e((string) (int) ($operationStatusSummary['total_count'] ?? 0)); ?>건</span>
             <span class="badge badge-soft-secondary">마지막 확인 <?php echo sr_admin_time_html($operationStatusCheckedAt); ?></span>
         </div>
@@ -35,7 +38,6 @@ $statusClass = static function (string $status): string {
             <thead>
                 <tr>
                     <th>상태</th>
-                    <th class="text-center">바로가기</th>
                     <th>항목</th>
                     <th>모듈</th>
                     <th>건수</th>
@@ -43,6 +45,7 @@ $statusClass = static function (string $status): string {
                     <th>가장 오래된 시각</th>
                     <th>대상</th>
                     <th>후속 확인</th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,13 +67,6 @@ $statusClass = static function (string $status): string {
                             <span class="admin-status <?php echo sr_e($statusClass($rowStatus)); ?>">
                                 <?php echo sr_e((string) ($row['status_label'] ?? '오류')); ?>
                             </span>
-                        </td>
-                        <td class="admin-table-nowrap text-center">
-                            <?php if ($rowActionUrl !== '') { ?>
-                                <a href="<?php echo sr_e(sr_url($rowActionUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e($rowActionLabel . ' 바로가기'); ?>" title="<?php echo sr_e($rowActionLabel); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
-                            <?php } else { ?>
-                                -
-                            <?php } ?>
                         </td>
                         <td class="admin-table-break">
                             <strong><?php echo sr_e((string) ($row['title'] ?? '')); ?></strong>
@@ -106,12 +102,41 @@ $statusClass = static function (string $status): string {
                                 -
                             <?php } ?>
                         </td>
+                        <td class="admin-table-actions-cell">
+                            <?php if ($rowActionUrl !== '' || in_array($rowStatus, ['warning', 'overdue', 'acknowledged'], true)) { ?>
+                                <div class="admin-row-actions">
+                                    <?php if ($rowActionUrl !== '') { ?>
+                                        <a href="<?php echo sr_e(sr_url($rowActionUrl)); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e($rowActionLabel . ' 바로가기'); ?>" title="<?php echo sr_e($rowActionLabel); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
+                                    <?php } ?>
+                                    <?php if (in_array($rowStatus, ['warning', 'overdue'], true)) { ?>
+                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/operations')); ?>">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/operations')); ?>">
+                                            <input type="hidden" name="intent" value="acknowledge">
+                                            <input type="hidden" name="label" value="<?php echo sr_e((string) ($row['label'] ?? '')); ?>">
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e((string) ($row['title'] ?? '운영 점검 항목') . ' 확인됨으로 표시'); ?>" title="확인됨으로 표시"><?php echo sr_material_icon_html('done'); ?></button>
+                                        </form>
+                                    <?php } ?>
+                                    <?php if ($rowStatus === 'acknowledged') { ?>
+                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/operations')); ?>">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/operations')); ?>">
+                                            <input type="hidden" name="intent" value="treat_as_ok">
+                                            <input type="hidden" name="label" value="<?php echo sr_e((string) ($row['label'] ?? '')); ?>">
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e((string) ($row['title'] ?? '운영 점검 항목') . ' 정상으로 취급'); ?>" title="정상으로 취급"><?php echo sr_material_icon_html('check_circle'); ?></button>
+                                        </form>
+                                    <?php } ?>
+                                </div>
+                            <?php } else { ?>
+                                -
+                            <?php } ?>
+                        </td>
                     </tr>
                 <?php } ?>
             </tbody>
         </table>
     </div>
-    <?php echo sr_admin_status_description_list_html('operational_status', ['ok' => '정상', 'warning' => '주의', 'overdue' => '지연', 'skipped' => '건너뜀', 'error' => '오류']); ?>
+    <?php echo sr_admin_status_description_list_html('operational_status', ['ok' => '정상', 'warning' => '주의', 'overdue' => '지연', 'acknowledged' => '확인됨', 'skipped' => '건너뜀', 'error' => '오류']); ?>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

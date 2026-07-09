@@ -60,7 +60,9 @@ php .tools/bin/ops-status.php --help
 
 미설치 환경에서는 명령이 `saanraan is not installed.`를 출력하고 종료한다. 모듈이 비활성화되어 있으면 해당 항목은 `skipped`로 표시한다.
 
-관리자 화면에서는 `/admin/operations`의 `운영 지연/실패 점검` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 최근 대상, 후속 확인 위치를 보여준다. 대상은 알림 제목, 게시판명, 퀴즈/설문명처럼 운영자가 문제 범위를 식별하는 데 필요한 대표값을 최대 5개까지 줄바꿈 목록으로 표시하고, 내부 key는 가능한 경우 한국어 라벨로 바꾼다. 화면은 데이터를 바꾸지 않으므로 재시도나 정정은 각 소유 모듈의 관리자 action에서 처리한다. 상태가 `정상`이 아닌 행은 소유 모듈 계약의 안전한 내부 `action_url`이 있으면 바로가기 버튼을 표시한다.
+관리자 화면에서는 `/admin/operations`의 `운영 지연/실패 점검` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 최근 대상, 후속 확인 위치를 보여준다. 대상은 알림 제목, 게시판명, 퀴즈/설문명처럼 운영자가 문제 범위를 식별하는 데 필요한 대표값을 최대 5개까지 줄바꿈 목록으로 표시하고, 내부 key는 가능한 경우 한국어 라벨로 바꾼다. 상태가 `정상`이 아닌 행은 소유 모듈 계약의 안전한 내부 `action_url`이 있으면 sticky 관리 열에 바로가기 버튼을 표시한다.
+
+화면의 `확인됨으로 표시`는 원본 작업 row를 해결하거나 숨기지 않고, `sr_site_settings`의 `admin.operational_status.acknowledged`에 현재 신호의 `label`, 상태, 건수, 가장 오래된 시각으로 만든 확인 지문을 저장한다. 같은 지문이 유지되는 동안 관리자 화면에서는 해당 행을 `확인됨`으로 낮춰 보여준다. `정상으로 취급`은 `확인됨` 상태인 행에만 표시하며, 같은 지문이 유지되는 동안 해당 행을 `정상 취급`으로 보여 운영 경보 수에서 제외한다. 새 실패가 생기거나 건수, 가장 오래된 시각, 상태가 바뀌면 지문이 달라져 다시 `확인 필요` 또는 `지연 초과`로 표시된다. CLI의 `php .tools/bin/ops-status.php`는 이 확인 표시를 적용하지 않고 원본 read-only 신호를 그대로 출력한다. 재시도나 정정은 여전히 각 소유 모듈의 관리자 action에서 처리한다.
 
 운영 상태 점검 정의는 각 소유 모듈의 `operational-status.php` 계약 파일이 제공하고, 관리자 모듈은 활성 모듈의 계약을 읽어 read-only 점검 행으로 조율한다. `table`과 `age_column`은 단일 SQL 식별자만 허용하고, `where` 조건은 세미콜론, SQL 주석, DDL/DML 키워드가 있으면 오류로 처리한다. `.tools/bin/check-operational-status.php`는 안전한 조건, 위험한 식별자, 위험한 `where` 조건, CLI row/summary 출력 형식, 번들 신호 일부의 실제 count/overdue 계산을 SQLite fixture로 확인해 read-only 점검 경계를 유지한다.
 
