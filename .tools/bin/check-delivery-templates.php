@@ -58,6 +58,19 @@ function sr_delivery_template_check_pdo(): PDO
             ('point', 'disabled')"
     );
     $pdo->exec(
+        'CREATE TABLE sr_module_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_id INTEGER NOT NULL,
+            setting_key TEXT NOT NULL,
+            setting_value TEXT NULL,
+            value_type TEXT NOT NULL DEFAULT \'string\'
+        )'
+    );
+    $pdo->exec(
+        "INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type)
+         VALUES (4, 'email_channel_enabled', '0', 'bool')"
+    );
+    $pdo->exec(
         'CREATE TABLE sr_delivery_template_overrides (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             template_key TEXT NOT NULL,
@@ -233,6 +246,10 @@ sr_delivery_template_check_assert(sr_delivery_template_variable_label('member_na
 sr_delivery_template_check_assert(sr_delivery_template_variable_label('link_url') === '연결 주소', 'delivery template link_url variable helper text must be operator-readable.');
 sr_delivery_template_check_assert(sr_delivery_template_body_template_for_editor("본문\n\n/point/history", '/point/history') === "본문\n\n/point/history", 'admin editor body must not duplicate a link template that is already in the body.');
 sr_delivery_template_check_assert(sr_delivery_template_body_template_for_editor('<code>본문</code>', '/point/history') === "본문\n\n/point/history", 'admin editor body must unwrap a code wrapper and append the link template into editable content.');
+$eventAvailableChannels = sr_delivery_template_notification_event_available_channels(['site']);
+sr_delivery_template_check_assert(in_array('email', $eventAvailableChannels, true), 'notification event templates must allow adding email delivery when the default channel is not email.');
+$eventAdminChannels = sr_notification_event_template_admin_channels($pdo);
+sr_delivery_template_check_assert(in_array('email', $eventAdminChannels, true), 'notification/mail admin event rows must show email even when the generic notification email setting is disabled.');
 sr_delivery_template_check_assert(sr_notification_channel_template_code('KA01_hello-1.test') === 'KA01_hello-1.test', 'Alimtalk template code helper must allow Kakao provider template codes.');
 sr_delivery_template_check_assert(sr_notification_channel_template_code('알림톡본문') === '', 'Alimtalk template code helper must reject editable Korean message bodies.');
 
@@ -241,6 +258,17 @@ $pointChannelBindings = sr_notification_event_template_admin_channel_bindings($p
 sr_delivery_template_check_assert(
     (string) ($pointChannelBindings['transaction.grant']['alimtalk']['provider_template_code'] ?? '') === 'KA01_POINT_GRANT',
     'notification/mail admin must store Alimtalk provider template code separately from editable title/body.'
+);
+sr_notification_event_template_admin_save($pdo, 'point', 'transaction.grant', [
+    'title_template' => '포인트 지급: {amount}',
+    'body_template' => '{amount} 포인트가 지급되었습니다.',
+    'channels' => ['site', 'slack_webhook'],
+    'enabled' => true,
+]);
+$pointGrantTemplate = sr_notification_event_template($pdo, 'point', 'transaction.grant');
+sr_delivery_template_check_assert(
+    in_array('slack_webhook', sr_notification_template_channels((string) ($pointGrantTemplate['channels_json'] ?? '')), true),
+    'notification/mail admin save must preserve selected member external channels even when member external delivery is currently disabled.'
 );
 
 $memberDeliveryRows = sr_notification_event_template_admin_delivery_rows($pdo, 'member', [
@@ -251,6 +279,9 @@ $memberDeliveryRows = sr_notification_event_template_admin_delivery_rows($pdo, '
 $memberDeliveryRowKeys = array_fill_keys(array_map(static fn(array $row): string => (string) ($row['template_key'] ?? ''), $memberDeliveryRows), true);
 foreach (['member.email_verification', 'member.password_reset', 'member.login_mfa_email_code'] as $templateKey) {
     sr_delivery_template_check_assert(isset($memberDeliveryRowKeys[$templateKey]), 'member notification/mail admin rows must include delivery template: ' . $templateKey);
+}
+foreach ($memberDeliveryRows as $memberDeliveryRow) {
+    sr_delivery_template_check_assert((array) ($memberDeliveryRow['available_channels'] ?? []) === ['email'], 'member transactional mail rows must not expose site or push channels: ' . (string) ($memberDeliveryRow['template_key'] ?? ''));
 }
 
 $notificationTemplateAdminActions = [
@@ -291,6 +322,18 @@ sr_delivery_template_check_assert(
     !str_contains($notificationEventTemplateView, '<small><?php echo sr_e($label); ?></small>'),
     'notification/mail admin list title cell must not append the event label next to the editable title.'
 );
+sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '$showChannelSelector = !($rowType === \'delivery\' && $rowChannelOptions === [\'email\']);'), 'member notification/mail admin must hide channel selector for email-only transactional mail rows.');
+sr_delivery_template_check_assert(!str_contains($notificationEventTemplateView, '상태/적용값'), 'member notification/mail admin status must mean enabled or disabled, not override application.');
+sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '$hasUnavailableEmailChannel'), 'notification/mail admin status cell must distinguish disabled email channel from active item status.');
+sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '이메일 중지'), 'notification/mail admin list must mark selected email channel disabled when the email channel is off.');
+sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '외부채널 중지'), 'notification/mail admin list must mark selected member external channels disabled when member delivery is off.');
+sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '상태 설명') && str_contains($notificationEventTemplateView, 'email_disabled') && str_contains($notificationEventTemplateView, 'member_external_disabled'), 'notification/mail admin list must include status descriptions for item status and disabled delivery channels.');
+sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '채널 중지'), 'notification/mail admin editor must make disabled email channel state visible in channel choices.');
+$deliveryTemplateView = (string) file_get_contents($root . '/modules/notification/views/admin-delivery-templates.php');
+sr_delivery_template_check_assert(str_contains($deliveryTemplateView, '$showChannelSelector = $availableChannels !== [\'email\'];'), 'central delivery template admin must hide channel selector for email-only transactional mail rows.');
+sr_delivery_template_check_assert(str_contains($deliveryTemplateView, "sr_admin_sort_header_html('수정값'") && str_contains($deliveryTemplateView, "sr_admin_sort_header_html('상태'"), 'central delivery template admin must label override storage separately from enabled status.');
+$memberNotificationTemplateAction = (string) file_get_contents($root . '/modules/member/actions/admin-notification-templates.php');
+sr_delivery_template_check_assert(str_contains($memberNotificationTemplateAction, "'title' => '회원 알림/메일 관리'"), 'member notification/mail admin page title must not be limited to security wording.');
 
 $emailContract = $contracts['member.email_verification'];
 try {
@@ -305,14 +348,31 @@ sr_delivery_template_save_override(
     '커스텀 인증',
     "아래 링크를 여세요.\n{verification_url}",
     '',
-    ['email'],
+    ['site', 'email', 'telegram_bot'],
     'active',
     9
 );
+$emailEffective = sr_delivery_template_effective($pdo, 'member.email_verification');
+sr_delivery_template_check_assert((array) ($emailEffective['channels'] ?? []) === ['email'], 'transactional email overrides must remain email-only even if site or push channels are posted.');
 $rendered = sr_delivery_template_render($pdo, 'member.email_verification', ['verification_url' => 'https://example.test/verify']);
 sr_delivery_template_check_assert((string) ($rendered['subject'] ?? '') === '커스텀 인증', 'active override must replace transactional email subject.');
 sr_delivery_template_check_assert((string) ($rendered['source'] ?? '') === 'override', 'active valid override must report override source.');
 sr_delivery_template_check_assert(str_contains((string) ($rendered['body'] ?? ''), 'https://example.test/verify'), 'active override must render metadata placeholders.');
+
+sr_delivery_template_save_override(
+    $pdo,
+    $emailContract,
+    '비활성 커스텀 인증',
+    "비활성 본문\n{verification_url}",
+    '',
+    ['email'],
+    'inactive',
+    9
+);
+$inactiveRendered = sr_delivery_template_render($pdo, 'member.email_verification', ['verification_url' => 'https://example.test/inactive']);
+sr_delivery_template_check_assert((string) ($inactiveRendered['source'] ?? '') === 'override', 'inactive valid override must still be the effective template source.');
+sr_delivery_template_check_assert((string) ($inactiveRendered['status'] ?? '') === 'inactive', 'inactive delivery template override must keep disabled status.');
+sr_delivery_template_check_assert(sr_delivery_template_send_mail($pdo, [], 'member.email_verification', 'member@example.test', ['verification_url' => 'https://example.test/inactive']) === false, 'inactive delivery template must not send mail.');
 
 $pdo->exec("UPDATE sr_delivery_template_overrides SET body_template = '직접 DB 수정으로 필수 변수 제거' WHERE template_key = 'member.email_verification'");
 $renderedFallback = sr_delivery_template_render($pdo, 'member.email_verification', ['verification_url' => 'https://example.test/fallback']);

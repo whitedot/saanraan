@@ -613,6 +613,27 @@ function sr_notification_create_channels(PDO $pdo): array
     return $channels;
 }
 
+function sr_notification_email_delivery_enabled(PDO $pdo): bool
+{
+    $settings = sr_notification_settings($pdo);
+    return !empty($settings['email_channel_enabled']);
+}
+
+function sr_notification_member_external_delivery_enabled(PDO $pdo, string $channel): bool
+{
+    if (!in_array($channel, sr_notification_member_external_channel_keys(), true)) {
+        return false;
+    }
+
+    try {
+        $settings = sr_notification_settings($pdo);
+    } catch (Throwable) {
+        return false;
+    }
+
+    return sr_notification_member_external_provider_is_ready($channel, $settings);
+}
+
 function sr_notification_member_external_channels(PDO $pdo, int $accountId): array
 {
     if ($accountId <= 0) {
@@ -817,6 +838,41 @@ function sr_notification_template_channels(?string $channelsJson): array
     return $channels === [] ? ['site'] : $channels;
 }
 
+function sr_notification_event_enabled_by_module_settings(PDO $pdo, string $moduleKey, string $eventKey): ?bool
+{
+    if (!sr_is_safe_module_key($moduleKey) || preg_match('/\A[a-z0-9_.-]{1,120}\z/', $eventKey) !== 1) {
+        return null;
+    }
+
+    $caseKeyFunction = 'sr_' . $moduleKey . '_notification_case_key_for_event';
+    $settingsFunction = 'sr_' . $moduleKey . '_settings';
+    $normalizeFunction = 'sr_' . $moduleKey . '_notification_case_settings_from_value';
+    if (!function_exists($caseKeyFunction) || !function_exists($settingsFunction) || !function_exists($normalizeFunction)) {
+        return null;
+    }
+
+    $caseKey = (string) $caseKeyFunction($eventKey);
+    if ($caseKey === '') {
+        return null;
+    }
+
+    try {
+        $settings = $settingsFunction($pdo);
+    } catch (Throwable) {
+        return null;
+    }
+    if (!is_array($settings)) {
+        return null;
+    }
+
+    $caseSettings = $normalizeFunction($settings['notification_cases'] ?? []);
+    if (!is_array($caseSettings) || !isset($caseSettings[$caseKey]) || !is_array($caseSettings[$caseKey])) {
+        return null;
+    }
+
+    return !empty($caseSettings[$caseKey]['enabled']);
+}
+
 function sr_notification_create_account_event(PDO $pdo, array $data): ?int
 {
     $accountId = (int) ($data['account_id'] ?? 0);
@@ -828,6 +884,9 @@ function sr_notification_create_account_event(PDO $pdo, array $data): ?int
 
     $template = sr_notification_event_template($pdo, $moduleKey, $eventKey);
     if (!is_array($template) || (string) ($template['status'] ?? '') !== 'active') {
+        return null;
+    }
+    if (sr_notification_event_enabled_by_module_settings($pdo, $moduleKey, $eventKey) === false) {
         return null;
     }
 
@@ -1086,14 +1145,23 @@ function sr_notification_create(PDO $pdo, array $data): int
         $channels = array_values(array_unique($channels));
     }
     $externalChannels = sr_notification_external_channels($channels);
-    $emailRecipients = in_array('email', $channels, true)
+    $hasEmailChannel = in_array('email', $channels, true);
+    $emailDeliveryEnabled = $hasEmailChannel ? sr_notification_email_delivery_enabled($pdo) : false;
+    $emailRecipients = $emailDeliveryEnabled && $hasEmailChannel
         ? sr_notification_email_recipients($pdo, $audience, $accountId)
         : [];
-    if (in_array('email', $channels, true) && $emailRecipients === []) {
+    if ($emailDeliveryEnabled && $hasEmailChannel && $emailRecipients === []) {
         throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
     }
+    $memberExternalDeliveryEnabled = [];
     foreach ($externalChannels as $externalChannel) {
         if (in_array($externalChannel, sr_notification_admin_external_channel_keys(), true)) {
+            if (in_array($externalChannel, sr_notification_member_external_channel_keys(), true)) {
+                $memberExternalDeliveryEnabled[$externalChannel] = sr_notification_member_external_delivery_enabled($pdo, $externalChannel);
+                if (!$memberExternalDeliveryEnabled[$externalChannel]) {
+                    continue;
+                }
+            }
             if (!in_array($externalChannel, sr_notification_member_external_channel_keys(), true)
                 || $audience !== 'account'
                 || $accountId === null
@@ -1187,14 +1255,23 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
     if ($channels === []) {
         throw new InvalidArgumentException('Notification requires at least one delivery channel.');
     }
-    $emailRecipients = in_array('email', $channels, true)
+    $hasEmailChannel = in_array('email', $channels, true);
+    $emailDeliveryEnabled = $hasEmailChannel ? sr_notification_email_delivery_enabled($pdo) : false;
+    $emailRecipients = $emailDeliveryEnabled && $hasEmailChannel
         ? sr_notification_email_recipients($pdo, $audience, $accountId)
         : [];
-    if (in_array('email', $channels, true) && $emailRecipients === []) {
+    if ($emailDeliveryEnabled && $hasEmailChannel && $emailRecipients === []) {
         throw new InvalidArgumentException('Email notification delivery requires member email recipients.');
     }
+    $memberExternalDeliveryEnabled = [];
     foreach (sr_notification_external_channels($channels) as $externalChannel) {
         if (in_array($externalChannel, sr_notification_admin_external_channel_keys(), true)) {
+            if (in_array($externalChannel, sr_notification_member_external_channel_keys(), true)) {
+                $memberExternalDeliveryEnabled[$externalChannel] = sr_notification_member_external_delivery_enabled($pdo, $externalChannel);
+                if (!$memberExternalDeliveryEnabled[$externalChannel]) {
+                    continue;
+                }
+            }
             if (!in_array($externalChannel, sr_notification_member_external_channel_keys(), true)
                 || $audience !== 'account'
                 || $accountId === null
@@ -1223,8 +1300,14 @@ function sr_notification_queue_deliveries(PDO $pdo, int $notificationId, array $
             continue;
         }
         if ($channel === 'email') {
+            if (!$emailDeliveryEnabled) {
+                continue;
+            }
             $recipients = $emailRecipients;
         } elseif (in_array($channel, sr_notification_member_external_channel_keys(), true)) {
+            if (!($memberExternalDeliveryEnabled[$channel] ?? sr_notification_member_external_delivery_enabled($pdo, $channel))) {
+                continue;
+            }
             $recipients = [];
             foreach (sr_notification_member_push_endpoints($pdo, (int) $accountId, $channel) as $endpoint) {
                 $endpointId = (int) ($endpoint['id'] ?? 0);

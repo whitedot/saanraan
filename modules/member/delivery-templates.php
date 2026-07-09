@@ -9,7 +9,7 @@ return [
         'channels' => ['email'],
         'pipeline' => 'config_mail',
         'editable' => true,
-        'disable_policy' => 'fallback_to_default',
+        'disable_policy' => 'no_op',
         'subject_template' => '이메일 인증 안내',
         'body_template' => "아래 링크를 열어 이메일 인증을 완료하세요.\n\n{verification_url}",
         'variables' => [
@@ -33,7 +33,7 @@ return [
         'channels' => ['email'],
         'pipeline' => 'config_mail',
         'editable' => true,
-        'disable_policy' => 'fallback_to_default',
+        'disable_policy' => 'no_op',
         'subject_template' => '비밀번호 재설정 안내',
         'body_template' => "아래 링크를 열어 비밀번호를 재설정하세요.\n\n{reset_url}",
         'variables' => [
@@ -57,7 +57,7 @@ return [
         'channels' => ['email'],
         'pipeline' => 'config_mail',
         'editable' => true,
-        'disable_policy' => 'fallback_to_default',
+        'disable_policy' => 'no_op',
         'subject_template' => '로그인 2차 인증 코드',
         'body_template' => "로그인을 계속하려면 아래 인증 코드를 입력하세요.\n\n인증 코드: {mfa_code}\n\n이 코드는 {expires_minutes}분 동안만 사용할 수 있습니다.",
         'variables' => [

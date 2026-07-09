@@ -10,7 +10,7 @@ return [
         'pipeline' => 'config_mail',
         'editable' => true,
         'body_editable' => false,
-        'disable_policy' => 'fallback_to_default',
+        'disable_policy' => 'no_op',
         'subject_template' => '정책 문서 변경 안내',
         'body_template' => '',
         'variables' => [

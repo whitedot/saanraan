@@ -24,8 +24,8 @@ sr_notification_event_template_admin_handle($pdo, $site ?? null, [
     'module_key' => 'member',
     'permission_path' => '/admin/member-notification-templates',
     'return_path' => '/admin/member-notification-templates',
-    'title' => '회원 보안 알림/메일 관리',
-    'subtitle' => '회원 계정 보안 이벤트 알림과 이메일 인증, 비밀번호 재설정 요청, 로그인 2차 인증 메일 문구를 관리합니다.',
+    'title' => '회원 알림/메일 관리',
+    'subtitle' => '회원 계정 이벤트 알림과 이메일 인증, 비밀번호 재설정 요청, 로그인 2차 인증 메일 문구를 관리합니다.',
     'include_delivery_templates' => true,
     'delivery_template_keys' => [
         'member.email_verification',

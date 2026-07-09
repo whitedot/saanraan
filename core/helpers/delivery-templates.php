@@ -99,7 +99,7 @@ function sr_delivery_template_normalize_channels(array $channels): array
 
 function sr_delivery_template_notification_event_available_channels(array $channels): array
 {
-    $available = sr_delivery_template_normalize_channels($channels);
+    $available = array_merge(sr_delivery_template_normalize_channels($channels), ['email']);
     if (!function_exists('sr_notification_member_external_channel_keys')) {
         $notificationHelpers = SR_ROOT . '/modules/notification/helpers.php';
         if (is_file($notificationHelpers)) {
@@ -293,7 +293,10 @@ function sr_delivery_template_normalize_contract(PDO $pdo, string $key, string $
         $channels = ['email'];
     }
     $availableChannels = sr_delivery_template_normalize_channels(isset($contract['available_channels']) && is_array($contract['available_channels']) ? $contract['available_channels'] : $channels);
-    if ($category === 'notification_event') {
+    if ($category === 'transactional_email') {
+        $channels = ['email'];
+        $availableChannels = ['email'];
+    } elseif ($category === 'notification_event') {
         $availableChannels = sr_delivery_template_notification_event_available_channels(array_merge($availableChannels, $channels));
     }
     if ($availableChannels === []) {
@@ -339,7 +342,7 @@ function sr_delivery_template_normalize_contract(PDO $pdo, string $key, string $
         'available_channels' => $availableChannels,
         'pipeline' => (string) ($contract['pipeline'] ?? ($category === 'notification_event' ? 'notification_queue' : 'config_mail')),
         'editable' => array_key_exists('editable', $contract) ? !empty($contract['editable']) : true,
-        'disable_policy' => (string) ($contract['disable_policy'] ?? ($category === 'transactional_email' ? 'fallback_to_default' : 'no_op')),
+        'disable_policy' => (string) ($contract['disable_policy'] ?? 'no_op'),
         'subject_template' => (string) ($contract['subject_template'] ?? ($contract['title_template'] ?? '')),
         'body_template' => (string) ($contract['body_template'] ?? ''),
         'link_template' => (string) ($contract['link_template'] ?? ''),
@@ -420,6 +423,15 @@ function sr_delivery_template_effective(PDO $pdo, string $key): ?array
         $effective['status'] = (string) ($override['status'] ?? 'active');
         $channels = sr_delivery_template_decode_channels_json((string) ($override['channels_json'] ?? ''));
         if ($channels !== []) {
+            if ((string) ($contract['category'] ?? '') === 'transactional_email') {
+                $channels = ['email'];
+            } else {
+                $availableChannels = sr_delivery_template_normalize_channels(isset($contract['available_channels']) && is_array($contract['available_channels']) ? $contract['available_channels'] : (array) ($contract['channels'] ?? []));
+                if ($availableChannels !== []) {
+                    $allowed = array_fill_keys($availableChannels, true);
+                    $channels = array_values(array_filter($channels, static fn (string $channel): bool => isset($allowed[$channel])));
+                }
+            }
             $effective['channels'] = $channels;
         }
     }
@@ -470,10 +482,16 @@ function sr_delivery_template_save_override(PDO $pdo, array $contract, string $s
     $link = sr_clean_single_line($link, 255);
     $status = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
     $channels = sr_delivery_template_normalize_channels($channels);
+    if ((string) ($contract['category'] ?? '') === 'transactional_email') {
+        $channels = ['email'];
+    }
     if ($channels === []) {
         $channels = isset($contract['channels']) && is_array($contract['channels']) ? $contract['channels'] : ['email'];
     }
     $availableChannels = sr_delivery_template_normalize_channels(isset($contract['available_channels']) && is_array($contract['available_channels']) ? $contract['available_channels'] : (array) ($contract['channels'] ?? []));
+    if ((string) ($contract['category'] ?? '') === 'transactional_email') {
+        $availableChannels = ['email'];
+    }
     if ($availableChannels !== []) {
         $allowed = array_fill_keys($availableChannels, true);
         $channels = array_values(array_filter($channels, static fn (string $channel): bool => isset($allowed[$channel])));
@@ -550,7 +568,7 @@ function sr_delivery_template_render(PDO $pdo, string $key, array $metadata): ar
     }
     $effective = sr_delivery_template_effective($pdo, $key);
     $source = 'default';
-    if (is_array($effective) && !empty($effective['has_override']) && (string) ($effective['status'] ?? '') === 'active') {
+    if (is_array($effective) && !empty($effective['has_override'])) {
         $errors = sr_delivery_template_validate_templates($contract, (string) $effective['subject_template'], (string) $effective['body_template'], (string) $effective['link_template']);
         if ($errors === []) {
             $source = 'override';
@@ -582,12 +600,15 @@ function sr_delivery_template_render(PDO $pdo, string $key, array $metadata): ar
         $link = sr_clean_single_line(sr_delivery_template_render_string((string) ($contract['link_template'] ?? ''), $metadata), 255);
         $source = 'default';
     }
-    return ['subject' => $subject, 'body' => $body, 'link' => $link, 'source' => $source];
+    return ['subject' => $subject, 'body' => $body, 'link' => $link, 'source' => $source, 'status' => (string) ($effective['status'] ?? 'active')];
 }
 
 function sr_delivery_template_send_mail(PDO $pdo, ?array $site, string $key, string $to, array $metadata): bool
 {
     $rendered = sr_delivery_template_render($pdo, $key, $metadata);
+    if ((string) ($rendered['status'] ?? 'active') !== 'active') {
+        return false;
+    }
     $subject = (string) ($rendered['subject'] ?? '');
     $body = (string) ($rendered['body'] ?? '');
     if ($subject === '' || $body === '') {

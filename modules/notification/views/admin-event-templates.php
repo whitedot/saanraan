@@ -10,6 +10,21 @@ $adminPageTitle = (string) ($adminNotificationTemplateContext['title'] ?? '알�
 $adminPageSubtitle = (string) ($adminNotificationTemplateContext['subtitle'] ?? '회원에게 발송되는 알림 문구와 발송 수단을 관리합니다.');
 $adminContainerClass = 'admin-page-notification-event-templates';
 $notificationTemplateReturnPath = (string) ($adminNotificationTemplateContext['return_path'] ?? '');
+$notificationTemplateEmailChannelEnabled = isset($pdo) && $pdo instanceof PDO && function_exists('sr_notification_email_delivery_enabled')
+    ? sr_notification_email_delivery_enabled($pdo)
+    : true;
+$notificationTemplateMemberExternalChannelKeys = function_exists('sr_notification_member_external_channel_keys')
+    ? sr_notification_member_external_channel_keys()
+    : [];
+$notificationTemplateMemberExternalChannelEnabled = [];
+if (isset($pdo) && $pdo instanceof PDO) {
+    foreach ($notificationTemplateMemberExternalChannelKeys as $memberExternalChannel) {
+        $memberExternalChannel = (string) $memberExternalChannel;
+        $notificationTemplateMemberExternalChannelEnabled[$memberExternalChannel] = function_exists('sr_notification_member_external_delivery_enabled')
+            ? sr_notification_member_external_delivery_enabled($pdo, $memberExternalChannel)
+            : true;
+    }
+}
 $notificationTemplateTotalCount = 0;
 $notificationTemplateEnabledCount = 0;
 foreach ($notificationTemplateRows as $notificationTemplateStatusRow) {
@@ -62,27 +77,51 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     $label = (string) ($templateRow['label'] ?? $eventKey);
                     $enabled = !empty($templateRow['enabled']);
                     $hasOverride = !empty($templateRow['has_override']);
-                    $statusLabel = $rowType === 'delivery'
-                        ? ($hasOverride && $enabled ? '사용자 수정' : '기본값')
-                        : ($enabled ? '사용' : '중지');
-                    $statusClass = $rowType === 'delivery'
-                        ? ($hasOverride && $enabled ? 'is-warning' : 'is-info')
-                        : ($enabled ? 'is-success' : 'is-danger');
+                    $statusLabel = $enabled ? '사용' : '중지';
+                    $statusClass = $enabled ? 'is-success' : 'is-danger';
                     $channels = isset($templateRow['channels']) && is_array($templateRow['channels']) ? $templateRow['channels'] : ['site'];
+                    $hasUnavailableEmailChannel = $enabled && in_array('email', $channels, true) && !$notificationTemplateEmailChannelEnabled;
+                    $hasUnavailableMemberExternalChannel = false;
+                    foreach ($channels as $statusChannel) {
+                        $statusChannel = (string) $statusChannel;
+                        if (in_array($statusChannel, $notificationTemplateMemberExternalChannelKeys, true)
+                            && !($notificationTemplateMemberExternalChannelEnabled[$statusChannel] ?? true)
+                        ) {
+                            $hasUnavailableMemberExternalChannel = true;
+                            break;
+                        }
+                    }
                     $modalId = 'notification-template-modal-' . (string) $rowIndex;
                     $fieldSuffix = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $eventKey) ?? (string) $rowIndex;
                     $variables = isset($templateRow['variables']) && is_array($templateRow['variables']) ? $templateRow['variables'] : [];
                     $titleText = (string) ($templateRow['title_template'] ?? '');
                     ?>
                     <tr>
-                        <td class="admin-table-nowrap admin-notification-template-status-cell"><span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($statusLabel); ?></span></td>
+                        <td class="admin-table-nowrap admin-notification-template-status-cell">
+                            <span class="badge-list">
+                                <span class="badge-status <?php echo sr_e($statusClass); ?>"><?php echo sr_e($statusLabel); ?></span>
+                                <?php if ($hasUnavailableEmailChannel) { ?>
+                                    <span class="badge-status is-danger">이메일 중지</span>
+                                <?php } ?>
+                                <?php if ($enabled && $hasUnavailableMemberExternalChannel) { ?>
+                                    <span class="badge-status is-danger">외부채널 중지</span>
+                                <?php } ?>
+                            </span>
+                        </td>
                         <td class="admin-table-break admin-notification-template-title-cell">
                             <?php echo sr_e($titleText); ?>
                         </td>
                         <td class="admin-table-nowrap admin-notification-template-channel-cell">
                             <span class="badge-list">
                                 <?php foreach ($channels as $channel) { ?>
-                                    <span class="badge-status is-success"><?php echo sr_e(sr_admin_code_label((string) $channel, 'notification_channel')); ?></span>
+                                    <?php
+                                    $channel = (string) $channel;
+                                    $channelUnavailable = ($channel === 'email' && !$notificationTemplateEmailChannelEnabled)
+                                        || (in_array($channel, $notificationTemplateMemberExternalChannelKeys, true) && !($notificationTemplateMemberExternalChannelEnabled[$channel] ?? true));
+                                    $channelBadgeClass = $channelUnavailable ? 'is-danger' : 'is-success';
+                                    $channelLabel = sr_admin_code_label($channel, 'notification_channel') . ($channelUnavailable ? ' 중지' : '');
+                                    ?>
+                                    <span class="badge-status <?php echo sr_e($channelBadgeClass); ?>"><?php echo sr_e($channelLabel); ?></span>
                                 <?php } ?>
                             </span>
                         </td>
@@ -98,6 +137,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php
+    echo sr_admin_status_description_list_html('notification_template_status', [
+        'active' => '사용',
+        'inactive' => '중지',
+        'email_disabled' => '이메일 중지',
+        'member_external_disabled' => '외부채널 중지',
+    ], [
+        'active' => '알림/메일 항목이 활성화되어 조건이 맞으면 알림 row 생성 또는 메일 발송 흐름을 실행합니다.',
+        'inactive' => '알림/메일 항목이 중지되어 알림 row, 메일 발송, 발송 작업을 만들지 않습니다.',
+        'email_disabled' => '항목에 이메일이 선택되어 있지만 알림 모듈의 이메일 채널이 꺼져 있어 해당 채널의 발송 작업을 만들지 않습니다.',
+        'member_external_disabled' => '항목에 회원 외부채널이 선택되어 있지만 알림 모듈의 회원 외부채널 수신 허용이 꺼져 있어 해당 채널의 발송 작업을 만들지 않습니다.',
+    ], '상태 설명');
+    ?>
 </section>
 
 <?php foreach ($notificationTemplateRows as $rowIndex => $templateRow) { ?>
@@ -111,6 +163,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $rowChannelOptions = $rowType === 'delivery' && isset($templateRow['available_channels']) && is_array($templateRow['available_channels'])
         ? $templateRow['available_channels']
         : $notificationTemplateChannelOptions;
+    foreach ($channels as $selectedChannel) {
+        $selectedChannel = (string) $selectedChannel;
+        if (in_array($selectedChannel, $notificationTemplateMemberExternalChannelKeys, true) && !in_array($selectedChannel, $rowChannelOptions, true)) {
+            $rowChannelOptions[] = $selectedChannel;
+        }
+    }
+    $showChannelSelector = !($rowType === 'delivery' && $rowChannelOptions === ['email']);
     $channelTemplates = isset($templateRow['channel_templates']) && is_array($templateRow['channel_templates']) ? $templateRow['channel_templates'] : [];
     $alimtalkTemplate = isset($channelTemplates['alimtalk']) && is_array($channelTemplates['alimtalk']) ? $channelTemplates['alimtalk'] : [];
     $showAlimtalkTemplateCode = $rowType !== 'delivery' && (in_array('alimtalk', $rowChannelOptions, true) || in_array('alimtalk', $channels, true) || (string) ($alimtalkTemplate['provider_template_code'] ?? '') !== '');
@@ -169,24 +228,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                     <?php } ?>
-                    <div class="form-row">
-                        <label class="form-label">발송 수단 <span class="sr-required-label">(필수)</span></label>
-                        <div class="form-field">
-                            <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group" aria-label="발송 수단">
-                                <?php foreach ($rowChannelOptions as $channelIndex => $channel) { ?>
-                                    <?php
-                                    $channel = (string) $channel;
-                                    $channelInputId = 'notification_template_channel_' . $fieldSuffix . '_' . (string) $channelIndex;
-                                    $groupClass = $channelIndex === 0 ? 'btn-group-start' : ($channelIndex === count($rowChannelOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                                    ?>
-                                    <span class="filtering-toggle-item">
-                                        <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($channel, $channels, true) ? ' checked' : ''; ?>>
-                                        <label for="<?php echo sr_e($channelInputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>"><?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?></label>
-                                    </span>
-                                <?php } ?>
+                    <?php if ($showChannelSelector) { ?>
+                        <div class="form-row">
+                            <label class="form-label">발송 수단 <span class="sr-required-label">(필수)</span></label>
+                            <div class="form-field">
+                                <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group" aria-label="발송 수단">
+                                    <?php foreach ($rowChannelOptions as $channelIndex => $channel) { ?>
+                                        <?php
+                                        $channel = (string) $channel;
+                                        $channelInputId = 'notification_template_channel_' . $fieldSuffix . '_' . (string) $channelIndex;
+                                        $groupClass = $channelIndex === 0 ? 'btn-group-start' : ($channelIndex === count($rowChannelOptions) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                                        ?>
+                                        <?php
+                                        $channelChoiceLabel = sr_admin_code_label($channel, 'notification_channel');
+                                        if (($channel === 'email' && !$notificationTemplateEmailChannelEnabled)
+                                            || (in_array($channel, $notificationTemplateMemberExternalChannelKeys, true) && !($notificationTemplateMemberExternalChannelEnabled[$channel] ?? true))
+                                        ) {
+                                            $channelChoiceLabel .= ' (채널 중지)';
+                                        }
+                                        ?>
+                                        <span class="filtering-toggle-item">
+                                            <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($channel, $channels, true) ? ' checked' : ''; ?>>
+                                            <label for="<?php echo sr_e($channelInputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>"><?php echo sr_admin_choice_label_html($channelChoiceLabel); ?></label>
+                                        </span>
+                                    <?php } ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    <?php } ?>
                     <?php if ($showAlimtalkTemplateCode) { ?>
                         <div class="form-row">
                             <label class="form-label" for="notification_template_alimtalk_code_<?php echo sr_e($fieldSuffix); ?>">알림톡 템플릿 코드</label>
@@ -199,7 +268,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-row">
                         <label class="form-label" for="notification_template_enabled_<?php echo sr_e($fieldSuffix); ?>">상태</label>
                         <div class="form-field">
-                            <?php echo sr_admin_switch_html('notification_template_enabled_' . $fieldSuffix, 'enabled', '1', $enabled, $rowType === 'delivery' ? '사용자 수정값 사용' : '사용'); ?>
+                            <?php echo sr_admin_switch_html('notification_template_enabled_' . $fieldSuffix, 'enabled', '1', $enabled, '사용'); ?>
                         </div>
                     </div>
                 </div>

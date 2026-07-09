@@ -23,7 +23,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <tr>
                     <th<?php echo sr_admin_sort_aria('label', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('템플릿', 'label', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('module', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('소유 모듈', 'module', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('source', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('적용값', 'source', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('source', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('수정값', 'source', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
                     <th class="admin-table-actions-cell">관리</th>
                 </tr>
@@ -50,7 +50,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="badge-status <?php echo $hasOverride ? 'is-warning' : 'is-info'; ?>"><?php echo sr_e($hasOverride ? '사용자 수정' : '기본값'); ?></span>
                         </td>
                         <td class="admin-table-nowrap">
-                            <span class="badge-status <?php echo $active ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e($active ? '사용' : '기본값 사용'); ?></span>
+                            <span class="badge-status <?php echo $active ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e($active ? '사용' : '중지'); ?></span>
                         </td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions">
@@ -77,6 +77,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $requiredVariables = isset($templateRow['required_variables']) && is_array($templateRow['required_variables']) ? $templateRow['required_variables'] : [];
     $channels = isset($templateRow['channels']) && is_array($templateRow['channels']) ? $templateRow['channels'] : ['email'];
     $availableChannels = isset($templateRow['available_channels']) && is_array($templateRow['available_channels']) ? $templateRow['available_channels'] : $channels;
+    $showChannelSelector = $availableChannels !== ['email'];
     $status = (string) ($templateRow['status'] ?? 'active');
     $bodyEditable = !empty($templateRow['body_editable']);
     ?>
@@ -121,30 +122,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="delivery_template_link_<?php echo sr_e($fieldSuffix); ?>" type="text" name="link_template" value="<?php echo sr_e((string) ($templateRow['link_template'] ?? '')); ?>" maxlength="255" class="form-input form-control-full">
                         </div>
                     </div>
-                    <div class="form-row">
-                        <label class="form-label">발송 수단 <span class="sr-required-label">(필수)</span></label>
-                        <div class="form-field">
-                            <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group" aria-label="발송 수단">
-                                <?php foreach ($availableChannels as $channelIndex => $channel) { ?>
-                                    <?php
-                                    $channel = (string) $channel;
-                                    $channelInputId = 'delivery_template_channel_' . $fieldSuffix . '_' . (string) $channelIndex;
-                                    $groupClass = $channelIndex === 0 ? 'btn-group-start' : ($channelIndex === count($availableChannels) - 1 ? 'btn-group-end' : 'btn-group-middle');
-                                    ?>
-                                    <span class="filtering-toggle-item">
-                                        <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($channel, $channels, true) ? ' checked' : ''; ?>>
-                                        <label for="<?php echo sr_e($channelInputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>"><?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?></label>
-                                    </span>
-                                <?php } ?>
+                    <?php if ($showChannelSelector) { ?>
+                        <div class="form-row">
+                            <label class="form-label">발송 수단 <span class="sr-required-label">(필수)</span></label>
+                            <div class="form-field">
+                                <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group" aria-label="발송 수단">
+                                    <?php foreach ($availableChannels as $channelIndex => $channel) { ?>
+                                        <?php
+                                        $channel = (string) $channel;
+                                        $channelInputId = 'delivery_template_channel_' . $fieldSuffix . '_' . (string) $channelIndex;
+                                        $groupClass = $channelIndex === 0 ? 'btn-group-start' : ($channelIndex === count($availableChannels) - 1 ? 'btn-group-end' : 'btn-group-middle');
+                                        ?>
+                                        <span class="filtering-toggle-item">
+                                            <input id="<?php echo sr_e($channelInputId); ?>" type="checkbox" name="channels[]" value="<?php echo sr_e($channel); ?>" class="form-choice-toggle-input sr-only"<?php echo in_array($channel, $channels, true) ? ' checked' : ''; ?>>
+                                            <label for="<?php echo sr_e($channelInputId); ?>" class="btn btn-choice-light <?php echo sr_e($groupClass); ?>"><?php echo sr_admin_choice_label_html(sr_admin_code_label($channel, 'notification_channel')); ?></label>
+                                        </span>
+                                    <?php } ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    <?php } ?>
                     <div class="form-row">
                         <label class="form-label" for="delivery_template_status_<?php echo sr_e($fieldSuffix); ?>">상태</label>
                         <div class="form-field">
                             <select id="delivery_template_status_<?php echo sr_e($fieldSuffix); ?>" name="status" class="form-select">
-                                <option value="active"<?php echo $status === 'active' ? ' selected' : ''; ?>>사용자 수정값 사용</option>
-                                <option value="inactive"<?php echo $status === 'inactive' ? ' selected' : ''; ?>>기본값 사용</option>
+                                <option value="active"<?php echo $status === 'active' ? ' selected' : ''; ?>>사용</option>
+                                <option value="inactive"<?php echo $status === 'inactive' ? ' selected' : ''; ?>>중지</option>
                             </select>
                         </div>
                     </div>

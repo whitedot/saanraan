@@ -25,7 +25,7 @@ return [
             'order' => 40,
         ],
         [
-            'label' => '회원 보안 알림/메일 관리',
+            'label' => '회원 알림/메일 관리',
             'path' => '/admin/member-notification-templates',
             'requires_modules' => ['notification'],
             'order' => 45,

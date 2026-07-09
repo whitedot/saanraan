@@ -7,6 +7,7 @@ require_once SR_ROOT . '/modules/notification/helpers.php';
 function sr_notification_event_template_admin_channels(PDO $pdo): array
 {
     $channels = function_exists('sr_notification_create_channels') ? sr_notification_create_channels($pdo) : ['site'];
+    $channels[] = 'email';
     if (function_exists('sr_notification_member_external_channel_keys')
         && function_exists('sr_notification_member_external_provider_is_ready')
         && function_exists('sr_notification_settings')
@@ -346,6 +347,9 @@ function sr_notification_event_template_admin_save(PDO $pdo, string $moduleKey, 
     $enabled = !empty($data['enabled']);
     $channels = isset($data['channels']) && is_array($data['channels']) ? $data['channels'] : [];
     $availableChannels = sr_notification_event_template_admin_channels($pdo);
+    if (function_exists('sr_notification_member_external_channel_keys')) {
+        $availableChannels = array_values(array_unique(array_merge($availableChannels, sr_notification_member_external_channel_keys())));
+    }
     $allowed = array_fill_keys($availableChannels, true);
     $normalizedChannels = [];
     foreach (sr_notification_normalize_channels($channels) as $channel) {

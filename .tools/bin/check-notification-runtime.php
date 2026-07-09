@@ -127,6 +127,35 @@ if (!function_exists('sr_module_settings')) {
     }
 }
 
+function sr_fixture_notification_case_key_for_event(string $eventKey): string
+{
+    return $eventKey === 'blocked.event' ? 'blocked_case' : '';
+}
+
+function sr_fixture_notification_case_settings_from_value(mixed $value): array
+{
+    return [
+        'blocked_case' => [
+            'event_key' => 'blocked.event',
+            'enabled' => false,
+            'channels' => ['site'],
+        ],
+    ];
+}
+
+function sr_fixture_settings(PDO $pdo): array
+{
+    return [
+        'notification_cases' => [
+            'blocked_case' => [
+                'event_key' => 'blocked.event',
+                'enabled' => false,
+                'channels' => ['site'],
+            ],
+        ],
+    ];
+}
+
 if (!function_exists('sr_admin_normalize_permission_action')) {
     function sr_admin_normalize_permission_action(string $value): string
     {
@@ -350,7 +379,8 @@ function sr_notification_runtime_pdo(): PDO
             (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
          VALUES
             ('community', 'comment.mention', '댓글에서 {member_name}님이 언급했습니다.', '본문: {comment_excerpt}', '/community/post?id={post_id}', '[\"site\",\"email\"]', 'active', '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
-            ('community', 'disabled.event', '비활성 알림', '비활성', '/disabled', '[\"site\"]', 'disabled', '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
+            ('community', 'disabled.event', '비활성 알림', '비활성', '/disabled', '[\"site\"]', 'disabled', '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+            ('fixture', 'blocked.event', '설정 비활성 알림', '설정 비활성', '/blocked', '[\"site\"]', 'active', '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
     );
 
     return $pdo;
@@ -397,6 +427,23 @@ sr_notification_runtime_assert(str_contains((string) sr_notification_runtime_sca
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT body_text FROM sr_notifications WHERE id = :id', ['id' => $notificationId]) === '본문: 테스트 댓글', 'notification runtime fixture must render body template metadata.');
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT link_url FROM sr_notifications WHERE id = :id', ['id' => $notificationId]) === '/community/post?id=42', 'notification runtime fixture must render link template metadata.');
 sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'email\' AND recipient = \'member7@example.test\' AND status = \'queued\'', ['id' => $notificationId]) === 1, 'notification runtime fixture must queue email delivery for account event.');
+
+$pdo->exec("INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, 'email_channel_enabled', '0', 'bool')");
+$GLOBALS['sr_module_settings_cache_token_notification'] = (int) ($GLOBALS['sr_module_settings_cache_token_notification'] ?? 0) + 1;
+$emailDisabledNotificationId = sr_notification_create_account_event($pdo, [
+    'account_id' => 77,
+    'module_key' => 'community',
+    'event_key' => 'comment.mention',
+    'metadata' => [
+        'member_name' => '홍길동',
+        'comment_excerpt' => '이메일 비활성 댓글',
+        'post_id' => '43',
+    ],
+]);
+sr_notification_runtime_assert(is_int($emailDisabledNotificationId) && $emailDisabledNotificationId > 0, 'notification runtime fixture must still create notification row when email channel is disabled.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'email\'', ['id' => $emailDisabledNotificationId]) === 0, 'notification runtime fixture must not queue email delivery when email channel is disabled.');
+$pdo->exec("UPDATE sr_module_settings SET setting_value = '1' WHERE module_id = 1 AND setting_key = 'email_channel_enabled'");
+$GLOBALS['sr_module_settings_cache_token_notification'] = (int) ($GLOBALS['sr_module_settings_cache_token_notification'] ?? 0) + 1;
 
 $pdo->exec("UPDATE sr_notification_event_templates SET title_template = '수정된 제목: {member_name}' WHERE module_key = 'community' AND event_key = 'comment.mention'");
 $storedEventNotification = $pdo->query('SELECT * FROM sr_notifications WHERE id = ' . (string) $notificationId)->fetch();
@@ -496,6 +543,15 @@ $disabled = sr_notification_create_account_event($pdo, [
     'event_key' => 'disabled.event',
 ]);
 sr_notification_runtime_assert($disabled === null, 'notification runtime fixture must not create disabled event template notifications.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, "SELECT COUNT(*) FROM sr_notifications WHERE source_module_key = 'community' AND event_key = 'disabled.event'") === 0, 'disabled event template notifications must not leave notification rows.');
+
+$settingsBlocked = sr_notification_create_account_event($pdo, [
+    'account_id' => 7,
+    'module_key' => 'fixture',
+    'event_key' => 'blocked.event',
+]);
+sr_notification_runtime_assert($settingsBlocked === null, 'notification runtime fixture must not create module-disabled notification case events.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, "SELECT COUNT(*) FROM sr_notifications WHERE source_module_key = 'fixture' AND event_key = 'blocked.event'") === 0, 'module-disabled notification cases must not leave notification rows.');
 
 $unknownChannelRejected = false;
 try {
@@ -610,6 +666,18 @@ sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SE
 sr_notification_runtime_assert((string) sr_notification_runtime_scalar($pdo, 'SELECT recipient_masked FROM sr_notification_push_endpoints WHERE id = :id', ['id' => $memberDiscordEndpointId]) === 'https://discord.com/[masked]', 'notification runtime fixture must mask member Discord webhook endpoint.');
 sr_notification_runtime_assert(in_array('slack_webhook', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Slack push channel when endpoint exists.');
 sr_notification_runtime_assert(in_array('discord_webhook', sr_notification_member_external_channels($pdo, 7), true), 'notification runtime fixture must expose configured member Discord push channel when endpoint exists.');
+$pdo->exec("UPDATE sr_module_settings SET setting_value = '0' WHERE module_id = 1 AND setting_key = 'slack_member_push_enabled'");
+$GLOBALS['sr_module_settings_cache_token_notification'] = (int) ($GLOBALS['sr_module_settings_cache_token_notification'] ?? 0) + 1;
+$memberExternalDisabledNotificationId = sr_notification_create($pdo, [
+    'account_id' => 7,
+    'title' => '회원 외부채널 중지 테스트',
+    'body_text' => '회원 외부채널 중지 테스트',
+    'channels' => ['slack_webhook'],
+]);
+sr_notification_runtime_assert(is_int($memberExternalDisabledNotificationId) && $memberExternalDisabledNotificationId > 0, 'notification runtime fixture must still create notification row when selected member external channel is disabled.');
+sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_notification_deliveries WHERE notification_id = :id AND channel = \'slack_webhook\'', ['id' => $memberExternalDisabledNotificationId]) === 0, 'notification runtime fixture must not queue member external delivery when member external channel is disabled.');
+$pdo->exec("UPDATE sr_module_settings SET setting_value = '1' WHERE module_id = 1 AND setting_key = 'slack_member_push_enabled'");
+$GLOBALS['sr_module_settings_cache_token_notification'] = (int) ($GLOBALS['sr_module_settings_cache_token_notification'] ?? 0) + 1;
 $pdo->prepare(
     "UPDATE sr_notification_event_templates
      SET title_template = :title_template,
