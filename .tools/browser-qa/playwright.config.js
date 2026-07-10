@@ -1,4 +1,9 @@
 const baseURL = process.env.SR_BROWSER_QA_BASE_URL || process.env.SR_SMOKE_BASE_URL || 'http://127.0.0.1:8080';
+const chromiumChannel = process.env.SR_BROWSER_QA_CHROMIUM_CHANNEL || '';
+const chromiumUse = {
+  browserName: 'chromium',
+  ...(chromiumChannel !== '' ? { channel: chromiumChannel } : {}),
+};
 
 module.exports = {
   testDir: './tests',
@@ -26,10 +31,7 @@ module.exports = {
     {
       name: 'chromium-full',
       grepInvert: /milestone 15 deep browser QA/,
-      use: {
-        browserName: 'chromium',
-        channel: 'chrome',
-      },
+      use: chromiumUse,
     },
     {
       name: 'firefox-core',
@@ -48,10 +50,7 @@ module.exports = {
     {
       name: 'chromium-m15-deep',
       grep: /milestone 15 deep browser QA/,
-      use: {
-        browserName: 'chromium',
-        channel: 'chrome',
-      },
+      use: chromiumUse,
     },
   ],
 };

@@ -333,6 +333,7 @@ function sr_ckeditor_smoke_content_save_payload(string $csrf, string $title, str
         'cover_image_url' => '',
         'body_text' => $bodyHtml,
         'body_format' => 'html',
+        'editor_key' => 'ckeditor',
         'status' => $status,
         'scheduled_publish_at' => '',
         'layout_key' => '',

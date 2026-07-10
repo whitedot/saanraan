@@ -650,7 +650,7 @@ function sr_community_create_post(PDO $pdo, int $boardId, int $authorAccountId, 
         ? $initialStatusInput
         : 'published';
     $bodyFormat = in_array((string) ($values['body_format'] ?? 'plain'), ['plain', 'html', 'markdown'], true)
-        ? (string) $values['body_format']
+        ? (string) ($values['body_format'] ?? 'plain')
         : 'plain';
     $bodyText = trim((string) ($values['body_text'] ?? ''));
 

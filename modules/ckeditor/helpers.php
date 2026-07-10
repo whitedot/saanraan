@@ -6,7 +6,7 @@ function sr_ckeditor_default_settings(): array
 {
     return [
         'asset_mode' => 'self_hosted',
-        'cdn_version' => '48.1.0',
+        'cdn_version' => '48.3.0',
         'license_key' => 'GPL',
         'toolbar_preset' => 'community_post_basic',
     ];
@@ -30,7 +30,7 @@ function sr_ckeditor_settings(PDO $pdo): array
 function sr_ckeditor_clean_version(string $value): string
 {
     $value = trim($value);
-    return preg_match('/\A[0-9]+(?:\.[0-9]+){1,2}\z/', $value) === 1 ? $value : '48.1.0';
+    return preg_match('/\A[0-9]+(?:\.[0-9]+){1,2}\z/', $value) === 1 ? $value : '48.3.0';
 }
 
 function sr_ckeditor_clean_license_key(string $value): string

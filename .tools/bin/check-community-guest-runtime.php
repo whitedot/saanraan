@@ -391,7 +391,6 @@ function sr_community_guest_runtime_check(): void
         'title' => '비회원 런타임 게시글',
         'category_id' => 0,
         'body_text' => '비회원 작성 mutation 런타임 본문',
-        'body_format' => 'plain',
         'seo_title' => '',
         'seo_description' => '',
         'og_title' => '',
@@ -410,7 +409,22 @@ function sr_community_guest_runtime_check(): void
     );
     sr_community_guest_runtime_assert($postErrors === [], 'guest post input must pass server-side validation: ' . implode(', ', $postErrors));
 
-    $postId = sr_community_create_post($pdo, 1, 0, $postValues);
+    $postCreationWarnings = [];
+    set_error_handler(static function (int $severity, string $message) use (&$postCreationWarnings): bool {
+        if ((error_reporting() & $severity) !== 0) {
+            $postCreationWarnings[] = $message;
+        }
+        return true;
+    });
+    try {
+        $postId = sr_community_create_post($pdo, 1, 0, $postValues);
+    } finally {
+        restore_error_handler();
+    }
+    sr_community_guest_runtime_assert(
+        $postCreationWarnings === [],
+        'post creation must apply the plain body format default without warnings: ' . implode(' / ', $postCreationWarnings)
+    );
     sr_community_guest_runtime_assert($postId > 0, 'guest post creation must return an id.');
 
     $post = sr_community_guest_runtime_row($pdo, 'SELECT * FROM sr_community_posts WHERE id = :id', ['id' => $postId]);

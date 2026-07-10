@@ -212,6 +212,10 @@ sr_community_release_file_contains('core/actions/install.php', [
 sr_community_release_file_contains('.tools/bin/smoke-http.php', [
     'SR_SMOKE_EXPECT_COMMUNITY=1',
     '$expectCommunity = getenv(\'SR_SMOKE_EXPECT_COMMUNITY\') === \'1\'',
+    "'GET /community/group?key=general' => true",
+    "'GET /community/edit?id=1' => true",
+    "'label' => 'community comment action guest csrf guard'",
+    "'allowed_statuses' => [302, 400, 404]",
     'returned 404 while SR_SMOKE_EXPECT_COMMUNITY=1',
 ], 'Community installed HTTP smoke mode');
 sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
@@ -223,6 +227,8 @@ sr_community_release_file_contains('.tools/bin/smoke-community-auth.php', [
     'reporter_identifier and reporter_password must be provided together.',
     'admin_identifier and admin_password must be provided together.',
     'recipient_password requires recipient_identifier.',
+    'function sr_auth_smoke_first_message_path',
+    '\/message\\?id=[0-9]+',
 ], 'Community authenticated smoke configuration guards');
 sr_community_release_command(
     [

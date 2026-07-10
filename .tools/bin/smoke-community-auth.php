@@ -272,7 +272,7 @@ function sr_auth_smoke_report_id_for_post(array $response, int $postId): string
 
 function sr_auth_smoke_first_message_path(array $response): string
 {
-    if (preg_match('/href="([^"]*\/community\/message\?id=[0-9]+)"/', (string) $response['body'], $matches) === 1) {
+    if (preg_match('/href="([^"]*\/message\?id=[0-9]+)"/', (string) $response['body'], $matches) === 1) {
         return html_entity_decode((string) $matches[1], ENT_QUOTES, 'UTF-8');
     }
 

@@ -110,7 +110,7 @@ $optionalModules = [
     ],
     'ckeditor' => [
         'name' => 'CKEditor',
-        'version' => '2026.05.002',
+        'version' => '2026.07.001',
         'label' => 'CKEditor',
         'description' => '관리자와 모듈 입력 화면에 CKEditor 5 편집기 선택지를 설치합니다.',
     ],

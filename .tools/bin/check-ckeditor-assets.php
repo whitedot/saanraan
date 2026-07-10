@@ -231,6 +231,23 @@ foreach ([
     }
 }
 
+$ckeditorVendorHashes = [
+    'modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js' => '78602c5703f6d0b44fb4bc986f9678dd48f379bddd1ecc426d8d137a6edde11a',
+    'modules/ckeditor/vendor/ckeditor5/ckeditor5.css' => 'd97db4edafdbc05737639cc5a81bd789d06df813adb1f0fd97a775e9f9691677',
+];
+foreach ($ckeditorVendorHashes as $file => $expectedHash) {
+    $actualHash = hash_file('sha256', $file);
+    sr_ckeditor_assets_assert(
+        is_string($actualHash) && hash_equals($expectedHash, $actualHash),
+        'CKEditor vendored asset SHA-256 does not match the recorded 48.3.0 distribution: ' . $file
+    );
+    $contents = file_get_contents($file);
+    sr_ckeditor_assets_assert(
+        is_string($contents) && !str_contains($contents, 'sourceMappingURL='),
+        'CKEditor vendored asset must not reference an unbundled source map: ' . $file
+    );
+}
+
 sr_ckeditor_assets_node_syntax_check('modules/ckeditor/assets/saanraan-ckeditor.js');
 sr_ckeditor_assets_check_content_body_file_access_fixture();
 $ckeditorContractPdo = sr_ckeditor_assets_editor_contract_pdo();
@@ -245,7 +262,7 @@ sr_ckeditor_assets_assert(
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/vendor/ckeditor5/README.md', [
     'CKEditor 5',
-    '48.1.0',
+    '48.3.0',
     'ckeditor5.umd.js',
     'ckeditor5.css',
 ]);
@@ -257,7 +274,7 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/vendor/ckeditor5/LICENSE.md
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/helpers.php', [
     "'asset_mode' => 'self_hosted'",
-    "'cdn_version' => '48.1.0'",
+    "'cdn_version' => '48.3.0'",
     "'license_key' => 'GPL'",
     "'selfHostedScriptUrl' => sr_asset_url('/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js')",
     "'selfHostedStylesheetUrl' => sr_asset_url('/modules/ckeditor/vendor/ckeditor5/ckeditor5.css')",
@@ -322,6 +339,7 @@ sr_ckeditor_assets_require_markers('modules/content/actions/admin-contents.php',
 
 sr_ckeditor_assets_require_markers('.tools/bin/smoke-ckeditor-upload-save.php', [
     '/admin/content/new?editor_key=ckeditor',
+    "'editor_key' => 'ckeditor'",
 ]);
 
 sr_ckeditor_assets_require_markers('modules/content/actions/admin-body-file-upload.php', [
@@ -513,12 +531,12 @@ sr_ckeditor_assets_require_markers('docs/admin-ui-guide.md', [
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/module.php', [
     "'asset_mode' => 'self_hosted'",
-    "'cdn_version' => '48.1.0'",
+    "'cdn_version' => '48.3.0'",
     "'license_key' => 'GPL'",
 ]);
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/README.md', [
-    'CKEditor 5 `48.1.0`',
+    'CKEditor 5 `48.3.0`',
     'modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
     'modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
     '에셋 로딩에 실패하거나 플러그인이 비활성화되면 기존 textarea가 그대로 제출',

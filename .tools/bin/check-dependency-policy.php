@@ -18,6 +18,7 @@ $policyFile = 'docs/dependency-policy.md';
 $outputHelperFile = 'core/helpers/output.php';
 $releaseProcessFile = 'docs/release-process.md';
 $docsReadmeFile = 'docs/README.md';
+$thirdPartyNoticesFile = 'THIRD_PARTY_NOTICES.md';
 $ckeditorVendorReadme = 'modules/ckeditor/vendor/ckeditor5/README.md';
 $htmlPurifierReadme = 'modules/htmlpurifier/README.md';
 $htmlPurifierDependency = 'modules/htmlpurifier/DEPENDENCY.md';
@@ -31,12 +32,16 @@ $policy = is_file($policyFile) ? file_get_contents($policyFile) : false;
 $outputHelper = is_file($outputHelperFile) ? file_get_contents($outputHelperFile) : false;
 $releaseProcess = is_file($releaseProcessFile) ? file_get_contents($releaseProcessFile) : false;
 $docsReadme = is_file($docsReadmeFile) ? file_get_contents($docsReadmeFile) : false;
+$thirdPartyNotices = is_file($thirdPartyNoticesFile) ? file_get_contents($thirdPartyNoticesFile) : false;
 
 if (!is_string($policy)) {
     sr_dependency_policy_error('Dependency policy document is missing or unreadable.');
 }
 if (!is_string($outputHelper)) {
     sr_dependency_policy_error('Output helper is missing or unreadable.');
+}
+if (!is_string($thirdPartyNotices)) {
+    sr_dependency_policy_error('Third-party notices document is missing or unreadable.');
 }
 
 $purifierPaths = [
@@ -89,6 +94,12 @@ if (is_string($docsReadme) && !str_contains($docsReadme, 'dependency-policy.md')
 
 if (!is_file($ckeditorVendorReadme)) {
     sr_dependency_policy_error('CKEditor vendor README is missing.');
+}
+
+foreach (['CKEditor 5', '48.3.0', 'GPL-2.0-or-later', 'HTML Purifier', 'LGPL-2.1-or-later', 'github-markdown-css', 'MIT'] as $marker) {
+    if (is_string($thirdPartyNotices) && !str_contains($thirdPartyNotices, $marker)) {
+        sr_dependency_policy_error('Third-party notices document is missing marker: ' . $marker);
+    }
 }
 
 foreach ([

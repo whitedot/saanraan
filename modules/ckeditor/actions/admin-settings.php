@@ -39,7 +39,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = '에셋 로딩 방식이 올바르지 않습니다.';
     }
     if (sr_ckeditor_clean_version((string) $postedSettings['cdn_version']) !== (string) $postedSettings['cdn_version']) {
-        $errors[] = 'CDN 버전은 48.1.0 형식으로 입력해 주세요.';
+        $errors[] = 'CDN 버전은 48.3.0 형식으로 입력해 주세요.';
     }
     if ($postedLicenseKey === null) {
         $errors[] = '라이선스 키는 255자 이내로 입력해 주세요.';

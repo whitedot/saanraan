@@ -292,15 +292,15 @@ $checks = [
     [
         'label' => 'community edit auth guard',
         'path' => '/community/edit?id=1',
-        'allowed_statuses' => [302, 404],
+        'allowed_statuses' => [302, 403, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community edit action auth guard',
+        'label' => 'community edit action guest csrf guard',
         'method' => 'POST',
         'path' => '/community/edit',
-        'allowed_statuses' => [302, 404],
+        'allowed_statuses' => [302, 400, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
@@ -313,18 +313,18 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community delete action auth guard',
+        'label' => 'community delete action guest csrf guard',
         'method' => 'POST',
         'path' => '/community/delete',
-        'allowed_statuses' => [302, 404],
+        'allowed_statuses' => [302, 400, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community comment action auth guard',
+        'label' => 'community comment action guest csrf guard',
         'method' => 'POST',
         'path' => '/community/comment',
-        'allowed_statuses' => [302, 404],
+        'allowed_statuses' => [302, 400, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
@@ -345,10 +345,10 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community comment edit action auth guard',
+        'label' => 'community comment edit action guest csrf guard',
         'method' => 'POST',
         'path' => '/community/comment/edit',
-        'allowed_statuses' => [302, 404],
+        'allowed_statuses' => [302, 400, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
@@ -361,10 +361,10 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'community comment delete action auth guard',
+        'label' => 'community comment delete action guest csrf guard',
         'method' => 'POST',
         'path' => '/community/comment/delete',
-        'allowed_statuses' => [302, 404],
+        'allowed_statuses' => [302, 400, 404],
         'redirect_path_prefixes' => ['/login?next='],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
@@ -853,6 +853,11 @@ $checks = [
 ];
 
 if ($expectCommunity) {
+    $fixtureDependentCommunityChecks = [
+        'GET /community/group?key=general' => true,
+        'GET /community/edit?id=1' => true,
+    ];
+
     foreach ($checks as &$check) {
         $path = (string) ($check['path'] ?? '');
         if (!str_starts_with($path, '/community') && !str_starts_with($path, '/admin/community')) {
@@ -860,6 +865,11 @@ if ($expectCommunity) {
         }
 
         if (isset($check['must_not_expose'])) {
+            continue;
+        }
+
+        $method = strtoupper((string) ($check['method'] ?? 'GET'));
+        if (isset($fixtureDependentCommunityChecks[$method . ' ' . $path])) {
             continue;
         }
 

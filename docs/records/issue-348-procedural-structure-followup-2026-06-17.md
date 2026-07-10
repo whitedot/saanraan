@@ -82,4 +82,7 @@
 
 ## 후속 후보
 
-- 현재 1,500줄 이상 helper/action 파일은 없다.
+- 2026-06-17 점검 당시에는 1,500줄 이상 helper/action 파일이 없었다. 이후 기능 확장으로 일부 파일이 다시 기준을 넘었으므로 이 표의 줄 수는 현재 상태표가 아니라 당시 분리 결정의 기록으로 읽는다.
+- 2026-07-10 재측정에서는 `modules/coupon/helpers.php`, `core/helpers/output.php`, `modules/community/helpers/asset-events.php`, `modules/member/helpers/admin-members.php`, `modules/content/helpers/asset-access.php`, `modules/member/helpers/sessions.php`, `modules/asset_exchange/helpers.php` 등이 1,500줄을 넘었다.
+- 줄 수만으로 즉시 분리하지 않는다. 다음 변경에서 요청 분기나 transaction 경계가 읽기 어려워지는 파일부터 입력 수집·검증·조회·도메인 실행 helper 묶음을 명시적 include 파일로 분리하고, 숨은 dispatcher는 도입하지 않는다.
+- 정적 분석 도구 도입과 CSP `unsafe-inline` 제거는 공유호스팅/no-build-step 제약과 전체 번들 영향이 있어 각각 별도 기준선 작업으로 추적한다. 이번 우선순위 보강에서는 설치 DB·브라우저·성능 회귀 증거를 먼저 고정했다.

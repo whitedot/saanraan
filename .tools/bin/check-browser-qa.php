@@ -81,7 +81,9 @@ sr_browser_qa_require_markers('.tools/browser-qa/package.json', [
 
 sr_browser_qa_require_markers('.tools/browser-qa/playwright.config.js', [
     'SR_BROWSER_QA_BASE_URL',
+    'SR_BROWSER_QA_CHROMIUM_CHANNEL',
     'SR_SMOKE_BASE_URL',
+    'chromiumUse',
     'chromium-full',
     'firefox-core',
     'webkit-core',

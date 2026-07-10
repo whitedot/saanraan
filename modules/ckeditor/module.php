@@ -2,7 +2,7 @@
 
 return [
     'name' => 'CKEditor',
-    'version' => '2026.05.002',
+    'version' => '2026.07.001',
     'type' => 'plugin',
     'description' => '설정된 textarea에 CKEditor 5 편집기를 붙이는 에디터 플러그인입니다.',
     'admin' => [
@@ -30,7 +30,7 @@ return [
     ],
     'settings' => [
         'asset_mode' => 'self_hosted',
-        'cdn_version' => '48.1.0',
+        'cdn_version' => '48.3.0',
         'license_key' => 'GPL',
         'toolbar_preset' => 'community_post_basic',
     ],

@@ -124,4 +124,5 @@ php .tools/bin/check.php
 
 ## 라이선스
 
-- [MIT License](LICENSE)
+- 산란이 직접 작성한 코드는 [MIT License](LICENSE)를 따른다.
+- 저장소에 포함된 CKEditor, HTML Purifier, github-markdown-css 등 제3자 구성요소에는 각 구성요소의 라이선스가 별도로 적용된다. 배포 전 [제3자 소프트웨어 고지](THIRD_PARTY_NOTICES.md)를 확인한다.
