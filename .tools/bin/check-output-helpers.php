@@ -452,6 +452,14 @@ sr_output_helper_assert(
     'Markdown renderer should render basic blocks and inline links while escaping raw HTML.'
 );
 sr_output_helper_assert(
+    sr_markdown_inline_html("first\nsecond", false) === "first\nsecond",
+    'Shared Markdown inline rendering should preserve source line breaks when block markup owns them.'
+);
+sr_output_helper_assert(
+    sr_markdown_inline_html("first\nsecond") === 'first<br>' . "\n" . 'second',
+    'Shared Markdown inline rendering should convert line breaks by default.'
+);
+sr_output_helper_assert(
     sr_body_text_html(['body_text' => '*Hello*', 'body_format' => 'markdown']) === '<p><em>Hello</em></p>',
     'Body text helper should render markdown body_format through the Markdown renderer.'
 );

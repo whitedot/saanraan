@@ -919,7 +919,7 @@ function sr_markdown_text_html(string $markdown): string
     return implode("\n", $html);
 }
 
-function sr_markdown_inline_html(string $text): string
+function sr_markdown_inline_html(string $text, bool $allowLineBreaks = true): string
 {
     $placeholders = [];
     $text = preg_replace_callback('/`([^`]+)`/', static function (array $matches) use (&$placeholders): string {
@@ -944,7 +944,9 @@ function sr_markdown_inline_html(string $text): string
     $html = preg_replace('/__([^_\n]+)__/', '<strong>$1</strong>', $html) ?? $html;
     $html = preg_replace('/(?<!\*)\*([^*\n]+)\*(?!\*)/', '<em>$1</em>', $html) ?? $html;
     $html = preg_replace('/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $html) ?? $html;
-    $html = nl2br($html, false);
+    if ($allowLineBreaks) {
+        $html = nl2br($html, false);
+    }
 
     return strtr($html, $placeholders);
 }

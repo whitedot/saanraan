@@ -1088,7 +1088,7 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
         return '';
     }
     if ($mode === 'inline') {
-        return sr_markdown_editor_inline_html(preg_replace('/\s+/', ' ', $markdown) ?? $markdown, false);
+        return sr_markdown_inline_html(preg_replace('/\s+/', ' ', $markdown) ?? $markdown, false);
     }
 
     $html = [];
@@ -1100,7 +1100,7 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
 
     $flushParagraph = static function () use (&$html, &$paragraph): void {
         if ($paragraph !== []) {
-            $html[] = '<p>' . sr_markdown_editor_inline_html(implode("\n", $paragraph), true) . '</p>';
+            $html[] = '<p>' . sr_markdown_inline_html(implode("\n", $paragraph), true) . '</p>';
             $paragraph = [];
         }
     };
@@ -1153,7 +1153,7 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
             $flushParagraph();
             $flushList();
             $level = strlen($matches[1]);
-            $html[] = '<h' . $level . '>' . sr_markdown_editor_inline_html((string) $matches[2], false) . '</h' . $level . '>';
+            $html[] = '<h' . $level . '>' . sr_markdown_inline_html((string) $matches[2], false) . '</h' . $level . '>';
             continue;
         }
         if ($trimmed === '---' || $trimmed === '***') {
@@ -1165,7 +1165,7 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
         if (str_starts_with($trimmed, '> ')) {
             $flushParagraph();
             $flushList();
-            $html[] = '<blockquote><p>' . sr_markdown_editor_inline_html(substr($trimmed, 2), false) . '</p></blockquote>';
+            $html[] = '<blockquote><p>' . sr_markdown_inline_html(substr($trimmed, 2), false) . '</p></blockquote>';
             continue;
         }
         if (!empty($settings['tables_enabled']) && str_contains($trimmed, '|')) {
@@ -1187,9 +1187,9 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
             $item = (string) $matches[1];
             if (!empty($settings['task_lists_enabled']) && preg_match('/\A\[(x|X| )\]\s+(.+)\z/', $item, $task) === 1) {
                 $checked = strtolower((string) $task[1]) === 'x' ? ' checked' : '';
-                $item = '<input type="checkbox" disabled' . $checked . '> ' . sr_markdown_editor_inline_html((string) $task[2], false);
+                $item = '<input type="checkbox" disabled' . $checked . '> ' . sr_markdown_inline_html((string) $task[2], false);
             } else {
-                $item = sr_markdown_editor_inline_html($item, false);
+                $item = sr_markdown_inline_html($item, false);
             }
             $listItems[] = $item;
             continue;
@@ -1200,7 +1200,7 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
                 $flushList();
                 $listType = 'ol';
             }
-            $listItems[] = sr_markdown_editor_inline_html((string) $matches[1], false);
+            $listItems[] = sr_markdown_inline_html((string) $matches[1], false);
             continue;
         }
 
@@ -1284,7 +1284,7 @@ function sr_markdown_editor_table_html(array $lines, int $startLineIndex): ?arra
     $head = [];
     foreach ($headerCells as $cellIndex => $cell) {
         $attribute = sr_markdown_editor_table_cell_alignment_attribute((string) ($alignments[$cellIndex] ?? ''));
-        $head[] = '<th' . $attribute . '>' . sr_markdown_editor_inline_html((string) $cell, false) . '</th>';
+        $head[] = '<th' . $attribute . '>' . sr_markdown_inline_html((string) $cell, false) . '</th>';
     }
 
     $body = [];
@@ -1302,7 +1302,7 @@ function sr_markdown_editor_table_html(array $lines, int $startLineIndex): ?arra
         $columns = [];
         foreach ($headerCells as $cellIndex => $_headerCell) {
             $attribute = sr_markdown_editor_table_cell_alignment_attribute((string) ($alignments[$cellIndex] ?? ''));
-            $columns[] = '<td' . $attribute . '>' . sr_markdown_editor_inline_html((string) ($rowCells[$cellIndex] ?? ''), false) . '</td>';
+            $columns[] = '<td' . $attribute . '>' . sr_markdown_inline_html((string) ($rowCells[$cellIndex] ?? ''), false) . '</td>';
         }
         $body[] = '<tr>' . implode('', $columns) . '</tr>';
         $lastLineIndex = $lineIndex;
@@ -1313,36 +1313,6 @@ function sr_markdown_editor_table_html(array $lines, int $startLineIndex): ?arra
         'html' => '<table><thead><tr>' . implode('', $head) . '</tr></thead>' . $bodyHtml . '</table>',
         'last_line_index' => $lastLineIndex,
     ];
-}
-
-function sr_markdown_editor_inline_html(string $text, bool $allowLineBreaks): string
-{
-    $placeholders = [];
-    $text = preg_replace_callback('/`([^`]+)`/', static function (array $matches) use (&$placeholders): string {
-        $token = "\x1A" . count($placeholders) . "\x1A";
-        $placeholders[$token] = '<code>' . sr_e((string) $matches[1]) . '</code>';
-        return $token;
-    }, $text) ?? $text;
-    $text = preg_replace_callback('/\[([^\]\n]+)\]\(([^)\s]+)\)/', static function (array $matches) use (&$placeholders): string {
-        $url = trim((string) $matches[2]);
-        if (!sr_is_safe_relative_url($url) && !sr_is_http_url($url)) {
-            return (string) $matches[0];
-        }
-        $token = "\x1A" . count($placeholders) . "\x1A";
-        $placeholders[$token] = '<a href="' . sr_e($url) . '" rel="nofollow noopener noreferrer">' . sr_e((string) $matches[1]) . '</a>';
-        return $token;
-    }, $text) ?? $text;
-
-    $html = sr_e($text);
-    $html = preg_replace('/\*\*([^*\n]+)\*\*/', '<strong>$1</strong>', $html) ?? $html;
-    $html = preg_replace('/__([^_\n]+)__/', '<strong>$1</strong>', $html) ?? $html;
-    $html = preg_replace('/(?<!\*)\*([^*\n]+)\*(?!\*)/', '<em>$1</em>', $html) ?? $html;
-    $html = preg_replace('/(?<!_)_([^_\n]+)_(?!_)/', '<em>$1</em>', $html) ?? $html;
-    if ($allowLineBreaks) {
-        $html = nl2br($html, false);
-    }
-
-    return strtr($html, $placeholders);
 }
 
 function sr_markdown_editor_plain_text(string $markdown, array $settings): string
