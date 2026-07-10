@@ -41,6 +41,44 @@ function sr_survey_check_not_contains(string $path, string $needle, string $mess
     }
 }
 
+function sr_survey_check_save_binding_parity(): void
+{
+    global $errors;
+
+    $contents = sr_survey_check_read('modules/survey/helpers/admin-surveys.php');
+    $valuesStart = strpos($contents, '        $surveyValues = [');
+    $valuesEnd = $valuesStart === false ? false : strpos($contents, "\n        ];", $valuesStart);
+    if ($valuesStart === false || $valuesEnd === false) {
+        $errors[] = 'Survey create and update must share one normalized value map.';
+        return;
+    }
+
+    $valuesBlock = substr($contents, $valuesStart, $valuesEnd - $valuesStart);
+    preg_match_all('/^\s*\'([a-z0-9_]+)\'\s*=>/m', $valuesBlock, $keyMatches);
+    $valueKeys = array_values(array_unique($keyMatches[1] ?? []));
+    foreach ([
+        'UPDATE sr_survey_forms' => ['questionnaire_version', 'updated_at', 'id'],
+        'INSERT INTO sr_survey_forms' => ['created_by_account_id', 'created_at', 'updated_at'],
+    ] as $sqlMarker => $branchKeys) {
+        $sqlStart = strpos($contents, $sqlMarker, $valuesEnd);
+        $sqlEnd = $sqlStart === false ? false : strpos($contents, ')->execute(array_merge($surveyValues', $sqlStart);
+        if ($sqlStart === false || $sqlEnd === false) {
+            $errors[] = 'Survey save SQL must use the shared value map: ' . $sqlMarker;
+            continue;
+        }
+
+        preg_match_all('/:([a-z0-9_]+)/', substr($contents, $sqlStart, $sqlEnd - $sqlStart), $placeholderMatches);
+        $commonPlaceholders = array_values(array_diff(array_unique($placeholderMatches[1] ?? []), $branchKeys));
+        $missing = array_values(array_diff($commonPlaceholders, $valueKeys));
+        $unused = array_values(array_diff($valueKeys, $commonPlaceholders));
+        if ($missing !== [] || $unused !== []) {
+            $errors[] = $sqlMarker . ' shared bindings differ. missing=' . implode(',', $missing) . ' unused=' . implode(',', $unused);
+        }
+    }
+}
+
+sr_survey_check_save_binding_parity();
+
 sr_survey_check_contains(
     'modules/survey/install.sql',
     'CREATE TABLE IF NOT EXISTS sr_survey_reward_grants',
