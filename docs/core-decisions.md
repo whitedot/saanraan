@@ -151,7 +151,7 @@
 URL 임베드 helper 유지 조건:
 
 - 임베드는 별도 관리 모듈이 아니라 `core/helpers/url-embed.php`의 URL 임베드 helper가 맡는다. 콘텐츠·커뮤니티 본문에 단독으로 붙여 넣은 YouTube, X, Instagram, 내부 콘텐츠 URL을 공개 렌더링 시점에 해석하며, 관리자 검색 삽입 화면과 검색 계약은 사용하지 않는다.
-- 관리자 사이드메뉴와 별도 설정 화면을 만들지 않는다. 각 owner 모듈은 필요한 경우 자체 `embed_enabled` 설정으로 본문 URL 임베드를 켜거나 끈다.
+- 관리자 사이드메뉴와 별도 설정 화면을 만들지 않는다. 콘텐츠·커뮤니티 owner 모듈은 `external_embed_enabled`와 `internal_embed_enabled`로 외부 서비스와 내부 모듈 간 임베드를 각각 제어한다. 퀴즈·설문처럼 내부 target provider 역할만 있는 모듈은 `internal_embed_enabled`만 제공한다.
 - CKEditor는 편집기 에셋/초기화 플러그인이므로 플러그인 분류에 두고, URL 임베드 helper는 저장 HTML을 오염시키지 않는 공개 렌더링 보조로 유지한다.
 - rich text HTML 정화는 HTML Purifier가 배치된 환경에서는 Purifier adapter를 먼저 사용하고, 없으면 내부 DOM sanitizer를 fallback으로 사용한다. 코어 public helper 이름은 유지해 콘텐츠, 알림, 팝업레이어 같은 호출부가 sanitizer 구현 선택을 직접 알지 않게 한다. Purifier cache는 vendor 내부가 아니라 `storage/cache/htmlpurifier`처럼 운영 쓰기 경로를 사용한다.
 - 콘텐츠/커뮤니티 검색 삽입은 본문 안에 안전한 URL 또는 링크 HTML을 넣고 전용 marker를 만들지 않는다.
@@ -159,9 +159,10 @@ URL 임베드 helper 유지 조건:
 - 공개 baseline으로 판정된 내부 URL 임베드는 대상 모듈이 `fragment_cache_public` 계약을 명시한 경우에만 `storage/cache/embeds` 아래 sanitized HTML fragment를 생성할 수 있다. 이 파일은 직접 공개 URL로 제공하지 않고 PHP 렌더 경로에서만 읽는다.
 - fragment 캐시 대상은 익명 공개 상태, viewer-independent HTML, target cache version이 있는 내부 URL로 제한한다. 콘텐츠 유료 열람, 커뮤니티 유료/비밀/권한 게시글, 퀴즈 회원 그룹 제한, 설문 로그인/그룹 제한처럼 viewer별 계약이 필요한 대상은 fresh public fragment로 저장하지 않는다.
 - 대상 모듈은 제목, 요약, 이미지, 공개 상태, 유료/권한 정책, 공개 기간이 바뀌는 저장/삭제/상태 변경 뒤 `sr_url_embed_mark_target_url_cache_stale()` 또는 이에 준하는 모듈 helper로 기존 URL 캐시를 갱신 필요 상태로 표시해야 한다.
-- URL 임베딩은 전역 `url_embed_enabled`, 내부 URL, 외부 URL, scope 설정과 각 지원 모듈의 `embed_enabled` 설정이 먼저 gate한다. 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
+- URL 임베딩은 전역 `url_embed_enabled`, 전역 내부/외부 허용값, scope 설정과 owner 모듈의 `internal_embed_enabled`·`external_embed_enabled`가 먼저 gate한다. 내부 target provider의 `internal_embed_enabled`도 별도로 검사하며, 해당 종류가 꺼져 있으면 resolver와 renderer를 호출하지 않는다.
 - 복사 시 본문 URL을 그대로 복사하고 새 owner 저장/렌더링 과정에서 cache를 다시 파생한다.
 - 대상 모듈은 `url-embed-targets.php` 계약으로 URL allowlist, canonical URL, target id, public snapshot, target/cache 상태, renderer, 전용 `embed_stylesheet`를 제공한다. 내부 임베드 스타일은 호출처 모듈의 reset/module stylesheet를 끌어오지 않고 대상 모듈의 `assets/embed.css` 같은 전용 CSS만 로드한다. renderer는 `aside` 같은 호출처 의미 태그보다 `sr-content-embed`, `sr-community-embed`, `sr-quiz-embed`, `sr-survey-embed`, `sr-coupon-embed` 같은 임베드 전용 custom tag를 사용한다. fragment cache가 공개 HTML 조각을 저장하므로 renderer 마크업이나 sanitizer allowlist가 바뀌면 대상 계약의 `fragment_cache_schema`를 올린다.
+- Markdown 렌더링 결과에서 URL 임베드를 만들 때는 임베드 custom element를 `.markdown-editor-body` 밖으로 끌어내고 앞뒤 Markdown wrapper를 나눈다. 따라서 Markdown 기본/커스텀 selector는 임베드 내부에 도달하지 않으며, 임베드는 대상 모듈의 전용 `embed.css`와 공통 공개 토큰만 사용한다.
 - 공개 표시 HTML은 공통 관리 모듈 카드가 아니라 외부 provider renderer 또는 대상 모듈 renderer가 현재 viewer와 공개 정책을 기준으로 결정한다.
 - URL 임베드 helper는 상품 가격/재고, 콘텐츠 유료 열람, 커뮤니티 게시글 공개/삭제/권한, 쿠폰 사용 가능성 같은 대상 모듈 정책을 소유하지 않는다.
 - 개인정보가 포함될 수 있는 snapshot이나 클릭/노출 로그를 저장하는 확장을 추가하면 `privacy-export.php`, `privacy-cleanup.php`, 보존 기간 정책을 함께 설계한다.
