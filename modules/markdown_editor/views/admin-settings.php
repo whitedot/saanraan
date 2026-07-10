@@ -8,7 +8,6 @@ $styleBindings = sr_markdown_editor_style_binding_map();
 $tokenOptions = sr_markdown_editor_token_options();
 $choiceOptions = sr_markdown_editor_style_choice_options();
 $stylesheetCss = (string) ($settings['stylesheet_css'] ?? sr_markdown_editor_default_stylesheet_css($styleProfile));
-$defaultStylesheetCss = sr_markdown_editor_default_stylesheet_css();
 $styleSourceMode = (string) ($settings['style_source_mode'] ?? '') === 'default' ? 'default' : 'custom';
 $previewSettings = $settings;
 if (sr_markdown_editor_stylesheet_validation_errors($stylesheetCss) !== []) {
@@ -78,16 +77,13 @@ $numberControls = [
 ];
 
 $choiceControls = [
-    'font_family' => '글꼴',
     'text_align' => '본문 정렬',
-    'heading_font_family' => '제목 글꼴',
     'heading_text_align' => '제목 정렬',
     'heading_text_transform' => '대소문자 변환',
     'link_decoration' => '링크 장식',
     'unordered_list_style' => '비순서 기호',
     'ordered_list_style' => '순서 기호',
     'quote_border_style' => '인용선 스타일',
-    'code_font_family' => '코드 글꼴',
     'table_width' => '표 너비',
 ];
 
@@ -113,7 +109,7 @@ $tokenControls = [
 $inspectorPanels = [
     'global' => ['title' => '전체 스타일', 'selector' => '.markdown-editor-body', 'description' => '문서 전체가 상속하는 기본 프레임입니다.', 'groups' => [
         ['title' => 'Layout', 'controls' => ['content_padding_block', 'content_padding_inline']],
-        ['title' => 'Typography', 'choices' => ['font_family', 'text_align'], 'controls' => ['font_size', 'line_height', 'letter_spacing', 'word_spacing']],
+        ['title' => 'Typography', 'choices' => ['text_align'], 'controls' => ['font_size', 'line_height', 'letter_spacing', 'word_spacing']],
         ['title' => 'Spacing', 'controls' => ['block_gap']],
         ['title' => 'Fill & Stroke', 'tokens' => ['text_token', 'muted_token', 'surface_token', 'border_token']],
     ]],
@@ -162,7 +158,7 @@ foreach (array_keys(sr_markdown_editor_box_target_definitions()) as $target) {
         continue;
     }
     $boxGroups = [];
-    foreach (['margin' => 'Margin', 'padding' => 'Padding', 'border' => 'Border'] as $property => $title) {
+    foreach (['margin' => 'Margin', 'padding' => 'Padding', 'border' => 'Stroke'] as $property => $title) {
         $keys = [];
         foreach (['top', 'right', 'bottom', 'left'] as $side) {
             $key = 'box_' . $target . '_' . $property . '_' . $side;
@@ -174,7 +170,7 @@ foreach (array_keys(sr_markdown_editor_box_target_definitions()) as $target) {
             ];
             $keys[] = $key;
         }
-        $group = ['title' => $title, 'controls' => $keys, 'open' => true, 'box_property' => $property];
+        $group = ['title' => $title, 'controls' => $keys, 'box_property' => $property];
         if ($property === 'border') {
             $radiusKey = 'box_' . $target . '_radius';
             $styleKey = 'box_' . $target . '_border_style';
@@ -200,17 +196,16 @@ foreach (array_keys(sr_markdown_editor_text_target_definitions()) as $target) {
     $numberControls[$prefix . 'line_height'] = ['label' => '줄 높이', 'min' => 0.8, 'max' => 4, 'step' => 0.05];
     $numberControls[$prefix . 'letter_spacing'] = ['label' => '자간', 'min' => -5, 'max' => 20, 'step' => 0.1];
     $numberControls[$prefix . 'word_spacing'] = ['label' => '단어 간격', 'min' => -20, 'max' => 50, 'step' => 1];
-    $choiceControls[$prefix . 'font_family'] = '글꼴';
     $choiceControls[$prefix . 'align'] = '정렬';
     $choiceControls[$prefix . 'font_style'] = '글자 스타일';
     $choiceControls[$prefix . 'decoration'] = '텍스트 장식';
     $choiceControls[$prefix . 'transform'] = '대소문자 변환';
     $tokenControls[$prefix . 'token'] = '글자색';
     $textGroup = [
-        'title' => 'Text',
+        'title' => 'Typography',
         'open' => true,
         'text_property' => true,
-        'choices' => [$prefix . 'font_family', $prefix . 'align', $prefix . 'font_style', $prefix . 'decoration', $prefix . 'transform'],
+        'choices' => [$prefix . 'align', $prefix . 'font_style', $prefix . 'decoration', $prefix . 'transform'],
         'controls' => [$prefix . 'font_size', $prefix . 'font_weight', $prefix . 'line_height', $prefix . 'letter_spacing', $prefix . 'word_spacing'],
         'tokens' => [$prefix . 'token'],
     ];
@@ -226,28 +221,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
     <style data-markdown-editor-preview-style><?php echo $sampleCss; ?></style>
-    <textarea hidden data-markdown-default-stylesheet><?php echo sr_e($defaultStylesheetCss); ?></textarea>
 
     <div class="markdown-editor-workbench" data-markdown-workbench>
         <main class="markdown-editor-live-main">
-            <header class="markdown-editor-live-toolbar">
-                <div>
-                    <h2>Markdown 편집기</h2>
-                    <p class="form-help">원문을 편집하고 결과 요소를 클릭해 속성을 조정합니다.</p>
-                </div>
-                <div class="markdown-editor-live-actions">
-                    <div class="markdown-editor-preview-controls" aria-label="미리보기 표시 설정">
-                        <div class="markdown-editor-segmented" aria-label="색상 모드">
-                            <button type="button" class="btn btn-sm active" data-markdown-scheme="light" aria-pressed="true">Light</button>
-                            <button type="button" class="btn btn-sm" data-markdown-scheme="dark" aria-pressed="false">Dark</button>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-icon" aria-label="CSS 확인" title="CSS 확인" aria-haspopup="dialog" aria-expanded="false" aria-controls="markdown_editor_css_modal" data-overlay="#markdown_editor_css_modal">
-                        <?php echo sr_material_icon_html('css'); ?>
-                    </button>
-                </div>
-            </header>
-
             <div class="markdown-editor-live-surface" data-markdown-editor-surface data-view-mode="split">
                 <section class="markdown-editor-source-pane">
                     <header>
@@ -262,74 +238,77 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <header>
                         <strong>렌더링 결과</strong>
                         <span class="markdown-editor-pane-header-actions">
-                            <span class="form-help" data-markdown-selected-label>전체 스타일</span>
+                            <button type="button" class="btn btn-sm btn-icon" aria-label="CSS 확인" title="CSS 확인" aria-haspopup="dialog" aria-expanded="false" aria-controls="markdown_editor_css_modal" data-overlay="#markdown_editor_css_modal">
+                                <?php echo sr_material_icon_html('css'); ?>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-icon markdown-editor-scheme-toggle" data-markdown-scheme-toggle aria-label="다크 모드로 전환" title="다크 모드로 전환" aria-pressed="false">
+                                <?php echo sr_material_icon_html('dark_mode'); ?>
+                            </button>
                             <button type="button" class="btn btn-sm btn-icon markdown-editor-pane-toggle" data-markdown-pane-toggle="preview" aria-label="미리보기만 펼치기" title="미리보기만 펼치기" aria-pressed="false">
                                 <?php echo sr_material_icon_html('left_panel_close'); ?>
                             </button>
                         </span>
                     </header>
-                    <div class="markdown-editor-context-toolbar" data-markdown-context-toolbar>
-                        <div class="markdown-editor-context-toolbar-groups" data-markdown-toolbar-groups role="toolbar" aria-label="선택 요소 속성"></div>
-                        <div id="markdown_editor_context_toolbar_menu" class="markdown-editor-context-toolbar-controls" data-markdown-toolbar-controls hidden></div>
-                    </div>
                     <div class="markdown-editor-render-canvas" data-markdown-rendered-preview><?php echo (string) ($sampleResult['html'] ?? ''); ?></div>
                 </section>
             </div>
         </main>
-
+        <aside class="markdown-editor-inspector" data-markdown-properties-sidebar aria-label="선택 요소 속성"></aside>
     </div>
 
-    <footer class="markdown-editor-page-actions">
-        <div>
+    <footer class="markdown-editor-page-actions form-sticky-actions form-actions form-actions-primary">
+        <div class="markdown-editor-page-meta">
             <p class="form-help markdown-editor-preview-status" data-markdown-editor-preview-status aria-live="polite"></p>
-            <p class="form-help markdown-editor-reference">참고 프로젝트: <a href="https://github.com/sindresorhus/github-markdown-css" target="_blank" rel="noopener noreferrer">github-markdown-css</a> 5.9.0 (MIT)</p>
+            <p class="form-help markdown-editor-reference">
+                <a href="https://github.com/sindresorhus/github-markdown-css" target="_blank" rel="noopener noreferrer" aria-label="github-markdown-css GitHub 프로젝트" title="github-markdown-css 5.9.0 (MIT)">
+                    <svg class="markdown-editor-github-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82A7.65 7.65 0 0 1 8 4.84a7.65 7.65 0 0 1 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
+                    <span>github-markdown-css</span>
+                </a>
+            </p>
         </div>
-        <button type="submit" class="btn btn-solid-primary">설정 저장</button>
+        <div class="markdown-editor-submit-actions">
+            <fieldset class="markdown-editor-submit-mode">
+                <legend class="sr-only">스타일 적용</legend>
+                <div class="btn-group" role="group" aria-label="스타일 적용">
+                    <input id="markdown_editor_source_default" type="radio" name="style_source_mode" value="default" class="form-choice-toggle-input sr-only"<?php echo $styleSourceMode === 'default' ? ' checked' : ''; ?> data-markdown-style-source-mode>
+                    <label for="markdown_editor_source_default" class="btn btn-choice-light btn-group-start">기본</label>
+                    <input id="markdown_editor_source_custom" type="radio" name="style_source_mode" value="custom" class="form-choice-toggle-input sr-only"<?php echo $styleSourceMode === 'custom' ? ' checked' : ''; ?> data-markdown-style-source-mode>
+                    <label for="markdown_editor_source_custom" class="btn btn-choice-light btn-group-end">커스텀</label>
+                </div>
+                <span class="sr-only" data-markdown-style-source-help aria-live="polite"><?php echo $styleSourceMode === 'default' ? '원본을 출력 중입니다. 속성을 바꾸면 변경값으로 전환됩니다.' : '변경한 스타일시트를 출력 중입니다.'; ?></span>
+            </fieldset>
+            <button type="submit" class="btn btn-solid-primary">저장</button>
+        </div>
     </footer>
 
     <div id="markdown_editor_css_modal" class="modal-overlay modal-overlay-fade overlay overlay-closed" role="dialog" aria-modal="true" aria-hidden="true" inert tabindex="-1" aria-labelledby="markdown_editor_css_modal_label">
         <div class="modal-dialog-fluid">
             <div class="modal-content-fullscreen modal-radius-md markdown-editor-css-modal">
                 <div class="modal-header">
-                    <div>
-                        <h3 id="markdown_editor_css_modal_label" class="modal-title">CSS 확인</h3>
-                        <p class="form-help">적용할 스타일시트를 확인하고 직접 편집합니다.</p>
-                    </div>
-                    <div class="markdown-editor-css-modal-actions">
-                        <button type="button" class="btn btn-sm" data-markdown-reset-all>전체 초기화</button>
-                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#markdown_editor_css_modal">
-                            <span class="sr-only">닫기</span>
-                            <?php echo sr_material_icon_html('close', '', '닫기'); ?>
-                        </button>
-                    </div>
+                    <h3 id="markdown_editor_css_modal_label" class="modal-title">전체 CSS</h3>
+                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#markdown_editor_css_modal">
+                        <span class="sr-only">닫기</span>
+                        <?php echo sr_material_icon_html('close', '', '닫기'); ?>
+                    </button>
                 </div>
-
                 <div class="modal-body-fill markdown-editor-css-modal-body">
-                    <div class="markdown-editor-css-modal-content">
-
-            <div class="markdown-editor-style-source" data-markdown-style-source>
-                <span class="form-label">스타일 적용</span>
-                <div class="markdown-editor-source-options">
-                    <label class="markdown-editor-source-option">
-                        <input type="radio" name="style_source_mode" value="default"<?php echo $styleSourceMode === 'default' ? ' checked' : ''; ?> data-markdown-style-source-mode>
-                        <span><strong>참조 원본</strong><small>번들 기본 CSS</small></span>
-                    </label>
-                    <label class="markdown-editor-source-option">
-                        <input type="radio" name="style_source_mode" value="custom"<?php echo $styleSourceMode === 'custom' ? ' checked' : ''; ?> data-markdown-style-source-mode>
-                        <span><strong>변경값</strong><small>현재 작업 CSS</small></span>
-                    </label>
+                    <textarea id="markdown_editor_stylesheet_css" name="stylesheet_css" maxlength="100000" class="form-textarea form-control-full markdown-editor-stylesheet" spellcheck="false" required data-markdown-stylesheet aria-label="전체 CSS"><?php echo sr_e($stylesheetCss); ?></textarea>
                 </div>
-                <p class="form-help" data-markdown-style-source-help><?php echo $styleSourceMode === 'default' ? '원본을 출력 중입니다. 속성을 바꾸면 변경값으로 전환됩니다.' : '변경한 스타일시트를 출력 중입니다.'; ?></p>
             </div>
+        </div>
+    </div>
 
-                <div hidden data-markdown-control-templates>
+    <div hidden data-markdown-control-templates>
                     <select hidden data-markdown-inspector-target aria-hidden="true" tabindex="-1">
                         <?php foreach ($inspectorPanels as $panelKey => $panel) { ?><option value="<?php echo sr_e($panelKey); ?>"><?php echo sr_e((string) $panel['title']); ?></option><?php } ?>
                     </select>
 
                     <?php foreach ($inspectorPanels as $panelKey => $panel) { ?>
                     <section class="markdown-editor-inspector-panel" data-markdown-inspector-panel="<?php echo sr_e($panelKey); ?>"<?php echo $panelKey === 'global' ? '' : ' hidden'; ?>>
-                        <header><div><h3><?php echo sr_e((string) $panel['title']); ?></h3><code><?php echo sr_e((string) $panel['selector']); ?></code></div><button type="button" class="btn btn-sm" data-markdown-reset-target="<?php echo sr_e($panelKey); ?>">Reset</button></header>
+                        <header>
+                            <div><h3><?php echo sr_e((string) $panel['title']); ?></h3><code><?php echo sr_e((string) $panel['selector']); ?></code></div>
+                            <button type="button" class="btn btn-sm btn-icon" data-markdown-reset-target="<?php echo sr_e($panelKey); ?>" aria-label="현재 요소 스타일 초기화" title="현재 요소 스타일 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></button>
+                        </header>
                         <p class="form-help"><?php echo sr_e((string) $panel['description']); ?></p>
                         <?php if (isset($panel['inherits'])) { ?><button type="button" class="btn btn-sm markdown-editor-inheritance" data-markdown-select-target="<?php echo sr_e((string) $panel['inherits']); ?>">제목 공통 속성에서 상속 중</button><?php } ?>
 
@@ -382,23 +361,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </section>
                     <?php } ?>
-                </div>
-
-                        <details class="markdown-editor-sidebar-section markdown-editor-stylesheet-section" open>
-                <summary>CSS 원문</summary>
-                <div>
-                    <label class="form-label" for="markdown_editor_stylesheet_css">전체 스타일시트 <span class="sr-required-label">(필수)</span></label>
-                    <textarea id="markdown_editor_stylesheet_css" name="stylesheet_css" rows="34" maxlength="100000" class="form-textarea form-control-full markdown-editor-stylesheet" spellcheck="false" required data-markdown-stylesheet><?php echo sr_e($stylesheetCss); ?></textarea>
-                    <p class="form-help markdown-editor-css-preview-status" data-markdown-css-preview-status aria-live="polite">CSS를 편집하면 서버 검증 후 미리보기에 자동 반영됩니다.</p>
-                    <p class="form-help">상단 툴바는 <code>sr-control</code>이 표시된 실제 선언을 변경합니다.</p>
-                    <p class="form-help">모든 selector는 <code>.markdown-editor-body</code> 범위 안에 있어야 합니다.</p>
-                </div>
-            </details>
-
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </form>
 

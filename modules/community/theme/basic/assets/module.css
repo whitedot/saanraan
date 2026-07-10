@@ -1341,7 +1341,7 @@ a.community-post-title:focus,
 .community-screen h1,
 .community-comments-panel-header h2,
 .community-post-body,
-.community-post-body :is(h1, h2, h3, h4, h5, h6),
+.community-post-body > :is(h1, h2, h3, h4, h5, h6),
 .community-screen legend,
 .community-screen th {
     color: var(--community-text);

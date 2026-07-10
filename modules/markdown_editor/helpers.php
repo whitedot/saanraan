@@ -50,9 +50,7 @@ function sr_markdown_editor_box_control_keys(string $target): array
 
 function sr_markdown_editor_text_target_definitions(): array
 {
-    $system = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    $mono = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-    $base = ['family' => $system, 'size' => 16, 'weight' => 400, 'line_height' => 1.5, 'letter_spacing' => 0.0, 'word_spacing' => 0, 'align' => 'left', 'style' => 'normal', 'decoration' => 'none', 'transform' => 'none', 'token' => '--sr-text'];
+    $base = ['size' => 16, 'weight' => 400, 'line_height' => 1.5, 'letter_spacing' => 0.0, 'word_spacing' => 0, 'align' => 'left', 'style' => 'normal', 'decoration' => 'none', 'transform' => 'none', 'token' => '--md-text'];
     return [
         'paragraph' => ['selector' => '.markdown-editor-body p'] + $base,
         'h1' => ['selector' => '.markdown-editor-body h1', 'size' => 32, 'weight' => 700, 'line_height' => 1.25] + $base,
@@ -60,12 +58,12 @@ function sr_markdown_editor_text_target_definitions(): array
         'h3' => ['selector' => '.markdown-editor-body h3', 'size' => 20, 'weight' => 700, 'line_height' => 1.25] + $base,
         'h4' => ['selector' => '.markdown-editor-body h4', 'size' => 16, 'weight' => 700, 'line_height' => 1.25] + $base,
         'h5' => ['selector' => '.markdown-editor-body h5', 'size' => 14, 'weight' => 700, 'line_height' => 1.25] + $base,
-        'h6' => ['selector' => '.markdown-editor-body h6', 'size' => 13, 'weight' => 700, 'line_height' => 1.25, 'token' => '--sr-muted'] + $base,
-        'link' => ['selector' => '.markdown-editor-body a', 'decoration' => 'underline', 'token' => '--sr-info'] + $base,
+        'h6' => ['selector' => '.markdown-editor-body h6', 'size' => 13, 'weight' => 700, 'line_height' => 1.25, 'token' => '--md-muted'] + $base,
+        'link' => ['selector' => '.markdown-editor-body a', 'decoration' => 'underline', 'token' => '--md-info'] + $base,
         'list' => ['selector' => '.markdown-editor-body ul, .markdown-editor-body ol'] + $base,
-        'blockquote' => ['selector' => '.markdown-editor-body blockquote', 'token' => '--sr-muted'] + $base,
-        'inline_code' => ['selector' => '.markdown-editor-body :not(pre) > code, .markdown-editor-body tt', 'family' => $mono, 'size' => 14] + $base,
-        'code_block' => ['selector' => '.markdown-editor-body pre', 'family' => $mono, 'size' => 14, 'line_height' => 1.45] + $base,
+        'blockquote' => ['selector' => '.markdown-editor-body blockquote', 'token' => '--md-muted'] + $base,
+        'inline_code' => ['selector' => '.markdown-editor-body :not(pre) > code, .markdown-editor-body tt', 'size' => 14] + $base,
+        'code_block' => ['selector' => '.markdown-editor-body pre', 'size' => 14, 'line_height' => 1.45] + $base,
         'table' => ['selector' => '.markdown-editor-body table'] + $base,
     ];
 }
@@ -75,7 +73,6 @@ function sr_markdown_editor_default_style_profile(): array
     $profile = [
         'content_padding_block' => 0,
         'content_padding_inline' => 0,
-        'font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         'font_size' => 16,
         'line_height' => 1.5,
         'letter_spacing' => 0.0,
@@ -87,7 +84,6 @@ function sr_markdown_editor_default_style_profile(): array
         'paragraph_line_height' => 1.5,
         'paragraph_letter_spacing' => 0.0,
         'paragraph_text_indent' => 0,
-        'heading_font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         'heading_line_height' => 1.25,
         'heading_weight' => 700,
         'heading_margin' => 24,
@@ -120,7 +116,6 @@ function sr_markdown_editor_default_style_profile(): array
         'quote_radius' => 0,
         'quote_padding_block' => 0,
         'quote_padding_inline' => 16,
-        'code_font_family' => 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
         'code_font_size' => 14,
         'code_line_height' => 1.45,
         'inline_code_padding_block' => 0,
@@ -147,22 +142,22 @@ function sr_markdown_editor_default_style_profile(): array
         'alert_border_width' => 4,
         'alert_padding_block' => 8,
         'alert_padding_inline' => 16,
-        'text_token' => '--sr-text',
-        'muted_token' => '--sr-muted',
-        'border_token' => '--sr-border',
-        'surface_token' => '--sr-surface-muted',
-        'accent_token' => '--sr-info',
-        'heading_token' => '--sr-text',
-        'heading_border_token' => '--sr-border',
-        'quote_token' => '--sr-muted',
-        'quote_surface_token' => '--sr-surface-muted',
-        'quote_border_token' => '--sr-border',
-        'code_token' => '--sr-text',
-        'code_surface_token' => '--sr-surface-muted',
-        'code_border_token' => '--sr-border',
-        'table_header_surface_token' => '--sr-surface-muted',
-        'table_border_token' => '--sr-border',
-        'hr_border_token' => '--sr-border',
+        'text_token' => '--md-text',
+        'muted_token' => '--md-muted',
+        'border_token' => '--md-border',
+        'surface_token' => '--md-surface-muted',
+        'accent_token' => '--md-info',
+        'heading_token' => '--md-text',
+        'heading_border_token' => '--md-border',
+        'quote_token' => '--md-muted',
+        'quote_surface_token' => '--md-surface-muted',
+        'quote_border_token' => '--md-border',
+        'code_token' => '--md-text',
+        'code_surface_token' => '--md-surface-muted',
+        'code_border_token' => '--md-border',
+        'table_header_surface_token' => '--md-surface-muted',
+        'table_border_token' => '--md-border',
+        'hr_border_token' => '--md-border',
     ];
 
     foreach (sr_markdown_editor_box_target_definitions() as $target => $definition) {
@@ -173,11 +168,10 @@ function sr_markdown_editor_default_style_profile(): array
         }
         $profile['box_' . $target . '_radius'] = (int) $definition['radius'];
         $profile['box_' . $target . '_border_style'] = 'solid';
-        $profile['box_' . $target . '_border_token'] = '--sr-border';
+        $profile['box_' . $target . '_border_token'] = '--md-border';
     }
 
     foreach (sr_markdown_editor_text_target_definitions() as $target => $definition) {
-        $profile['text_' . $target . '_font_family'] = (string) $definition['family'];
         $profile['text_' . $target . '_font_size'] = (int) $definition['size'];
         $profile['text_' . $target . '_font_weight'] = (int) $definition['weight'];
         $profile['text_' . $target . '_line_height'] = (float) $definition['line_height'];
@@ -202,39 +196,73 @@ function sr_markdown_editor_json_encode(mixed $value): string
 function sr_markdown_editor_token_options(): array
 {
     return [
-        '--sr-text' => '본문',
-        '--sr-muted' => '보조',
-        '--sr-border' => '경계선',
-        '--sr-surface-muted' => '보조 표면',
-        '--sr-info' => '정보',
-        '--sr-success' => '성공',
-        '--sr-warning' => '주의',
-        '--sr-danger' => '위험',
+        '--md-text' => '본문',
+        '--md-muted' => '보조',
+        '--md-border' => '경계선',
+        '--md-surface-muted' => '보조 표면',
+        '--md-info' => '정보',
+        '--md-success' => '성공',
+        '--md-warning' => '주의',
+        '--md-danger' => '위험',
     ];
+}
+
+function sr_markdown_editor_migrate_token_namespace(string $value): string
+{
+    return str_replace(
+        [
+            '--sr-muted-strong', '--sr-surface-muted', '--sr-surface-soft', '--sr-border-soft',
+            '--sr-text', '--sr-muted', '--sr-surface', '--sr-border',
+            '--sr-info', '--sr-success', '--sr-warning', '--sr-danger',
+        ],
+        [
+            '--md-muted-strong', '--md-surface-muted', '--md-surface-soft', '--md-border-soft',
+            '--md-text', '--md-muted', '--md-surface', '--md-border',
+            '--md-info', '--md-success', '--md-warning', '--md-danger',
+        ],
+        $value
+    );
+}
+
+function sr_markdown_editor_token_foundation_stylesheet(): string
+{
+    return <<<'CSS'
+.markdown-editor-body {
+    --md-text: var(--color-body-color);
+    --md-muted: var(--text-muted);
+    --md-muted-strong: var(--color-default-700);
+    --md-surface: var(--color-card);
+    --md-surface-soft: var(--color-default-50);
+    --md-surface-muted: var(--color-default-100);
+    --md-border: var(--color-default-300);
+    --md-border-soft: var(--color-default-200);
+    --md-info: var(--color-info);
+    --md-success: var(--color-success);
+    --md-warning: var(--color-warning);
+    --md-danger: var(--color-danger);
+}
+CSS;
+}
+
+function sr_markdown_editor_ensure_token_foundation_stylesheet(string $css): string
+{
+    $requiredTokens = [
+        '--md-text', '--md-muted', '--md-muted-strong', '--md-surface', '--md-surface-soft',
+        '--md-surface-muted', '--md-border', '--md-border-soft', '--md-info', '--md-success',
+        '--md-warning', '--md-danger',
+    ];
+    foreach ($requiredTokens as $token) {
+        if (!str_contains($css, $token . ':')) {
+            return sr_markdown_editor_token_foundation_stylesheet() . "\n\n" . trim($css);
+        }
+    }
+
+    return trim($css);
 }
 
 function sr_markdown_editor_style_choice_options(): array
 {
-    $system = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    $mono = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     $choices = [
-        'font_family' => [
-            $system => 'System UI',
-            'Arial, "Noto Sans", sans-serif' => 'Sans serif',
-            'Georgia, "Times New Roman", serif' => 'Serif',
-            $mono => 'Monospace',
-        ],
-        'heading_font_family' => [
-            $system => 'System UI',
-            'Arial, "Noto Sans", sans-serif' => 'Sans serif',
-            'Georgia, "Times New Roman", serif' => 'Serif',
-            $mono => 'Monospace',
-        ],
-        'code_font_family' => [
-            $mono => 'System monospace',
-            'Consolas, "Liberation Mono", monospace' => 'Consolas',
-            'Menlo, Monaco, monospace' => 'Menlo',
-        ],
         'text_align' => ['left' => '왼쪽', 'center' => '가운데', 'right' => '오른쪽', 'justify' => '양쪽'],
         'heading_text_align' => ['left' => '왼쪽', 'center' => '가운데', 'right' => '오른쪽'],
         'heading_text_transform' => ['none' => '원문 유지', 'uppercase' => '대문자', 'lowercase' => '소문자', 'capitalize' => '단어 첫 글자'],
@@ -255,7 +283,6 @@ function sr_markdown_editor_style_choice_options(): array
         ];
     }
     foreach (array_keys(sr_markdown_editor_text_target_definitions()) as $target) {
-        $choices['text_' . $target . '_font_family'] = $choices['font_family'];
         $choices['text_' . $target . '_align'] = $choices['text_align'];
         $choices['text_' . $target . '_font_style'] = ['normal' => '기본', 'italic' => '기울임', 'oblique' => '비스듬히'];
         $choices['text_' . $target . '_decoration'] = ['none' => '없음', 'underline' => '밑줄', 'line-through' => '취소선', 'overline' => '윗줄'];
@@ -270,7 +297,6 @@ function sr_markdown_editor_style_binding_map(): array
     $bindings = [
         'content_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
         'content_padding_inline' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
-        'font_family' => ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'],
         'font_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
         'line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
         'letter_spacing' => ['property' => 'letter-spacing', 'unit' => 'px', 'kind' => 'number'],
@@ -282,7 +308,6 @@ function sr_markdown_editor_style_binding_map(): array
         'paragraph_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
         'paragraph_letter_spacing' => ['property' => 'letter-spacing', 'unit' => 'px', 'kind' => 'number'],
         'paragraph_text_indent' => ['property' => 'text-indent', 'unit' => 'px', 'kind' => 'number'],
-        'heading_font_family' => ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'],
         'heading_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
         'heading_weight' => ['property' => 'font-weight', 'unit' => '', 'kind' => 'number'],
         'heading_margin' => ['property' => 'margin-top', 'unit' => 'px', 'kind' => 'number'],
@@ -315,7 +340,6 @@ function sr_markdown_editor_style_binding_map(): array
         'quote_radius' => ['property' => 'border-radius', 'unit' => 'px', 'kind' => 'number'],
         'quote_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
         'quote_padding_inline' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
-        'code_font_family' => ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'],
         'code_font_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
         'code_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
         'inline_code_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
@@ -374,7 +398,6 @@ function sr_markdown_editor_style_binding_map(): array
     }
     foreach (array_keys(sr_markdown_editor_text_target_definitions()) as $target) {
         $prefix = 'text_' . $target . '_';
-        $bindings[$prefix . 'font_family'] = ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'];
         $bindings[$prefix . 'font_size'] = ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'];
         $bindings[$prefix . 'font_weight'] = ['property' => 'font-weight', 'unit' => '', 'kind' => 'number'];
         $bindings[$prefix . 'line_height'] = ['property' => 'line-height', 'unit' => '', 'kind' => 'number'];
@@ -400,7 +423,9 @@ function sr_markdown_editor_settings(PDO $pdo, ?array $override = null): array
     $settings['style_source_mode'] = (string) ($settings['style_source_mode'] ?? '') === 'default' ? 'default' : 'custom';
     $settings['style_profile_json'] = sr_markdown_editor_normalize_style_profile($settings['style_profile_json'] ?? []);
     $settings['custom_declarations_json'] = sr_markdown_editor_normalize_custom_declarations($settings['custom_declarations_json'] ?? []);
-    $stylesheetCss = is_string($settings['stylesheet_css'] ?? null) ? trim((string) $settings['stylesheet_css']) : '';
+    $stylesheetCss = is_string($settings['stylesheet_css'] ?? null)
+        ? trim(sr_markdown_editor_migrate_token_namespace((string) $settings['stylesheet_css']))
+        : '';
     if ($stylesheetCss === '') {
         $stylesheetCss = sr_markdown_editor_default_stylesheet_css(
             $settings['style_profile_json'],
@@ -409,8 +434,12 @@ function sr_markdown_editor_settings(PDO $pdo, ?array $override = null): array
     } elseif ($override === null && sr_markdown_editor_stylesheet_validation_errors($stylesheetCss) !== []) {
         $stylesheetCss = sr_markdown_editor_default_stylesheet_css($settings['style_profile_json']);
     }
-    $stylesheetCss = sr_markdown_editor_ensure_box_control_stylesheet(
-        sr_markdown_editor_remove_legacy_max_width_control($stylesheetCss)
+    $stylesheetCss = sr_markdown_editor_ensure_token_foundation_stylesheet(
+        sr_markdown_editor_remove_font_family_declarations(
+            sr_markdown_editor_ensure_box_control_stylesheet(
+                sr_markdown_editor_remove_legacy_max_width_control($stylesheetCss)
+            )
+        )
     );
     $settings['stylesheet_css'] = $stylesheetCss;
 
@@ -523,7 +552,7 @@ function sr_markdown_editor_normalize_style_profile(mixed $profile): array
             continue;
         }
 
-        $candidate = (string) ($profile[$key] ?? $default);
+        $candidate = sr_markdown_editor_migrate_token_namespace((string) ($profile[$key] ?? $default));
         if (isset($choices[$key])) {
             $normalized[$key] = isset($choices[$key][$candidate]) ? $candidate : (string) $default;
             continue;
@@ -569,7 +598,7 @@ function sr_markdown_editor_normalize_custom_declarations(mixed $declarations): 
             continue;
         }
 
-        $rawDeclaration = str_replace(["\r\n", "\r"], "\n", $rawDeclaration);
+        $rawDeclaration = sr_markdown_editor_migrate_token_namespace(str_replace(["\r\n", "\r"], "\n", $rawDeclaration));
         $rawDeclaration = trim(substr($rawDeclaration, 0, 1000));
         if ($rawDeclaration === '') {
             continue;
@@ -591,7 +620,7 @@ function sr_markdown_editor_normalize_custom_declarations(mixed $declarations): 
             if (preg_match('/[{}@\\\\]|url\s*\(|expression\s*\(|javascript\s*:/i', $value) === 1) {
                 continue;
             }
-            if (preg_match('/\A(?:[-0-9.]+(?:px|rem|em|%)?|[0-9.]+|[a-zA-Z-]+|var\(--sr-[a-z-]+\))(?:\s+[-0-9.]+(?:px|rem|em|%)?)*\z/', $value) !== 1) {
+            if (preg_match('/\A(?:[-0-9.]+(?:px|rem|em|%)?|[0-9.]+|[a-zA-Z-]+|var\(--md-[a-z-]+\))(?:\s+[-0-9.]+(?:px|rem|em|%)?)*\z/', $value) !== 1) {
                 continue;
             }
 
@@ -706,6 +735,17 @@ function sr_markdown_editor_remove_legacy_max_width_control(string $css): string
     return is_string($updated) ? trim($updated) : trim($css);
 }
 
+function sr_markdown_editor_remove_font_family_declarations(string $css): string
+{
+    $updated = preg_replace(
+        '/\s*\/\*\s*sr-control:\s*[a-z0-9_]*font_family\s*\*\/\s*font-family\s*:\s*[^;{}]+;/i',
+        '',
+        $css
+    );
+    $updated = preg_replace('/\s*font-family\s*:\s*[^;{}]+;/i', '', is_string($updated) ? $updated : $css);
+    return is_string($updated) ? trim($updated) : trim($css);
+}
+
 function sr_markdown_editor_box_control_stylesheet(): string
 {
     $lines = ['/* sr-box-controls: common element box model */'];
@@ -725,7 +765,7 @@ function sr_markdown_editor_box_control_stylesheet(): string
         $lines[] = '    /* sr-control: box_' . $target . '_border_style */';
         $lines[] = '    border-style: solid;';
         $lines[] = '    /* sr-control: box_' . $target . '_border_token */';
-        $lines[] = '    border-color: var(--sr-border);';
+        $lines[] = '    border-color: var(--md-border);';
         $lines[] = '}';
         $lines[] = '';
     }
@@ -740,7 +780,6 @@ function sr_markdown_editor_text_control_stylesheet(): string
         $prefix = 'text_' . $target . '_';
         $lines[] = (string) $definition['selector'] . ' {';
         $declarations = [
-            'font_family' => ['font-family', (string) $definition['family']],
             'font_size' => ['font-size', (int) $definition['size'] . 'px'],
             'font_weight' => ['font-weight', (int) $definition['weight']],
             'line_height' => ['line-height', (string) $definition['line_height']],
@@ -780,11 +819,13 @@ function sr_markdown_editor_default_stylesheet_css(?array $profile = null, array
     $path = SR_ROOT . '/modules/markdown_editor/assets/github-markdown.css';
     $css = is_file($path) ? file_get_contents($path) : '';
     if (!is_string($css) || trim($css) === '') {
-        $css = '.markdown-editor-body { color: var(--sr-text); font-size: 16px; line-height: 1.5; }';
+        $css = '.markdown-editor-body { --md-text: var(--color-body-color); color: var(--md-text); font-size: 16px; line-height: 1.5; }';
     }
 
     $css = sr_markdown_editor_apply_profile_to_stylesheet(
-        sr_markdown_editor_ensure_box_control_stylesheet(sr_markdown_editor_remove_legacy_max_width_control($css)),
+        sr_markdown_editor_remove_font_family_declarations(
+            sr_markdown_editor_ensure_box_control_stylesheet(sr_markdown_editor_remove_legacy_max_width_control($css))
+        ),
         $profile ?? sr_markdown_editor_default_style_profile()
     );
     $selectorMap = sr_markdown_editor_style_selector_map();
@@ -794,7 +835,9 @@ function sr_markdown_editor_default_stylesheet_css(?array $profile = null, array
         }
     }
 
-    return trim($css);
+    return trim(sr_markdown_editor_ensure_token_foundation_stylesheet(
+        sr_markdown_editor_remove_font_family_declarations($css)
+    ));
 }
 
 function sr_markdown_editor_split_selector_list(string $selectorList): array
@@ -883,6 +926,12 @@ function sr_markdown_editor_settings_from_post(): array
 
     $normalizedStyle = sr_markdown_editor_normalize_style_profile($style);
     $stylesheetCss = sr_post_string_without_truncation('stylesheet_css', 100000);
+    if (is_string($stylesheetCss)) {
+        $stylesheetCss = sr_markdown_editor_migrate_token_namespace($stylesheetCss);
+        if (trim($stylesheetCss) !== '') {
+            $stylesheetCss = sr_markdown_editor_ensure_token_foundation_stylesheet($stylesheetCss);
+        }
+    }
     return [
         'style_source_mode' => ($_POST['style_source_mode'] ?? '') === 'default' ? 'default' : 'custom',
         'tables_enabled' => true,
@@ -1075,7 +1124,10 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
         }
     };
 
-    foreach (explode("\n", $markdown) as $line) {
+    $lines = explode("\n", $markdown);
+    $lineCount = count($lines);
+    for ($lineIndex = 0; $lineIndex < $lineCount; $lineIndex++) {
+        $line = (string) $lines[$lineIndex];
         $trimmed = trim($line);
         if (!empty($settings['code_blocks_enabled']) && str_starts_with($trimmed, '```')) {
             if ($inCode) {
@@ -1117,11 +1169,12 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
             continue;
         }
         if (!empty($settings['tables_enabled']) && str_contains($trimmed, '|')) {
-            $table = sr_markdown_editor_table_html($markdown, $trimmed);
-            if ($table !== '') {
+            $table = sr_markdown_editor_table_html($lines, $lineIndex);
+            if (is_array($table)) {
                 $flushParagraph();
                 $flushList();
-                $html[] = $table;
+                $html[] = (string) $table['html'];
+                $lineIndex = (int) $table['last_line_index'];
                 continue;
             }
         }
@@ -1161,21 +1214,105 @@ function sr_markdown_editor_markdown_to_html(string $markdown, array $settings, 
     return implode("\n", $html);
 }
 
-function sr_markdown_editor_table_html(string $markdown, string $currentLine): string
+function sr_markdown_editor_table_cells(string $line): ?array
 {
-    if (preg_match('/\A\|?(.+\|.+)\|?\z/', $currentLine) !== 1) {
-        return '';
-    }
-    $cells = array_map('trim', explode('|', trim($currentLine, '| ')));
-    if (count($cells) < 2) {
-        return '';
-    }
-    $head = [];
-    foreach ($cells as $cell) {
-        $head[] = '<th>' . sr_markdown_editor_inline_html($cell, false) . '</th>';
+    $row = trim($line);
+    if (!str_contains($row, '|')) {
+        return null;
     }
 
-    return '<table><thead><tr>' . implode('', $head) . '</tr></thead></table>';
+    if (str_starts_with($row, '|')) {
+        $row = substr($row, 1);
+    }
+    if (str_ends_with($row, '|')) {
+        $row = substr($row, 0, -1);
+    }
+
+    $cells = array_map('trim', explode('|', $row));
+    if (count($cells) < 2) {
+        return null;
+    }
+
+    return $cells;
+}
+
+function sr_markdown_editor_table_delimiter_alignments(array $cells): ?array
+{
+    $alignments = [];
+    foreach ($cells as $cell) {
+        $marker = preg_replace('/\s+/', '', (string) $cell) ?? '';
+        if (preg_match('/\A:?-{3,}:?\z/', $marker) !== 1) {
+            return null;
+        }
+
+        $leftAligned = str_starts_with($marker, ':');
+        $rightAligned = str_ends_with($marker, ':');
+        if ($leftAligned && $rightAligned) {
+            $alignments[] = 'center';
+        } elseif ($rightAligned) {
+            $alignments[] = 'right';
+        } elseif ($leftAligned) {
+            $alignments[] = 'left';
+        } else {
+            $alignments[] = '';
+        }
+    }
+
+    return $alignments;
+}
+
+function sr_markdown_editor_table_cell_alignment_attribute(string $alignment): string
+{
+    return in_array($alignment, ['left', 'center', 'right'], true)
+        ? ' style="text-align: ' . $alignment . ';"'
+        : '';
+}
+
+function sr_markdown_editor_table_html(array $lines, int $startLineIndex): ?array
+{
+    $headerCells = sr_markdown_editor_table_cells((string) ($lines[$startLineIndex] ?? ''));
+    $delimiterCells = sr_markdown_editor_table_cells((string) ($lines[$startLineIndex + 1] ?? ''));
+    if ($headerCells === null || $delimiterCells === null || count($headerCells) !== count($delimiterCells)) {
+        return null;
+    }
+
+    $alignments = sr_markdown_editor_table_delimiter_alignments($delimiterCells);
+    if ($alignments === null) {
+        return null;
+    }
+
+    $head = [];
+    foreach ($headerCells as $cellIndex => $cell) {
+        $attribute = sr_markdown_editor_table_cell_alignment_attribute((string) ($alignments[$cellIndex] ?? ''));
+        $head[] = '<th' . $attribute . '>' . sr_markdown_editor_inline_html((string) $cell, false) . '</th>';
+    }
+
+    $body = [];
+    $lastLineIndex = $startLineIndex + 1;
+    $lineCount = count($lines);
+    for ($lineIndex = $startLineIndex + 2; $lineIndex < $lineCount; $lineIndex++) {
+        if (trim((string) $lines[$lineIndex]) === '') {
+            break;
+        }
+        $rowCells = sr_markdown_editor_table_cells((string) $lines[$lineIndex]);
+        if ($rowCells === null) {
+            break;
+        }
+
+        $columns = [];
+        foreach ($headerCells as $cellIndex => $_headerCell) {
+            $attribute = sr_markdown_editor_table_cell_alignment_attribute((string) ($alignments[$cellIndex] ?? ''));
+            $columns[] = '<td' . $attribute . '>' . sr_markdown_editor_inline_html((string) ($rowCells[$cellIndex] ?? ''), false) . '</td>';
+        }
+        $body[] = '<tr>' . implode('', $columns) . '</tr>';
+        $lastLineIndex = $lineIndex;
+    }
+
+    $bodyHtml = $body === [] ? '' : '<tbody>' . implode('', $body) . '</tbody>';
+    return [
+        'html' => '<table><thead><tr>' . implode('', $head) . '</tr></thead>' . $bodyHtml . '</table>',
+        'last_line_index' => $lastLineIndex,
+    ];
 }
 
 function sr_markdown_editor_inline_html(string $text, bool $allowLineBreaks): string
@@ -1224,5 +1361,5 @@ function sr_markdown_editor_css(PDO $pdo, ?array $overrideSettings = null): stri
 
 function sr_markdown_editor_sample_markdown(): string
 {
-    return "# 제목 1\n\n## 제목 2\n\n### 제목 3\n\n#### 제목 4\n\n##### 제목 5\n\n###### 제목 6\n\n본문 문단의 **굵은 글자**, *기울임 글자*, [링크](https://example.com), `inline code`입니다.\n\n- 비순서 목록 항목\n- [x] 완료된 작업\n\n1. 순서 목록 항목\n2. 두 번째 항목\n\n> 인용 문장\n\n---\n\n```\ncode block\n```\n\n| 표 제목 | 값 |\n";
+    return "# 제목 1\n\n## 제목 2\n\n### 제목 3\n\n#### 제목 4\n\n##### 제목 5\n\n###### 제목 6\n\n본문 문단의 **굵은 글자**, *기울임 글자*, [링크](https://example.com), `inline code`입니다.\n\n- 비순서 목록 항목\n- [x] 완료된 작업\n\n1. 순서 목록 항목\n2. 두 번째 항목\n\n> 인용 문장\n\n---\n\n```\ncode block\n```\n\n| 표 제목 | 값 |\n| --- | --- |\n| 표 내용 | 값 |\n";
 }

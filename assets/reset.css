@@ -11,6 +11,20 @@
 :root{color-scheme:light}
 [data-theme=dark],[data-color-scheme=dark]{color-scheme:dark;--color-body-bg:#17181e;--color-body-color:#aab8c5;--color-card:#1e1f27;--color-light:#252630;--color-light-hover:#8a969c;--color-dark:#4b4d5c;--color-dark-hover:#343a40;--color-primary-ring:#0a74ff4d;--color-chart-border-color:#242c31;--color-chart-gray:#40424f;--shadow:0px 0px 30px #0000004d;--color-default-50:#22232c;--color-default-100:#272832;--color-default-200:var(--color-zinc-800);--color-default-300:#293036;--color-default-400:#8391a2;--color-default-500:#a1a9b1;--color-default-600:var(--color-zinc-400);--color-default-700:var(--color-zinc-300);--color-default-800:var(--color-zinc-200);--color-default-900:var(--color-zinc-100);--color-default-950:var(--color-zinc-50)}
 @media (prefers-color-scheme:dark){[data-color-scheme=system]{color-scheme:dark;--color-body-bg:#17181e;--color-body-color:#aab8c5;--color-card:#1e1f27;--color-light:#252630;--color-light-hover:#8a969c;--color-dark:#4b4d5c;--color-dark-hover:#343a40;--color-primary-ring:#0a74ff4d;--color-chart-border-color:#242c31;--color-chart-gray:#40424f;--shadow:0px 0px 30px #0000004d;--color-default-50:#22232c;--color-default-100:#272832;--color-default-200:var(--color-zinc-800);--color-default-300:#293036;--color-default-400:#8391a2;--color-default-500:#a1a9b1;--color-default-600:var(--color-zinc-400);--color-default-700:var(--color-zinc-300);--color-default-800:var(--color-zinc-200);--color-default-900:var(--color-zinc-100);--color-default-950:var(--color-zinc-50)}}
+:root,:host {
+    --sr-text: var(--color-body-color);
+    --sr-muted: var(--text-muted);
+    --sr-muted-strong: var(--color-default-700);
+    --sr-surface: var(--color-card);
+    --sr-surface-soft: var(--color-default-50);
+    --sr-surface-muted: var(--color-default-100);
+    --sr-border: var(--color-default-300);
+    --sr-border-soft: var(--color-default-200);
+    --sr-info: var(--color-info);
+    --sr-success: var(--color-success);
+    --sr-warning: var(--color-warning);
+    --sr-danger: var(--color-danger);
+}
 
 /*
  * Saanraan project icon layer.

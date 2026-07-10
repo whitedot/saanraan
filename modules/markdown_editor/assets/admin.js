@@ -6,24 +6,24 @@
 
     var previewStyle = form.querySelector('[data-markdown-editor-preview-style]');
     var stylesheet = form.querySelector('[data-markdown-stylesheet]');
-    var cssPreviewStatus = form.querySelector('[data-markdown-css-preview-status]');
-    var defaultStylesheet = form.querySelector('[data-markdown-default-stylesheet]');
     var previewStatus = form.querySelector('[data-markdown-editor-preview-status]');
     var markdownSource = form.querySelector('[data-markdown-source]');
     var renderedPreview = form.querySelector('[data-markdown-rendered-preview]');
     var renderPane = form.querySelector('[data-markdown-render-pane]');
     var editorSurface = form.querySelector('[data-markdown-editor-surface]');
     var inspectorTarget = form.querySelector('[data-markdown-inspector-target]');
-    var selectedLabel = form.querySelector('[data-markdown-selected-label]');
     var styleSourceModes = form.querySelectorAll('[data-markdown-style-source-mode]');
     var styleSourceHelp = form.querySelector('[data-markdown-style-source-help]');
-    var contextToolbar = form.querySelector('[data-markdown-context-toolbar]');
-    var toolbarGroups = form.querySelector('[data-markdown-toolbar-groups]');
-    var toolbarControls = form.querySelector('[data-markdown-toolbar-controls]');
+    var propertiesSidebar = form.querySelector('[data-markdown-properties-sidebar]');
+    var inspectorControls = form.querySelector('[data-markdown-control-templates]');
     var previewTimer = null;
     var previewRequestId = 0;
-    var stylesheetPreviewPending = false;
     var selectedTarget = 'global';
+
+    if (propertiesSidebar && inspectorControls) {
+        inspectorControls.hidden = false;
+        propertiesSidebar.appendChild(inspectorControls);
+    }
 
     var targetSelectors = {
         paragraph: 'p, strong, em, mark, del',
@@ -110,7 +110,7 @@
             var kind = String(control.dataset.markdownStyleKind || 'number');
             var value = String(match[2] || '').trim();
             if (kind === 'token') {
-                var tokenMatch = value.match(/^var\((--sr-[a-z-]+)\)$/);
+                var tokenMatch = value.match(/^var\((--md-[a-z-]+)\)$/);
                 if (!tokenMatch) {
                     return;
                 }
@@ -141,14 +141,6 @@
         }
         previewStatus.textContent = String(message || '');
         previewStatus.classList.toggle('markdown-editor-preview-status-error', Boolean(isError));
-    }
-
-    function setCssPreviewStatus(message, isError) {
-        if (!cssPreviewStatus) {
-            return;
-        }
-        cssPreviewStatus.textContent = String(message || '');
-        cssPreviewStatus.classList.toggle('markdown-editor-preview-status-error', Boolean(isError));
     }
 
     function setStyleSourceMode(mode, refreshPreview) {
@@ -187,171 +179,9 @@
         }
     }
 
-    function inspectorLabel(targetKey) {
-        var option = inspectorTarget ? inspectorTarget.querySelector('option[value="' + targetKey + '"]') : null;
-        return option ? String(option.textContent || '') : '전체 스타일';
-    }
-
-    function prepareToolbarControlClone(clone) {
-        clone.querySelectorAll('.markdown-editor-property').forEach(function (property) {
-            var label = property.querySelector('.form-label');
-            var labelText = label ? String(label.textContent || '').trim() : '속성 값';
-            property.querySelectorAll('input, select, textarea').forEach(function (control) {
-                control.setAttribute('aria-label', labelText);
-                control.title = labelText;
-            });
-        });
-        clone.querySelectorAll('[id]').forEach(function (element) {
-            element.removeAttribute('id');
-        });
-        clone.querySelectorAll('[for]').forEach(function (element) {
-            element.removeAttribute('for');
-        });
-        clone.querySelectorAll('input, select, textarea').forEach(function (control) {
-            control.removeAttribute('name');
-            control.removeAttribute('required');
-            control.dataset.markdownToolbarControl = 'true';
-        });
-    }
-
-    function toolbarIconForGroup(groupLabel, group) {
-        if (groupLabel === 'Layout' && group && group.querySelector('[data-markdown-style-key^="content_padding_"]')) {
-            return 'padding';
-        }
-        var icons = {
-            Margin: 'margin',
-            Padding: 'padding',
-            Border: 'border_outer',
-            Text: 'text_fields',
-            Typography: 'text_fields',
-            Fill: 'format_color_fill',
-            Layout: 'width_full',
-            Spacing: 'format_line_spacing',
-            Stroke: 'border_style',
-            'Fill & Stroke': 'palette',
-            'Paragraph details': 'format_indent_increase',
-            'Link details': 'link',
-            Markers: 'format_list_bulleted',
-            'List items': 'checklist',
-            Header: 'format_bold',
-            Cells: 'grid_on'
-        };
-        return icons[groupLabel] || 'tune';
-    }
-
-    function createToolbarIcon(iconName) {
-        var icon = document.createElement('span');
-        icon.className = 'sr-icon material-symbols-outlined';
-        icon.dataset.srMaterialIcon = '';
-        icon.setAttribute('aria-hidden', 'true');
-        icon.textContent = iconName;
-        return icon;
-    }
-
-    function hideContextToolbarMenu(restoreFocus) {
-        if (!toolbarControls || !toolbarGroups) {
-            return;
-        }
-        var activeButton = toolbarGroups.querySelector('[data-markdown-toolbar-group].active');
-        toolbarControls.hidden = true;
-        toolbarControls.innerHTML = '';
-        toolbarGroups.querySelectorAll('[data-markdown-toolbar-group]').forEach(function (button) {
-            button.classList.remove('active');
-            button.setAttribute('aria-expanded', 'false');
-        });
-        if (restoreFocus && activeButton) {
-            activeButton.focus();
-        }
-    }
-
-    function showContextToolbarGroup(panel, groupIndex) {
-        if (!panel || !toolbarControls || !toolbarGroups) {
-            return;
-        }
-        var groups = panel.querySelectorAll('.markdown-editor-property-group');
-        var group = groups[groupIndex] || groups[0];
-        toolbarControls.innerHTML = '';
-        toolbarGroups.querySelectorAll('[data-markdown-toolbar-group]').forEach(function (button) {
-            var active = Number(button.dataset.markdownToolbarGroup) === Number(groupIndex);
-            button.classList.toggle('active', active);
-            button.setAttribute('aria-expanded', active ? 'true' : 'false');
-        });
-        if (!group) {
-            return;
-        }
-        var fields = group.querySelector('.markdown-editor-inspector-fields');
-        if (!fields) {
-            return;
-        }
-        var clone = fields.cloneNode(true);
-        clone.classList.add('markdown-editor-context-fields');
-        if (group.classList.contains('markdown-editor-box-group')) {
-            clone.classList.add('markdown-editor-context-box-fields');
-        }
-        if (group.classList.contains('markdown-editor-text-group')) {
-            clone.classList.add('markdown-editor-context-text-fields');
-        }
-        prepareToolbarControlClone(clone);
-        toolbarControls.appendChild(clone);
-        toolbarControls.hidden = false;
-    }
-
-    function updateContextToolbar(targetKey) {
-        if (!contextToolbar || !toolbarGroups || !toolbarControls) {
-            return;
-        }
-        var panel = form.querySelector('[data-markdown-inspector-panel="' + targetKey + '"]');
-        var groups = panel ? panel.querySelectorAll('.markdown-editor-property-group') : [];
-        toolbarGroups.innerHTML = '';
-        toolbarControls.innerHTML = '';
-        toolbarControls.hidden = true;
-        contextToolbar.hidden = groups.length === 0;
-        groups.forEach(function (group, index) {
-            var summary = group.querySelector('summary');
-            var groupLabel = summary ? String(summary.textContent || '').trim() : '속성';
-            var button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'btn btn-sm btn-icon';
-            button.dataset.markdownToolbarGroup = String(index);
-            button.setAttribute('aria-label', groupLabel);
-            button.setAttribute('aria-haspopup', 'true');
-            button.setAttribute('aria-expanded', 'false');
-            button.setAttribute('aria-controls', 'markdown_editor_context_toolbar_menu');
-            button.title = groupLabel;
-            button.appendChild(createToolbarIcon(toolbarIconForGroup(groupLabel, group)));
-            button.addEventListener('click', function () {
-                if (button.classList.contains('active') && !toolbarControls.hidden) {
-                    hideContextToolbarMenu(false);
-                    return;
-                }
-                showContextToolbarGroup(panel, index);
-            });
-            toolbarGroups.appendChild(button);
-        });
-        if (targetKey !== 'global') {
-            var separator = document.createElement('span');
-            separator.className = 'markdown-editor-toolbar-separator';
-            separator.setAttribute('aria-hidden', 'true');
-            toolbarGroups.appendChild(separator);
-
-            var resetButton = document.createElement('button');
-            resetButton.type = 'button';
-            resetButton.className = 'btn btn-sm btn-icon markdown-editor-toolbar-reset';
-            resetButton.setAttribute('aria-label', '선택 요소 초기화');
-            resetButton.title = '선택 요소 초기화';
-            resetButton.appendChild(createToolbarIcon('restart_alt'));
-            resetButton.addEventListener('click', function () {
-                resetInspectorTarget(targetKey);
-                hideContextToolbarMenu(false);
-            });
-            toolbarGroups.appendChild(resetButton);
-        }
-    }
-
     function selectInspectorTarget(targetKey, element) {
         var panel = form.querySelector('[data-markdown-inspector-panel="' + targetKey + '"]');
         var normalized = panel ? targetKey : 'global';
-        var targetChanged = selectedTarget !== normalized;
         selectedTarget = normalized;
 
         form.querySelectorAll('[data-markdown-inspector-panel]').forEach(function (candidate) {
@@ -359,12 +189,6 @@
         });
         if (inspectorTarget) {
             inspectorTarget.value = normalized;
-        }
-        if (selectedLabel) {
-            selectedLabel.textContent = inspectorLabel(normalized);
-        }
-        if (targetChanged || !toolbarGroups || toolbarGroups.children.length === 0) {
-            updateContextToolbar(normalized);
         }
         highlightSelectedElement(element || firstElementForTarget(normalized));
     }
@@ -413,10 +237,6 @@
             if (payload.ok !== true) {
                 var errors = Array.isArray(payload.errors) ? payload.errors : [];
                 setPreviewStatus(errors[0] || '미리보기를 적용할 수 없습니다.', true);
-                if (stylesheetPreviewPending) {
-                    setCssPreviewStatus(errors[0] || 'CSS 변경을 미리보기에 반영할 수 없습니다.', true);
-                    stylesheetPreviewPending = false;
-                }
                 return;
             }
             if (previewStyle) {
@@ -427,17 +247,9 @@
             }
             selectInspectorTarget(selectedTarget);
             setPreviewStatus('', false);
-            if (stylesheetPreviewPending) {
-                setCssPreviewStatus('CSS 변경을 미리보기에 반영했습니다.', false);
-                stylesheetPreviewPending = false;
-            }
         }).catch(function () {
             if (requestId === previewRequestId) {
                 setPreviewStatus('미리보기를 갱신하지 못했습니다.', true);
-                if (stylesheetPreviewPending) {
-                    setCssPreviewStatus('서버 오류로 CSS 변경을 미리보기에 반영하지 못했습니다.', true);
-                    stylesheetPreviewPending = false;
-                }
             }
         });
     }
@@ -452,11 +264,21 @@
         if (renderPane) {
             renderPane.setAttribute('data-color-scheme', normalized);
         }
-        form.querySelectorAll('[data-markdown-scheme]').forEach(function (button) {
-            var active = button.dataset.markdownScheme === normalized;
-            button.classList.toggle('active', active);
-            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        form.querySelectorAll('[data-markdown-scheme-toggle]').forEach(function (button) {
+            var darkMode = normalized === 'dark';
+            var label = darkMode ? '라이트 모드로 전환' : '다크 모드로 전환';
+            var icon = button.querySelector('[data-sr-material-icon]');
+            button.setAttribute('aria-pressed', darkMode ? 'true' : 'false');
+            button.setAttribute('aria-label', label);
+            button.title = label;
+            if (icon) {
+                icon.textContent = darkMode ? 'light_mode' : 'dark_mode';
+            }
         });
+    }
+
+    function initialRenderScheme() {
+        return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
     }
 
     function setViewMode(viewMode) {
@@ -483,18 +305,6 @@
         });
     }
 
-    function setSidebarTab(tabKey) {
-        var normalized = tabKey === 'css' ? 'css' : 'visual';
-        form.querySelectorAll('[data-markdown-sidebar-tab]').forEach(function (button) {
-            var active = button.dataset.markdownSidebarTab === normalized;
-            button.classList.toggle('active', active);
-            button.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-        form.querySelectorAll('[data-markdown-sidebar-panel]').forEach(function (panel) {
-            panel.hidden = panel.dataset.markdownSidebarPanel !== normalized;
-        });
-    }
-
     function resetInspectorTarget(targetKey) {
         var panel = form.querySelector('[data-markdown-inspector-panel="' + targetKey + '"]');
         if (!panel) {
@@ -516,18 +326,6 @@
         scheduleServerPreview(90);
     }
 
-    function resetStyles() {
-        if (stylesheet && defaultStylesheet) {
-            stylesheet.value = defaultStylesheet.value;
-        }
-        syncControlsFromStylesheet();
-        setStyleSourceMode('default', false);
-        selectInspectorTarget('global');
-        stylesheetPreviewPending = true;
-        setCssPreviewStatus('원본 CSS를 미리보기에 반영하는 중입니다.', false);
-        updatePreview();
-    }
-
     form.addEventListener('input', function (event) {
         if (event.target === markdownSource) {
             scheduleServerPreview(280);
@@ -536,8 +334,6 @@
         if (event.target === stylesheet) {
             setStyleSourceMode('custom', false);
             syncControlsFromStylesheet();
-            stylesheetPreviewPending = true;
-            setCssPreviewStatus('CSS 변경을 확인하고 미리보기에 반영하는 중입니다.', false);
             scheduleServerPreview(220);
             return;
         }
@@ -555,8 +351,6 @@
             return;
         }
         if (event.target.matches && event.target.matches('[data-markdown-style-source-mode]')) {
-            stylesheetPreviewPending = true;
-            setCssPreviewStatus('선택한 CSS를 미리보기에 반영하는 중입니다.', false);
             setStyleSourceMode(event.target.value, true);
             return;
         }
@@ -583,14 +377,10 @@
         });
     }
 
-    form.querySelectorAll('[data-markdown-sidebar-tab]').forEach(function (button) {
+    form.querySelectorAll('[data-markdown-scheme-toggle]').forEach(function (button) {
         button.addEventListener('click', function () {
-            setSidebarTab(button.dataset.markdownSidebarTab);
-        });
-    });
-    form.querySelectorAll('[data-markdown-scheme]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            setScheme(button.dataset.markdownScheme);
+            var currentScheme = renderPane ? String(renderPane.getAttribute('data-color-scheme') || 'light') : 'light';
+            setScheme(currentScheme === 'dark' ? 'light' : 'dark');
         });
     });
     form.querySelectorAll('[data-markdown-pane-toggle]').forEach(function (button) {
@@ -610,25 +400,9 @@
             resetInspectorTarget(button.dataset.markdownResetTarget);
         });
     });
-    var resetButton = form.querySelector('[data-markdown-reset-all]');
-    if (resetButton) {
-        resetButton.addEventListener('click', resetStyles);
-    }
-    document.addEventListener('click', function (event) {
-        if (contextToolbar && !contextToolbar.contains(event.target)) {
-            hideContextToolbarMenu(false);
-        }
-    });
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && toolbarControls && !toolbarControls.hidden) {
-            hideContextToolbarMenu(true);
-        }
-    });
-
     syncControlsFromStylesheet();
-    setScheme('light');
+    setScheme(initialRenderScheme());
     setViewMode('split');
-    setSidebarTab('visual');
     var initialSourceMode = form.querySelector('[data-markdown-style-source-mode]:checked');
     setStyleSourceMode(initialSourceMode ? initialSourceMode.value : 'custom', false);
     selectInspectorTarget('global');

@@ -131,7 +131,58 @@ sr_markdown_editor_check_assert(str_contains((string) ($full['html'] ?? ''), '<i
 sr_markdown_editor_check_assert(!str_contains((string) ($full['html'] ?? ''), 'href="javascript:'), 'Unsafe markdown links should not render as anchors.');
 sr_markdown_editor_check_assert((array) ($full['stylesheets'] ?? []) !== [], 'Full mode should return the profile stylesheet.');
 sr_markdown_editor_check_assert((string) ($full['profile_hash'] ?? '') !== '', 'Render result should include a profile hash.');
+$tableResult = sr_markdown_render(
+    $enabledPdo,
+    "| 표 제목 | 값 |\n| :--- | ---: |\n| 표 내용 | 10 |\n| 둘째 행 | 20 |",
+    'full'
+);
+$tableHtml = (string) ($tableResult['html'] ?? '');
+sr_markdown_editor_check_assert(
+    substr_count($tableHtml, '<table>') === 1
+        && str_contains($tableHtml, '<thead><tr><th style="text-align: left;">표 제목</th><th style="text-align: right;">값</th></tr></thead>')
+        && str_contains($tableHtml, '<tbody><tr><td style="text-align: left;">표 내용</td><td style="text-align: right;">10</td></tr><tr><td style="text-align: left;">둘째 행</td><td style="text-align: right;">20</td></tr></tbody>')
+        && !str_contains($tableHtml, '>---</')
+        && !str_contains($tableHtml, '>:---</'),
+    'Markdown table syntax should render one table with header, alignment, and body rows while consuming the delimiter row.'
+);
+$pipeTextResult = sr_markdown_render($enabledPdo, "| 표 제목 | 값 |\n| 표 셀 | 값 |", 'full');
+sr_markdown_editor_check_assert(
+    !str_contains((string) ($pipeTextResult['html'] ?? ''), '<table>')
+        && str_contains((string) ($pipeTextResult['html'] ?? ''), '| 표 제목 | 값 |'),
+    'Pipe-separated lines without a table delimiter row should remain paragraph text.'
+);
+sr_markdown_editor_check_assert(
+    str_contains(sr_markdown_editor_sample_markdown(), "| 표 제목 | 값 |\n| --- | --- |\n| 표 내용 | 값 |")
+        && !str_contains(sr_markdown_editor_sample_markdown(), '| :--- | ---: |'),
+    'The default Markdown sample table should use neutral delimiter markers without alignment colons.'
+);
 $css = sr_markdown_editor_css($enabledPdo);
+$sourceStylesheet = file_get_contents(SR_ROOT . '/modules/markdown_editor/assets/github-markdown.css');
+$sourceThemeTokens = [];
+if (is_string($sourceStylesheet)) {
+    preg_match_all('/var\(\s*(--md-[a-z-]+)\s*\)/', $sourceStylesheet, $sourceThemeTokenMatches);
+    $sourceThemeTokens = array_values(array_unique((array) ($sourceThemeTokenMatches[1] ?? [])));
+}
+$requiredMarkdownThemeTokens = [
+    '--md-text',
+    '--md-muted',
+    '--md-muted-strong',
+    '--md-surface',
+    '--md-surface-soft',
+    '--md-surface-muted',
+    '--md-border',
+    '--md-border-soft',
+    '--md-info',
+    '--md-success',
+    '--md-warning',
+    '--md-danger',
+];
+$missingMarkdownThemeTokenDeclarations = [];
+foreach ($requiredMarkdownThemeTokens as $requiredMarkdownThemeToken) {
+    if (!is_string($sourceStylesheet) || !str_contains($sourceStylesheet, $requiredMarkdownThemeToken . ':')) {
+        $missingMarkdownThemeTokenDeclarations[] = $requiredMarkdownThemeToken;
+    }
+}
 sr_markdown_editor_check_assert(
     str_contains($css, 'Based on github-markdown-css 5.9.0')
         && !str_contains($css, 'sr-control: max_width')
@@ -141,8 +192,20 @@ sr_markdown_editor_check_assert(
         && str_contains($css, 'font-size: 32px;')
         && str_contains($css, '.markdown-editor-body li + li {')
         && str_contains($css, '.markdown-editor-body table th {')
-        && str_contains($css, 'text-underline-offset: 2px;'),
-    'Markdown stylesheet should expose GitHub Markdown-derived rules with controls bound to actual declarations.'
+        && str_contains($css, 'text-underline-offset: 2px;')
+        && str_contains($css, 'color: var(--md-text);')
+        && str_contains($css, '--md-info: var(--color-info);')
+        && !str_contains($css, 'var(--sr-')
+        && $sourceThemeTokens !== []
+        && array_diff($sourceThemeTokens, $requiredMarkdownThemeTokens) === []
+        && $missingMarkdownThemeTokenDeclarations === []
+        && !str_contains($css, 'font-family:'),
+    'Markdown stylesheet tokens should be declared inside its own scope while controls remain bound to actual declarations.'
+);
+$previewCss = sr_markdown_editor_preview_css($enabledPdo);
+sr_markdown_editor_check_assert(
+    str_ends_with($previewCss, $css),
+    'Admin preview should append the exact stylesheet emitted on public screens.'
 );
 $resetCss = file_get_contents(SR_ROOT . '/assets/editor-md.css');
 sr_markdown_editor_check_assert(
@@ -156,8 +219,12 @@ sr_markdown_editor_check_assert(
     'Markdown editor-md.css should include a scoped body reset and admin preview should load it before the profile CSS.'
 );
 $settingsView = file_get_contents(SR_ROOT . '/modules/markdown_editor/views/admin-settings.php');
-$pageActionsPosition = is_string($settingsView) ? strpos($settingsView, 'class="markdown-editor-page-actions"') : false;
-$previewControlsPosition = is_string($settingsView) ? strpos($settingsView, 'class="markdown-editor-preview-controls"') : false;
+$pageActionsPosition = is_string($settingsView) ? strpos($settingsView, 'class="markdown-editor-page-actions ') : false;
+$cssTriggerPosition = is_string($settingsView) ? strpos($settingsView, 'aria-label="CSS 확인"') : false;
+$schemeTogglePosition = is_string($settingsView) ? strpos($settingsView, 'class="btn btn-sm btn-icon markdown-editor-scheme-toggle"') : false;
+$renderPanePosition = is_string($settingsView) ? strpos($settingsView, 'class="markdown-editor-render-pane"') : false;
+$sourceModePosition = is_string($settingsView) ? strpos($settingsView, 'id="markdown_editor_source_default"') : false;
+$saveButtonPosition = is_string($settingsView) ? strpos($settingsView, '>저장</button>') : false;
 $cssModalPosition = is_string($settingsView) ? strpos($settingsView, 'id="markdown_editor_css_modal"') : false;
 sr_markdown_editor_check_assert(
     is_string($settingsView)
@@ -166,32 +233,66 @@ sr_markdown_editor_check_assert(
         && str_contains($settingsView, "'title' => '코드 블록'")
         && str_contains($settingsView, "'title' => '표'")
         && str_contains($settingsView, 'markdown-editor-workbench')
+        && !str_contains($settingsView, '<h2>Markdown 편집기</h2>')
+        && !str_contains($settingsView, '원문을 편집하고 결과 요소를 클릭해 속성을 조정합니다.')
+        && !str_contains($settingsView, 'markdown-editor-live-toolbar')
         && str_contains($settingsView, 'data-markdown-editor-surface')
         && str_contains($settingsView, 'data-markdown-source')
         && str_contains($settingsView, 'data-markdown-rendered-preview')
-        && str_contains($settingsView, 'data-markdown-context-toolbar')
-        && str_contains($settingsView, 'data-markdown-toolbar-groups')
-        && str_contains($settingsView, 'data-markdown-toolbar-controls')
+        && str_contains($settingsView, 'data-markdown-properties-sidebar')
+        && !str_contains($settingsView, 'data-markdown-context-toolbar')
+        && !str_contains($settingsView, 'data-markdown-toolbar-groups')
+        && !str_contains($settingsView, 'data-markdown-toolbar-controls')
+        && !str_contains($settingsView, 'data-markdown-selected-label')
         && str_contains($settingsView, 'data-markdown-inspector-target')
         && str_contains($settingsView, 'data-markdown-inspector-panel')
         && str_contains($settingsView, 'data-markdown-control-templates')
-        && str_contains($settingsView, 'markdown-editor-sidebar-section')
         && str_contains($settingsView, 'aria-controls="markdown_editor_css_modal"')
         && str_contains($settingsView, 'data-overlay="#markdown_editor_css_modal"')
         && str_contains($settingsView, 'aria-label="CSS 확인"')
-        && str_contains($settingsView, '<h3 id="markdown_editor_css_modal_label" class="modal-title">CSS 확인</h3>')
+        && str_contains($settingsView, '<h3 id="markdown_editor_css_modal_label" class="modal-title">전체 CSS</h3>')
         && str_contains($settingsView, 'aria-hidden="true" inert')
         && str_contains($settingsView, 'modal-dialog-fluid')
         && str_contains($settingsView, 'modal-content-fullscreen')
-        && str_contains($settingsView, 'markdown-editor-css-modal-content')
-        && str_contains($settingsView, 'markdown-editor-preview-controls')
-        && str_contains($settingsView, 'markdown-editor-page-actions')
+        && substr_count($settingsView, 'data-markdown-stylesheet') === 1
+        && str_contains($settingsView, 'data-markdown-stylesheet aria-label="전체 CSS"')
+        && !str_contains($settingsView, 'data-markdown-reset-all')
+        && !str_contains($settingsView, 'data-markdown-default-stylesheet')
+        && !str_contains($settingsView, 'data-markdown-css-preview-status')
+        && !str_contains($settingsView, '적용할 스타일시트를 확인하고 직접 편집합니다.')
+        && !str_contains($settingsView, '<summary>CSS 원문</summary>')
+        && str_contains($settingsView, 'markdown-editor-scheme-toggle')
+        && str_contains($settingsView, 'markdown-editor-page-actions form-sticky-actions form-actions form-actions-primary')
+        && str_contains($settingsView, 'class="form-choice-toggle-input sr-only"')
+        && substr_count($settingsView, 'name="style_source_mode"') === 2
+        && str_contains($settingsView, 'class="btn btn-choice-light btn-group-start">기본</label>')
+        && str_contains($settingsView, 'class="btn btn-choice-light btn-group-end">커스텀</label>')
+        && !str_contains($settingsView, 'class="btn btn-sm btn-choice-light btn-group-start">기본</label>')
+        && str_contains($settingsView, '>기본</label>')
+        && str_contains($settingsView, '>커스텀</label>')
+        && !str_contains($settingsView, '<span>참고:</span>')
+        && str_contains($settingsView, 'class="markdown-editor-github-icon"')
+        && str_contains($settingsView, '<span>github-markdown-css</span>')
+        && str_contains($settingsView, 'href="https://github.com/sindresorhus/github-markdown-css"')
+        && !str_contains($settingsView, '>설정 저장</button>')
+        && !str_contains($settingsView, '참고 프로젝트:')
+        && !str_contains($settingsView, '>참조 원본</strong>')
+        && !str_contains($settingsView, '>변경값</strong>')
         && $pageActionsPosition !== false
-        && $previewControlsPosition !== false
+        && $cssTriggerPosition !== false
+        && $schemeTogglePosition !== false
+        && $renderPanePosition !== false
+        && $sourceModePosition !== false
+        && $saveButtonPosition !== false
         && $cssModalPosition !== false
-        && $previewControlsPosition < $cssModalPosition
+        && $renderPanePosition < $cssTriggerPosition
+        && $cssTriggerPosition < $schemeTogglePosition
+        && $pageActionsPosition < $sourceModePosition
+        && $sourceModePosition < $saveButtonPosition
+        && $schemeTogglePosition < $cssModalPosition
         && $pageActionsPosition < $cssModalPosition
-        && !str_contains($settingsView, '<aside class="markdown-editor-inspector"')
+        && str_contains($settingsView, '<aside class="markdown-editor-inspector"')
+        && str_contains($settingsView, 'aria-label="현재 요소 스타일 초기화"')
         && !str_contains($settingsView, 'data-markdown-sidebar-tab=')
         && !str_contains($settingsView, '<summary>마크다운 기능</summary>')
         && !str_contains($settingsView, 'name="tables_enabled"')
@@ -212,21 +313,85 @@ sr_markdown_editor_check_assert(
         && str_contains($settingsView, "'table_cell_padding_inline'")
         && str_contains($settingsView, 'data-markdown-style-key')
         && str_contains($settingsView, 'data-markdown-stylesheet')
-        && str_contains($settingsView, 'data-markdown-css-preview-status')
-        && str_contains($settingsView, 'CSS를 편집하면 서버 검증 후 미리보기에 자동 반영됩니다.')
         && !str_contains($settingsView, 'data-markdown-specimen-list')
         && !str_contains($settingsView, 'contenteditable=')
         && str_contains($settingsView, 'data-view-mode="split"')
         && str_contains($settingsView, 'data-markdown-pane-toggle="editor"')
         && str_contains($settingsView, 'data-markdown-pane-toggle="preview"')
         && !str_contains($settingsView, 'data-markdown-view=')
-        && str_contains($settingsView, 'data-markdown-scheme="dark"')
+        && str_contains($settingsView, 'data-markdown-scheme-toggle aria-label="다크 모드로 전환"')
+        && str_contains($settingsView, "sr_material_icon_html('dark_mode')")
+        && !str_contains($settingsView, 'id="markdown_editor_dark_mode"')
+        && !str_contains($settingsView, 'data-markdown-scheme=')
         && !str_contains($settingsView, 'data-markdown-preview-scale')
         && !str_contains($settingsView, '>배율<'),
-    'Markdown settings view should provide external preview controls, a CSS-only fullscreen modal, and bottom save/reference actions.'
+    'Markdown settings view should provide a side property inspector, render-pane dark mode button, CSS-only fullscreen modal, and sticky actions.'
 );
 $adminScript = file_get_contents(SR_ROOT . '/modules/markdown_editor/assets/admin.js');
 $adminStylesheet = file_get_contents(SR_ROOT . '/modules/markdown_editor/assets/admin.css');
+$adminTokenStylesheet = file_get_contents(SR_ROOT . '/modules/admin/assets/tokens.css');
+$publicResetStylesheet = file_get_contents(SR_ROOT . '/assets/reset.css');
+$cssTokenValuesForSelector = static function (string $css, string $selector, array $tokens): array {
+    preg_match_all('/' . preg_quote($selector, '/') . '\s*\{([^}]*)\}/s', $css, $blockMatches);
+    $values = [];
+    foreach ((array) ($blockMatches[1] ?? []) as $block) {
+        foreach ($tokens as $token) {
+            if (preg_match('/(?:^|;)\s*' . preg_quote($token, '/') . '\s*:\s*([^;}]+)/', (string) $block, $valueMatch) === 1) {
+                $values[$token] = trim((string) $valueMatch[1]);
+            }
+        }
+    }
+    return $values;
+};
+$publicPreviewTokenKeys = [
+    '--color-body-color', '--color-card', '--color-default-50', '--color-default-100',
+    '--color-default-200', '--color-default-300', '--color-default-600', '--color-default-700',
+    '--color-info', '--color-success', '--color-warning', '--color-danger', '--text-muted',
+    '--sr-text', '--sr-muted', '--sr-muted-strong', '--sr-surface', '--sr-surface-soft',
+    '--sr-surface-muted', '--sr-border', '--sr-border-soft', '--sr-info', '--sr-success',
+    '--sr-warning', '--sr-danger',
+];
+$publicFoundationColorTokenKeys = [
+    '--color-body-color', '--color-card', '--color-default-50', '--color-default-100',
+    '--color-default-200', '--color-default-300', '--color-default-600', '--color-default-700',
+    '--color-info', '--color-success', '--color-warning', '--color-danger', '--text-muted',
+];
+$publicSemanticTokenKeys = [
+    '--sr-text', '--sr-muted', '--sr-muted-strong', '--sr-surface', '--sr-surface-soft',
+    '--sr-surface-muted', '--sr-border', '--sr-border-soft', '--sr-info', '--sr-success',
+    '--sr-warning', '--sr-danger',
+];
+$publicPreviewDarkTokenKeys = [
+    '--color-body-color', '--color-card', '--color-default-50', '--color-default-100',
+    '--color-default-200', '--color-default-300', '--color-default-600', '--color-default-700',
+];
+$publicLightPreviewTokens = is_string($publicResetStylesheet)
+    ? $cssTokenValuesForSelector($publicResetStylesheet, ':root,:host', $publicPreviewTokenKeys)
+    : [];
+$adminLightPreviewTokens = is_string($adminStylesheet)
+    ? $cssTokenValuesForSelector($adminStylesheet, '.markdown-editor-render-pane', $publicPreviewTokenKeys)
+    : [];
+$adminFoundationTokens = is_string($adminTokenStylesheet)
+    ? $cssTokenValuesForSelector($adminTokenStylesheet, ':root,:host', $publicFoundationColorTokenKeys)
+    : [];
+$publicFoundationTokens = is_string($publicResetStylesheet)
+    ? $cssTokenValuesForSelector($publicResetStylesheet, ':root,:host', $publicFoundationColorTokenKeys)
+    : [];
+$markdownSettingsTokens = is_string($adminStylesheet)
+    ? $cssTokenValuesForSelector($adminStylesheet, '.markdown-editor-settings-form', $publicSemanticTokenKeys)
+    : [];
+$publicSemanticTokens = is_string($publicResetStylesheet)
+    ? $cssTokenValuesForSelector($publicResetStylesheet, ':root,:host', $publicSemanticTokenKeys)
+    : [];
+$publicDarkPreviewTokens = is_string($publicResetStylesheet)
+    ? $cssTokenValuesForSelector($publicResetStylesheet, '[data-theme=dark],[data-color-scheme=dark]', $publicPreviewDarkTokenKeys)
+    : [];
+$adminDarkPreviewTokens = is_string($adminStylesheet)
+    ? $cssTokenValuesForSelector($adminStylesheet, '.markdown-editor-render-pane[data-color-scheme="dark"]', $publicPreviewDarkTokenKeys)
+    : [];
+$adminDarkFoundationTokens = is_string($adminTokenStylesheet)
+    ? $cssTokenValuesForSelector($adminTokenStylesheet, '[data-theme=dark]', $publicPreviewDarkTokenKeys)
+    : [];
 sr_markdown_editor_check_assert(
     is_string($adminScript)
         && str_contains($adminScript, 'updateStylesheetControl')
@@ -236,25 +401,24 @@ sr_markdown_editor_check_assert(
         && str_contains($adminScript, "icon.textContent = expanded")
         && str_contains($adminScript, "? 'vertical_split'")
         && str_contains($adminScript, 'setScheme')
-        && str_contains($adminScript, 'resetStyles')
+        && str_contains($adminScript, 'function initialRenderScheme()')
+        && str_contains($adminScript, "document.documentElement.getAttribute('data-theme') === 'dark'")
+        && str_contains($adminScript, 'setScheme(initialRenderScheme())')
+        && !str_contains($adminScript, "setScheme('light')")
+        && str_contains($adminScript, "setScheme(currentScheme === 'dark' ? 'light' : 'dark')")
+        && str_contains($adminScript, "icon.textContent = darkMode ? 'light_mode' : 'dark_mode'")
+        && !str_contains($adminScript, 'resetStyles')
         && str_contains($adminScript, 'selectInspectorTarget')
         && str_contains($adminScript, 'inspectorTargetForElement')
         && str_contains($adminScript, 'resetInspectorTarget')
         && str_contains($adminScript, 'setStyleSourceMode')
-        && str_contains($adminScript, 'setCssPreviewStatus')
-        && str_contains($adminScript, 'stylesheetPreviewPending = true')
-        && str_contains($adminScript, 'updateContextToolbar')
-        && str_contains($adminScript, 'showContextToolbarGroup')
-        && str_contains($adminScript, 'prepareToolbarControlClone')
-        && str_contains($adminScript, 'toolbarIconForGroup')
-        && str_contains($adminScript, 'createToolbarIcon')
-        && str_contains($adminScript, 'data-markdown-style-key^="content_padding_"')
-        && str_contains($adminScript, "Margin: 'margin'")
-        && str_contains($adminScript, "Typography: 'text_fields'")
-        && str_contains($adminScript, "Spacing: 'format_line_spacing'")
-        && str_contains($adminScript, "'Fill & Stroke': 'palette'")
-        && str_contains($adminScript, "button.className = 'btn btn-sm btn-icon'")
-        && str_contains($adminScript, "createToolbarIcon('restart_alt')")
+        && !str_contains($adminScript, 'setCssPreviewStatus')
+        && !str_contains($adminScript, 'stylesheetPreviewPending')
+        && str_contains($adminScript, "form.querySelector('[data-markdown-properties-sidebar]')")
+        && str_contains($adminScript, 'propertiesSidebar.appendChild(inspectorControls)')
+        && !str_contains($adminScript, 'updateContextToolbar')
+        && !str_contains($adminScript, 'showContextToolbarGroup')
+        && !str_contains($adminScript, 'prepareToolbarControlClone')
         && str_contains($adminScript, 'scheduleServerPreview(90)')
         && str_contains($adminScript, 'scheduleServerPreview(220)')
         && str_contains($adminScript, "previewStyle.textContent = String(payload.css || '')")
@@ -264,16 +428,26 @@ sr_markdown_editor_check_assert(
 sr_markdown_editor_check_assert(
     is_string($adminStylesheet)
         && str_contains($adminStylesheet, '.markdown-editor-live-surface[data-view-mode="preview"]')
-        && str_contains($adminStylesheet, '.markdown-editor-context-toolbar')
-        && str_contains($adminStylesheet, '.markdown-editor-toolbar-separator')
-        && str_contains($adminStylesheet, '.markdown-editor-toolbar-reset')
-        && str_contains($adminStylesheet, '.markdown-editor-context-fields')
+        && str_contains($adminStylesheet, 'grid-template-columns: minmax(0, 1fr) 304px')
+        && str_contains($adminStylesheet, 'grid-template-rows: 68vh')
+        && !str_contains($adminStylesheet, '.markdown-editor-live-toolbar')
+        && str_contains($adminStylesheet, '.markdown-editor-inspector')
+        && str_contains($adminStylesheet, 'height: 100%')
+        && !str_contains($adminStylesheet, 'max-height: calc(100vh - var(--admin-shell-bar-height')
+        && str_contains($adminStylesheet, '.markdown-editor-property-group summary::after')
+        && str_contains($adminStylesheet, '.markdown-editor-property-group[open] summary::after')
+        && !str_contains($adminStylesheet, '.markdown-editor-context-toolbar')
+        && !str_contains($adminStylesheet, '.markdown-editor-context-fields')
         && str_contains($adminStylesheet, '.markdown-editor-source')
         && str_contains($adminStylesheet, '.markdown-editor-pane-toggle')
         && str_contains($adminStylesheet, 'white-space: pre-wrap')
         && str_contains($adminStylesheet, '[data-markdown-style-selected]')
-        && str_contains($adminStylesheet, '.markdown-editor-css-modal-content')
-        && str_contains($adminStylesheet, '.markdown-editor-preview-controls')
+        && str_contains($adminStylesheet, '.markdown-editor-css-modal-body > .markdown-editor-stylesheet')
+        && !str_contains($adminStylesheet, '.markdown-editor-css-modal-content')
+        && !str_contains($adminStylesheet, '.markdown-editor-stylesheet-section')
+        && str_contains($adminStylesheet, '.markdown-editor-scheme-toggle')
+        && str_contains($adminStylesheet, '.markdown-editor-scheme-toggle[aria-pressed="true"]')
+        && !str_contains($adminStylesheet, 'min-width: 112px')
         && !str_contains($adminStylesheet, '--markdown-preview-scale')
         && str_contains($adminStylesheet, '#markdown_editor_css_modal.overlay-closed')
         && str_contains($adminStylesheet, '#markdown_editor_css_modal:is(.overlay-open, .open).overlay-closed')
@@ -285,16 +459,24 @@ sr_markdown_editor_check_assert(
         && str_contains($adminStylesheet, '.markdown-editor-box-group > .markdown-editor-inspector-fields')
         && str_contains($adminStylesheet, 'grid-template-columns: repeat(2, minmax(0, 1fr))')
         && str_contains($adminStylesheet, '.markdown-editor-render-pane[data-color-scheme="dark"]')
-        && str_contains($adminStylesheet, '--sr-text: #1f2328')
-        && str_contains($adminStylesheet, '--sr-text: #f0f6fc')
-        && str_contains($adminStylesheet, '--sr-surface: #0d1117'),
-    'Markdown live preview should define independent light and dark theme token sets.'
+        && count($publicLightPreviewTokens) === count($publicPreviewTokenKeys)
+        && $adminFoundationTokens === $publicFoundationTokens
+        && $markdownSettingsTokens === $publicSemanticTokens
+        && $adminLightPreviewTokens === $publicLightPreviewTokens
+        && count($publicDarkPreviewTokens) === count($publicPreviewDarkTokenKeys)
+        && $adminDarkFoundationTokens === $publicDarkPreviewTokens
+        && $adminDarkPreviewTokens === $publicDarkPreviewTokens
+        && is_string($adminTokenStylesheet)
+        && !str_contains($adminTokenStylesheet, '--sr-text:')
+        && !str_contains($adminStylesheet, '--sr-text: #1f2328')
+        && !str_contains($adminStylesheet, '--sr-text: #f0f6fc'),
+    'Markdown semantic tokens should stay scoped to its settings form while the live preview matches public light and dark values.'
 );
 sr_markdown_editor_check_assert(
-    sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo) !== [],
+    sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown'], ['external_embed_enabled' => false, 'internal_embed_enabled' => false], $enabledPdo) !== [],
     'Content markdown body stylesheets should be returned even when URL embeds are disabled.'
 );
-$contentMarkdownStylesheets = sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown', 'embed_enabled' => false], ['embed_enabled' => false], $enabledPdo);
+$contentMarkdownStylesheets = sr_content_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'body_format' => 'markdown'], ['external_embed_enabled' => false, 'internal_embed_enabled' => false], $enabledPdo);
 sr_markdown_editor_check_assert(
     ($contentMarkdownStylesheets[0] ?? '') === '/assets/editor-md.css'
         &&
@@ -302,10 +484,10 @@ sr_markdown_editor_check_assert(
     'Content public markdown bodies should include editor-md.css before the markdown editor stylesheet URL.'
 );
 sr_markdown_editor_check_assert(
-    sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'embed_enabled' => false], ['post_editor' => 'markdown', 'embed_enabled' => false], $enabledPdo) !== [],
+    sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title'], ['post_editor' => 'markdown', 'external_embed_enabled' => false, 'internal_embed_enabled' => false], $enabledPdo) !== [],
     'Community markdown body stylesheets should be returned even when URL embeds are disabled.'
 );
-$communityMarkdownStylesheets = sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title', 'embed_enabled' => false], ['post_editor' => 'markdown', 'embed_enabled' => false], $enabledPdo);
+$communityMarkdownStylesheets = sr_community_post_body_embed_stylesheets(['id' => 1, 'body_text' => '# Title'], ['post_editor' => 'markdown', 'external_embed_enabled' => false, 'internal_embed_enabled' => false], $enabledPdo);
 sr_markdown_editor_check_assert(
     ($communityMarkdownStylesheets[0] ?? '') === '/assets/editor-md.css'
         &&
@@ -328,7 +510,7 @@ $declarations = sr_markdown_editor_normalize_custom_declarations([
     'unknown' => 'color: red',
 ]);
 sr_markdown_editor_check_assert(
-    ($declarations['paragraph'] ?? '') === 'color: var(--sr-text); margin-bottom: 12px',
+    ($declarations['paragraph'] ?? '') === 'color: var(--md-text); margin-bottom: 12px',
     'Custom declarations should keep allowed declarations and drop unsafe url() values.'
 );
 sr_markdown_editor_check_assert(
@@ -336,7 +518,7 @@ sr_markdown_editor_check_assert(
     'Custom declarations should support expanded selector-specific declarations.'
 );
 sr_markdown_editor_check_assert(
-    ($declarations['code'] ?? '') === 'background-color: var(--sr-surface-muted)',
+    ($declarations['code'] ?? '') === 'background-color: var(--md-surface-muted)',
     'Custom declarations should keep the legacy code selector key.'
 );
 sr_markdown_editor_check_assert(!isset($declarations['unknown']), 'Custom declarations should reject unknown selector keys.');
@@ -374,14 +556,13 @@ sr_markdown_editor_check_assert(
         && str_contains($boxProfileStylesheet, "/* sr-control: box_h1_border_top */\n    border-top-width: 3px;")
         && str_contains($boxProfileStylesheet, "/* sr-control: box_h1_radius */\n    border-radius: 12px;")
         && str_contains($boxProfileStylesheet, "/* sr-control: box_h1_border_style */\n    border-style: dashed;")
-        && str_contains($boxProfileStylesheet, "/* sr-control: box_h1_border_token */\n    border-color: var(--sr-info);"),
+        && str_contains($boxProfileStylesheet, "/* sr-control: box_h1_border_token */\n    border-color: var(--md-info);"),
     'A selected element box model should update each side, border style, token, and radius independently.'
 );
 $textTargets = sr_markdown_editor_text_target_definitions();
 $textProfileStylesheet = sr_markdown_editor_apply_profile_to_stylesheet(
     $defaultStylesheet,
     array_merge(sr_markdown_editor_default_style_profile(), [
-        'text_h2_font_family' => 'Georgia, "Times New Roman", serif',
         'text_h2_font_size' => 38,
         'text_h2_font_weight' => 500,
         'text_h2_line_height' => 1.6,
@@ -396,15 +577,20 @@ $textProfileStylesheet = sr_markdown_editor_apply_profile_to_stylesheet(
 );
 sr_markdown_editor_check_assert(
     count($textTargets) === 13
+        && !array_key_exists('font_family', sr_markdown_editor_default_style_profile())
+        && !array_key_exists('heading_font_family', sr_markdown_editor_default_style_profile())
+        && !array_key_exists('code_font_family', sr_markdown_editor_default_style_profile())
+        && !array_key_exists('text_h2_font_family', sr_markdown_editor_default_style_profile())
         && str_contains($defaultStylesheet, 'sr-text-controls: common element text style')
+        && !str_contains($defaultStylesheet, 'font-family:')
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_font_size */\n    font-size: 38px;")
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_font_weight */\n    font-weight: 500;")
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_align */\n    text-align: center;")
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_font_style */\n    font-style: italic;")
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_decoration */\n    text-decoration-line: underline;")
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_transform */\n    text-transform: uppercase;")
-        && str_contains($textProfileStylesheet, "/* sr-control: text_h2_token */\n    color: var(--sr-info);"),
-    'Every text-bearing element should expose the same complete text style controls.'
+        && str_contains($textProfileStylesheet, "/* sr-control: text_h2_token */\n    color: var(--md-info);"),
+    'Every text-bearing element should expose text style controls while inheriting the site font family.'
 );
 $missingControlMarkers = [];
 foreach (sr_markdown_editor_style_binding_map() as $controlKey => $_binding) {
@@ -462,6 +648,35 @@ sr_markdown_editor_check_assert(
         && !str_contains($withoutLegacyMaxWidth, 'max-width: 980px')
         && str_contains($withoutLegacyMaxWidth, 'max-width: 42rem'),
     'Legacy content maximum-width control should be removed without deleting direct custom max-width declarations.'
+);
+$fontSpecificCss = ".markdown-editor-body {\n    /* sr-control: font_family */\n    font-family: Georgia, serif;\n    color: var(--sr-text);\n}\n.markdown-editor-body h1 { font-family: Arial, sans-serif; color: var(--sr-info); }";
+$siteFontCss = sr_markdown_editor_css($enabledPdo, [
+    'style_source_mode' => 'custom',
+    'stylesheet_css' => $fontSpecificCss,
+]);
+sr_markdown_editor_check_assert(
+    !str_contains($siteFontCss, 'font-family:')
+        && str_contains($siteFontCss, 'color: var(--md-text);')
+        && str_contains($siteFontCss, 'color: var(--md-info);')
+        && !str_contains($siteFontCss, 'var(--sr-'),
+    'Saved Markdown styles should discard legacy font-family declarations and inherit the site font.'
+);
+$publicBodyThemeStylesheets = [
+    SR_ROOT . '/modules/content/theme/basic/assets/module.css' => '.content-body > :is(h1, h2, h3, h4, h5, h6)',
+    SR_ROOT . '/modules/content/theme/sample/assets/module.css' => '.content-body > :is(h1, h2, h3, h4, h5, h6)',
+    SR_ROOT . '/modules/community/theme/basic/assets/module.css' => '.community-post-body > :is(h1, h2, h3, h4, h5, h6)',
+    SR_ROOT . '/modules/community/theme/sample/assets/module.css' => '.community-post-body > :is(h1, h2, h3, h4, h5, h6)',
+];
+$publicBodyThemeSelectorsValid = true;
+foreach ($publicBodyThemeStylesheets as $path => $directHeadingSelector) {
+    $themeCss = file_get_contents($path);
+    $publicBodyThemeSelectorsValid = $publicBodyThemeSelectorsValid
+        && is_string($themeCss)
+        && str_contains($themeCss, $directHeadingSelector);
+}
+sr_markdown_editor_check_assert(
+    $publicBodyThemeSelectorsValid,
+    'Content and community themes should not override nested Markdown heading color declarations.'
 );
 $originalPost = $_POST;
 $directSourceStylesheet = str_replace(
