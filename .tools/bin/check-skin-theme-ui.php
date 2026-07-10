@@ -209,7 +209,6 @@ $targets = [
             'function sr_banner_skin_key_for_placement(string $skinKey, string $placementKind): ?string',
             'function sr_banner_target_placement_kind(?array $target, bool $isPublicBanner = false): string',
             '기본 배너 스킨 view 파일이 누락되었습니다.',
-            'function sr_banner_save_skin_key(PDO $pdo, string $skinKey): void',
         ],
         'action_needles' => [
             '$bannerSkinOptions = sr_banner_skin_options()',
@@ -247,7 +246,6 @@ $targets = [
             "'layer' => SR_ROOT . '/modules/popup_layer/skins/basic/layer.php'",
             "], ['layer'], 'popup layer skin')",
             '기본 팝업레이어 스킨 view 파일이 누락되었습니다.',
-            'function sr_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void',
         ],
         'action_needles' => [
             '$popupLayerSkinOptions = sr_popup_layer_skin_options()',

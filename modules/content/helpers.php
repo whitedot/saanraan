@@ -491,11 +491,6 @@ function sr_content_public_view_file(PDO $pdo, array $settings, string $viewFile
     return SR_ROOT . '/modules/content/views/' . $viewFile;
 }
 
-function sr_content_include_public_view(PDO $pdo, array $settings, string $viewFile): void
-{
-    include sr_content_public_view_file($pdo, $settings, $viewFile);
-}
-
 function sr_content_ui_kit_layout_context(array $settings, array $context = []): array
 {
     $context = sr_content_public_layout_context($settings, $context);

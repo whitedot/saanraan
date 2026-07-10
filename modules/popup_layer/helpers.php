@@ -624,13 +624,6 @@ function sr_popup_layer_skin_view(string $skinKey, string $viewKey): string
     throw new RuntimeException('기본 팝업레이어 스킨 view 파일이 누락되었습니다.');
 }
 
-function sr_popup_layer_save_skin_key(PDO $pdo, string $skinKey): void
-{
-    sr_popup_layer_save_settings($pdo, [
-        'popup_layer_skin_key' => $skinKey,
-    ]);
-}
-
 function sr_popup_layer_save_settings(PDO $pdo, array $settings): void
 {
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'popup_layer' LIMIT 1");

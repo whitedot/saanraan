@@ -224,11 +224,6 @@ sr_survey_check_not_contains(
     'Survey admin form must not render every member group as a checkbox list'
 );
 sr_survey_check_contains(
-    'modules/survey/helpers.php',
-    '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',
-    'Survey skin renderer must pass the runtime site context to public layout views'
-);
-sr_survey_check_contains(
     'modules/survey/privacy-cleanup.php',
     "dedupe_key = CONCAT(\\'anonymized:survey_reward:\\', id)",
     'Survey reward dedupe keys must be anonymized during privacy cleanup'

@@ -985,20 +985,6 @@ function sr_survey_public_view_file(PDO $pdo, array $settings, string $view): st
     return $themeFile !== null ? $themeFile : sr_survey_skin_view_file($settings, $view);
 }
 
-function sr_survey_include_public_view(PDO $pdo, array $settings, string $view): void
-{
-    $site = is_array($GLOBALS['sr_runtime_site'] ?? null) ? $GLOBALS['sr_runtime_site'] : null;
-
-    include sr_survey_public_view_file($pdo, $settings, $view);
-}
-
-function sr_survey_render_skin(PDO $pdo, array $settings, string $view): void
-{
-    $site = is_array($GLOBALS['sr_runtime_site'] ?? null) ? $GLOBALS['sr_runtime_site'] : null;
-
-    include sr_survey_skin_view_file($settings, $view);
-}
-
 function sr_survey_save_settings(PDO $pdo, array $settings): void
 {
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'survey' LIMIT 1");

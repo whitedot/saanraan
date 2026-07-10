@@ -1030,13 +1030,6 @@ function sr_banner_skin_key_for_placement(string $skinKey, string $placementKind
     return sr_banner_skin_supports('basic', $placementKind) ? 'basic' : null;
 }
 
-function sr_banner_save_skin_key(PDO $pdo, string $skinKey): void
-{
-    sr_banner_save_settings($pdo, [
-        'banner_skin_key' => $skinKey,
-    ]);
-}
-
 function sr_banner_save_settings(PDO $pdo, array $settings): void
 {
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'banner' LIMIT 1");

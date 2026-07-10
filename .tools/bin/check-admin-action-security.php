@@ -207,21 +207,6 @@ function sr_admin_action_security_effective_content(string $root, string $conten
         }
     }
 
-    foreach ([
-        "sr_quiz_render_skin(\$pdo, \$quizSettings, 'view')" => '/modules/quiz/skins/basic/view.php',
-        "sr_survey_render_skin(\$pdo, \$settings, 'view')" => '/modules/survey/skins/basic/view.php',
-    ] as $marker => $includePath) {
-        if (!str_contains($content, $marker)) {
-            continue;
-        }
-
-        $absolutePath = $root . $includePath;
-        $includedContent = is_file($absolutePath) ? file_get_contents($absolutePath) : false;
-        if (is_string($includedContent)) {
-            $content .= "\n" . $includedContent;
-        }
-    }
-
     return $content;
 }
 

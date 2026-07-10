@@ -930,11 +930,6 @@ function sr_community_public_view_file(PDO $pdo, array $settings, string $viewFi
     return $themeFile !== null ? $themeFile : $fallbackFile;
 }
 
-function sr_community_include_public_view(PDO $pdo, array $settings, string $viewFile, string $fallbackFile): void
-{
-    include sr_community_public_view_file($pdo, $settings, $viewFile, $fallbackFile);
-}
-
 function sr_community_skin_definition(string $skinKey): array
 {
     $files = sr_community_skin_files();

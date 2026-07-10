@@ -985,20 +985,6 @@ function sr_quiz_public_view_file(PDO $pdo, array $settings, string $view): stri
     return $themeFile !== null ? $themeFile : sr_quiz_skin_view_file($settings, $view);
 }
 
-function sr_quiz_include_public_view(PDO $pdo, array $settings, string $view): void
-{
-    $site = is_array($GLOBALS['sr_runtime_site'] ?? null) ? $GLOBALS['sr_runtime_site'] : null;
-
-    include sr_quiz_public_view_file($pdo, $settings, $view);
-}
-
-function sr_quiz_render_skin(PDO $pdo, array $settings, string $view): void
-{
-    $site = is_array($GLOBALS['sr_runtime_site'] ?? null) ? $GLOBALS['sr_runtime_site'] : null;
-
-    include sr_quiz_skin_view_file($settings, $view);
-}
-
 function sr_quiz_save_settings(PDO $pdo, array $settings): void
 {
     $stmt = $pdo->prepare("SELECT id FROM sr_modules WHERE module_key = 'quiz' LIMIT 1");

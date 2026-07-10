@@ -251,7 +251,6 @@ function sr_quiz_check_paths_and_admin(): void
         "\$context['consumer_domain'] = 'quiz';",
         "'/modules/quiz/assets/module.js'",
         'sr_quiz_optional_option_key_from_post',
-        '$site = is_array($GLOBALS[\'sr_runtime_site\'] ?? null) ? $GLOBALS[\'sr_runtime_site\'] : null;',
         "'card' => '카드형'",
         "'focus' => '집중형'",
         'attempt_limit_policy',
