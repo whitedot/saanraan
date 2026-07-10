@@ -6,7 +6,7 @@
 
 | 목적 | 문서 |
 | --- | --- |
-| 프로젝트 소개 | [산란 특장점 소개](operator-feature-list.md), [산란 포지셔닝 기준](positioning.md) |
+| 프로젝트 소개 | 일반 운영자 관점의 [산란 특장점 소개](operator-feature-list.md), 도입 판단을 위한 [산란 포지셔닝 기준](positioning.md) |
 | 설계 방향 | [핵심 설계 결정](core-decisions.md) |
 | 설치와 배포 | [배포 보호 기준](deployment-protection.md), [nginx 샘플 설정](deployment/nginx-saanraan.conf), [nginx 하위 경로 샘플 설정](deployment/nginx-saanraan-subdirectory.conf) |
 | 기여와 개발 | [기여자 작업 기준](contribution-guide.md), [모듈 작성 가이드](module-guide.md), [공개 모듈 테마 기준](public-module-themes.md), [모듈 배치와 업데이트 기준](module-update-policy.md), [커스터마이징과 업데이트 충돌 가이드](customization-guide.md) |

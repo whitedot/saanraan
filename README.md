@@ -28,7 +28,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
 | 기본 설치 | `core + member + admin + policy_documents + privacy` |
-| 선택 번들 | 자동등록방지, OAuth 로그인, 본인확인, 커뮤니티, 콘텐츠, 퀴즈, 설문, 리액션, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 포인트/금액 환전, 쿠폰·이용권, CKEditor, Markdown Editor, OAuth/본인확인/captcha provider 플러그인 |
+| 선택 번들 | 자동등록방지, OAuth 로그인, 본인확인, 쪽지, 커뮤니티, 콘텐츠, 퀴즈, 설문, 리액션, 메뉴, 로고, SEO, 배너, 팝업레이어, 알림, 포인트, 적립금, 예치금, 포인트/금액 환전, 쿠폰·이용권, CKEditor, Markdown Editor, OAuth/본인확인/captcha provider 플러그인 |
 | 모듈 위치 | `modules/{module_key}` |
 | 주요 관리자 화면 | `/admin`, `/admin/menu`, `/admin/modules`, `/admin/updates` |
 | 목표 환경 | Apache 또는 Apache 호환 공유호스팅, PHP-FPM 기반 nginx |
@@ -48,26 +48,26 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 
 산란은 아직 정식 릴리스보다 개발 베이스에 가깝습니다. 다만 단순 골격 단계는 지나, 설치/관리자/회원/콘텐츠/커뮤니티/퀴즈/설문/리액션/자산/운영 보조 흐름을 실제 파일과 DB 테이블로 검증하며 확장하는 중입니다. 기능을 적게 유지하는 것보다, 기능이 늘어나도 요청 흐름과 책임 경계를 파일에서 따라갈 수 있게 두는 일을 더 중요한 기준으로 삼습니다.
 
-[산란 특장점 소개](docs/operator-feature-list.md)는 회원, 본인확인, 정책 문서, 콘텐츠, 커뮤니티, 퀴즈, 설문, 리액션, 자산, 쿠폰, 알림, 개인정보, 사이트 운영 기능이 제공하는 주요 기능과 편의를 정리합니다. 기능 목록은 프로젝트가 어떤 방향의 모듈형 베이스인지 빠르게 이해하기 위한 소개 문서입니다.
+[산란 특장점 소개](docs/operator-feature-list.md)는 “운영자가 무엇을 할 수 있고 어떤 점이 편해지는가”를 기준으로 현재 기능을 설명합니다. 회원과 본인확인부터 콘텐츠·커뮤니티·퀴즈·설문, 자산·쿠폰·유료 이용, 알림·발송 문구, 약관·개인정보, 메뉴·로고·테마·SEO, CKEditor·Markdown 작성 경험까지 실제 구현 범위를 자세히 살펴볼 수 있습니다.
 
 운영 신뢰성 판단은 기능 목록만으로 하지 않습니다. 번들별 상태 등급은 [모듈 상태표](docs/module-status.md), 검증 증거 수준은 [검증 상태와 증거 기준](docs/verification-status.md), 남은 리스크는 [프로젝트 리스크 레지스터](docs/risk-register.md)를 함께 봅니다.
 
 구현된 기반:
 
 - 웹 설치와 설치 후 모듈 설치/활성화/업데이트 흐름.
-- DB 기반 회원 계정, 로그인 세션, 이메일 인증, 비밀번호 재설정, 마이페이지, 프로필, 탈퇴 처리.
-- 관리자 대시보드, 관리자 메뉴, 권한, 감사 로그, 설정, 업데이트 화면.
+- DB 기반 회원 계정, 로그인 세션, 이메일 인증, OAuth, 이메일 코드/TOTP/백업 코드 2차 인증, 비밀번호 재설정, 마이페이지, 프로필, 팔로우, 쪽지, 회원 CSV, 마케팅 수신거부 반영, 탈퇴·익명화 처리.
+- 관리자 대시보드, 관리자 메뉴, 권한, 감사 로그, 설정, 업데이트, 지연 작업 점검, 보존 데이터 즉시·자동 정리 화면.
 - 약관/방침 정책 문서, 첫 version 생성, 회원가입/OAuth/커뮤니티 동의 snapshot, 개인정보 요청 대응 기록, 개인정보 사본 제공, 모듈별 export/cleanup 계약.
 - 본인확인 시도/결과 기록, 가입 입력 자동 채움용 짧은 identity snapshot, 세션 단위 소비 정책 helper, KCP/KG이니시스 provider 계약.
 - 콘텐츠와 커뮤니티 공개 화면, 관리자 화면, sitemap 후보, 회원 그룹 규칙 연동.
 - 콘텐츠/커뮤니티 맥락에서 시작하는 퀴즈 응시, 채점, 결과, 보상 지급 흐름.
 - 설문 공개 목록/응답, 관리자 설문/응답/통계/CSV/매뉴얼, 보상 지급 흐름.
-- 사이트 메뉴, 로고 매니저, SEO, 배너, 팝업레이어, output slot asset 계약 같은 사이트 운영 모듈.
-- 알림 모듈, 사이트 알림, 이메일 delivery queue, 도메인 이벤트 템플릿.
+- 사이트 메뉴, 로고 매니저, 공개 레이아웃·테마, 사업자 정보 푸터, SEO, 배너, 팝업레이어, output slot asset 계약 같은 사이트 운영 모듈.
+- 알림 모듈, 사이트 알림, 이메일·Slack·Discord·Telegram delivery queue, 중앙 발송 문구와 모듈별 알림 템플릿.
 - 포인트 유효기간/만료를 포함한 포인트, 적립금, 예치금 원장과 관리자 조정/환불/회원 화면, 포인트/금액 항목 간 환전 정책과 실행 로그.
 - 쿠폰·이용권 모듈과 콘텐츠/커뮤니티 유료 열람 우선 적용, 회원 탈퇴 시 쿠폰 상태 처리.
 - 본문에 단독으로 붙여 넣은 YouTube, X, Instagram, 내부 콘텐츠 URL 자동 임베드.
-- 기본 textarea/Markdown/직접 HTML 입력 모드, CKEditor 5 선택 플러그인, 에디터 설정, `body_format=html` 저장, 서버 측 HTML sanitizer.
+- 기본 textarea/Markdown/직접 HTML 입력 모드, CKEditor 5 선택 플러그인, Markdown 원문·렌더링 스타일 작업대, `body_format=html` 저장, 서버 측 HTML sanitizer.
 - 로컬 파일 저장과 S3 호환 저장소 helper, Apache/nginx 배포 보호 기준.
 
 ## 번들 모듈
@@ -76,11 +76,11 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | --- | --- | --- |
 | 시스템 | `admin`, `antispam` | 관리자 대시보드, 권한, 메뉴, 모듈 관리, 업데이트, 자동등록방지 |
 | 시스템 | `asset_ledger`, `payment_ledger` | 숨김 기반 잔액/결제 처리 primitive, 자산·결제 모듈 자동 준비 |
-| 회원 | `member`, `member_oauth`, `identity_verification` | 회원 계정, 인증, OAuth 로그인, 본인확인, 마이페이지, 프로필, 회원 그룹, 탈퇴 |
+| 회원 | `member`, `member_oauth`, `identity_verification`, `message` | 회원 계정, 인증, OAuth 로그인, 본인확인, 마이페이지, 프로필, 회원 그룹, 쪽지, 탈퇴 |
 | 회원 | `point`, `reward`, `deposit`, `asset_exchange` | 포인트/적립금/예치금 잔액과 거래 원장, 포인트/금액 항목 간 환전 |
 | 회원 | `coupon` | 쿠폰·이용권 종류, 회원 지급, 사용 이력, 열람권 우선 적용 |
 | 사이트 | `site_menu`, `logo_manager`, `content`, `banner`, `popup_layer`, `seo` | 사이트 메뉴, 로고, 콘텐츠, 출력 슬롯, 검색 노출 보조 |
-| 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 쪽지, 레벨/회원 그룹 규칙 |
+| 서비스 | `community` | 게시판, 댓글, 신고, 스크랩, 시리즈, 레벨/회원 그룹 규칙 |
 | 서비스 | `quiz` | 퀴즈 응시, 채점, 콘텐츠/커뮤니티 연계, 보상 지급 |
 | 서비스 | `survey`, `reaction` | 설문 작성, 응답, 통계, CSV, 보상 지급, 공통 리액션 |
 | 운영 | `notification`, `policy_documents`, `privacy` | 알림, 발송 작업, 약관/방침 문서, 개인정보 요청/사본 제공 |
