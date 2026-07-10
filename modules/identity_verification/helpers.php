@@ -331,12 +331,12 @@ function sr_identity_verification_account_satisfies(PDO $pdo, int $accountId, st
     $params = [
         'account_id' => $accountId,
         'purpose' => $purpose,
-        'now' => sr_now(),
+        'now' => sr_identity_verification_utc_datetime(),
     ];
     $ageSql = '';
     if ($maxAgeDays !== null && $maxAgeDays > 0) {
         $ageSql = ' AND r.verified_at >= :min_verified_at';
-        $params['min_verified_at'] = gmdate('Y-m-d H:i:s', time() - ($maxAgeDays * 86400));
+        $params['min_verified_at'] = sr_identity_verification_local_datetime(-$maxAgeDays * 86400);
     }
 
     $stmt = $pdo->prepare(
@@ -367,12 +367,12 @@ function sr_identity_verification_account_satisfies_adult(PDO $pdo, int $account
     $params = [
         'account_id' => $accountId,
         'purpose' => $purpose,
-        'now' => sr_now(),
+        'now' => sr_identity_verification_utc_datetime(),
     ];
     $ageSql = '';
     if ($maxAgeDays !== null && $maxAgeDays > 0) {
         $ageSql = ' AND r.verified_at >= :min_verified_at';
-        $params['min_verified_at'] = gmdate('Y-m-d H:i:s', time() - ($maxAgeDays * 86400));
+        $params['min_verified_at'] = sr_identity_verification_local_datetime(-$maxAgeDays * 86400);
     }
 
     $stmt = $pdo->prepare(
@@ -413,6 +413,22 @@ function sr_identity_verification_utc_timestamp(string $dateTime): ?int
     } catch (Throwable $exception) {
         return null;
     }
+}
+
+function sr_identity_verification_utc_datetime(int $offsetSeconds = 0): string
+{
+    return gmdate('Y-m-d H:i:s', time() + $offsetSeconds);
+}
+
+function sr_identity_verification_local_datetime(int $offsetSeconds = 0): string
+{
+    return date('Y-m-d H:i:s', time() + $offsetSeconds);
+}
+
+function sr_identity_verification_local_timestamp(string $dateTime): ?int
+{
+    $timestamp = strtotime(trim($dateTime));
+    return $timestamp !== false ? $timestamp : null;
 }
 
 function sr_identity_verification_attempt_expired(array $attempt, ?int $now = null): bool
@@ -467,7 +483,7 @@ function sr_identity_verification_duplicate_account_by_ci_hash(PDO $pdo, string 
 
     $params = [
         'ci_hash' => $ciHash,
-        'now' => sr_now(),
+        'now' => sr_identity_verification_utc_datetime(),
     ];
     $accountSql = '';
     if ($accountId > 0) {
@@ -712,7 +728,7 @@ function sr_identity_verification_session_result(PDO $pdo, string $purpose, int 
         'id' => $resultId,
         'purpose' => $purpose,
         'status' => 'verified',
-        'now' => sr_now(),
+        'now' => sr_identity_verification_utc_datetime(),
     ]);
     $row = $stmt->fetch();
 
@@ -746,7 +762,7 @@ function sr_identity_verification_result_for_return_token(PDO $pdo, array $confi
         return null;
     }
 
-    $completedAt = sr_identity_verification_utc_timestamp((string) ($attempt['completed_at'] ?? ''));
+    $completedAt = sr_identity_verification_local_timestamp((string) ($attempt['completed_at'] ?? ''));
     if ($maxAgeSeconds !== null && $maxAgeSeconds > 0 && ($completedAt === null || $completedAt < time() - $maxAgeSeconds)) {
         return null;
     }
@@ -813,7 +829,7 @@ function sr_identity_verification_link_result_to_account(PDO $pdo, int $resultId
         'account_id' => $accountId,
         'purpose' => $purpose,
         'status' => 'verified',
-        'now' => sr_now(),
+        'now' => sr_identity_verification_utc_datetime(),
     ]);
     if (!is_array($stmt->fetch())) {
         return false;
@@ -1096,7 +1112,7 @@ function sr_identity_verification_create_attempt(PDO $pdo, array $config, array 
     $verificationKey = 'iv_' . bin2hex(random_bytes(24));
     $stateToken = bin2hex(random_bytes(32));
     $nonce = bin2hex(random_bytes(24));
-    $expiresAt = gmdate('Y-m-d H:i:s', time() + $ttl);
+    $expiresAt = sr_identity_verification_utc_datetime($ttl);
 
     $stmt = $pdo->prepare(
         'INSERT INTO sr_identity_verification_attempts
@@ -1210,7 +1226,7 @@ function sr_identity_verification_complete(PDO $pdo, array $config, array $attem
     $expiresAt = null;
     $validDays = (int) ($settings['result_valid_days'] ?? 0);
     if ($validDays > 0) {
-        $expiresAt = gmdate('Y-m-d H:i:s', time() + ($validDays * 86400));
+        $expiresAt = sr_identity_verification_utc_datetime($validDays * 86400);
     }
     $summary = isset($verification['summary']) && is_array($verification['summary']) ? $verification['summary'] : [];
     $summaryJson = json_encode(sr_identity_verification_public_summary($summary), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

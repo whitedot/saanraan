@@ -97,6 +97,18 @@ date_default_timezone_set('Asia/Seoul');
 if (sr_identity_verification_attempt_expired(['expires_at' => gmdate('Y-m-d H:i:s', time() + 600)])) {
     $errors[] = 'Identity verification attempt expiry must interpret stored UTC datetimes as UTC, not local time.';
 }
+$timestampReference = time();
+$utcDateTime = sr_identity_verification_utc_datetime();
+$localDateTime = sr_identity_verification_local_datetime();
+if (abs((int) sr_identity_verification_utc_timestamp($utcDateTime) - $timestampReference) > 2) {
+    $errors[] = 'Identity verification UTC datetime helper must preserve the current instant.';
+}
+if (abs((int) sr_identity_verification_local_timestamp($localDateTime) - $timestampReference) > 2) {
+    $errors[] = 'Identity verification local datetime helper must preserve the current instant.';
+}
+if ($utcDateTime === $localDateTime) {
+    $errors[] = 'Identity verification UTC expiry and local history datetimes must stay distinct outside UTC.';
+}
 date_default_timezone_set($originalTimezone);
 $kcpPayload = ['site_cd' => SR_IDENTITY_KCP_TEST_SITE_CD, 'ordr_idxx' => 'iv_runtime_check'];
 $kcpEncrypted = sr_identity_kcp_encrypt_json($kcpTestProvider, $kcpPayload, SR_IDENTITY_KCP_TEST_ENC_KEY, SR_IDENTITY_KCP_TEST_SITE_CD);
@@ -143,6 +155,9 @@ if (!is_string($identityHelpers)) {
     || !str_contains($identityHelpers, 'function sr_identity_verification_take_registration_snapshot(')
     || !str_contains($identityHelpers, 'function sr_identity_verification_attempt_expired(array $attempt, ?int $now = null): bool')
     || !str_contains($identityHelpers, "new DateTimeZone('UTC')")
+    || substr_count($identityHelpers, "'now' => sr_identity_verification_utc_datetime()") < 5
+    || substr_count($identityHelpers, 'sr_identity_verification_local_datetime(-$maxAgeDays * 86400)') !== 2
+    || !str_contains($identityHelpers, 'sr_identity_verification_local_timestamp((string) ($attempt[\'completed_at\'] ?? \'\'))')
     || !str_contains($identityHelpers, 'function sr_identity_verification_result_for_return_token(')
     || !str_contains($identityHelpers, 'function sr_identity_verification_claim_return_token(')
 ) {
