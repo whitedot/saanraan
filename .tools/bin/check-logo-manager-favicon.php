@@ -654,6 +654,9 @@ if (is_string($adminLogoManagerView)) {
         'appIconCopySwitch.addEventListener',
         'sr_logo_manager_favicon_position_key()',
         'sr_logo_manager_app_icon_position_key()',
+        '$logoManagerCanUsePublicSymbol = $logoManagerPositionKey === sr_logo_manager_public_symbol_position_key()',
+        'badge-status <?php echo sr_e($logoManagerPublicSymbolStatusClass); ?>',
+        "sr_t('logo_manager::ui.public_symbol.not_applicable')",
     ] as $marker) {
         sr_logo_manager_favicon_check_assert(
             str_contains($adminLogoManagerView, $marker),
@@ -674,6 +677,14 @@ if (is_string($logoManagerLang)) {
     sr_logo_manager_favicon_check_assert(
         str_contains($logoManagerLang, "'ui.public_symbol.label' => '사용자 화면 심볼로도 사용'"),
         'public symbol label must use the requested also-use wording'
+    );
+    sr_logo_manager_favicon_check_assert(
+        str_contains($logoManagerLang, "'ui.public_symbol.not_applicable' => '대상아님'"),
+        'non-symbol logo positions must have an explicit not-applicable label'
+    );
+    sr_logo_manager_favicon_check_assert(
+        str_contains($logoManagerLang, "'ui.public_symbol.no' => '사용안함'"),
+        'eligible logos with public symbol disabled must have a distinct disabled label'
     );
 }
 

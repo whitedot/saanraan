@@ -270,6 +270,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         $logoManagerIsCurrentPeriod = ($logoManagerStartsAt === '' || $logoManagerStartsAt <= $logoManagerNow)
                             && ($logoManagerEndsAt === '' || $logoManagerEndsAt >= $logoManagerNow);
                         $logoManagerIsActiveCandidate = (string) ($logo['status'] ?? '') === 'active' && $logoManagerIsCurrentPeriod;
+                        $logoManagerCanUsePublicSymbol = $logoManagerPositionKey === sr_logo_manager_public_symbol_position_key();
+                        $logoManagerUsesPublicSymbol = $logoManagerCanUsePublicSymbol && !empty($logo['use_as_public_symbol']);
+                        $logoManagerPublicSymbolStatusClass = $logoManagerCanUsePublicSymbol
+                            ? ($logoManagerUsesPublicSymbol ? 'is-success' : 'is-danger')
+                            : 'is-info';
+                        $logoManagerPublicSymbolStatusLabel = $logoManagerCanUsePublicSymbol
+                            ? sr_t($logoManagerUsesPublicSymbol ? 'logo_manager::ui.public_symbol.yes' : 'logo_manager::ui.public_symbol.no')
+                            : sr_t('logo_manager::ui.public_symbol.not_applicable');
                         ?>
                         <tr>
                             <td class="admin-table-checkbox-cell logo-manager-select-cell">
@@ -304,9 +312,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <?php } ?>
                             </td>
                             <td>
-                                <?php echo $logoManagerPositionKey === sr_logo_manager_public_symbol_position_key() && !empty($logo['use_as_public_symbol'])
-                                    ? sr_e(sr_t('logo_manager::ui.public_symbol.yes'))
-                                    : sr_e(sr_t('logo_manager::ui.public_symbol.no')); ?>
+                                <span class="badge-status <?php echo sr_e($logoManagerPublicSymbolStatusClass); ?>"><?php echo sr_e($logoManagerPublicSymbolStatusLabel); ?></span>
                             </td>
                             <td><span class="badge-status <?php echo (string) $logo['status'] === 'active' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e(sr_logo_manager_status_label((string) $logo['status'])); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e((string) ($logo['starts_at'] ?? sr_t('logo_manager::ui.text.8902fb48'))); ?></td>
