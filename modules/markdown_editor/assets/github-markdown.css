@@ -1,0 +1,648 @@
+/*
+ * Based on github-markdown-css 5.9.0 by Sindre Sorhus and contributors.
+ * Source: https://github.com/sindresorhus/github-markdown-css
+ * License: MIT
+ * Adapted to the .markdown-editor-body scope and saanraan theme tokens.
+ * sr-control comments connect visual controls to the actual declarations.
+ */
+.markdown-editor-body {
+    box-sizing: border-box;
+    margin-inline: auto;
+    /* sr-control: content_padding_block */
+    padding-block: 0px;
+    /* sr-control: content_padding_inline */
+    padding-inline: 0px;
+    /* sr-control: text_token */
+    color: var(--sr-text);
+    /* sr-control: font_family */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    /* sr-control: font_size */
+    font-size: 16px;
+    /* sr-control: line_height */
+    line-height: 1.5;
+    /* sr-control: letter_spacing */
+    letter-spacing: 0px;
+    /* sr-control: word_spacing */
+    word-spacing: 0px;
+    /* sr-control: text_align */
+    text-align: left;
+    word-wrap: break-word;
+}
+
+.markdown-editor-body *,
+.markdown-editor-body *::before,
+.markdown-editor-body *::after {
+    box-sizing: border-box;
+}
+
+.markdown-editor-body::before,
+.markdown-editor-body::after {
+    display: table;
+    content: "";
+}
+
+.markdown-editor-body::after {
+    clear: both;
+}
+
+.markdown-editor-body > *:first-child {
+    margin-top: 0 !important;
+}
+
+.markdown-editor-body > *:last-child {
+    margin-bottom: 0 !important;
+}
+
+.markdown-editor-body > * + * {
+    /* sr-control: block_gap */
+    margin-top: 0px;
+}
+
+.markdown-editor-body [hidden] {
+    display: none !important;
+}
+
+.markdown-editor-body p,
+.markdown-editor-body blockquote,
+.markdown-editor-body ul,
+.markdown-editor-body ol,
+.markdown-editor-body dl,
+.markdown-editor-body table,
+.markdown-editor-body pre,
+.markdown-editor-body details,
+.markdown-editor-body figure {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.markdown-editor-body p {
+    /* sr-control: paragraph_margin_top */
+    margin-top: 0px;
+    /* sr-control: paragraph_margin */
+    margin-bottom: 16px;
+    /* sr-control: paragraph_line_height */
+    line-height: 1.5;
+    /* sr-control: paragraph_letter_spacing */
+    letter-spacing: 0px;
+    /* sr-control: paragraph_text_indent */
+    text-indent: 0px;
+}
+
+.markdown-editor-body b,
+.markdown-editor-body strong {
+    /* sr-control: strong_weight */
+    font-weight: 600;
+}
+
+.markdown-editor-body dfn,
+.markdown-editor-body em {
+    font-style: italic;
+}
+
+.markdown-editor-body mark {
+    color: var(--sr-text);
+    background-color: color-mix(in srgb, var(--sr-warning) 25%, transparent);
+}
+
+.markdown-editor-body small {
+    font-size: 90%;
+}
+
+.markdown-editor-body sub,
+.markdown-editor-body sup {
+    position: relative;
+    font-size: 75%;
+    line-height: 0;
+    vertical-align: baseline;
+}
+
+.markdown-editor-body sub {
+    bottom: -0.25em;
+}
+
+.markdown-editor-body sup {
+    top: -0.5em;
+}
+
+.markdown-editor-body h1,
+.markdown-editor-body h2,
+.markdown-editor-body h3,
+.markdown-editor-body h4,
+.markdown-editor-body h5,
+.markdown-editor-body h6 {
+    /* sr-control: heading_margin */
+    margin-top: 24px;
+    /* sr-control: heading_margin_bottom */
+    margin-bottom: 16px;
+    /* sr-control: heading_token */
+    color: var(--sr-text);
+    /* sr-control: heading_font_family */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    /* sr-control: heading_weight */
+    font-weight: 700;
+    /* sr-control: heading_line_height */
+    line-height: 1.25;
+    /* sr-control: heading_letter_spacing */
+    letter-spacing: 0px;
+    /* sr-control: heading_text_align */
+    text-align: left;
+    /* sr-control: heading_text_transform */
+    text-transform: none;
+}
+
+.markdown-editor-body h1,
+.markdown-editor-body h2 {
+    /* sr-control: heading_padding_bottom */
+    padding-bottom: 5px;
+    /* sr-control: heading_border_width */
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    /* sr-control: heading_border_token */
+    border-color: var(--sr-border);
+}
+
+.markdown-editor-body h1 {
+    /* sr-control: h1_size */
+    font-size: 32px;
+}
+
+.markdown-editor-body h2 {
+    /* sr-control: h2_size */
+    font-size: 24px;
+}
+
+.markdown-editor-body h3 {
+    /* sr-control: h3_size */
+    font-size: 20px;
+}
+
+.markdown-editor-body h4 {
+    /* sr-control: h4_size */
+    font-size: 16px;
+}
+
+.markdown-editor-body h5 {
+    /* sr-control: h5_size */
+    font-size: 14px;
+}
+
+.markdown-editor-body h6 {
+    /* sr-control: muted_token */
+    color: var(--sr-muted);
+    /* sr-control: h6_size */
+    font-size: 13px;
+}
+
+.markdown-editor-body h1 code,
+.markdown-editor-body h2 code,
+.markdown-editor-body h3 code,
+.markdown-editor-body h4 code,
+.markdown-editor-body h5 code,
+.markdown-editor-body h6 code {
+    padding-inline: 0.2em;
+    font-size: inherit;
+}
+
+.markdown-editor-body a {
+    /* sr-control: accent_token */
+    color: var(--sr-info);
+    /* sr-control: link_weight */
+    font-weight: 400;
+    /* sr-control: link_decoration */
+    text-decoration-line: underline;
+    /* sr-control: link_underline_offset */
+    text-underline-offset: 2px;
+    /* sr-control: link_decoration_thickness */
+    text-decoration-thickness: 1px;
+}
+
+.markdown-editor-body a:hover {
+    text-decoration-thickness: 2px;
+}
+
+.markdown-editor-body a:focus-visible,
+.markdown-editor-body input[type="checkbox"]:focus-visible,
+.markdown-editor-body input[type="radio"]:focus-visible,
+.markdown-editor-body summary:focus-visible {
+    outline: 2px solid var(--sr-info);
+    outline-offset: 2px;
+}
+
+.markdown-editor-body a:not([href]) {
+    color: inherit;
+    text-decoration: none;
+}
+
+.markdown-editor-body abbr[title] {
+    border-bottom: 0;
+    text-decoration: underline dotted;
+}
+
+.markdown-editor-body ul,
+.markdown-editor-body ol {
+    /* sr-control: list_indent */
+    padding-inline-start: 32px;
+    /* sr-control: list_line_height */
+    line-height: 1.5;
+}
+
+.markdown-editor-body ul {
+    /* sr-control: unordered_list_style */
+    list-style-type: disc;
+}
+
+.markdown-editor-body ol {
+    /* sr-control: ordered_list_style */
+    list-style-type: decimal;
+}
+
+.markdown-editor-body ol ol,
+.markdown-editor-body ul ol {
+    list-style-type: lower-roman;
+}
+
+.markdown-editor-body ul ul ol,
+.markdown-editor-body ul ol ol,
+.markdown-editor-body ol ul ol,
+.markdown-editor-body ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.markdown-editor-body ul ul,
+.markdown-editor-body ul ol,
+.markdown-editor-body ol ol,
+.markdown-editor-body ol ul {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.markdown-editor-body li + li {
+    /* sr-control: list_item_gap */
+    margin-top: 6px;
+}
+
+.markdown-editor-body dl {
+    padding: 0;
+}
+
+.markdown-editor-body dl dt {
+    padding: 0;
+    margin-top: 16px;
+    font-style: italic;
+    font-weight: 600;
+}
+
+.markdown-editor-body dl dd {
+    padding-inline: 16px;
+    margin-bottom: 16px;
+}
+
+.markdown-editor-body input {
+    margin: 0;
+    overflow: visible;
+    font: inherit;
+}
+
+.markdown-editor-body input[type="checkbox"],
+.markdown-editor-body input[type="radio"] {
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.markdown-editor-body .task-list-item {
+    list-style-type: none;
+}
+
+.markdown-editor-body .task-list-item-checkbox,
+.markdown-editor-body li input[type="checkbox"] {
+    margin-block: 0 0.25em;
+    margin-left: -1.4em;
+    /* sr-control: task_checkbox_gap */
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.markdown-editor-body blockquote {
+    /* sr-control: quote_margin_block */
+    margin-block: 16px;
+    /* sr-control: quote_padding_block */
+    padding-block: 0px;
+    /* sr-control: quote_padding_inline */
+    padding-inline: 16px;
+    /* sr-control: quote_token */
+    color: var(--sr-muted);
+    /* sr-control: quote_surface_token */
+    background-color: var(--sr-surface-muted);
+    /* sr-control: quote_border_width */
+    border-left-width: 4px;
+    /* sr-control: quote_border_style */
+    border-left-style: solid;
+    /* sr-control: quote_border_token */
+    border-color: var(--sr-border);
+    /* sr-control: quote_radius */
+    border-radius: 0px;
+}
+
+.markdown-editor-body blockquote > :first-child {
+    margin-top: 0;
+}
+
+.markdown-editor-body blockquote > :last-child {
+    margin-bottom: 0;
+}
+
+.markdown-editor-body code,
+.markdown-editor-body kbd,
+.markdown-editor-body pre,
+.markdown-editor-body samp,
+.markdown-editor-body tt {
+    /* sr-control: code_font_family */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.markdown-editor-body code,
+.markdown-editor-body tt {
+    /* sr-control: inline_code_padding_block */
+    padding-block: 0px;
+    /* sr-control: inline_code_padding */
+    padding-inline: 4px;
+    margin: 0;
+    /* sr-control: code_token */
+    color: var(--sr-text);
+    /* sr-control: code_font_size */
+    font-size: 14px;
+    white-space: break-spaces;
+    /* sr-control: code_surface_token */
+    background-color: var(--sr-surface-muted);
+    /* sr-control: border_radius */
+    border-radius: 6px;
+}
+
+.markdown-editor-body kbd {
+    display: inline-block;
+    padding: 0.25rem;
+    color: var(--sr-text);
+    font-size: 0.75em;
+    line-height: 1;
+    vertical-align: middle;
+    background-color: var(--sr-surface-muted);
+    border: 1px solid var(--sr-border);
+    border-radius: 6px;
+    box-shadow: inset 0 -1px 0 var(--sr-border);
+}
+
+.markdown-editor-body pre {
+    /* sr-control: code_block_padding_block */
+    padding-block: 16px;
+    /* sr-control: code_block_padding_inline */
+    padding-inline: 16px;
+    overflow: auto;
+    /* sr-control: code_token */
+    color: var(--sr-text);
+    /* sr-control: code_font_size */
+    font-size: 14px;
+    /* sr-control: code_line_height */
+    line-height: 1.45;
+    word-wrap: normal;
+    /* sr-control: code_surface_token */
+    background-color: var(--sr-surface-muted);
+    /* sr-control: code_block_border_width */
+    border-width: 1px;
+    border-style: solid;
+    /* sr-control: code_border_token */
+    border-color: var(--sr-border);
+    /* sr-control: code_block_radius */
+    border-radius: 6px;
+}
+
+.markdown-editor-body pre > code,
+.markdown-editor-body pre tt {
+    display: inline;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    font-size: 100%;
+    line-height: inherit;
+    white-space: pre;
+    word-wrap: normal;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.markdown-editor-body table {
+    display: block;
+    /* sr-control: table_width */
+    width: max-content;
+    max-width: 100%;
+    overflow: auto;
+    border-spacing: 0;
+    border-collapse: collapse;
+    font-variant: tabular-nums;
+    /* sr-control: table_font_size */
+    font-size: 16px;
+    /* sr-control: table_line_height */
+    line-height: 1.5;
+}
+
+.markdown-editor-body table th,
+.markdown-editor-body table td {
+    /* sr-control: table_cell_padding_block */
+    padding-block: 6px;
+    /* sr-control: table_cell_padding_inline */
+    padding-inline: 6px;
+    text-align: inherit;
+    /* sr-control: table_border_width */
+    border-width: 1px;
+    border-style: solid;
+    /* sr-control: table_border_token */
+    border-color: var(--sr-border);
+}
+
+.markdown-editor-body table th {
+    /* sr-control: table_header_weight */
+    font-weight: 600;
+    /* sr-control: table_header_surface_token */
+    background-color: var(--sr-surface-muted);
+}
+
+.markdown-editor-body table tr:nth-child(2n) {
+    /* sr-control: surface_token */
+    background-color: var(--sr-surface-muted);
+}
+
+.markdown-editor-body table td > :last-child {
+    margin-bottom: 0;
+}
+
+.markdown-editor-body img {
+    box-sizing: content-box;
+    /* sr-control: image_max_width */
+    max-width: 100%;
+    height: auto;
+    border-style: none;
+}
+
+.markdown-editor-body img[align="right"] {
+    padding-left: 20px;
+}
+
+.markdown-editor-body img[align="left"] {
+    padding-right: 20px;
+}
+
+.markdown-editor-body figure,
+.markdown-editor-body figcaption,
+.markdown-editor-body details {
+    display: block;
+}
+
+.markdown-editor-body figure {
+    margin-inline: 0;
+}
+
+.markdown-editor-body figcaption {
+    margin-top: 0.5em;
+    /* sr-control: muted_token */
+    color: var(--sr-muted);
+    /* sr-control: caption_font_size */
+    font-size: 14px;
+    text-align: center;
+}
+
+.markdown-editor-body details {
+    /* sr-control: details_padding */
+    padding: 12px;
+    /* sr-control: surface_token */
+    background-color: var(--sr-surface-muted);
+    border-width: 1px;
+    border-style: solid;
+    /* sr-control: border_token */
+    border-color: var(--sr-border);
+    border-radius: 6px;
+}
+
+.markdown-editor-body summary {
+    display: list-item;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.markdown-editor-body hr {
+    height: 0;
+    /* sr-control: hr_width */
+    width: 100%;
+    padding: 0;
+    /* sr-control: hr_margin */
+    margin-block: 24px;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    /* sr-control: hr_border_width */
+    border-top-width: 1px;
+    border-top-style: solid;
+    /* sr-control: hr_border_token */
+    border-color: var(--sr-border);
+}
+
+.markdown-editor-body .footnotes {
+    /* sr-control: muted_token */
+    color: var(--sr-muted);
+    /* sr-control: footnote_font_size */
+    font-size: 12px;
+    border-top-width: 1px;
+    border-top-style: solid;
+    /* sr-control: border_token */
+    border-color: var(--sr-border);
+}
+
+.markdown-editor-body .footnotes ol {
+    padding-left: 16px;
+}
+
+.markdown-editor-body .footnotes li:target {
+    color: var(--sr-text);
+    outline: 2px solid var(--sr-info);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
+
+.markdown-editor-body [data-footnote-ref]::before {
+    content: "[";
+}
+
+.markdown-editor-body [data-footnote-ref]::after {
+    content: "]";
+}
+
+.markdown-editor-body .markdown-alert {
+    /* sr-control: alert_padding_block */
+    padding-block: 8px;
+    /* sr-control: alert_padding_inline */
+    padding-inline: 16px;
+    margin-bottom: 16px;
+    color: inherit;
+    /* sr-control: alert_border_width */
+    border-left-width: 4px;
+    border-left-style: solid;
+    border-left-color: var(--sr-info);
+}
+
+.markdown-editor-body .markdown-alert > :first-child {
+    margin-top: 0;
+}
+
+.markdown-editor-body .markdown-alert > :last-child {
+    margin-bottom: 0;
+}
+
+.markdown-editor-body .markdown-alert-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.markdown-editor-body .markdown-alert-note,
+.markdown-editor-body .markdown-alert-important {
+    border-left-color: var(--sr-info);
+}
+
+.markdown-editor-body .markdown-alert-tip {
+    border-left-color: var(--sr-success);
+}
+
+.markdown-editor-body .markdown-alert-warning {
+    border-left-color: var(--sr-warning);
+}
+
+.markdown-editor-body .markdown-alert-caution {
+    border-left-color: var(--sr-danger);
+}
+
+.markdown-editor-body .pl-c,
+.markdown-editor-body .pl-ba,
+.markdown-editor-body .pl-sg {
+    color: var(--sr-muted);
+}
+
+.markdown-editor-body .pl-k,
+.markdown-editor-body .pl-bu,
+.markdown-editor-body .pl-ii {
+    color: var(--sr-danger);
+}
+
+.markdown-editor-body .pl-c1,
+.markdown-editor-body .pl-e,
+.markdown-editor-body .pl-en,
+.markdown-editor-body .pl-ent,
+.markdown-editor-body .pl-mh {
+    color: var(--sr-info);
+}
+
+.markdown-editor-body .pl-s,
+.markdown-editor-body .pl-pds,
+.markdown-editor-body .pl-sr,
+.markdown-editor-body .pl-v {
+    color: var(--sr-success);
+}

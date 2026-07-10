@@ -48,7 +48,7 @@
 | `coupon` | 쿠폰 지급, 공개 발급, 사용, 환불 기록 | 권리성 증빙으로 보존하며 발급 campaign/source, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 환불 처리자와 메모, 만료 후 표시 최소화 기준을 기록한다. 탈퇴/익명화 계정의 법정 보관기간 만료 row는 retention target에서 account/actor 연결과 snapshot을 제거한다. |
 | `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 처리자 접근 범위를 기록한다. 탈퇴/익명화 cleanup은 환불 신청의 은행명, 계좌번호, 예금주, 요청자/관리자 note를 비우고, 금액·상태·거래 연결·처리자는 증빙으로 유지한다. |
 | `logo_manager` | 로고 배치와 변경 작성자 | 설정 변경 책임 추적은 운영 보존으로 두되 감사 로그 대체 가능성을 검토한다. |
-| `markdown_editor` | Markdown parser/style profile과 declaration-only CSS 설정 | 본문 개인정보는 소유 모듈에 귀속하고, 플러그인 설정 자체는 회원 귀속 개인정보를 저장하지 않는다. |
+| `markdown_editor` | Markdown parser/style profile과 scoped stylesheet 설정 | 본문 개인정보는 소유 모듈에 귀속하고, 플러그인 설정 자체는 회원 귀속 개인정보를 저장하지 않는다. |
 | `message` | 회원 간 쪽지, 수신 설정, 신고 대상 resolver | 쪽지 본문과 발신/수신 방향은 message 모듈이 소유하고, 상대 계정 ID는 export에서 마스킹한다. |
 | `member` | 계정, 인증, 프로필, 닉네임, 동의, 그룹, 세션/token | 계정 원천 소유자이며 다른 모듈 cleanup 조정자다. 동의 철회와 정정권 전파의 시작점으로 기록한다. |
 | `member_oauth` | OAuth/OIDC state, provider subject hash, email snapshot, 계정 연결 | 외부 provider processor, 국외 처리 가능성, profile snapshot 최소화, 연결 해제 cleanup을 기록한다. |

@@ -403,7 +403,7 @@ Markdown Editor 플러그인은 긴 본문을 HTML 에디터까지 쓰지 않고
 | --- | --- | --- |
 | Markdown 입력 후보 | 콘텐츠, 커뮤니티, 팝업레이어, 정책 문서 같은 rich textarea에서 Markdown 입력을 선택지로 제공할 수 있다. | `markdown_editor`, `editor-options.php`, 입력 모드 후보 |
 | 제한된 렌더링 | raw HTML을 허용하지 않는 renderer 계약으로 Markdown을 escape 기반 HTML, plain text, stylesheet 결과로 변환한다. | `markdown-renderer.php`, raw HTML 비허용, full/inline/plain 출력 |
-| 스타일 프로파일 | 관리자 화면에서 제목, 문단, 링크, 목록, 인용, 코드, 표 같은 Markdown 출력 스타일을 조정할 수 있다. | Markdown style profile, 관리자 preview, 산란 테마 토큰 |
+| 스타일 프로파일 | Markdown 결과 요소를 클릭하면 상단 아이콘 툴바의 떠 있는 서브메뉴에서 Box model/Text style을 편집하고 미리보기 배치를 밀지 않은 채 렌더링 변화를 확인할 수 있다. 원문·렌더링 패널 헤더에서 각 영역을 단독으로 펼치거나 분할 보기로 복원한다. light/dark는 편집기 상단에서 조정하고 CSS 원문은 CSS 아이콘의 전체화면 모달에서 관리한다. 표·체크 목록·코드 블록 문법은 항상 사용한다. | 패널 헤더 펼치기, 아이콘 툴바, absolute 속성 popover, fullscreen CSS 모달, 상단 색상 모드, 하단 저장 영역, 라이브 서버 렌더링, 숨은 form template, 원본/변경값 모드, CSS 양방향 편집 |
 | 플러그인 경계 | Markdown 플러그인은 입력과 렌더링 후보를 제공하고, 저장 형식과 공개 출력 위치는 화면 소유 모듈이 맡는다. | 모듈 소유 저장 정책, 플러그인 런타임 설정 |
 
 ## 보안과 안정성

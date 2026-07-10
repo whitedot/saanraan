@@ -13,6 +13,9 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_markdown_editor_settings($pdo);
+if ($errors !== [] && is_array($flashResult['data']['settings'] ?? null)) {
+    $settings = sr_markdown_editor_settings($pdo, $flashResult['data']['settings']);
+}
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -44,7 +47,8 @@ if (sr_request_method() === 'POST') {
         $notice = 'Markdown Editor 설정을 저장했습니다.';
     }
 
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/markdown-editor/settings');
+    $resultData = $errors !== [] ? ['settings' => $postedSettings] : [];
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice, $resultData), '/admin/markdown-editor/settings');
 }
 
 include SR_ROOT . '/modules/markdown_editor/views/admin-settings.php';

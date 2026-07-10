@@ -116,7 +116,7 @@ $optionalModules = [
     ],
     'markdown_editor' => [
         'name' => 'Markdown Editor',
-        'version' => '2026.07.001',
+        'version' => '2026.07.003',
         'label' => 'Markdown Editor',
         'description' => 'Markdown 입력, 렌더링, 스타일 프로파일 선택지를 설치합니다.',
     ],

@@ -9,22 +9,94 @@ function sr_markdown_editor_default_settings(): array
         'task_lists_enabled' => true,
         'code_blocks_enabled' => true,
         'raw_html_enabled' => false,
+        'style_source_mode' => 'custom',
         'style_profile_json' => sr_markdown_editor_default_style_profile(),
         'custom_declarations_json' => [],
+        'stylesheet_css' => '',
+    ];
+}
+
+function sr_markdown_editor_box_target_definitions(): array
+{
+    return [
+        'paragraph' => ['selector' => '.markdown-editor-body p', 'margin' => [0, 0, 16, 0], 'padding' => [0, 0, 0, 0], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'h1' => ['selector' => '.markdown-editor-body h1', 'margin' => [24, 0, 16, 0], 'padding' => [0, 0, 5, 0], 'border' => [0, 0, 1, 0], 'radius' => 0],
+        'h2' => ['selector' => '.markdown-editor-body h2', 'margin' => [24, 0, 16, 0], 'padding' => [0, 0, 5, 0], 'border' => [0, 0, 1, 0], 'radius' => 0],
+        'h3' => ['selector' => '.markdown-editor-body h3', 'margin' => [24, 0, 16, 0], 'padding' => [0, 0, 0, 0], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'h4' => ['selector' => '.markdown-editor-body h4', 'margin' => [24, 0, 16, 0], 'padding' => [0, 0, 0, 0], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'h5' => ['selector' => '.markdown-editor-body h5', 'margin' => [24, 0, 16, 0], 'padding' => [0, 0, 0, 0], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'h6' => ['selector' => '.markdown-editor-body h6', 'margin' => [24, 0, 16, 0], 'padding' => [0, 0, 0, 0], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'link' => ['selector' => '.markdown-editor-body a', 'margin' => [0, 0, 0, 0], 'padding' => [0, 0, 0, 0], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'list' => ['selector' => '.markdown-editor-body ul, .markdown-editor-body ol', 'margin' => [0, 0, 16, 0], 'padding' => [0, 0, 0, 32], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'blockquote' => ['selector' => '.markdown-editor-body blockquote', 'margin' => [16, 0, 16, 0], 'padding' => [0, 16, 0, 16], 'border' => [0, 0, 0, 4], 'radius' => 0],
+        'inline_code' => ['selector' => '.markdown-editor-body :not(pre) > code, .markdown-editor-body tt', 'margin' => [0, 0, 0, 0], 'padding' => [0, 4, 0, 4], 'border' => [0, 0, 0, 0], 'radius' => 6],
+        'code_block' => ['selector' => '.markdown-editor-body pre', 'margin' => [0, 0, 16, 0], 'padding' => [16, 16, 16, 16], 'border' => [1, 1, 1, 1], 'radius' => 6],
+        'table' => ['selector' => '.markdown-editor-body table', 'margin' => [0, 0, 16, 0], 'padding' => [0, 0, 0, 0], 'border' => [0, 0, 0, 0], 'radius' => 0],
+        'hr' => ['selector' => '.markdown-editor-body hr', 'margin' => [24, 0, 24, 0], 'padding' => [0, 0, 0, 0], 'border' => [1, 0, 0, 0], 'radius' => 0],
+    ];
+}
+
+function sr_markdown_editor_box_control_keys(string $target): array
+{
+    $keys = [];
+    foreach (['margin', 'padding', 'border'] as $property) {
+        foreach (['top', 'right', 'bottom', 'left'] as $side) {
+            $keys[] = 'box_' . $target . '_' . $property . '_' . $side;
+        }
+    }
+    $keys[] = 'box_' . $target . '_radius';
+    return $keys;
+}
+
+function sr_markdown_editor_text_target_definitions(): array
+{
+    $system = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    $mono = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    $base = ['family' => $system, 'size' => 16, 'weight' => 400, 'line_height' => 1.5, 'letter_spacing' => 0.0, 'word_spacing' => 0, 'align' => 'left', 'style' => 'normal', 'decoration' => 'none', 'transform' => 'none', 'token' => '--sr-text'];
+    return [
+        'paragraph' => ['selector' => '.markdown-editor-body p'] + $base,
+        'h1' => ['selector' => '.markdown-editor-body h1', 'size' => 32, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h2' => ['selector' => '.markdown-editor-body h2', 'size' => 24, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h3' => ['selector' => '.markdown-editor-body h3', 'size' => 20, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h4' => ['selector' => '.markdown-editor-body h4', 'size' => 16, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h5' => ['selector' => '.markdown-editor-body h5', 'size' => 14, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h6' => ['selector' => '.markdown-editor-body h6', 'size' => 13, 'weight' => 700, 'line_height' => 1.25, 'token' => '--sr-muted'] + $base,
+        'link' => ['selector' => '.markdown-editor-body a', 'decoration' => 'underline', 'token' => '--sr-info'] + $base,
+        'list' => ['selector' => '.markdown-editor-body ul, .markdown-editor-body ol'] + $base,
+        'blockquote' => ['selector' => '.markdown-editor-body blockquote', 'token' => '--sr-muted'] + $base,
+        'inline_code' => ['selector' => '.markdown-editor-body :not(pre) > code, .markdown-editor-body tt', 'family' => $mono, 'size' => 14] + $base,
+        'code_block' => ['selector' => '.markdown-editor-body pre', 'family' => $mono, 'size' => 14, 'line_height' => 1.45] + $base,
+        'table' => ['selector' => '.markdown-editor-body table'] + $base,
     ];
 }
 
 function sr_markdown_editor_default_style_profile(): array
 {
-    return [
-        'max_width' => 980,
+    $profile = [
+        'content_padding_block' => 0,
+        'content_padding_inline' => 0,
+        'font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         'font_size' => 16,
         'line_height' => 1.5,
+        'letter_spacing' => 0.0,
+        'word_spacing' => 0,
+        'text_align' => 'left',
         'block_gap' => 0,
+        'paragraph_margin_top' => 0,
         'paragraph_margin' => 16,
+        'paragraph_line_height' => 1.5,
+        'paragraph_letter_spacing' => 0.0,
+        'paragraph_text_indent' => 0,
+        'heading_font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         'heading_line_height' => 1.25,
         'heading_weight' => 700,
         'heading_margin' => 24,
+        'heading_margin_bottom' => 16,
+        'heading_padding_bottom' => 5,
+        'heading_border_width' => 1,
+        'heading_letter_spacing' => 0.0,
+        'heading_text_align' => 'left',
+        'heading_text_transform' => 'none',
         'h1_size' => 32,
         'h2_size' => 24,
         'h3_size' => 20,
@@ -33,35 +105,92 @@ function sr_markdown_editor_default_style_profile(): array
         'h6_size' => 13,
         'strong_weight' => 600,
         'link_weight' => 400,
+        'link_decoration' => 'underline',
         'link_underline_offset' => 2,
         'link_decoration_thickness' => 1,
         'list_indent' => 32,
+        'list_line_height' => 1.5,
+        'unordered_list_style' => 'disc',
+        'ordered_list_style' => 'decimal',
         'list_item_gap' => 6,
+        'task_checkbox_gap' => 6,
+        'quote_margin_block' => 16,
         'quote_border_width' => 4,
+        'quote_border_style' => 'solid',
+        'quote_radius' => 0,
         'quote_padding_block' => 0,
         'quote_padding_inline' => 16,
+        'code_font_family' => 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
         'code_font_size' => 14,
         'code_line_height' => 1.45,
+        'inline_code_padding_block' => 0,
         'inline_code_padding' => 4,
-        'code_block_padding' => 16,
+        'code_block_padding_block' => 16,
+        'code_block_padding_inline' => 16,
         'code_block_border_width' => 1,
+        'code_block_radius' => 6,
+        'table_width' => 'max-content',
+        'table_font_size' => 16,
+        'table_line_height' => 1.5,
         'table_border_width' => 1,
-        'table_cell_padding' => 6,
+        'table_cell_padding_block' => 6,
+        'table_cell_padding_inline' => 6,
         'table_header_weight' => 600,
         'hr_margin' => 24,
+        'hr_width' => 100,
         'hr_border_width' => 1,
         'border_radius' => 6,
+        'image_max_width' => 100,
+        'caption_font_size' => 14,
+        'details_padding' => 12,
+        'footnote_font_size' => 12,
+        'alert_border_width' => 4,
+        'alert_padding_block' => 8,
+        'alert_padding_inline' => 16,
         'text_token' => '--sr-text',
         'muted_token' => '--sr-muted',
         'border_token' => '--sr-border',
         'surface_token' => '--sr-surface-muted',
         'accent_token' => '--sr-info',
         'heading_token' => '--sr-text',
+        'heading_border_token' => '--sr-border',
         'quote_token' => '--sr-muted',
+        'quote_surface_token' => '--sr-surface-muted',
+        'quote_border_token' => '--sr-border',
         'code_token' => '--sr-text',
         'code_surface_token' => '--sr-surface-muted',
+        'code_border_token' => '--sr-border',
         'table_header_surface_token' => '--sr-surface-muted',
+        'table_border_token' => '--sr-border',
+        'hr_border_token' => '--sr-border',
     ];
+
+    foreach (sr_markdown_editor_box_target_definitions() as $target => $definition) {
+        foreach (['margin', 'padding', 'border'] as $property) {
+            foreach (['top', 'right', 'bottom', 'left'] as $index => $side) {
+                $profile['box_' . $target . '_' . $property . '_' . $side] = (int) $definition[$property][$index];
+            }
+        }
+        $profile['box_' . $target . '_radius'] = (int) $definition['radius'];
+        $profile['box_' . $target . '_border_style'] = 'solid';
+        $profile['box_' . $target . '_border_token'] = '--sr-border';
+    }
+
+    foreach (sr_markdown_editor_text_target_definitions() as $target => $definition) {
+        $profile['text_' . $target . '_font_family'] = (string) $definition['family'];
+        $profile['text_' . $target . '_font_size'] = (int) $definition['size'];
+        $profile['text_' . $target . '_font_weight'] = (int) $definition['weight'];
+        $profile['text_' . $target . '_line_height'] = (float) $definition['line_height'];
+        $profile['text_' . $target . '_letter_spacing'] = (float) $definition['letter_spacing'];
+        $profile['text_' . $target . '_word_spacing'] = (int) $definition['word_spacing'];
+        $profile['text_' . $target . '_align'] = (string) $definition['align'];
+        $profile['text_' . $target . '_font_style'] = (string) $definition['style'];
+        $profile['text_' . $target . '_decoration'] = (string) $definition['decoration'];
+        $profile['text_' . $target . '_transform'] = (string) $definition['transform'];
+        $profile['text_' . $target . '_token'] = (string) $definition['token'];
+    }
+
+    return $profile;
 }
 
 function sr_markdown_editor_json_encode(mixed $value): string
@@ -84,15 +213,206 @@ function sr_markdown_editor_token_options(): array
     ];
 }
 
+function sr_markdown_editor_style_choice_options(): array
+{
+    $system = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    $mono = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    $choices = [
+        'font_family' => [
+            $system => 'System UI',
+            'Arial, "Noto Sans", sans-serif' => 'Sans serif',
+            'Georgia, "Times New Roman", serif' => 'Serif',
+            $mono => 'Monospace',
+        ],
+        'heading_font_family' => [
+            $system => 'System UI',
+            'Arial, "Noto Sans", sans-serif' => 'Sans serif',
+            'Georgia, "Times New Roman", serif' => 'Serif',
+            $mono => 'Monospace',
+        ],
+        'code_font_family' => [
+            $mono => 'System monospace',
+            'Consolas, "Liberation Mono", monospace' => 'Consolas',
+            'Menlo, Monaco, monospace' => 'Menlo',
+        ],
+        'text_align' => ['left' => '왼쪽', 'center' => '가운데', 'right' => '오른쪽', 'justify' => '양쪽'],
+        'heading_text_align' => ['left' => '왼쪽', 'center' => '가운데', 'right' => '오른쪽'],
+        'heading_text_transform' => ['none' => '원문 유지', 'uppercase' => '대문자', 'lowercase' => '소문자', 'capitalize' => '단어 첫 글자'],
+        'link_decoration' => ['underline' => '밑줄', 'none' => '없음'],
+        'unordered_list_style' => ['disc' => '채운 원', 'circle' => '빈 원', 'square' => '사각형', 'none' => '없음'],
+        'ordered_list_style' => ['decimal' => '숫자', 'lower-alpha' => '소문자 알파벳', 'upper-alpha' => '대문자 알파벳', 'lower-roman' => '소문자 로마자', 'upper-roman' => '대문자 로마자', 'none' => '없음'],
+        'quote_border_style' => ['solid' => '실선', 'dashed' => '파선', 'dotted' => '점선', 'double' => '이중선'],
+        'table_width' => ['max-content' => '내용에 맞춤', '100%' => '컨테이너 채움'],
+    ];
+
+    foreach (array_keys(sr_markdown_editor_box_target_definitions()) as $target) {
+        $choices['box_' . $target . '_border_style'] = [
+            'solid' => '실선',
+            'dashed' => '파선',
+            'dotted' => '점선',
+            'double' => '이중선',
+            'none' => '없음',
+        ];
+    }
+    foreach (array_keys(sr_markdown_editor_text_target_definitions()) as $target) {
+        $choices['text_' . $target . '_font_family'] = $choices['font_family'];
+        $choices['text_' . $target . '_align'] = $choices['text_align'];
+        $choices['text_' . $target . '_font_style'] = ['normal' => '기본', 'italic' => '기울임', 'oblique' => '비스듬히'];
+        $choices['text_' . $target . '_decoration'] = ['none' => '없음', 'underline' => '밑줄', 'line-through' => '취소선', 'overline' => '윗줄'];
+        $choices['text_' . $target . '_transform'] = $choices['heading_text_transform'];
+    }
+
+    return $choices;
+}
+
+function sr_markdown_editor_style_binding_map(): array
+{
+    $bindings = [
+        'content_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
+        'content_padding_inline' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
+        'font_family' => ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'],
+        'font_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
+        'letter_spacing' => ['property' => 'letter-spacing', 'unit' => 'px', 'kind' => 'number'],
+        'word_spacing' => ['property' => 'word-spacing', 'unit' => 'px', 'kind' => 'number'],
+        'text_align' => ['property' => 'text-align', 'unit' => '', 'kind' => 'choice'],
+        'block_gap' => ['property' => 'margin-top', 'unit' => 'px', 'kind' => 'number'],
+        'paragraph_margin_top' => ['property' => 'margin-top', 'unit' => 'px', 'kind' => 'number'],
+        'paragraph_margin' => ['property' => 'margin-bottom', 'unit' => 'px', 'kind' => 'number'],
+        'paragraph_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
+        'paragraph_letter_spacing' => ['property' => 'letter-spacing', 'unit' => 'px', 'kind' => 'number'],
+        'paragraph_text_indent' => ['property' => 'text-indent', 'unit' => 'px', 'kind' => 'number'],
+        'heading_font_family' => ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'],
+        'heading_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
+        'heading_weight' => ['property' => 'font-weight', 'unit' => '', 'kind' => 'number'],
+        'heading_margin' => ['property' => 'margin-top', 'unit' => 'px', 'kind' => 'number'],
+        'heading_margin_bottom' => ['property' => 'margin-bottom', 'unit' => 'px', 'kind' => 'number'],
+        'heading_padding_bottom' => ['property' => 'padding-bottom', 'unit' => 'px', 'kind' => 'number'],
+        'heading_border_width' => ['property' => 'border-bottom-width', 'unit' => 'px', 'kind' => 'number'],
+        'heading_letter_spacing' => ['property' => 'letter-spacing', 'unit' => 'px', 'kind' => 'number'],
+        'heading_text_align' => ['property' => 'text-align', 'unit' => '', 'kind' => 'choice'],
+        'heading_text_transform' => ['property' => 'text-transform', 'unit' => '', 'kind' => 'choice'],
+        'h1_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'h2_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'h3_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'h4_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'h5_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'h6_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'strong_weight' => ['property' => 'font-weight', 'unit' => '', 'kind' => 'number'],
+        'link_weight' => ['property' => 'font-weight', 'unit' => '', 'kind' => 'number'],
+        'link_decoration' => ['property' => 'text-decoration-line', 'unit' => '', 'kind' => 'choice'],
+        'link_underline_offset' => ['property' => 'text-underline-offset', 'unit' => 'px', 'kind' => 'number'],
+        'link_decoration_thickness' => ['property' => 'text-decoration-thickness', 'unit' => 'px', 'kind' => 'number'],
+        'list_indent' => ['property' => 'padding-inline-start', 'unit' => 'px', 'kind' => 'number'],
+        'list_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
+        'unordered_list_style' => ['property' => 'list-style-type', 'unit' => '', 'kind' => 'choice'],
+        'ordered_list_style' => ['property' => 'list-style-type', 'unit' => '', 'kind' => 'choice'],
+        'list_item_gap' => ['property' => 'margin-top', 'unit' => 'px', 'kind' => 'number'],
+        'task_checkbox_gap' => ['property' => 'margin-right', 'unit' => 'px', 'kind' => 'number'],
+        'quote_margin_block' => ['property' => 'margin-block', 'unit' => 'px', 'kind' => 'number'],
+        'quote_border_width' => ['property' => 'border-left-width', 'unit' => 'px', 'kind' => 'number'],
+        'quote_border_style' => ['property' => 'border-left-style', 'unit' => '', 'kind' => 'choice'],
+        'quote_radius' => ['property' => 'border-radius', 'unit' => 'px', 'kind' => 'number'],
+        'quote_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
+        'quote_padding_inline' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
+        'code_font_family' => ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'],
+        'code_font_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'code_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
+        'inline_code_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
+        'inline_code_padding' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
+        'code_block_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
+        'code_block_padding_inline' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
+        'code_block_border_width' => ['property' => 'border-width', 'unit' => 'px', 'kind' => 'number'],
+        'code_block_radius' => ['property' => 'border-radius', 'unit' => 'px', 'kind' => 'number'],
+        'table_width' => ['property' => 'width', 'unit' => '', 'kind' => 'choice'],
+        'table_font_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'table_line_height' => ['property' => 'line-height', 'unit' => '', 'kind' => 'number'],
+        'table_border_width' => ['property' => 'border-width', 'unit' => 'px', 'kind' => 'number'],
+        'table_cell_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
+        'table_cell_padding_inline' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
+        'table_header_weight' => ['property' => 'font-weight', 'unit' => '', 'kind' => 'number'],
+        'hr_margin' => ['property' => 'margin-block', 'unit' => 'px', 'kind' => 'number'],
+        'hr_width' => ['property' => 'width', 'unit' => '%', 'kind' => 'number'],
+        'hr_border_width' => ['property' => 'border-top-width', 'unit' => 'px', 'kind' => 'number'],
+        'border_radius' => ['property' => 'border-radius', 'unit' => 'px', 'kind' => 'number'],
+        'image_max_width' => ['property' => 'max-width', 'unit' => '%', 'kind' => 'number'],
+        'caption_font_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'details_padding' => ['property' => 'padding', 'unit' => 'px', 'kind' => 'number'],
+        'footnote_font_size' => ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'],
+        'alert_border_width' => ['property' => 'border-left-width', 'unit' => 'px', 'kind' => 'number'],
+        'alert_padding_block' => ['property' => 'padding-block', 'unit' => 'px', 'kind' => 'number'],
+        'alert_padding_inline' => ['property' => 'padding-inline', 'unit' => 'px', 'kind' => 'number'],
+        'text_token' => ['property' => 'color', 'unit' => '', 'kind' => 'token'],
+        'muted_token' => ['property' => 'color', 'unit' => '', 'kind' => 'token'],
+        'border_token' => ['property' => 'border-color', 'unit' => '', 'kind' => 'token'],
+        'surface_token' => ['property' => 'background-color', 'unit' => '', 'kind' => 'token'],
+        'accent_token' => ['property' => 'color', 'unit' => '', 'kind' => 'token'],
+        'heading_token' => ['property' => 'color', 'unit' => '', 'kind' => 'token'],
+        'heading_border_token' => ['property' => 'border-color', 'unit' => '', 'kind' => 'token'],
+        'quote_token' => ['property' => 'color', 'unit' => '', 'kind' => 'token'],
+        'quote_surface_token' => ['property' => 'background-color', 'unit' => '', 'kind' => 'token'],
+        'quote_border_token' => ['property' => 'border-color', 'unit' => '', 'kind' => 'token'],
+        'code_token' => ['property' => 'color', 'unit' => '', 'kind' => 'token'],
+        'code_surface_token' => ['property' => 'background-color', 'unit' => '', 'kind' => 'token'],
+        'code_border_token' => ['property' => 'border-color', 'unit' => '', 'kind' => 'token'],
+        'table_header_surface_token' => ['property' => 'background-color', 'unit' => '', 'kind' => 'token'],
+        'table_border_token' => ['property' => 'border-color', 'unit' => '', 'kind' => 'token'],
+        'hr_border_token' => ['property' => 'border-color', 'unit' => '', 'kind' => 'token'],
+    ];
+
+    foreach (array_keys(sr_markdown_editor_box_target_definitions()) as $target) {
+        foreach (['margin', 'padding', 'border'] as $propertyPrefix) {
+            foreach (['top', 'right', 'bottom', 'left'] as $side) {
+                $key = 'box_' . $target . '_' . $propertyPrefix . '_' . $side;
+                $property = $propertyPrefix . '-' . $side . ($propertyPrefix === 'border' ? '-width' : '');
+                $bindings[$key] = ['property' => $property, 'unit' => 'px', 'kind' => 'number'];
+            }
+        }
+        $bindings['box_' . $target . '_radius'] = ['property' => 'border-radius', 'unit' => 'px', 'kind' => 'number'];
+        $bindings['box_' . $target . '_border_style'] = ['property' => 'border-style', 'unit' => '', 'kind' => 'choice'];
+        $bindings['box_' . $target . '_border_token'] = ['property' => 'border-color', 'unit' => '', 'kind' => 'token'];
+    }
+    foreach (array_keys(sr_markdown_editor_text_target_definitions()) as $target) {
+        $prefix = 'text_' . $target . '_';
+        $bindings[$prefix . 'font_family'] = ['property' => 'font-family', 'unit' => '', 'kind' => 'choice'];
+        $bindings[$prefix . 'font_size'] = ['property' => 'font-size', 'unit' => 'px', 'kind' => 'number'];
+        $bindings[$prefix . 'font_weight'] = ['property' => 'font-weight', 'unit' => '', 'kind' => 'number'];
+        $bindings[$prefix . 'line_height'] = ['property' => 'line-height', 'unit' => '', 'kind' => 'number'];
+        $bindings[$prefix . 'letter_spacing'] = ['property' => 'letter-spacing', 'unit' => 'px', 'kind' => 'number'];
+        $bindings[$prefix . 'word_spacing'] = ['property' => 'word-spacing', 'unit' => 'px', 'kind' => 'number'];
+        $bindings[$prefix . 'align'] = ['property' => 'text-align', 'unit' => '', 'kind' => 'choice'];
+        $bindings[$prefix . 'font_style'] = ['property' => 'font-style', 'unit' => '', 'kind' => 'choice'];
+        $bindings[$prefix . 'decoration'] = ['property' => 'text-decoration-line', 'unit' => '', 'kind' => 'choice'];
+        $bindings[$prefix . 'transform'] = ['property' => 'text-transform', 'unit' => '', 'kind' => 'choice'];
+        $bindings[$prefix . 'token'] = ['property' => 'color', 'unit' => '', 'kind' => 'token'];
+    }
+
+    return $bindings;
+}
+
 function sr_markdown_editor_settings(PDO $pdo, ?array $override = null): array
 {
     $settings = array_merge(sr_markdown_editor_default_settings(), $override ?? sr_module_settings($pdo, 'markdown_editor'));
-    $settings['tables_enabled'] = !empty($settings['tables_enabled']);
-    $settings['task_lists_enabled'] = !empty($settings['task_lists_enabled']);
-    $settings['code_blocks_enabled'] = !empty($settings['code_blocks_enabled']);
-    $settings['raw_html_enabled'] = !empty($settings['raw_html_enabled']);
+    $settings['tables_enabled'] = true;
+    $settings['task_lists_enabled'] = true;
+    $settings['code_blocks_enabled'] = true;
+    $settings['raw_html_enabled'] = false;
+    $settings['style_source_mode'] = (string) ($settings['style_source_mode'] ?? '') === 'default' ? 'default' : 'custom';
     $settings['style_profile_json'] = sr_markdown_editor_normalize_style_profile($settings['style_profile_json'] ?? []);
     $settings['custom_declarations_json'] = sr_markdown_editor_normalize_custom_declarations($settings['custom_declarations_json'] ?? []);
+    $stylesheetCss = is_string($settings['stylesheet_css'] ?? null) ? trim((string) $settings['stylesheet_css']) : '';
+    if ($stylesheetCss === '') {
+        $stylesheetCss = sr_markdown_editor_default_stylesheet_css(
+            $settings['style_profile_json'],
+            $settings['custom_declarations_json']
+        );
+    } elseif ($override === null && sr_markdown_editor_stylesheet_validation_errors($stylesheetCss) !== []) {
+        $stylesheetCss = sr_markdown_editor_default_stylesheet_css($settings['style_profile_json']);
+    }
+    $stylesheetCss = sr_markdown_editor_ensure_box_control_stylesheet(
+        sr_markdown_editor_remove_legacy_max_width_control($stylesheetCss)
+    );
+    $settings['stylesheet_css'] = $stylesheetCss;
 
     return $settings;
 }
@@ -102,17 +422,25 @@ function sr_markdown_editor_normalize_style_profile(mixed $profile): array
     $profile = is_array($profile) ? $profile : [];
     $defaults = sr_markdown_editor_default_style_profile();
     $tokens = sr_markdown_editor_token_options();
+    $choices = sr_markdown_editor_style_choice_options();
     $normalized = [];
     foreach ($defaults as $key => $default) {
         if (is_int($default)) {
             $value = (int) ($profile[$key] ?? $default);
             $limits = [
                 'font_size' => [12, 24],
-                'max_width' => [0, 1200],
+                'content_padding_block' => [0, 96],
+                'content_padding_inline' => [0, 96],
+                'word_spacing' => [-10, 30],
                 'block_gap' => [0, 48],
+                'paragraph_margin_top' => [0, 48],
                 'paragraph_margin' => [0, 40],
+                'paragraph_text_indent' => [0, 80],
                 'heading_weight' => [400, 900],
                 'heading_margin' => [0, 48],
+                'heading_margin_bottom' => [0, 48],
+                'heading_padding_bottom' => [0, 32],
+                'heading_border_width' => [0, 8],
                 'h1_size' => [18, 56],
                 'h2_size' => [17, 48],
                 'h3_size' => [16, 40],
@@ -125,21 +453,49 @@ function sr_markdown_editor_normalize_style_profile(mixed $profile): array
                 'link_decoration_thickness' => [1, 4],
                 'list_indent' => [12, 48],
                 'list_item_gap' => [0, 20],
+                'task_checkbox_gap' => [0, 16],
+                'quote_margin_block' => [0, 64],
                 'quote_border_width' => [0, 12],
+                'quote_radius' => [0, 32],
                 'quote_padding_block' => [0, 32],
                 'quote_padding_inline' => [0, 40],
                 'code_font_size' => [11, 20],
+                'inline_code_padding_block' => [0, 12],
                 'inline_code_padding' => [0, 12],
-                'code_block_padding' => [0, 32],
+                'code_block_padding_block' => [0, 48],
+                'code_block_padding_inline' => [0, 48],
                 'code_block_border_width' => [0, 4],
+                'code_block_radius' => [0, 32],
+                'table_font_size' => [10, 24],
                 'table_border_width' => [0, 6],
-                'table_cell_padding' => [4, 24],
+                'table_cell_padding_block' => [0, 32],
+                'table_cell_padding_inline' => [0, 32],
                 'table_header_weight' => [400, 900],
                 'hr_margin' => [0, 64],
+                'hr_width' => [10, 100],
                 'hr_border_width' => [0, 6],
                 'border_radius' => [0, 16],
+                'image_max_width' => [40, 100],
+                'caption_font_size' => [10, 20],
+                'details_padding' => [0, 32],
+                'footnote_font_size' => [10, 18],
+                'alert_border_width' => [0, 12],
+                'alert_padding_block' => [0, 32],
+                'alert_padding_inline' => [0, 40],
             ];
-            $limit = $limits[$key] ?? [0, 100];
+            if (str_starts_with($key, 'text_') && str_ends_with($key, '_font_size')) {
+                $limit = [8, 96];
+            } elseif (str_starts_with($key, 'text_') && str_ends_with($key, '_font_weight')) {
+                $limit = [100, 900];
+            } elseif (str_starts_with($key, 'text_') && str_ends_with($key, '_word_spacing')) {
+                $limit = [-20, 50];
+            } elseif (str_starts_with($key, 'box_') && str_contains($key, '_margin_')) {
+                $limit = [-64, 160];
+            } elseif (str_starts_with($key, 'box_') && (str_contains($key, '_padding_') || str_contains($key, '_border_') || str_ends_with($key, '_radius'))) {
+                $limit = [0, 128];
+            } else {
+                $limit = $limits[$key] ?? [0, 100];
+            }
             $normalized[$key] = min($limit[1], max($limit[0], $value));
             continue;
         }
@@ -149,14 +505,30 @@ function sr_markdown_editor_normalize_style_profile(mixed $profile): array
             $limits = [
                 'heading_line_height' => [1.0, 1.8],
                 'code_line_height' => [1.0, 2.0],
+                'letter_spacing' => [-2.0, 10.0],
+                'paragraph_line_height' => [1.0, 3.0],
+                'paragraph_letter_spacing' => [-2.0, 10.0],
+                'heading_letter_spacing' => [-3.0, 10.0],
+                'list_line_height' => [1.0, 3.0],
+                'table_line_height' => [1.0, 3.0],
             ];
-            $limit = $limits[$key] ?? [1.2, 2.2];
+            if (str_starts_with($key, 'text_') && str_ends_with($key, '_line_height')) {
+                $limit = [0.8, 4.0];
+            } elseif (str_starts_with($key, 'text_') && str_ends_with($key, '_letter_spacing')) {
+                $limit = [-5.0, 20.0];
+            } else {
+                $limit = $limits[$key] ?? [1.2, 2.2];
+            }
             $normalized[$key] = min($limit[1], max($limit[0], $value));
             continue;
         }
 
-        $token = (string) ($profile[$key] ?? $default);
-        $normalized[$key] = isset($tokens[$token]) ? $token : (string) $default;
+        $candidate = (string) ($profile[$key] ?? $default);
+        if (isset($choices[$key])) {
+            $normalized[$key] = isset($choices[$key][$candidate]) ? $candidate : (string) $default;
+            continue;
+        }
+        $normalized[$key] = isset($tokens[$candidate]) ? $candidate : (string) $default;
     }
 
     return $normalized;
@@ -263,6 +635,245 @@ function sr_markdown_editor_style_selector_options(): array
     ];
 }
 
+function sr_markdown_editor_style_selector_map(): array
+{
+    return [
+        'wrapper' => '.markdown-editor-body',
+        'paragraph' => '.markdown-editor-body p',
+        'heading' => '.markdown-editor-body h1, .markdown-editor-body h2, .markdown-editor-body h3, .markdown-editor-body h4, .markdown-editor-body h5, .markdown-editor-body h6',
+        'heading_h1' => '.markdown-editor-body h1',
+        'heading_h2' => '.markdown-editor-body h2',
+        'heading_h3' => '.markdown-editor-body h3',
+        'heading_h4' => '.markdown-editor-body h4',
+        'heading_h5' => '.markdown-editor-body h5',
+        'heading_h6' => '.markdown-editor-body h6',
+        'strong' => '.markdown-editor-body strong',
+        'emphasis' => '.markdown-editor-body em',
+        'link' => '.markdown-editor-body a',
+        'list' => '.markdown-editor-body ul, .markdown-editor-body ol',
+        'list_item' => '.markdown-editor-body li',
+        'task_list' => '.markdown-editor-body li input[type="checkbox"]',
+        'blockquote' => '.markdown-editor-body blockquote',
+        'code' => '.markdown-editor-body code, .markdown-editor-body pre',
+        'inline_code' => '.markdown-editor-body :not(pre)>code',
+        'code_block' => '.markdown-editor-body pre',
+        'table' => '.markdown-editor-body table, .markdown-editor-body th, .markdown-editor-body td',
+        'table_head' => '.markdown-editor-body th',
+        'table_cell' => '.markdown-editor-body td',
+        'hr' => '.markdown-editor-body hr',
+    ];
+}
+
+function sr_markdown_editor_apply_profile_to_stylesheet(string $css, array $profile): string
+{
+    $profile = sr_markdown_editor_normalize_style_profile($profile);
+    foreach (sr_markdown_editor_style_binding_map() as $key => $binding) {
+        if (!array_key_exists($key, $profile)) {
+            continue;
+        }
+
+        $value = (string) $profile[$key];
+        if ((string) ($binding['kind'] ?? '') === 'token') {
+            $value = 'var(' . $value . ')';
+        } elseif ((string) ($binding['kind'] ?? '') === 'length_or_none' && (int) $profile[$key] === 0) {
+            $value = 'none';
+        } else {
+            $value .= (string) ($binding['unit'] ?? '');
+        }
+
+        $pattern = '/(\/\*\s*sr-control:\s*' . preg_quote((string) $key, '/') . '\s*\*\/\s*'
+            . preg_quote((string) $binding['property'], '/') . '\s*:\s*)[^;]+;/';
+        $updated = preg_replace_callback(
+            $pattern,
+            static fn (array $matches): string => (string) $matches[1] . $value . ';',
+            $css
+        );
+        if (is_string($updated)) {
+            $css = $updated;
+        }
+    }
+
+    return trim($css);
+}
+
+function sr_markdown_editor_remove_legacy_max_width_control(string $css): string
+{
+    $updated = preg_replace(
+        '/\s*\/\*\s*sr-control:\s*max_width\s*\*\/\s*max-width\s*:\s*[^;]+;/',
+        '',
+        $css
+    );
+    return is_string($updated) ? trim($updated) : trim($css);
+}
+
+function sr_markdown_editor_box_control_stylesheet(): string
+{
+    $lines = ['/* sr-box-controls: common element box model */'];
+    $sides = ['top', 'right', 'bottom', 'left'];
+    foreach (sr_markdown_editor_box_target_definitions() as $target => $definition) {
+        $lines[] = (string) $definition['selector'] . ' {';
+        foreach (['margin', 'padding', 'border'] as $property) {
+            foreach ($sides as $index => $side) {
+                $key = 'box_' . $target . '_' . $property . '_' . $side;
+                $cssProperty = $property . '-' . $side . ($property === 'border' ? '-width' : '');
+                $lines[] = '    /* sr-control: ' . $key . ' */';
+                $lines[] = '    ' . $cssProperty . ': ' . (int) $definition[$property][$index] . 'px;';
+            }
+        }
+        $lines[] = '    /* sr-control: box_' . $target . '_radius */';
+        $lines[] = '    border-radius: ' . (int) $definition['radius'] . 'px;';
+        $lines[] = '    /* sr-control: box_' . $target . '_border_style */';
+        $lines[] = '    border-style: solid;';
+        $lines[] = '    /* sr-control: box_' . $target . '_border_token */';
+        $lines[] = '    border-color: var(--sr-border);';
+        $lines[] = '}';
+        $lines[] = '';
+    }
+
+    return trim(implode("\n", $lines));
+}
+
+function sr_markdown_editor_text_control_stylesheet(): string
+{
+    $lines = ['/* sr-text-controls: common element text style */'];
+    foreach (sr_markdown_editor_text_target_definitions() as $target => $definition) {
+        $prefix = 'text_' . $target . '_';
+        $lines[] = (string) $definition['selector'] . ' {';
+        $declarations = [
+            'font_family' => ['font-family', (string) $definition['family']],
+            'font_size' => ['font-size', (int) $definition['size'] . 'px'],
+            'font_weight' => ['font-weight', (int) $definition['weight']],
+            'line_height' => ['line-height', (string) $definition['line_height']],
+            'letter_spacing' => ['letter-spacing', (string) $definition['letter_spacing'] . 'px'],
+            'word_spacing' => ['word-spacing', (int) $definition['word_spacing'] . 'px'],
+            'align' => ['text-align', (string) $definition['align']],
+            'font_style' => ['font-style', (string) $definition['style']],
+            'decoration' => ['text-decoration-line', (string) $definition['decoration']],
+            'transform' => ['text-transform', (string) $definition['transform']],
+            'token' => ['color', 'var(' . (string) $definition['token'] . ')'],
+        ];
+        foreach ($declarations as $suffix => $declaration) {
+            $lines[] = '    /* sr-control: ' . $prefix . $suffix . ' */';
+            $lines[] = '    ' . $declaration[0] . ': ' . $declaration[1] . ';';
+        }
+        $lines[] = '}';
+        $lines[] = '';
+    }
+
+    return trim(implode("\n", $lines));
+}
+
+function sr_markdown_editor_ensure_box_control_stylesheet(string $css): string
+{
+    $css = trim($css);
+    if (!str_contains($css, 'sr-box-controls: common element box model')) {
+        $css .= "\n\n" . sr_markdown_editor_box_control_stylesheet();
+    }
+    if (!str_contains($css, 'sr-text-controls: common element text style')) {
+        $css .= "\n\n" . sr_markdown_editor_text_control_stylesheet();
+    }
+    return trim($css);
+}
+
+function sr_markdown_editor_default_stylesheet_css(?array $profile = null, array $customDeclarations = []): string
+{
+    $path = SR_ROOT . '/modules/markdown_editor/assets/github-markdown.css';
+    $css = is_file($path) ? file_get_contents($path) : '';
+    if (!is_string($css) || trim($css) === '') {
+        $css = '.markdown-editor-body { color: var(--sr-text); font-size: 16px; line-height: 1.5; }';
+    }
+
+    $css = sr_markdown_editor_apply_profile_to_stylesheet(
+        sr_markdown_editor_ensure_box_control_stylesheet(sr_markdown_editor_remove_legacy_max_width_control($css)),
+        $profile ?? sr_markdown_editor_default_style_profile()
+    );
+    $selectorMap = sr_markdown_editor_style_selector_map();
+    foreach (sr_markdown_editor_normalize_custom_declarations($customDeclarations) as $selectorKey => $declaration) {
+        if (isset($selectorMap[$selectorKey])) {
+            $css .= "\n\n" . $selectorMap[$selectorKey] . " {\n    " . str_replace('; ', ";\n    ", $declaration) . ";\n}";
+        }
+    }
+
+    return trim($css);
+}
+
+function sr_markdown_editor_split_selector_list(string $selectorList): array
+{
+    $selectors = [];
+    $buffer = '';
+    $roundDepth = 0;
+    $squareDepth = 0;
+    $length = strlen($selectorList);
+    for ($index = 0; $index < $length; $index++) {
+        $character = $selectorList[$index];
+        if ($character === '(') {
+            $roundDepth++;
+        } elseif ($character === ')' && $roundDepth > 0) {
+            $roundDepth--;
+        } elseif ($character === '[') {
+            $squareDepth++;
+        } elseif ($character === ']' && $squareDepth > 0) {
+            $squareDepth--;
+        }
+
+        if ($character === ',' && $roundDepth === 0 && $squareDepth === 0) {
+            $selectors[] = trim($buffer);
+            $buffer = '';
+            continue;
+        }
+        $buffer .= $character;
+    }
+    if (trim($buffer) !== '') {
+        $selectors[] = trim($buffer);
+    }
+
+    return $selectors;
+}
+
+function sr_markdown_editor_stylesheet_validation_errors(string $css): array
+{
+    $errors = [];
+    $css = trim($css);
+    if ($css === '') {
+        return ['스타일시트 내용을 입력해 주세요.'];
+    }
+    if (strlen($css) > 100000) {
+        return ['스타일시트는 100,000바이트 이하로 입력해 주세요.'];
+    }
+    if (preg_match('//u', $css) !== 1) {
+        return ['스타일시트는 올바른 UTF-8 문자열이어야 합니다.'];
+    }
+
+    $withoutComments = preg_replace('/\/\*.*?\*\//s', '', $css);
+    if (!is_string($withoutComments)) {
+        return ['스타일시트를 확인할 수 없습니다.'];
+    }
+    if (preg_match('/<\/style/i', $css) === 1
+        || preg_match('/@|url\s*\(|expression\s*\(|javascript\s*:|behavior\s*:|-moz-binding/i', $withoutComments) === 1) {
+        $errors[] = '스타일시트에서는 at-rule, 외부 URL, 실행형 CSS 표현을 사용할 수 없습니다.';
+    }
+    if (substr_count($withoutComments, '{') !== substr_count($withoutComments, '}')) {
+        $errors[] = '스타일시트의 중괄호 짝이 맞지 않습니다.';
+    }
+    if (!str_contains($withoutComments, '.markdown-editor-body')) {
+        $errors[] = '스타일시트에는 .markdown-editor-body 범위가 필요합니다.';
+    }
+
+    if ($errors === []) {
+        preg_match_all('/([^{}]+)\{/', $withoutComments, $matches);
+        foreach ((array) ($matches[1] ?? []) as $selectorList) {
+            foreach (sr_markdown_editor_split_selector_list(trim((string) $selectorList)) as $selector) {
+                if (preg_match('/\A\.markdown-editor-body(?:\b|[:.#\[\s>*+~])/', $selector) !== 1) {
+                    $errors[] = '모든 selector는 .markdown-editor-body 범위 안에 있어야 합니다: ' . $selector;
+                    break 2;
+                }
+            }
+        }
+    }
+
+    return $errors;
+}
+
 function sr_markdown_editor_settings_from_post(): array
 {
     $style = [];
@@ -270,13 +881,18 @@ function sr_markdown_editor_settings_from_post(): array
         $style[$key] = $_POST['style_profile'][$key] ?? null;
     }
 
+    $normalizedStyle = sr_markdown_editor_normalize_style_profile($style);
+    $stylesheetCss = sr_post_string_without_truncation('stylesheet_css', 100000);
     return [
-        'tables_enabled' => ($_POST['tables_enabled'] ?? '') === '1',
-        'task_lists_enabled' => ($_POST['task_lists_enabled'] ?? '') === '1',
-        'code_blocks_enabled' => ($_POST['code_blocks_enabled'] ?? '') === '1',
-        'raw_html_enabled' => ($_POST['raw_html_enabled'] ?? '') === '1',
-        'style_profile_json' => sr_markdown_editor_normalize_style_profile($style),
-        'custom_declarations_json' => sr_markdown_editor_normalize_custom_declarations($_POST['custom_declarations'] ?? []),
+        'style_source_mode' => ($_POST['style_source_mode'] ?? '') === 'default' ? 'default' : 'custom',
+        'tables_enabled' => true,
+        'task_lists_enabled' => true,
+        'code_blocks_enabled' => true,
+        'raw_html_enabled' => false,
+        'style_profile_json' => $normalizedStyle,
+        'custom_declarations_json' => [],
+        'stylesheet_css' => is_string($stylesheetCss) ? $stylesheetCss : '',
+        '_stylesheet_input_valid' => is_string($stylesheetCss),
     ];
 }
 
@@ -285,6 +901,14 @@ function sr_markdown_editor_validate_settings(array $settings): array
     $errors = [];
     if (!empty($settings['raw_html_enabled'])) {
         $errors[] = 'v1에서는 raw HTML 허용을 켤 수 없습니다.';
+    }
+    if (!in_array((string) ($settings['style_source_mode'] ?? ''), ['default', 'custom'], true)) {
+        $errors[] = '스타일 적용 방식을 확인해 주세요.';
+    }
+    if (array_key_exists('_stylesheet_input_valid', $settings) && empty($settings['_stylesheet_input_valid'])) {
+        $errors[] = '스타일시트는 100,000바이트 이하의 문자열로 입력해 주세요.';
+    } else {
+        $errors = array_merge($errors, sr_markdown_editor_stylesheet_validation_errors((string) ($settings['stylesheet_css'] ?? '')));
     }
 
     return $errors;
@@ -300,12 +924,14 @@ function sr_markdown_editor_save_settings(PDO $pdo, array $settings): void
     }
 
     $rows = [
-        ['tables_enabled', !empty($settings['tables_enabled']) ? '1' : '0', 'bool'],
-        ['task_lists_enabled', !empty($settings['task_lists_enabled']) ? '1' : '0', 'bool'],
-        ['code_blocks_enabled', !empty($settings['code_blocks_enabled']) ? '1' : '0', 'bool'],
+        ['style_source_mode', (string) ($settings['style_source_mode'] ?? '') === 'default' ? 'default' : 'custom', 'string'],
+        ['tables_enabled', '1', 'bool'],
+        ['task_lists_enabled', '1', 'bool'],
+        ['code_blocks_enabled', '1', 'bool'],
         ['raw_html_enabled', '0', 'bool'],
         ['style_profile_json', sr_markdown_editor_json_encode(sr_markdown_editor_normalize_style_profile($settings['style_profile_json'] ?? [])), 'json'],
-        ['custom_declarations_json', sr_markdown_editor_json_encode(sr_markdown_editor_normalize_custom_declarations($settings['custom_declarations_json'] ?? [])), 'json'],
+        ['custom_declarations_json', '[]', 'json'],
+        ['stylesheet_css', trim((string) ($settings['stylesheet_css'] ?? '')), 'text'],
     ];
     $now = sr_now();
     $save = $pdo->prepare(
@@ -335,6 +961,7 @@ function sr_markdown_editor_save_settings(PDO $pdo, array $settings): void
 function sr_markdown_editor_profile_hash(PDO $pdo, ?array $overrideSettings = null): string
 {
     $settings = sr_markdown_editor_settings($pdo, $overrideSettings);
+    $usesDefaultStyle = (string) ($settings['style_source_mode'] ?? '') === 'default';
     $payload = sr_markdown_editor_json_encode([
         'parser' => [
             'tables' => $settings['tables_enabled'],
@@ -342,8 +969,9 @@ function sr_markdown_editor_profile_hash(PDO $pdo, ?array $overrideSettings = nu
             'code' => $settings['code_blocks_enabled'],
             'raw_html' => false,
         ],
-        'style' => $settings['style_profile_json'],
-        'custom' => $settings['custom_declarations_json'],
+        'style_source_mode' => $settings['style_source_mode'],
+        'style' => $usesDefaultStyle ? sr_markdown_editor_default_style_profile() : $settings['style_profile_json'],
+        'stylesheet' => $usesDefaultStyle ? sr_markdown_editor_default_stylesheet_css() : $settings['stylesheet_css'],
     ]);
 
     return substr(hash('sha256', $payload), 0, 16);
@@ -588,69 +1216,13 @@ function sr_markdown_editor_plain_text(string $markdown, array $settings): strin
 function sr_markdown_editor_css(PDO $pdo, ?array $overrideSettings = null): string
 {
     $settings = sr_markdown_editor_settings($pdo, $overrideSettings);
-    $style = $settings['style_profile_json'];
-    $custom = $settings['custom_declarations_json'];
-    $selectorMap = [
-        'wrapper' => '.markdown-editor-body',
-        'paragraph' => '.markdown-editor-body p',
-        'heading' => '.markdown-editor-body h1, .markdown-editor-body h2, .markdown-editor-body h3, .markdown-editor-body h4, .markdown-editor-body h5, .markdown-editor-body h6',
-        'heading_h1' => '.markdown-editor-body h1',
-        'heading_h2' => '.markdown-editor-body h2',
-        'heading_h3' => '.markdown-editor-body h3',
-        'heading_h4' => '.markdown-editor-body h4',
-        'heading_h5' => '.markdown-editor-body h5',
-        'heading_h6' => '.markdown-editor-body h6',
-        'strong' => '.markdown-editor-body strong',
-        'emphasis' => '.markdown-editor-body em',
-        'link' => '.markdown-editor-body a',
-        'list' => '.markdown-editor-body ul, .markdown-editor-body ol',
-        'list_item' => '.markdown-editor-body li',
-        'task_list' => '.markdown-editor-body li input[type="checkbox"]',
-        'blockquote' => '.markdown-editor-body blockquote',
-        'code' => '.markdown-editor-body code, .markdown-editor-body pre',
-        'inline_code' => '.markdown-editor-body :not(pre)>code',
-        'code_block' => '.markdown-editor-body pre',
-        'table' => '.markdown-editor-body table, .markdown-editor-body th, .markdown-editor-body td',
-        'table_head' => '.markdown-editor-body th',
-        'table_cell' => '.markdown-editor-body td',
-        'hr' => '.markdown-editor-body hr',
-    ];
-
-    $css = [];
-    $maxWidth = (int) $style['max_width'];
-    $css[] = '.markdown-editor-body{color:var(' . $style['text_token'] . ', var(--sr-text));font-size:' . (int) $style['font_size'] . 'px;line-height:' . (string) $style['line_height'] . ';' . ($maxWidth > 0 ? 'max-width:' . $maxWidth . 'px;margin-inline:auto;' : '') . '}';
-    $css[] = '.markdown-editor-body p{margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;}';
-    $css[] = '.markdown-editor-body>*+*{margin-top:' . (int) $style['block_gap'] . 'px;}';
-    $css[] = '.markdown-editor-body h1,.markdown-editor-body h2,.markdown-editor-body h3,.markdown-editor-body h4,.markdown-editor-body h5,.markdown-editor-body h6{margin:' . (int) $style['heading_margin'] . 'px 0 ' . (int) max(8, (int) $style['paragraph_margin']) . 'px;font-weight:' . (int) $style['heading_weight'] . ';line-height:' . (string) $style['heading_line_height'] . ';color:var(' . $style['heading_token'] . ', var(--sr-text));}';
-    $css[] = '.markdown-editor-body h1{font-size:' . (int) $style['h1_size'] . 'px;}';
-    $css[] = '.markdown-editor-body h2{font-size:' . (int) $style['h2_size'] . 'px;}';
-    $css[] = '.markdown-editor-body h3{font-size:' . (int) $style['h3_size'] . 'px;}';
-    $css[] = '.markdown-editor-body h4{font-size:' . (int) $style['h4_size'] . 'px;}';
-    $css[] = '.markdown-editor-body h5{font-size:' . (int) $style['h5_size'] . 'px;}';
-    $css[] = '.markdown-editor-body h6{font-size:' . (int) $style['h6_size'] . 'px;}';
-    $css[] = '.markdown-editor-body strong{font-weight:' . (int) $style['strong_weight'] . ';}';
-    $css[] = '.markdown-editor-body a{color:var(' . $style['accent_token'] . ', var(--sr-info));font-weight:' . (int) $style['link_weight'] . ';text-decoration:underline;text-underline-offset:' . (int) $style['link_underline_offset'] . 'px;text-decoration-thickness:' . (int) $style['link_decoration_thickness'] . 'px;}';
-    $css[] = '.markdown-editor-body ul,.markdown-editor-body ol{padding-inline-start:' . (int) $style['list_indent'] . 'px;margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;}';
-    $css[] = '.markdown-editor-body li+li{margin-top:' . (int) $style['list_item_gap'] . 'px;}';
-    $css[] = '.markdown-editor-body li input[type="checkbox"]{margin-right:6px;}';
-    $css[] = '.markdown-editor-body blockquote{margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;padding:' . (int) $style['quote_padding_block'] . 'px ' . (int) $style['quote_padding_inline'] . 'px;border-left:' . (int) $style['quote_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));color:var(' . $style['quote_token'] . ', var(--sr-muted));background:var(' . $style['surface_token'] . ', var(--sr-surface-muted));}';
-    $css[] = '.markdown-editor-body code{font-size:' . (int) $style['code_font_size'] . 'px;color:var(' . $style['code_token'] . ', var(--sr-text));background:var(' . $style['code_surface_token'] . ', var(--sr-surface-muted));border-radius:' . (int) $style['border_radius'] . 'px;padding:0 ' . (int) $style['inline_code_padding'] . 'px;}';
-    $css[] = '.markdown-editor-body pre{overflow:auto;padding:' . (int) $style['code_block_padding'] . 'px;line-height:' . (string) $style['code_line_height'] . ';background:var(' . $style['code_surface_token'] . ', var(--sr-surface-muted));border:' . (int) $style['code_block_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));border-radius:' . (int) $style['border_radius'] . 'px;}';
-    $css[] = '.markdown-editor-body pre code{padding:0;background:transparent;border-radius:0;}';
-    $css[] = '.markdown-editor-body table{width:100%;border-collapse:collapse;margin:0 0 ' . (int) $style['paragraph_margin'] . 'px;}';
-    $css[] = '.markdown-editor-body th,.markdown-editor-body td{padding:' . (int) $style['table_cell_padding'] . 'px;border:' . (int) $style['table_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));text-align:left;}';
-    $css[] = '.markdown-editor-body th{font-weight:' . (int) $style['table_header_weight'] . ';background:var(' . $style['table_header_surface_token'] . ', var(--sr-surface-muted));}';
-    $css[] = '.markdown-editor-body hr{border:0;border-top:' . (int) $style['hr_border_width'] . 'px solid var(' . $style['border_token'] . ', var(--sr-border));margin:' . (int) $style['hr_margin'] . 'px 0;}';
-    foreach ($custom as $selectorKey => $declaration) {
-        if (isset($selectorMap[$selectorKey])) {
-            $css[] = $selectorMap[$selectorKey] . '{' . $declaration . ';}';
-        }
+    if ((string) ($settings['style_source_mode'] ?? '') === 'default') {
+        return sr_markdown_editor_default_stylesheet_css() . "\n";
     }
-
-    return implode("\n", $css) . "\n";
+    return trim((string) ($settings['stylesheet_css'] ?? '')) . "\n";
 }
 
 function sr_markdown_editor_sample_markdown(): string
 {
-    return "# 제목 1\n\n## 제목 2\n\n### 제목 3\n\n본문 문단과 [링크](https://example.com), `inline code`입니다.\n\n- 목록 항목\n- [x] 완료된 작업\n\n> 인용 문장\n\n---\n\n```\ncode block\n```\n\n| 표 제목 | 값 |\n";
+    return "# 제목 1\n\n## 제목 2\n\n### 제목 3\n\n#### 제목 4\n\n##### 제목 5\n\n###### 제목 6\n\n본문 문단의 **굵은 글자**, *기울임 글자*, [링크](https://example.com), `inline code`입니다.\n\n- 비순서 목록 항목\n- [x] 완료된 작업\n\n1. 순서 목록 항목\n2. 두 번째 항목\n\n> 인용 문장\n\n---\n\n```\ncode block\n```\n\n| 표 제목 | 값 |\n";
 }

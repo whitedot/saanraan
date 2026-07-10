@@ -2,7 +2,7 @@
 
 return [
     'name' => 'Markdown Editor',
-    'version' => '2026.07.001',
+    'version' => '2026.07.003',
     'type' => 'plugin',
     'description' => 'Markdown 입력, 렌더링, 스타일 프로파일을 제공하는 플러그인입니다.',
     'admin' => [
@@ -35,7 +35,9 @@ return [
         'task_lists_enabled' => true,
         'code_blocks_enabled' => true,
         'raw_html_enabled' => false,
+        'style_source_mode' => 'custom',
         'style_profile_json' => [],
         'custom_declarations_json' => [],
+        'stylesheet_css' => '',
     ],
 ];

@@ -31,7 +31,7 @@
 | `coupon` | `export_retained` | 제공 | 없음 | 회원 쿠폰 지급, 사용, 환불 기록은 권리성 자산과 운영 증빙으로 사본 제공 대상이며 보관 대상이다. |
 | `deposit` | `export_retained` | 제공 | 제공 | 예치금 잔액, 원장, 환불 신청 금액/상태/처리자 증빙은 사본 제공과 보관 대상이다. 탈퇴/익명화 cleanup은 환불 신청의 은행명, 계좌번호, 예금주, 요청자/관리자 free-text note를 빈 값으로 정리한다. |
 | `logo_manager` | `operational_retained` | 없음 | 없음 | 로고 운영 메타데이터의 작성자 계정 연결은 운영 보존 데이터로 분류한다. |
-| `markdown_editor` | `no_member_personal_data` | 없음 | 없음 | Markdown parser/style profile과 declaration-only CSS 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
+| `markdown_editor` | `no_member_personal_data` | 없음 | 없음 | Markdown parser/style profile과 `.markdown-editor-body` scoped stylesheet 설정만 제공하며 본문 데이터는 화면 소유 모듈이 저장한다. |
 | `message` | `export_cleanup` | 제공 | 제공 | 회원 간 쪽지 본문과 발신/수신 방향, 회원별 수신 설정을 소유한다. export에서는 상대 계정 ID를 노출하지 않고 `message_direction`과 masked counterparty role로 제공한다. cleanup은 회원별 수신 설정을 삭제하고 양쪽 사본이 모두 삭제된 자기 자신 대상 row만 물리 정리한다. |
 | `member` | `export_owner` | 제공 | 소비 | 계정, 인증, 기본/추가 프로필, 동의, 그룹 멤버십, MFA factor/recovery code 저장소를 소유하고 탈퇴/익명화 시 회원 소유 MFA row를 직접 삭제한 뒤 설치 모듈의 cleanup 계약을 실행한다. 추가 프로필 값은 항목별 export 정책에 따라 사본 제공 범위를 정하고, MFA export는 factor 표시 메타데이터와 recovery code 상태별 개수만 제공한다. |
 | `member_oauth` | `export_cleanup` | 제공 | 제공 | OAuth provider 연결 증적과 최소 profile snapshot을 회원 계정에 연결하며, provider subject 원문은 저장하지 않고 HMAC hash와 hash prefix 표시값만 둔다. 탈퇴/익명화 시 연결을 해제하고 snapshot을 제거한다. |

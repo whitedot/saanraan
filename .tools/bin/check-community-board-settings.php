@@ -518,7 +518,7 @@ function sr_check_community_board_settings_runtime(): void
     if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'plain') {
         sr_check_community_board_settings_error('community post body format must fall back to plain when markdown editor is configured but inactive.');
     }
-    $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (3, 'markdown_editor', '2026.07.001', 'enabled')");
+    $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (3, 'markdown_editor', '2026.07.003', 'enabled')");
     if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'markdown') {
         sr_check_community_board_settings_error('community post body format must use markdown when the current board editor setting is active.');
     }

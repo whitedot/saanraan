@@ -208,7 +208,7 @@ function sr_policy_documents_check_pdo(): PDO
     );
     $pdo->exec(
         "INSERT INTO sr_modules (module_key, version, status)
-         VALUES ('markdown_editor', '2026.07.001', 'enabled')"
+         VALUES ('markdown_editor', '2026.07.003', 'enabled')"
     );
     $pdo->exec(
         "INSERT INTO sr_member_accounts (id, email, status)
