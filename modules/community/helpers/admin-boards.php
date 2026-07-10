@@ -2,6 +2,49 @@
 
 declare(strict_types=1);
 
+function sr_community_admin_apply_board_settings(
+    PDO $pdo,
+    int $boardId,
+    int $boardGroupId,
+    array $boardSettingValues,
+    array $settingSources,
+    string $extraFieldsJson,
+    array $assetSettings,
+    array $assetSettingSources
+): void {
+    foreach ($boardSettingValues as $settingKey => $settingValue) {
+        sr_community_apply_board_setting_scope(
+            $pdo,
+            $boardId,
+            $boardGroupId,
+            (string) $settingKey,
+            (string) ($settingSources[$settingKey] ?? 'board'),
+            $settingValue
+        );
+    }
+
+    $extraFieldSource = (string) ($settingSources['extra_fields_json'] ?? 'board');
+    $extraFieldDefinitions = sr_community_extra_field_definitions_from_json($extraFieldsJson);
+    foreach (sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, $extraFieldSource) as $targetBoardId) {
+        sr_community_sync_board_field_definitions($pdo, (int) $targetBoardId, $extraFieldDefinitions);
+    }
+
+    foreach ($assetSettingSources as $settingKey => $source) {
+        sr_community_apply_board_setting_scope(
+            $pdo,
+            $boardId,
+            $boardGroupId,
+            (string) $settingKey,
+            (string) $source,
+            $assetSettings[$settingKey] ?? ''
+        );
+    }
+
+    if (function_exists('sr_community_feed_cache_mark_all_stale')) {
+        sr_community_feed_cache_mark_all_stale($pdo, 'board_settings_changed');
+    }
+}
+
 function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, array $account, array $context): array
 {
     $errors = [];
@@ -552,12 +595,6 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
             $errors[] = '첨부 다운로드 게시자 보상 지급률이 올바르지 않습니다.';
             $assetSettings['paid_attachment_download_publisher_reward_rate'] = 0;
         }
-        foreach ([$reactionPostPresetKey, $reactionCommentPresetKey] as $reactionPresetKey) {
-            if ($reactionPresetKey !== '' && !isset($reactionPresetOptions[$reactionPresetKey])) {
-                $errors[] = '게시판 리액션 프리셋 값이 올바르지 않습니다.';
-                break;
-            }
-        }
         if ($extraFieldDefinitionErrors !== []) {
             $errors = array_merge($errors, $extraFieldDefinitionErrors);
             $extraFieldsJson = '[]';
@@ -711,48 +748,16 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                     'setting_sources' => $settingSources,
                 ], $publicDisplaySettingValues),
             ]);
-            sr_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
-            sr_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
-            sr_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
-            foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
-                sr_community_set_board_setting($pdo, $boardId, $thumbnailSettingKey, (string) ($boardSettingValues[$thumbnailSettingKey] ?? ''), sr_community_board_setting_value_type($thumbnailSettingKey));
-            }
-            foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
-                sr_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, 'int');
-            }
-            sr_community_set_board_setting($pdo, $boardId, 'file_uploads_enabled', $fileUploadsEnabled ? '1' : '0', 'bool');
-            sr_community_set_board_setting($pdo, $boardId, 'file_attachment_max_bytes', (string) $fileAttachmentMaxBytes, 'int');
-            sr_community_set_board_setting($pdo, $boardId, 'file_attachment_max_count', (string) $fileAttachmentMaxCount, 'int');
-            sr_community_set_board_setting($pdo, $boardId, 'file_allowed_extensions', implode(',', $fileAllowedExtensions), 'string');
-            sr_community_set_board_setting($pdo, $boardId, 'read_group_keys', sr_community_board_group_keys_setting_value($readGroupKeys), 'json');
-            sr_community_set_board_setting($pdo, $boardId, 'write_group_keys', sr_community_board_group_keys_setting_value($writeGroupKeys), 'json');
-            sr_community_set_board_setting($pdo, $boardId, 'comment_group_keys', sr_community_board_group_keys_setting_value($commentGroupKeys), 'json');
-            sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
-            sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
-            sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
-            sr_community_set_board_setting($pdo, $boardId, 'category_enabled', $categoryEnabled ? '1' : '0', 'bool');
-            sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
-            sr_community_set_board_setting($pdo, $boardId, 'series_enabled', $seriesEnabled ? '1' : '0', 'bool');
-            sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
-            sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
-            sr_community_set_board_setting($pdo, $boardId, 'reaction_enabled', $reactionEnabled ? '1' : '0', 'bool');
-            sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
-            sr_community_set_board_setting($pdo, $boardId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
-            sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
-            sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
-            sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
-            foreach ($boardSettingValues as $settingKey => $settingValue) {
-                sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
-            }
-            foreach (sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, (string) ($settingSources['extra_fields_json'] ?? 'board')) as $targetBoardId) {
-                sr_community_sync_board_field_definitions($pdo, (int) $targetBoardId, sr_community_extra_field_definitions_from_json($extraFieldsJson));
-            }
-            foreach ($assetSettingSources as $settingKey => $source) {
-                sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, $source, $assetSettings[$settingKey] ?? '');
-            }
-            if (function_exists('sr_community_feed_cache_mark_all_stale')) {
-                sr_community_feed_cache_mark_all_stale($pdo, 'board_settings_changed');
-            }
+            sr_community_admin_apply_board_settings(
+                $pdo,
+                $boardId,
+                $boardGroupId,
+                $boardSettingValues,
+                $settingSources,
+                $extraFieldsJson,
+                $assetSettings,
+                $assetSettingSources
+            );
 
             $notice = sr_t('community::action.admin.board_created');
             sr_admin_flash_result(sr_admin_action_result([], $notice));
@@ -811,41 +816,6 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                     'image_uploads_enabled' => $imageUploadsEnabled,
                     'sort_order' => (int) $sortOrder,
                 ]);
-                sr_community_set_board_setting($pdo, $boardId, 'skin_key', $skinKey, 'string');
-                sr_community_set_board_setting($pdo, $boardId, 'attachment_max_bytes', (string) $attachmentMaxBytes, 'int');
-                sr_community_set_board_setting($pdo, $boardId, 'attachment_max_count', (string) $attachmentMaxCount, 'int');
-                foreach (sr_community_thumbnail_setting_keys() as $thumbnailSettingKey) {
-                    sr_community_set_board_setting($pdo, $boardId, $thumbnailSettingKey, (string) ($boardSettingValues[$thumbnailSettingKey] ?? ''), sr_community_board_setting_value_type($thumbnailSettingKey));
-                }
-                foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {
-                    sr_community_set_board_setting($pdo, $boardId, $displaySettingKey, (string) $displaySettingValue, 'int');
-                }
-                sr_community_set_board_setting($pdo, $boardId, 'file_uploads_enabled', $fileUploadsEnabled ? '1' : '0', 'bool');
-                sr_community_set_board_setting($pdo, $boardId, 'file_attachment_max_bytes', (string) $fileAttachmentMaxBytes, 'int');
-                sr_community_set_board_setting($pdo, $boardId, 'file_attachment_max_count', (string) $fileAttachmentMaxCount, 'int');
-                sr_community_set_board_setting($pdo, $boardId, 'file_allowed_extensions', implode(',', $fileAllowedExtensions), 'string');
-                sr_community_set_board_setting($pdo, $boardId, 'read_group_keys', sr_community_board_group_keys_setting_value($readGroupKeys), 'json');
-                sr_community_set_board_setting($pdo, $boardId, 'write_group_keys', sr_community_board_group_keys_setting_value($writeGroupKeys), 'json');
-                sr_community_set_board_setting($pdo, $boardId, 'comment_group_keys', sr_community_board_group_keys_setting_value($commentGroupKeys), 'json');
-                sr_community_set_board_setting($pdo, $boardId, 'read_min_level', (string) $readMinLevel, 'int');
-                sr_community_set_board_setting($pdo, $boardId, 'write_min_level', (string) $writeMinLevel, 'int');
-                sr_community_set_board_setting($pdo, $boardId, 'comment_min_level', (string) $commentMinLevel, 'int');
-                sr_community_set_board_setting($pdo, $boardId, 'category_enabled', $categoryEnabled ? '1' : '0', 'bool');
-                sr_community_set_board_setting($pdo, $boardId, 'category_required', $categoryRequired ? '1' : '0', 'bool');
-                sr_community_set_board_setting($pdo, $boardId, 'series_enabled', $seriesEnabled ? '1' : '0', 'bool');
-                sr_community_set_board_setting($pdo, $boardId, 'secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool');
-                sr_community_set_board_setting($pdo, $boardId, 'secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool');
-                sr_community_set_board_setting($pdo, $boardId, 'reaction_enabled', $reactionEnabled ? '1' : '0', 'bool');
-                sr_community_set_board_setting($pdo, $boardId, 'reaction_post_preset_key', $reactionPostPresetKey, 'string');
-                sr_community_set_board_setting($pdo, $boardId, 'reaction_comment_preset_key', $reactionCommentPresetKey, 'string');
-                sr_community_set_board_setting($pdo, $boardId, 'level_post_score', (string) $levelPostScore, 'int');
-                sr_community_set_board_setting($pdo, $boardId, 'level_comment_score', (string) $levelCommentScore, 'int');
-                foreach ($boardSettingValues as $settingKey => $settingValue) {
-                    sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, (string) ($settingSources[$settingKey] ?? 'board'), $settingValue);
-                }
-                foreach (sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, (string) ($settingSources['extra_fields_json'] ?? 'board')) as $targetBoardId) {
-                    sr_community_sync_board_field_definitions($pdo, (int) $targetBoardId, sr_community_extra_field_definitions_from_json($extraFieldsJson));
-                }
                 $boardAssetAudits = [];
                 foreach ($assetSettingSources as $settingKey => $source) {
                     foreach (sr_community_board_scope_target_ids($pdo, $boardId, $boardGroupId, (string) $source) as $targetBoardId) {
@@ -865,13 +835,16 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                         $boardAssetAudits[$targetBoardId]['applied_setting_keys'][(string) $settingKey] = true;
                     }
                 }
-                sr_community_save_board_asset_settings($pdo, $boardId, $assetSettings);
-                foreach ($assetSettingSources as $settingKey => $source) {
-                    sr_community_apply_board_setting_scope($pdo, $boardId, $boardGroupId, (string) $settingKey, $source, $assetSettings[$settingKey] ?? '');
-                }
-                if (function_exists('sr_community_feed_cache_mark_all_stale')) {
-                    sr_community_feed_cache_mark_all_stale($pdo, 'board_settings_changed');
-                }
+                sr_community_admin_apply_board_settings(
+                    $pdo,
+                    $boardId,
+                    $boardGroupId,
+                    $boardSettingValues,
+                    $settingSources,
+                    $extraFieldsJson,
+                    $assetSettings,
+                    $assetSettingSources
+                );
 
                 $publicDisplayMetadata = [];
                 foreach ($publicDisplaySettingValues as $displaySettingKey => $displaySettingValue) {

@@ -375,7 +375,8 @@ $targets = [
             '$communitySkinOptions = sr_community_skin_options()',
             "sr_post_string('skin_key', 40)",
             'if (!isset($communitySkinOptions[$skinKey]))',
-            "sr_community_set_board_setting(\$pdo, \$boardId, 'skin_key', \$skinKey, 'string')",
+            "'skin_key' => \$skinKey",
+            'sr_community_admin_apply_board_settings(',
         ],
         'view_needles' => [
             "sr_admin_form_label_help_html('community_admin_boards_skin_key'",

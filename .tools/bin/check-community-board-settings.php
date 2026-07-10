@@ -567,10 +567,21 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts-comm
     'sr_community_validate_comment_body_length',
 ], 'community comment runtime setting helpers');
 sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', array_merge($settingKeys, [
+    'function sr_community_admin_apply_board_settings(',
     'sr_community_post_body_setting_max_length()',
     'sr_community_board_list_sort_key($listDefaultSortInput)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
 ]), 'community board admin setting save');
+$adminBoardSaveContent = sr_check_community_board_settings_content('modules/community/helpers/admin-boards.php');
+if (substr_count($adminBoardSaveContent, 'sr_community_admin_apply_board_settings(') !== 3) {
+    sr_check_community_board_settings_error('community board create and update must share the board setting persistence helper.');
+}
+if (str_contains($adminBoardSaveContent, 'sr_community_save_board_asset_settings(')) {
+    sr_check_community_board_settings_error('community board save must not write asset settings before applying their selected scope.');
+}
+if (substr_count($adminBoardSaveContent, '게시판 리액션 프리셋 값이 올바르지 않습니다.') !== 1) {
+    sr_check_community_board_settings_error('community board reaction preset validation must have one authoritative branch.');
+}
 sr_check_community_board_settings_contains('modules/community/actions/admin-settings.php', [
     'sr_admin_post_int_in_range(\'post_body_min_length\', 0, $postBodyMaxSettingLength)',
     'sr_admin_post_int_in_range(\'post_body_max_length\', 0, $postBodyMaxSettingLength)',

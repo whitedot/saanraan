@@ -1502,12 +1502,3 @@ function sr_community_asset_event_required(array $config): bool
         && (int) ($config['amount'] ?? 0) > 0
         && sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true) !== [];
 }
-
-function sr_community_save_board_asset_settings(PDO $pdo, int $boardId, array $assetSettings): void
-{
-    foreach ($assetSettings as $settingKey => $settingValue) {
-        $valueType = is_bool($settingValue) ? 'bool' : (is_int($settingValue) ? 'int' : 'string');
-        $settingValue = is_bool($settingValue) ? ($settingValue ? '1' : '0') : (string) $settingValue;
-        sr_community_set_board_setting($pdo, $boardId, (string) $settingKey, $settingValue, $valueType);
-    }
-}
