@@ -1,0 +1,61 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - '8.1'
+          - '8.3'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: curl, dom, fileinfo, mbstring, openssl, pdo_mysql, pdo_sqlite, sodium, zip
+
+      - name: Validate bundled Composer metadata
+        working-directory: modules/htmlpurifier
+        run: |
+          composer validate --strict --no-check-publish
+          composer audit --locked --no-interaction
+
+      - name: Run integrated checks
+        run: ./.tools/bin/check
+
+      - name: Run clean install-mode HTTP smoke
+        shell: bash
+        run: |
+          php -S 127.0.0.1:18761 -t .tools/public .tools/bin/dev-router.php > /tmp/saanraan-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:18761/; then
+              break
+            fi
+            sleep 1
+          done
+          SR_SMOKE_BASE_URL=http://127.0.0.1:18761 php .tools/bin/smoke-http.php

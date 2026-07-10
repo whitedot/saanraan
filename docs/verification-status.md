@@ -24,6 +24,8 @@ README와 특장점 문서에서 기능을 나열할 때는 가능하면 이 등
 php .tools/bin/check.php
 ```
 
+GitHub의 `Checks` workflow는 `main` push와 pull request에서 PHP 8.1/8.3 조합으로 번들 Composer metadata와 보안 권고, 통합 게이트, 깨끗한 checkout의 미설치 HTTP smoke를 반복한다. 이 workflow는 설치 DB, 인증 계정, mutation smoke, 실제 브라우저 검증을 대체하지 않는다. 원격 게이트가 녹색이어도 아래 릴리스 후보 설치 DB 게이트는 별도로 기록해야 한다.
+
 작은 표시명-only 변경은 `git diff --check`, 변경 PHP 파일의 `php -l`, 관련 전용 fixture/check로 검증할 수 있다. `php .tools/bin/check.php`는 공유 helper, 라우팅, 보안/권한, DB/schema, 설치/업데이트, cross-module contract, 공통 UI shell처럼 영향 범위가 넓거나 릴리스 판단이 필요한 변경에서 실행한다. 이 게이트는 PHP 문법, SQL 파일, 모듈 계약, 관리자 route, 보안/정합성 정적 기준을 확인한다. 통과는 운영 검증의 시작점이지 전체 보증이 아니다.
 
 릴리스 후보 게이트:

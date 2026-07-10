@@ -47,6 +47,8 @@
 
 공유 helper, 라우팅, 보안/권한, DB/schema, 설치/업데이트, cross-module contract, 공통 UI shell처럼 영향 범위가 넓은 변경이나 릴리스 판단이 필요한 변경은 통합 게이트를 실행한다.
 
+GitHub `main` push와 pull request에서는 `Checks` workflow가 PHP 8.1/8.3의 통합 게이트, 번들 Composer 보안 권고, 깨끗한 checkout의 미설치 HTTP smoke를 다시 실행한다. 로컬 통과와 원격 통과를 모두 확인하되, 설치 DB나 테스트 계정이 필요한 mutation/browser smoke는 릴리스 검증 기록에서 별도로 다룬다.
+
 ```bash
 php .tools/bin/check.php
 ```
