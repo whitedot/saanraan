@@ -70,6 +70,7 @@
 .admin-content-cover-inputs{display:grid;gap:calc(var(--spacing) * 2.5);width:100%}
 .admin-content-cover-input-row{display:grid;gap:calc(var(--spacing) * 1.25);width:100%}
 .admin-content-cover-delete{margin-top:calc(var(--spacing) * 1)}
+.admin-content-url-link-switches{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 5)}
 @media (max-width:1023px){
     .admin-content-group-list .admin-content-group-search-grid:not(.admin-content-filter-stack),.admin-content-series-list .admin-content-series-search-grid:not(.admin-content-filter-stack){grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%}
     .admin-content-download-files .admin-content-download-file-filter.filtering-plain>.admin-content-download-file-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%}

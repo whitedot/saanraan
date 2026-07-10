@@ -67,8 +67,10 @@ if (sr_request_method() === 'POST') {
     $postedSettings = [
         'editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedEditorInput)),
         'editor_toolbar_preset' => $postedToolbarPreset,
-        'embed_enabled' => sr_post_string('embed_enabled', 1) === '1',
+        'external_embed_enabled' => sr_post_string('external_embed_enabled', 1) === '1',
+        'internal_embed_enabled' => sr_post_string('internal_embed_enabled', 1) === '1',
         'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
+        'plain_text_auto_link_new_tab' => sr_post_string('plain_text_auto_link_new_tab', 1) === '1',
         'secret_comments_enabled' => sr_post_string('secret_comments_enabled', 1) === '1',
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),

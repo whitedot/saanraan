@@ -1213,9 +1213,9 @@ function sr_community_public_author_label(PDO $pdo, int $accountId, bool $showId
     return sr_community_member_label_with_identifier($label, $runtimeConfig, $accountId, $showIdentifier);
 }
 
-function sr_community_plain_text_html(string $value, bool $linkUrls = false): string
+function sr_community_plain_text_html(string $value, bool $linkUrls = false, bool $openLinksInNewTab = false): string
 {
-    return sr_plain_text_html($value, $linkUrls);
+    return sr_plain_text_html($value, $linkUrls, $openLinksInNewTab);
 }
 
 function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO $pdo = null): string
@@ -1229,10 +1229,13 @@ function sr_community_post_body_html(array $post, ?array $settings = null, ?PDO 
         $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : sr_markdown_text_html($bodyText);
     } else {
         $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
-        $html = sr_community_plain_text_html($bodyText, $linkUrls);
+        $openLinksInNewTab = sr_community_bool_setting($settings['plain_text_auto_link_new_tab'] ?? $post['plain_text_auto_link_new_tab'] ?? false);
+        $html = sr_community_plain_text_html($bodyText, $linkUrls, $openLinksInNewTab);
     }
 
-    if ($pdo instanceof PDO && sr_community_bool_setting($settings['embed_enabled'] ?? $post['embed_enabled'] ?? true)) {
+    $embedEnabled = sr_community_bool_setting($settings['external_embed_enabled'] ?? true)
+        || sr_community_bool_setting($settings['internal_embed_enabled'] ?? true);
+    if ($pdo instanceof PDO && $embedEnabled) {
         $html = sr_url_embed_render_body_html($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public']);
     }
 
@@ -1254,7 +1257,8 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
         $html = is_array($rendered) ? (string) ($rendered['html'] ?? '') : sr_markdown_text_html($bodyText);
     } else {
         $linkUrls = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? $post['plain_text_auto_link_urls'] ?? false);
-        $html = sr_community_plain_text_html($bodyText, $linkUrls);
+        $openLinksInNewTab = sr_community_bool_setting($settings['plain_text_auto_link_new_tab'] ?? $post['plain_text_auto_link_new_tab'] ?? false);
+        $html = sr_community_plain_text_html($bodyText, $linkUrls, $openLinksInNewTab);
     }
 
     $postEditorKey = '';
@@ -1277,7 +1281,9 @@ function sr_community_post_body_embed_stylesheets(array $post, ?array $settings 
     $markdownStylesheets = $bodyFormat === 'markdown'
         ? sr_markdown_stylesheets($pdo, $bodyText, 'full')
         : [];
-    $embedStylesheets = sr_community_bool_setting($settings['embed_enabled'] ?? $post['embed_enabled'] ?? true)
+    $embedEnabled = sr_community_bool_setting($settings['external_embed_enabled'] ?? true)
+        || sr_community_bool_setting($settings['internal_embed_enabled'] ?? true);
+    $embedStylesheets = $embedEnabled
         ? sr_url_embed_stylesheets_for_body($pdo, $html, 'community', 'post', (int) ($post['id'] ?? 0), 'body', ['mode' => 'public'])
         : [];
 

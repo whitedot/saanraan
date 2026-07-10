@@ -66,8 +66,10 @@ function sr_community_default_settings(): array
         'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
         'post_body_min_length' => sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0),
         'post_body_max_length' => sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0),
-        'embed_enabled' => (bool) ($settings['embed_enabled'] ?? true),
+        'external_embed_enabled' => (bool) ($settings['external_embed_enabled'] ?? $settings['embed_enabled'] ?? true),
+        'internal_embed_enabled' => (bool) ($settings['internal_embed_enabled'] ?? $settings['embed_enabled'] ?? true),
         'plain_text_auto_link_urls' => (bool) ($settings['plain_text_auto_link_urls'] ?? false),
+        'plain_text_auto_link_new_tab' => (bool) ($settings['plain_text_auto_link_new_tab'] ?? false),
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
         'secret_comments_enabled' => (bool) ($settings['secret_comments_enabled'] ?? false),
         'privacy_consent_enabled' => (bool) ($settings['privacy_consent_enabled'] ?? false),
@@ -199,6 +201,10 @@ function sr_community_settings(PDO $pdo): array
 function sr_community_normalize_settings(array $settings, ?array $site = null, ?PDO $pdo = null): array
 {
     $rawSettings = $settings;
+    if (array_key_exists('embed_enabled', $settings)) {
+        $settings['external_embed_enabled'] = $settings['external_embed_enabled'] ?? $settings['embed_enabled'];
+        $settings['internal_embed_enabled'] = $settings['internal_embed_enabled'] ?? $settings['embed_enabled'];
+    }
     $settings = array_merge(sr_community_default_settings(), $settings);
     $settings['posts_per_page'] = min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
     $settings['comments_per_page'] = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
@@ -264,8 +270,11 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['post_toolbar_preset'] = sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
     $settings['post_body_min_length'] = sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0);
     $settings['post_body_max_length'] = sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0);
-    $settings['embed_enabled'] = sr_community_bool_setting($settings['embed_enabled'] ?? true);
+    $settings['external_embed_enabled'] = sr_community_bool_setting($settings['external_embed_enabled'] ?? true);
+    $settings['internal_embed_enabled'] = sr_community_bool_setting($settings['internal_embed_enabled'] ?? true);
+    unset($settings['embed_enabled']);
     $settings['plain_text_auto_link_urls'] = sr_community_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
+    $settings['plain_text_auto_link_new_tab'] = sr_community_bool_setting($settings['plain_text_auto_link_new_tab'] ?? false);
     $settings['secret_posts_enabled'] = sr_community_bool_setting($settings['secret_posts_enabled'] ?? false);
     $settings['secret_comments_enabled'] = sr_community_bool_setting($settings['secret_comments_enabled'] ?? false);
     $settings['privacy_consent_enabled'] = sr_community_bool_setting($settings['privacy_consent_enabled'] ?? false);

@@ -106,17 +106,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">임베드 사용</span>
+            <span class="form-label">외부 서비스 임베드</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
-                <p class="form-help">꺼져 있으면 콘텐츠 본문 안의 주소 임베드를 표시하지 않고, 다른 본문에 붙여 넣은 콘텐츠 URL도 자동 표시하지 않습니다.</p>
+                <?php echo sr_admin_switch_html('content_admin_settings_external_embed_enabled', 'external_embed_enabled', '1', !empty($settings['external_embed_enabled']), '사용'); ?>
+                <p class="form-help">콘텐츠 본문에 단독으로 붙여 넣은 YouTube, X, Instagram 주소를 공개 화면에서 자동 표시합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <span class="form-label">내부 모듈 간 임베드</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_internal_embed_enabled', 'internal_embed_enabled', '1', !empty($settings['internal_embed_enabled']), '사용'); ?>
+                <p class="form-help">콘텐츠 본문의 내부 모듈 URL을 자동 표시하고, 다른 본문에 붙여 넣은 콘텐츠 URL의 임베드 제공을 허용합니다.</p>
             </div>
         </div>
         <div class="form-row">
             <span class="form-label">본문 URL 자동 링크</span>
             <div class="form-field">
-                <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>
-                <p class="form-help">textarea로 저장된 plain text 본문에만 적용합니다. HTML 본문은 저장된 링크와 정화 정책을 그대로 사용합니다.</p>
+                <div class="admin-content-url-link-switches">
+                    <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>
+                    <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_new_tab', 'plain_text_auto_link_new_tab', '1', !empty($settings['plain_text_auto_link_new_tab']), '새 탭'); ?>
+                </div>
+                <p class="form-help">textarea로 저장된 plain text 본문에서 자동 생성한 링크에만 적용합니다. Markdown/HTML 본문의 링크에는 영향을 주지 않습니다.</p>
             </div>
         </div>
         <div class="form-row">

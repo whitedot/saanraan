@@ -104,8 +104,10 @@ function sr_content_default_settings(): array
     return [
         'editor' => 'textarea',
         'editor_toolbar_preset' => 'content_basic',
-        'embed_enabled' => true,
+        'external_embed_enabled' => true,
+        'internal_embed_enabled' => true,
         'plain_text_auto_link_urls' => false,
+        'plain_text_auto_link_new_tab' => false,
         'secret_comments_enabled' => false,
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
@@ -331,11 +333,19 @@ function sr_content_toolbar_preset_options(): array
 
 function sr_content_settings(PDO $pdo): array
 {
-    $settings = array_merge(sr_content_default_settings(), sr_module_settings($pdo, 'content'));
+    $storedSettings = sr_module_settings($pdo, 'content');
+    if (array_key_exists('embed_enabled', $storedSettings)) {
+        $storedSettings['external_embed_enabled'] = $storedSettings['external_embed_enabled'] ?? $storedSettings['embed_enabled'];
+        $storedSettings['internal_embed_enabled'] = $storedSettings['internal_embed_enabled'] ?? $storedSettings['embed_enabled'];
+    }
+    $settings = array_merge(sr_content_default_settings(), $storedSettings);
     $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
     $settings['editor_toolbar_preset'] = sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic'));
-    $settings['embed_enabled'] = sr_content_bool_setting($settings['embed_enabled'] ?? true);
+    $settings['external_embed_enabled'] = sr_content_bool_setting($settings['external_embed_enabled'] ?? true);
+    $settings['internal_embed_enabled'] = sr_content_bool_setting($settings['internal_embed_enabled'] ?? true);
+    unset($settings['embed_enabled']);
     $settings['plain_text_auto_link_urls'] = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
+    $settings['plain_text_auto_link_new_tab'] = sr_content_bool_setting($settings['plain_text_auto_link_new_tab'] ?? false);
     $settings['secret_comments_enabled'] = sr_content_bool_setting($settings['secret_comments_enabled'] ?? false);
     $settings['once_history_policy'] = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['layout_key'] = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic'));
@@ -577,8 +587,10 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
     $rows = [
         ['editor', sr_editor_effective_key($pdo, (string) ($settings['editor'] ?? 'textarea')), 'string'],
         ['editor_toolbar_preset', sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic')), 'string'],
-        ['embed_enabled', !empty($settings['embed_enabled']) ? '1' : '0', 'bool'],
+        ['external_embed_enabled', !empty($settings['external_embed_enabled']) ? '1' : '0', 'bool'],
+        ['internal_embed_enabled', !empty($settings['internal_embed_enabled']) ? '1' : '0', 'bool'],
         ['plain_text_auto_link_urls', !empty($settings['plain_text_auto_link_urls']) ? '1' : '0', 'bool'],
+        ['plain_text_auto_link_new_tab', !empty($settings['plain_text_auto_link_new_tab']) ? '1' : '0', 'bool'],
         ['secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0', 'bool'],
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
         ['layout_key', sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic')), 'string'],
@@ -707,12 +719,15 @@ function sr_content_effective_body_format(PDO $pdo, array $page): string
 function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = null): string
 {
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
+    $openPlainLinksInNewTab = sr_content_bool_setting($settings['plain_text_auto_link_new_tab'] ?? $page['plain_text_auto_link_new_tab'] ?? false);
 
     if ($pdo instanceof PDO) {
         $page['body_format'] = sr_content_effective_body_format($pdo, $page);
     }
-    $html = sr_body_text_html($page, $linkPlainUrls, $pdo);
-    if ($pdo instanceof PDO && sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)) {
+    $html = sr_body_text_html($page, $linkPlainUrls, $pdo, 'full', $openPlainLinksInNewTab);
+    $embedEnabled = sr_content_bool_setting($settings['external_embed_enabled'] ?? true)
+        || sr_content_bool_setting($settings['internal_embed_enabled'] ?? true);
+    if ($pdo instanceof PDO && $embedEnabled) {
         $html = sr_url_embed_render_body_html($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public']);
     }
 
@@ -726,9 +741,10 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
     }
 
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
+    $openPlainLinksInNewTab = sr_content_bool_setting($settings['plain_text_auto_link_new_tab'] ?? $page['plain_text_auto_link_new_tab'] ?? false);
     $effectiveBodyFormat = sr_content_effective_body_format($pdo, $page);
     $page['body_format'] = $effectiveBodyFormat;
-    $html = sr_body_text_html($page, $linkPlainUrls, $pdo);
+    $html = sr_body_text_html($page, $linkPlainUrls, $pdo, 'full', $openPlainLinksInNewTab);
     $editorStylesheets = sr_body_editor_stylesheets(
         $effectiveBodyFormat,
         sr_content_effective_editor_key($pdo, $page)
@@ -736,7 +752,9 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
     $markdownStylesheets = $effectiveBodyFormat === 'markdown'
         ? sr_markdown_stylesheets($pdo, (string) ($page['body_text'] ?? ''), 'full')
         : [];
-    $embedStylesheets = sr_content_bool_setting($settings['embed_enabled'] ?? $page['embed_enabled'] ?? true)
+    $embedEnabled = sr_content_bool_setting($settings['external_embed_enabled'] ?? true)
+        || sr_content_bool_setting($settings['internal_embed_enabled'] ?? true);
+    $embedStylesheets = $embedEnabled
         ? sr_url_embed_stylesheets_for_body($pdo, $html, 'content', 'content', (int) ($page['id'] ?? 0), 'body', ['mode' => 'public'])
         : [];
 

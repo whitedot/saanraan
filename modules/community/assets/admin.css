@@ -1,5 +1,6 @@
 .admin-page-community-board-list .admin-community-board-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,14rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}
 .admin-community-feed-cache-summary-row{padding-block:calc(var(--spacing) * 2)}
+.admin-community-url-link-switches{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2) calc(var(--spacing) * 5)}
 .admin-page-community-board-list .admin-community-board-table{table-layout:auto}
 .admin-page-community-board-list .admin-community-board-table th,.admin-page-community-board-list .admin-community-board-table td{overflow:hidden;text-overflow:ellipsis}
 .admin-page-community-board-list .admin-community-board-table .admin-table-actions-cell{min-width:7rem;overflow:visible}

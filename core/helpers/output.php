@@ -437,7 +437,7 @@ function sr_file_not_modified(string $etag, int $lastModified): bool
     return is_int($modifiedSince) && $modifiedSince >= $lastModified;
 }
 
-function sr_linkify_plain_text_urls(string $value): string
+function sr_linkify_plain_text_urls(string $value, bool $openInNewTab = false): string
 {
     if ($value === '') {
         return '';
@@ -462,7 +462,8 @@ function sr_linkify_plain_text_urls(string $value): string
         $html .= sr_e(substr($value, $offset, $matchOffset - $offset));
         if ($url !== '' && sr_is_http_url($url)) {
             $escapedUrl = sr_e($url);
-            $html .= '<a href="' . $escapedUrl . '" rel="nofollow noopener noreferrer">' . $escapedUrl . '</a>';
+            $targetAttribute = $openInNewTab ? ' target="_blank"' : '';
+            $html .= '<a href="' . $escapedUrl . '"' . $targetAttribute . ' rel="nofollow noopener noreferrer">' . $escapedUrl . '</a>';
             $html .= sr_e($trailing);
         } else {
             $html .= sr_e((string) $match[0]);
@@ -473,10 +474,10 @@ function sr_linkify_plain_text_urls(string $value): string
     return $html . sr_e(substr($value, $offset));
 }
 
-function sr_plain_text_html(string $value, bool $linkUrls = false): string
+function sr_plain_text_html(string $value, bool $linkUrls = false, bool $openLinksInNewTab = false): string
 {
     if ($linkUrls) {
-        return nl2br(sr_linkify_plain_text_urls($value), false);
+        return nl2br(sr_linkify_plain_text_urls($value, $openLinksInNewTab), false);
     }
 
     return nl2br(sr_e($value), false);
@@ -801,7 +802,7 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
     return $attributes;
 }
 
-function sr_body_text_html(array $record, bool $linkPlainUrls = false, ?PDO $pdo = null, string $markdownMode = 'full'): string
+function sr_body_text_html(array $record, bool $linkPlainUrls = false, ?PDO $pdo = null, string $markdownMode = 'full', bool $openPlainLinksInNewTab = false): string
 {
     $bodyText = (string) ($record['body_text'] ?? '');
     $bodyFormat = sr_body_format((string) ($record['body_format'] ?? 'plain'));
@@ -819,7 +820,7 @@ function sr_body_text_html(array $record, bool $linkPlainUrls = false, ?PDO $pdo
         return $markdownMode === 'plain' ? sr_e(sr_markdown_plain_text($bodyText)) : sr_markdown_text_html($bodyText);
     }
 
-    return sr_plain_text_html($bodyText, $linkPlainUrls);
+    return sr_plain_text_html($bodyText, $linkPlainUrls, $openPlainLinksInNewTab);
 }
 
 function sr_body_format(string $value): string

@@ -268,9 +268,9 @@ $surveySettingsHelp = [
                 </div>
             </div>
             <div class="form-row">
-                <span class="form-label">임베드 사용</span>
+                <span class="form-label">내부 모듈 간 임베드</span>
                 <div class="form-field">
-                    <?php echo sr_admin_switch_html('survey_settings_embed_enabled', 'embed_enabled', '1', !empty($settings['embed_enabled']), '사용'); ?>
+                    <?php echo sr_admin_switch_html('survey_settings_internal_embed_enabled', 'internal_embed_enabled', '1', !empty($settings['internal_embed_enabled']), '사용'); ?>
                     <p class="form-help">꺼져 있으면 콘텐츠나 커뮤니티 본문에 붙여 넣은 설문 URL을 자동 표시하지 않습니다.</p>
                 </div>
             </div>

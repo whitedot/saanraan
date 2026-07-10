@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.06.031',
+    'version' => '2026.07.002',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -24,8 +24,10 @@ return [
     'settings' => [
         'editor' => 'textarea',
         'editor_toolbar_preset' => 'content_basic',
-        'embed_enabled' => true,
+        'external_embed_enabled' => true,
+        'internal_embed_enabled' => true,
         'plain_text_auto_link_urls' => false,
+        'plain_text_auto_link_new_tab' => false,
         'secret_comments_enabled' => false,
         'reaction_enabled' => true,
         'reaction_preset_key' => '',

@@ -342,6 +342,32 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert(str_contains($rendered, '문장 안의'), 'Inline URL link paragraph must remain in body.');
     sr_url_embed_contract_assert(str_contains($rendered, '/fixture/2'), 'Inline URL link must remain a link in standalone-only scope.');
 
+    $markdownBody = '<div class="markdown-editor-body" data-markdown-profile="fixture"><p>앞 문단</p><p><a href="/fixture/1">/fixture/1</a></p><p>뒤 문단</p></div>';
+    sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 22, 'body', $markdownBody, 7);
+    $markdownRendered = sr_url_embed_render_body_html($pdo, $markdownBody, 'fixture', 'doc', 22);
+    $markdownDom = new DOMDocument('1.0', 'UTF-8');
+    $markdownLibxmlPrevious = libxml_use_internal_errors(true);
+    $markdownDom->loadHTML('<?xml encoding="UTF-8"><div data-markdown-boundary-root="1">' . $markdownRendered . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($markdownLibxmlPrevious);
+    $markdownXpath = new DOMXPath($markdownDom);
+    $markdownWrappers = $markdownXpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " markdown-editor-body ")]');
+    $markdownNestedEmbeds = $markdownXpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " markdown-editor-body ")]//sr-fixture-embed');
+    $markdownEmbed = $markdownXpath->query('//sr-fixture-embed')->item(0);
+    sr_url_embed_contract_assert(
+        $markdownWrappers instanceof DOMNodeList
+            && $markdownWrappers->length === 2
+            && $markdownNestedEmbeds instanceof DOMNodeList
+            && $markdownNestedEmbeds->length === 0
+            && $markdownEmbed instanceof DOMElement
+            && $markdownEmbed->parentNode instanceof DOMElement
+            && $markdownEmbed->parentNode->getAttribute('data-markdown-boundary-root') === '1'
+            && substr_count($markdownRendered, 'data-markdown-profile="fixture"') === 2
+            && str_contains($markdownRendered, '앞 문단')
+            && str_contains($markdownRendered, '뒤 문단'),
+        'URL embeds generated from Markdown must be lifted outside the Markdown style wrapper while preserving the surrounding Markdown segments.'
+    );
+
     $selfBody = '<p>/fixture/1</p>';
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'item', 1, 'body', $selfBody, 7);
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_module = "fixture" AND owner_type = "item" AND owner_id = 1') === 0, 'Self URL embed must not create a derived cache row.');
@@ -417,6 +443,24 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert((int) sr_url_embed_contract_scalar($pdo, 'SELECT COUNT(*) FROM sr_url_embed_cache WHERE owner_id = 14') === 1, 'All-supported scope must dedupe inline URL links and standalone bare URLs by canonical URL.');
     $allLinksRendered = sr_url_embed_render_body_html($pdo, $allLinksBody, 'fixture', 'doc', 14);
     sr_url_embed_contract_assert(substr_count($allLinksRendered, 'data-fixture-embed="summary"') === 2, 'All-supported scope must render URL-label links and standalone bare URLs consistently.');
+    $markdownInlineBody = '<div class="markdown-editor-body" data-markdown-profile="inline-fixture"><p>앞 문장 <a href="/fixture/1">/fixture/1</a> 뒤 문장</p></div>';
+    sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 23, 'body', $markdownInlineBody, 7);
+    $markdownInlineRendered = sr_url_embed_render_body_html($pdo, $markdownInlineBody, 'fixture', 'doc', 23);
+    $markdownInlineDom = new DOMDocument('1.0', 'UTF-8');
+    $markdownInlineLibxmlPrevious = libxml_use_internal_errors(true);
+    $markdownInlineDom->loadHTML('<?xml encoding="UTF-8"><div>' . $markdownInlineRendered . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($markdownInlineLibxmlPrevious);
+    $markdownInlineXpath = new DOMXPath($markdownInlineDom);
+    $markdownInlineNestedEmbeds = $markdownInlineXpath->query('//*[contains(concat(" ", normalize-space(@class), " "), " markdown-editor-body ")]//sr-fixture-embed');
+    sr_url_embed_contract_assert(
+        substr_count($markdownInlineRendered, 'data-markdown-profile="inline-fixture"') === 2
+            && str_contains($markdownInlineRendered, '앞 문장')
+            && str_contains($markdownInlineRendered, '뒤 문장')
+            && $markdownInlineNestedEmbeds instanceof DOMNodeList
+            && $markdownInlineNestedEmbeds->length === 0,
+        'Inline URL embeds must split nested Markdown markup and remain outside both preserved Markdown wrappers.'
+    );
     unset($GLOBALS['sr_url_embed_contract_settings']);
 
     $dedupeBody = '<p><a href="/fixture/1">/fixture/1</a></p><p><a href="/fixture/1?tracking=1">/fixture/1?tracking=1</a></p>';
@@ -454,14 +498,20 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert((string) sr_url_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_url_embed_cache WHERE owner_module = \'owner\' AND owner_id = 16 LIMIT 1') === 'fresh', 'Provider disable fixture must start from a fresh owner cache row.');
     sr_url_embed_contract_assert(str_contains(sr_url_embed_render_body_html($pdo, $providerBody, 'owner', 'doc', 16), 'fixture-embed-summary'), 'Provider disable fixture must render before target module is disabled.');
 
-    $GLOBALS['sr_url_embed_contract_module_settings'] = ['fixture' => ['embed_enabled' => false]];
+    $GLOBALS['sr_url_embed_contract_module_settings'] = ['fixture' => ['internal_embed_enabled' => false]];
     sr_url_embed_contract_assert(!str_contains(sr_url_embed_render_body_html($pdo, $providerBody, 'owner', 'doc', 16), 'fixture-embed-summary'), 'Disabled target module embed setting must leave cached target URLs unrendered.');
     unset($GLOBALS['sr_url_embed_contract_module_settings']);
 
-    $GLOBALS['sr_url_embed_contract_module_settings'] = ['owner' => ['embed_enabled' => false]];
+    $GLOBALS['sr_url_embed_contract_module_settings'] = ['owner' => ['internal_embed_enabled' => false, 'external_embed_enabled' => true]];
     sr_url_embed_sync_body_url_cache($pdo, 'owner', 'doc', 16, 'body', $providerBody, 7);
     sr_url_embed_contract_assert((string) sr_url_embed_contract_scalar($pdo, 'SELECT cache_status FROM sr_url_embed_cache WHERE owner_module = \'owner\' AND owner_id = 16 LIMIT 1') === 'stale', 'Disabled owner module embed setting must stale existing owner cache rows.');
     sr_url_embed_contract_assert(!str_contains(sr_url_embed_render_body_html($pdo, $providerBody, 'owner', 'doc', 16), 'fixture-embed-summary'), 'Disabled owner module embed setting must leave body URLs unrendered.');
+    sr_url_embed_contract_assert(str_contains(sr_url_embed_render_body_html($pdo, $youtubeBody, 'owner', 'doc', 24), 'youtube-nocookie.com/embed/dQw4w9WgXcQ'), 'Owner external embed setting must keep external services available when internal module embeds are disabled.');
+    unset($GLOBALS['sr_url_embed_contract_module_settings']);
+
+    $GLOBALS['sr_url_embed_contract_module_settings'] = ['owner' => ['internal_embed_enabled' => true, 'external_embed_enabled' => false]];
+    sr_url_embed_contract_assert(str_contains(sr_url_embed_render_body_html($pdo, $providerBody, 'owner', 'doc', 16), 'fixture-embed-summary'), 'Owner internal embed setting must keep module embeds available when external services are disabled.');
+    sr_url_embed_contract_assert(!str_contains(sr_url_embed_render_body_html($pdo, $youtubeBody, 'owner', 'doc', 24), 'youtube-nocookie.com/embed/dQw4w9WgXcQ'), 'Disabled owner external embed setting must leave external service URLs unrendered.');
     unset($GLOBALS['sr_url_embed_contract_module_settings']);
 
     $GLOBALS['sr_url_embed_contract_module_metadata'] = ['fixture' => ['settings' => ['embed_enabled' => false]]];
@@ -502,6 +552,31 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     sr_url_embed_contract_contains($pathsPath, "'POST " . $adminPath . "'");
     sr_url_embed_contract_contains('modules/' . $moduleKey . '/actions/admin-embed-cache.php', "include SR_ROOT . '/core/actions/admin-url-embed-fragment-cache.php'");
 }
+
+foreach (['content', 'community'] as $ownerModuleKey) {
+    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/module.php', "'external_embed_enabled' => true");
+    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/module.php', "'internal_embed_enabled' => true");
+    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', '외부 서비스 임베드');
+    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', '내부 모듈 간 임베드');
+}
+foreach (['quiz', 'survey'] as $providerModuleKey) {
+    sr_url_embed_contract_contains('modules/' . $providerModuleKey . '/module.php', "'internal_embed_enabled' => true");
+    sr_url_embed_contract_not_contains('modules/' . $providerModuleKey . '/module.php', "'external_embed_enabled'");
+    sr_url_embed_contract_contains('modules/' . $providerModuleKey . '/views/admin-settings.php', '내부 모듈 간 임베드');
+}
+foreach ([
+    'modules/content/updates/2026.07.001.sql',
+    'modules/community/updates/2026.07.005.sql',
+    'modules/quiz/updates/2026.07.002.sql',
+    'modules/survey/updates/2026.07.002.sql',
+] as $embedSettingUpdatePath) {
+    sr_url_embed_contract_contains($embedSettingUpdatePath, "'internal_embed_enabled'");
+    sr_url_embed_contract_contains($embedSettingUpdatePath, "setting_key = 'embed_enabled'");
+}
+sr_url_embed_contract_contains('modules/content/updates/2026.07.001.sql', "'external_embed_enabled'");
+sr_url_embed_contract_contains('modules/community/updates/2026.07.005.sql', "'external_embed_enabled'");
+sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_module_embed_kind_enabled');
+sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_owner_embed_kind_allowed');
 
 sr_url_embed_contract_contains('core/helpers/url-embed.php', '$providerModuleKey = sr_url_embed_clean_identifier((string) $moduleKey)');
 sr_url_embed_contract_contains('core/helpers/url-embed.php', "(string) \$definition['target_module'] !== \$providerModuleKey");

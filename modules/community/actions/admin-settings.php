@@ -104,9 +104,11 @@ if (sr_request_method() === 'POST') {
         $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
         $postBodyMinLength = sr_admin_post_int_in_range('post_body_min_length', 0, $postBodyMaxSettingLength);
         $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, $postBodyMaxSettingLength);
-        $embedEnabled = ($_POST['embed_enabled'] ?? '') === '1';
+        $externalEmbedEnabled = ($_POST['external_embed_enabled'] ?? '') === '1';
+        $internalEmbedEnabled = ($_POST['internal_embed_enabled'] ?? '') === '1';
         $businessInfoVisible = ($_POST['business_info_visible'] ?? '') === '1';
         $plainTextAutoLinkUrls = ($_POST['plain_text_auto_link_urls'] ?? '') === '1';
+        $plainTextAutoLinkNewTab = ($_POST['plain_text_auto_link_new_tab'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
         $thumbnailEnabled = ($_POST['thumbnail_enabled'] ?? '') === '1';
@@ -448,8 +450,10 @@ if (sr_request_method() === 'POST') {
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
                 ['post_body_min_length', (string) $postBodyMinLength, 'int'],
                 ['post_body_max_length', (string) $postBodyMaxLength, 'int'],
-                ['embed_enabled', $embedEnabled ? '1' : '0', 'bool'],
+                ['external_embed_enabled', $externalEmbedEnabled ? '1' : '0', 'bool'],
+                ['internal_embed_enabled', $internalEmbedEnabled ? '1' : '0', 'bool'],
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],
+                ['plain_text_auto_link_new_tab', $plainTextAutoLinkNewTab ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
                 ['thumbnail_enabled', $thumbnailEnabled ? '1' : '0', 'bool'],
@@ -581,6 +585,7 @@ if (sr_request_method() === 'POST') {
                         'post_editor' => $postEditor,
                         'post_toolbar_preset' => $postToolbarPreset,
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
+                        'plain_text_auto_link_new_tab' => $plainTextAutoLinkNewTab,
                         'secret_posts_enabled' => $secretPostsEnabled,
                         'secret_comments_enabled' => $secretCommentsEnabled,
                         'thumbnail_enabled' => $thumbnailEnabled,

@@ -454,7 +454,7 @@ function sr_survey_default_settings(): array
         'default_consent_required' => 0,
         'default_response_limit_policy' => 'per_survey_once',
         'default_response_limit_period_seconds' => 0,
-        'embed_enabled' => true,
+        'internal_embed_enabled' => true,
         'identity_view_required' => false,
         'identity_view_adult_required' => false,
         'business_info_visible' => true,
@@ -723,6 +723,9 @@ function sr_survey_theme_view_file(array $settings, string $view): ?string
 
 function sr_survey_normalize_settings(array $settings): array
 {
+    if (array_key_exists('embed_enabled', $settings) && !array_key_exists('internal_embed_enabled', $settings)) {
+        $settings['internal_embed_enabled'] = $settings['embed_enabled'];
+    }
     $defaults = sr_survey_default_settings();
     $normalized = array_merge($defaults, $settings);
     $normalized['layout_key'] = sr_public_layout_normalize_key((string) ($normalized['layout_key'] ?? $defaults['layout_key']));
@@ -737,7 +740,8 @@ function sr_survey_normalize_settings(array $settings): array
     $normalized['default_consent_required'] = !empty($normalized['default_consent_required']) ? 1 : 0;
     $normalized['default_response_limit_policy'] = in_array((string) $normalized['default_response_limit_policy'], sr_survey_response_limit_policies(), true) ? (string) $normalized['default_response_limit_policy'] : (string) $defaults['default_response_limit_policy'];
     $normalized['default_response_limit_period_seconds'] = max(0, (int) $normalized['default_response_limit_period_seconds']);
-    $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
+    $normalized['internal_embed_enabled'] = !empty($normalized['internal_embed_enabled']);
+    unset($normalized['embed_enabled']);
     $normalized['identity_view_required'] = !empty($normalized['identity_view_required']);
     $normalized['identity_view_adult_required'] = !empty($normalized['identity_view_adult_required']);
     $normalized['business_info_visible'] = !array_key_exists('business_info_visible', $normalized) || !empty($normalized['business_info_visible']);
@@ -777,7 +781,7 @@ function sr_survey_settings_from_post(): array
         'default_consent_required' => ($_POST['default_consent_required'] ?? '') === '1',
         'default_response_limit_policy' => sr_survey_clean_key(sr_post_string('default_response_limit_policy', 30), 30),
         'default_response_limit_period_seconds' => sr_post_string('default_response_limit_period_seconds', 20),
-        'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
+        'internal_embed_enabled' => ($_POST['internal_embed_enabled'] ?? '') === '1',
         'identity_view_required' => ($_POST['identity_view_required'] ?? '') === '1',
         'identity_view_adult_required' => ($_POST['identity_view_adult_required'] ?? '') === '1',
         'business_info_visible' => ($_POST['business_info_visible'] ?? '') === '1',

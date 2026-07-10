@@ -203,17 +203,22 @@ function sr_url_embed_settings(PDO $pdo): array
     }
 }
 
-function sr_url_embed_module_enabled(PDO $pdo, string $moduleKey): bool
+function sr_url_embed_module_embed_kind_enabled(PDO $pdo, string $moduleKey, string $embedKind): bool
 {
     $moduleKey = sr_url_embed_clean_identifier($moduleKey);
     if ($moduleKey === '' || $moduleKey === 'url_embed') {
         return true;
     }
 
+    $settingKey = $embedKind === 'external_url' ? 'external_embed_enabled' : 'internal_embed_enabled';
+
     try {
         $settings = sr_module_settings($pdo, $moduleKey);
     } catch (Throwable $exception) {
         return true;
+    }
+    if (array_key_exists($settingKey, $settings)) {
+        return !empty($settings[$settingKey]);
     }
     if (array_key_exists('embed_enabled', $settings)) {
         return !empty($settings['embed_enabled']);
@@ -221,12 +226,20 @@ function sr_url_embed_module_enabled(PDO $pdo, string $moduleKey): bool
     if (function_exists('sr_module_metadata')) {
         $metadata = sr_module_metadata($moduleKey);
         $defaultSettings = is_array($metadata['settings'] ?? null) ? $metadata['settings'] : [];
+        if (array_key_exists($settingKey, $defaultSettings)) {
+            return !empty($defaultSettings[$settingKey]);
+        }
         if (array_key_exists('embed_enabled', $defaultSettings)) {
             return !empty($defaultSettings['embed_enabled']);
         }
     }
 
     return true;
+}
+
+function sr_url_embed_module_enabled(PDO $pdo, string $moduleKey): bool
+{
+    return sr_url_embed_module_embed_kind_enabled($pdo, $moduleKey, 'internal_url');
 }
 
 function sr_url_embed_embed_kind_allowed(string $embedKind, array $settings): bool
@@ -239,6 +252,18 @@ function sr_url_embed_embed_kind_allowed(string $embedKind, array $settings): bo
     }
 
     return false;
+}
+
+function sr_url_embed_owner_embed_kind_allowed(PDO $pdo, string $ownerModule, string $embedKind, array $settings): bool
+{
+    return sr_url_embed_embed_kind_allowed($embedKind, $settings)
+        && sr_url_embed_module_embed_kind_enabled($pdo, $ownerModule, $embedKind);
+}
+
+function sr_url_embed_owner_has_enabled_kind(PDO $pdo, string $ownerModule, array $settings): bool
+{
+    return sr_url_embed_owner_embed_kind_allowed($pdo, $ownerModule, 'internal_url', $settings)
+        || sr_url_embed_owner_embed_kind_allowed($pdo, $ownerModule, 'external_url', $settings);
 }
 
 function sr_url_embed_cache_statuses(): array
@@ -482,6 +507,10 @@ function sr_url_embed_resolve_url(PDO $pdo, string $url, array $context = []): ?
         return null;
     }
     if (!sr_url_embed_embed_kind_allowed((string) $normalized['embed_kind'], $settings)) {
+        return null;
+    }
+    $ownerModule = sr_url_embed_clean_identifier((string) ($context['owner_module'] ?? ''));
+    if ($ownerModule !== '' && !sr_url_embed_module_embed_kind_enabled($pdo, $ownerModule, (string) $normalized['embed_kind'])) {
         return null;
     }
 
@@ -833,7 +862,7 @@ function sr_url_embed_sync_body_url_cache(PDO $pdo, string $ownerModule, string 
     if ($ownerModule === '' || $ownerType === '') {
         throw new InvalidArgumentException('URL 임베드 캐시 소유자 정보가 올바르지 않습니다.');
     }
-    if (!sr_url_embed_module_enabled($pdo, $ownerModule)) {
+    if (!sr_url_embed_owner_has_enabled_kind($pdo, $ownerModule, $settings)) {
         sr_url_embed_mark_missing_owner_urls_stale($pdo, $ownerModule, $ownerType, $ownerId, $ownerField, [], sr_now());
         return;
     }
@@ -848,6 +877,9 @@ function sr_url_embed_sync_body_url_cache(PDO $pdo, string $ownerModule, string 
             'owner_field' => $ownerField,
         ]);
         if (!is_array($resolved)) {
+            continue;
+        }
+        if (!sr_url_embed_owner_embed_kind_allowed($pdo, $ownerModule, (string) ($resolved['embed_kind'] ?? ''), $settings)) {
             continue;
         }
         if (sr_url_embed_is_self_reference($resolved, [
@@ -1060,7 +1092,7 @@ function sr_url_embed_stylesheets_for_body(PDO $pdo, string $bodyHtml, string $o
     $ownerModule = sr_url_embed_clean_identifier($ownerModule);
     $ownerType = sr_url_embed_clean_identifier($ownerType);
     $ownerField = sr_url_embed_clean_identifier($ownerField) ?: 'body';
-    if ($ownerModule === '' || $ownerType === '' || !sr_url_embed_module_enabled($pdo, $ownerModule)) {
+    if ($ownerModule === '' || $ownerType === '' || !sr_url_embed_owner_has_enabled_kind($pdo, $ownerModule, $settings)) {
         return [];
     }
 
@@ -1089,7 +1121,7 @@ function sr_url_embed_stylesheets_for_body(PDO $pdo, string $bodyHtml, string $o
         if (!is_array($resolved) || sr_url_embed_is_self_reference($resolved, $context)) {
             continue;
         }
-        if (!sr_url_embed_embed_kind_allowed((string) ($resolved['embed_kind'] ?? ''), $settings)) {
+        if (!sr_url_embed_owner_embed_kind_allowed($pdo, $ownerModule, (string) ($resolved['embed_kind'] ?? ''), $settings)) {
             continue;
         }
         $stylesheet = sr_url_embed_stylesheet_for_resolved($pdo, $resolved);
@@ -1611,7 +1643,7 @@ function sr_url_embed_render_body_html(PDO $pdo, string $bodyHtml, string $owner
     if ($ownerModule === '' || $ownerType === '') {
         return $bodyHtml;
     }
-    if (!sr_url_embed_module_enabled($pdo, $ownerModule)) {
+    if (!sr_url_embed_owner_has_enabled_kind($pdo, $ownerModule, $settings)) {
         return $bodyHtml;
     }
 
@@ -1636,6 +1668,82 @@ function sr_url_embed_render_body_html(PDO $pdo, string $bodyHtml, string $owner
     }
 
     return $bodyHtml;
+}
+
+function sr_url_embed_dom_element_has_class(DOMElement $element, string $className): bool
+{
+    $classes = preg_split('/\s+/', trim($element->getAttribute('class'))) ?: [];
+    return in_array($className, $classes, true);
+}
+
+function sr_url_embed_dom_closest_markdown_body(DOMNode $node): ?DOMElement
+{
+    $parent = $node->parentNode;
+    while ($parent instanceof DOMElement) {
+        if (sr_url_embed_dom_element_has_class($parent, 'markdown-editor-body')) {
+            return $parent;
+        }
+        $parent = $parent->parentNode;
+    }
+
+    return null;
+}
+
+function sr_url_embed_dom_node_has_meaningful_children(DOMNode $node): bool
+{
+    foreach ($node->childNodes as $child) {
+        if ($child instanceof DOMElement || ($child instanceof DOMText && trim($child->textContent) !== '')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function sr_url_embed_dom_lift_node_one_level(DOMNode $node): bool
+{
+    $parent = $node->parentNode;
+    $grandparent = $parent instanceof DOMNode ? $parent->parentNode : null;
+    if (!$parent instanceof DOMElement || !$grandparent instanceof DOMNode) {
+        return false;
+    }
+
+    $before = $parent->cloneNode(false);
+    $after = $parent->cloneNode(false);
+    while ($parent->firstChild instanceof DOMNode && !$parent->firstChild->isSameNode($node)) {
+        $before->appendChild($parent->firstChild);
+    }
+    while ($node->nextSibling instanceof DOMNode) {
+        $after->appendChild($node->nextSibling);
+    }
+
+    if (sr_url_embed_dom_node_has_meaningful_children($before)) {
+        $grandparent->insertBefore($before, $parent);
+    }
+    $grandparent->insertBefore($node, $parent);
+    if (sr_url_embed_dom_node_has_meaningful_children($after)) {
+        $grandparent->insertBefore($after, $parent);
+    }
+    $grandparent->removeChild($parent);
+
+    return true;
+}
+
+function sr_url_embed_dom_lift_node_out_of_markdown_body(DOMNode $node): void
+{
+    $markdownBody = sr_url_embed_dom_closest_markdown_body($node);
+    if (!$markdownBody instanceof DOMElement) {
+        return;
+    }
+
+    while ($node->parentNode instanceof DOMNode && !$node->parentNode->isSameNode($markdownBody)) {
+        if (!sr_url_embed_dom_lift_node_one_level($node)) {
+            return;
+        }
+    }
+    if ($node->parentNode instanceof DOMNode && $node->parentNode->isSameNode($markdownBody)) {
+        sr_url_embed_dom_lift_node_one_level($node);
+    }
 }
 
 function sr_url_embed_render_body_html_dom(PDO $pdo, string $bodyHtml, array $context): string
@@ -1683,7 +1791,16 @@ function sr_url_embed_render_body_html_dom(PDO $pdo, string $bodyHtml, array $co
         }
         $fragment = sr_url_embed_dom_fragment_from_html($dom, $html);
         if ($fragment instanceof DOMDocumentFragment) {
+            $embedRoots = [];
+            foreach ($fragment->childNodes as $fragmentChild) {
+                if ($fragmentChild instanceof DOMElement) {
+                    $embedRoots[] = $fragmentChild;
+                }
+            }
             $node->parentNode->replaceChild($fragment, $node);
+            foreach ($embedRoots as $embedRoot) {
+                sr_url_embed_dom_lift_node_out_of_markdown_body($embedRoot);
+            }
         }
     }
 
@@ -1752,7 +1869,12 @@ function sr_url_embed_render_url(PDO $pdo, string $url, array $context): string
     $settings = isset($context['url_embed_settings']) && is_array($context['url_embed_settings'])
         ? $context['url_embed_settings']
         : sr_url_embed_settings($pdo);
-    if (!sr_url_embed_embed_kind_allowed((string) ($resolved['embed_kind'] ?? ''), $settings)) {
+    if (!sr_url_embed_owner_embed_kind_allowed(
+        $pdo,
+        (string) ($context['owner_module'] ?? ''),
+        (string) ($resolved['embed_kind'] ?? ''),
+        $settings
+    )) {
         return '';
     }
 

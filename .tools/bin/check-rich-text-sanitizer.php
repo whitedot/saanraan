@@ -220,7 +220,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
         'content rich text flow' => [
             'modules/content/helpers.php' => [
                 'function sr_content_body_html(',
-                'sr_body_text_html($page, $linkPlainUrls, $pdo)',
+                'sr_body_text_html($page, $linkPlainUrls, $pdo, \'full\', $openPlainLinksInNewTab)',
                 'sr_url_embed_render_body_html($pdo, $html, \'content\', \'content\'',
             ],
             'modules/content/helpers/records.php' => [

@@ -366,7 +366,7 @@ function sr_quiz_default_settings(): array
         'default_reward_amount' => '',
         'default_reward_dedupe_scope' => 'per_quiz',
         'default_cta_label' => '퀴즈 풀기',
-        'embed_enabled' => true,
+        'internal_embed_enabled' => true,
         'identity_view_required' => false,
         'identity_view_adult_required' => false,
         'business_info_visible' => true,
@@ -643,6 +643,9 @@ function sr_quiz_theme_view_file(array $settings, string $view): ?string
 
 function sr_quiz_normalize_settings(array $settings): array
 {
+    if (array_key_exists('embed_enabled', $settings) && !array_key_exists('internal_embed_enabled', $settings)) {
+        $settings['internal_embed_enabled'] = $settings['embed_enabled'];
+    }
     $defaults = sr_quiz_default_settings();
     $normalized = array_merge($defaults, $settings);
 
@@ -696,7 +699,8 @@ function sr_quiz_normalize_settings(array $settings): array
     if ($normalized['default_cta_label'] === '') {
         $normalized['default_cta_label'] = (string) $defaults['default_cta_label'];
     }
-    $normalized['embed_enabled'] = !empty($normalized['embed_enabled']);
+    $normalized['internal_embed_enabled'] = !empty($normalized['internal_embed_enabled']);
+    unset($normalized['embed_enabled']);
     $normalized['identity_view_required'] = !empty($normalized['identity_view_required']);
     $normalized['identity_view_adult_required'] = !empty($normalized['identity_view_adult_required']);
     $normalized['business_info_visible'] = !array_key_exists('business_info_visible', $normalized) || !empty($normalized['business_info_visible']);
@@ -748,7 +752,7 @@ function sr_quiz_settings_from_post(): array
         'default_reward_amount' => sr_post_string('default_reward_amount', 20),
         'default_reward_dedupe_scope' => $rewardDedupeScope,
         'default_cta_label' => sr_quiz_clean_single_line(sr_post_string('default_cta_label', 120), 120),
-        'embed_enabled' => ($_POST['embed_enabled'] ?? '') === '1',
+        'internal_embed_enabled' => ($_POST['internal_embed_enabled'] ?? '') === '1',
         'identity_view_required' => ($_POST['identity_view_required'] ?? '') === '1',
         'identity_view_adult_required' => ($_POST['identity_view_adult_required'] ?? '') === '1',
         'business_info_visible' => ($_POST['business_info_visible'] ?? '') === '1',

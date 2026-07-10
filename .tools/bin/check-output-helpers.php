@@ -428,6 +428,21 @@ sr_output_helper_assert(
     'Plain text URL linkification should stay disabled by default.'
 );
 sr_output_helper_assert(
+    sr_plain_text_html('See https://example.com/path?x=1', true, true)
+        === 'See <a href="https://example.com/path?x=1" target="_blank" rel="nofollow noopener noreferrer">https://example.com/path?x=1</a>',
+    'Plain text URL linkification should add a new-tab target only when explicitly enabled.'
+);
+sr_output_helper_assert(
+    sr_body_text_html(
+        ['body_text' => 'See https://example.com/path', 'body_format' => 'plain'],
+        true,
+        null,
+        'full',
+        true
+    ) === 'See <a href="https://example.com/path" target="_blank" rel="nofollow noopener noreferrer">https://example.com/path</a>',
+    'Body text helper should forward the plain-text new-tab option.'
+);
+sr_output_helper_assert(
     sr_plain_text_html("Line 1\nhttps://example.com/a.", true)
         === 'Line 1<br>' . "\n" . '<a href="https://example.com/a" rel="nofollow noopener noreferrer">https://example.com/a</a>.',
     'Plain text URL linkification should preserve line breaks and trailing punctuation.'
