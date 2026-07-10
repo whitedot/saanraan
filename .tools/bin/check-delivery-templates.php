@@ -236,6 +236,14 @@ $pdo = sr_delivery_template_check_pdo();
 sr_delivery_template_check_seed_notification_events($pdo);
 $contracts = sr_delivery_template_contracts($pdo);
 
+sr_delivery_template_check_assert(
+    !function_exists('sr_delivery_template_legacy_notification_contracts'),
+    'delivery template core must not expose the retired notification event compatibility collector.'
+);
+sr_delivery_template_check_assert(
+    !function_exists('sr_delivery_template_legacy_notification_label'),
+    'delivery template core must not load module notification cases for the central template list.'
+);
 sr_delivery_template_check_assert(isset($contracts['member.email_verification']), 'delivery template contracts must include the shared member.email_verification key.');
 sr_delivery_template_check_assert(isset($contracts['member.password_reset']), 'delivery template contracts must include member.password_reset.');
 sr_delivery_template_check_assert(isset($contracts['member.login_mfa_email_code']), 'delivery template contracts must include member.login_mfa_email_code.');

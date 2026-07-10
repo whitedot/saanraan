@@ -134,41 +134,6 @@ function sr_delivery_template_display_label(array $template, string $fallback = 
     return sr_clean_single_line($fallback, 120);
 }
 
-function sr_delivery_template_legacy_notification_label(string $moduleKey, string $eventKey, string $titleTemplate): string
-{
-    if (!sr_is_safe_module_key($moduleKey)) {
-        return sr_delivery_template_display_label([
-            'subject_template' => $titleTemplate,
-        ], '회원 알림');
-    }
-
-    $casesFunction = 'sr_' . $moduleKey . '_notification_cases';
-    $caseHelperModules = ['coupon', 'deposit', 'point', 'reward'];
-    $helperPath = SR_ROOT . '/modules/' . $moduleKey . '/helpers.php';
-    if (!function_exists($casesFunction) && in_array($moduleKey, $caseHelperModules, true) && is_file($helperPath)) {
-        require_once $helperPath;
-    }
-
-    if (function_exists($casesFunction)) {
-        $cases = $casesFunction();
-        if (is_array($cases)) {
-            foreach ($cases as $case) {
-                if (!is_array($case) || (string) ($case['event_key'] ?? '') !== $eventKey) {
-                    continue;
-                }
-                $label = sr_clean_single_line((string) ($case['label'] ?? ''), 120);
-                if ($label !== '') {
-                    return $label;
-                }
-            }
-        }
-    }
-
-    return sr_delivery_template_display_label([
-        'subject_template' => $titleTemplate,
-    ], $moduleKey . ' 알림');
-}
-
 function sr_delivery_template_contracts(PDO $pdo): array
 {
     $contracts = [];
@@ -192,68 +157,6 @@ function sr_delivery_template_contracts(PDO $pdo): array
         }
     }
     ksort($contracts);
-    return $contracts;
-}
-
-function sr_delivery_template_legacy_notification_contracts(PDO $pdo): array
-{
-    try {
-        $stmt = $pdo->query(
-            'SELECT module_key, event_key, title_template, body_template, link_template, channels_json, status
-             FROM sr_notification_event_templates
-             ORDER BY module_key ASC, event_key ASC'
-        );
-    } catch (Throwable) {
-        return [];
-    }
-
-    $contracts = [];
-    foreach ($stmt->fetchAll() as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-        $moduleKey = (string) ($row['module_key'] ?? '');
-        $eventKey = (string) ($row['event_key'] ?? '');
-        $templateKey = sr_delivery_template_key($moduleKey . '.' . $eventKey);
-        if ($templateKey === '' || !sr_is_safe_module_key($moduleKey)) {
-            continue;
-        }
-        $channels = sr_delivery_template_decode_channels_json((string) ($row['channels_json'] ?? ''));
-        if ($channels === []) {
-            $channels = ['site'];
-        }
-        $titleTemplate = (string) ($row['title_template'] ?? '');
-        $contracts[$templateKey] = [
-            'template_key' => $templateKey,
-            'owner_module' => $moduleKey,
-            'provider_module' => 'notification',
-            'module_enabled' => sr_module_enabled($pdo, $moduleKey),
-            'label' => sr_delivery_template_legacy_notification_label($moduleKey, $eventKey, $titleTemplate),
-            'description' => '기존 알림 이벤트 템플릿입니다. 명시 계약으로 이관되기 전까지 호환 경로로 표시됩니다.',
-            'category' => 'notification_event',
-            'channels' => $channels,
-            'available_channels' => sr_delivery_template_notification_event_available_channels($channels),
-            'pipeline' => 'notification_queue',
-            'editable' => true,
-            'disable_policy' => 'no_op',
-            'subject_template' => $titleTemplate,
-            'body_template' => (string) ($row['body_template'] ?? ''),
-            'link_template' => (string) ($row['link_template'] ?? ''),
-            'status' => (string) ($row['status'] ?? 'active'),
-            'variables' => sr_delivery_template_variables_from_templates(
-                (string) ($row['title_template'] ?? ''),
-                (string) ($row['body_template'] ?? ''),
-                (string) ($row['link_template'] ?? '')
-            ),
-            'required_variables' => [],
-            'sensitive_variables' => [],
-            'sample_values' => [],
-            'event_module_key' => $moduleKey,
-            'event_key' => $eventKey,
-            'body_editable' => true,
-            'legacy_notification_event' => true,
-        ];
-    }
     return $contracts;
 }
 
@@ -377,32 +280,6 @@ function sr_delivery_template_override(PDO $pdo, string $key): ?array
         return null;
     }
     return is_array($row) ? $row : null;
-}
-
-function sr_delivery_template_overrides(PDO $pdo): array
-{
-    try {
-        $stmt = $pdo->query(
-            'SELECT template_key, owner_module, category, subject_template, body_template, link_template,
-                    channels_json, status, updated_by_account_id, created_at, updated_at
-             FROM sr_delivery_template_overrides
-             ORDER BY template_key ASC'
-        );
-    } catch (Throwable) {
-        return [];
-    }
-
-    $overrides = [];
-    foreach ($stmt->fetchAll() as $row) {
-        if (!is_array($row)) {
-            continue;
-        }
-        $templateKey = sr_delivery_template_key((string) ($row['template_key'] ?? ''));
-        if ($templateKey !== '') {
-            $overrides[$templateKey] = $row;
-        }
-    }
-    return $overrides;
 }
 
 function sr_delivery_template_effective(PDO $pdo, string $key): ?array
