@@ -402,7 +402,8 @@ foreach ($optionalModules as $moduleKey => $module) {
                         </p>
                         <p<?php echo $installFieldErrorAttr('admin_display_name'); ?>>
                             <label for="admin_display_name"><?php echo sr_e(sr_t('ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
-                            <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" required data-summary-source="admin_display_name">
+                            <input id="admin_display_name" type="text" name="admin_display_name" value="<?php echo sr_e($values['admin_display_name']); ?>" pattern="[^\s]+" required data-summary-source="admin_display_name">
+                            <span class="sr-install-help">공백 없이 입력해 주세요.</span>
                         </p>
                     </div>
                 </div>

@@ -146,6 +146,15 @@ foreach (['function sr_install_module_dependency_keys', 'sr_install_module_depen
     }
 }
 
+foreach ([
+    "foreach (sr_member_display_name_validation_errors((string) \$values['admin_display_name']) as \$displayNameError)",
+    "\$addInstallError(\$displayNameError, 'admin', ['admin_display_name']);",
+] as $marker) {
+    if (!str_contains($install, $marker)) {
+        $errors[] = 'initial installer must reject an invalid owner display name before schema mutation: ' . $marker;
+    }
+}
+
 $installView = $read('core/views/install.php');
 foreach ([
     '$selectedModuleSummaryLabels = array_values(array_unique(array_merge($selectedModuleLabels, $selectedAutoDependencyModuleLabels)));',
@@ -153,6 +162,8 @@ foreach ([
     'data-install-foundation-status',
     '이번 설치 포함',
     "updateTextSummary('optional_modules', moduleLabels.concat(autoDependencyLabels).length",
+    'name="admin_display_name" value="<?php echo sr_e($values[\'admin_display_name\']); ?>" pattern="[^\\s]+" required',
+    '<span class="sr-install-help">공백 없이 입력해 주세요.</span>',
 ] as $marker) {
     if (!str_contains($installView, $marker)) {
         $errors[] = 'initial installer must show auto-included foundation modules in the selected module list: ' . $marker;

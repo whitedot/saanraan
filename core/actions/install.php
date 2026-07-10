@@ -647,8 +647,8 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
         $addInstallError('관리자 이메일 형식이 올바르지 않습니다.', 'admin', ['admin_email']);
     }
 
-    if ($values['admin_display_name'] === '') {
-        $addInstallError('관리자 이름을 입력하세요.', 'admin', ['admin_display_name']);
+    foreach (sr_member_display_name_validation_errors((string) $values['admin_display_name']) as $displayNameError) {
+        $addInstallError($displayNameError, 'admin', ['admin_display_name']);
     }
 
     $values['member_login_identifier'] = sr_member_normalize_login_identifier_setting($values['member_login_identifier']);
