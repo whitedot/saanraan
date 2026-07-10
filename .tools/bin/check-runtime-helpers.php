@@ -257,6 +257,16 @@ sr_runtime_helper_assert(
     sr_rate_limit_count($ratePdo, 'member.login.ip', '203.0.113.10', 60) === 2,
     'Rate limit count should increment within the active window.'
 );
+sr_runtime_helper_assert(
+    sr_rate_limit_count($ratePdo, '', '203.0.113.10', 60) === PHP_INT_MAX,
+    'Invalid rate limit count inputs must fail closed.'
+);
+$missingRateTablePdo = new PDO('sqlite::memory:');
+$missingRateTablePdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+sr_runtime_helper_assert(
+    sr_rate_limit_count($missingRateTablePdo, 'member.login.ip', '203.0.113.10', 60) === PHP_INT_MAX,
+    'Rate limit storage read failures must fail closed.'
+);
 $rateRow = $ratePdo->query('SELECT rate_key, subject_hash FROM sr_rate_limits LIMIT 1')->fetch(PDO::FETCH_ASSOC);
 sr_runtime_helper_assert(
     is_array($rateRow)

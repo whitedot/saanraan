@@ -1345,7 +1345,7 @@ function sr_smtp_dot_stuff(string $message): string
 function sr_rate_limit_count(PDO $pdo, string $bucket, string $subject, int $windowSeconds): int
 {
     if (!sr_rate_limit_input_is_valid($bucket, $subject, $windowSeconds)) {
-        return 0;
+        return PHP_INT_MAX;
     }
 
     try {
@@ -1361,8 +1361,8 @@ function sr_rate_limit_count(PDO $pdo, string $bucket, string $subject, int $win
             'now' => sr_now(),
         ]);
         $row = $stmt->fetch();
-    } catch (Throwable $exception) {
-        return 0;
+    } catch (Throwable) {
+        return PHP_INT_MAX;
     }
 
     return is_array($row) ? (int) ($row['attempt_count'] ?? 0) : 0;
