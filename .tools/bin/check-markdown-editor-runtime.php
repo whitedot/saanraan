@@ -189,7 +189,18 @@ sr_markdown_editor_check_assert(
         && !str_contains($css, 'max-width: 980px')
         && str_contains($css, '.markdown-editor-body h1 {')
         && str_contains($css, 'sr-control: h1_size')
-        && str_contains($css, 'font-size: 32px;')
+        && str_contains($css, "/* sr-control: h1_size */\n    font-size: 32px;")
+        && str_contains($css, "/* sr-control: h2_size */\n    font-size: 26px;")
+        && str_contains($css, "/* sr-control: h3_size */\n    font-size: 24px;")
+        && str_contains($css, "/* sr-control: h4_size */\n    font-size: 20px;")
+        && str_contains($css, "/* sr-control: h5_size */\n    font-size: 18px;")
+        && str_contains($css, "/* sr-control: h6_size */\n    font-size: 16px;")
+        && str_contains($css, "/* sr-control: text_h1_font_size */\n    font-size: 32px;")
+        && str_contains($css, "/* sr-control: text_h2_font_size */\n    font-size: 26px;")
+        && str_contains($css, "/* sr-control: text_h3_font_size */\n    font-size: 24px;")
+        && str_contains($css, "/* sr-control: text_h4_font_size */\n    font-size: 20px;")
+        && str_contains($css, "/* sr-control: text_h5_font_size */\n    font-size: 18px;")
+        && str_contains($css, "/* sr-control: text_h6_font_size */\n    font-size: 16px;")
         && str_contains($css, '.markdown-editor-body li + li {')
         && str_contains($css, '.markdown-editor-body table th {')
         && str_contains($css, 'text-underline-offset: 2px;')
@@ -239,6 +250,10 @@ sr_markdown_editor_check_assert(
         && str_contains($settingsView, 'data-markdown-editor-surface')
         && str_contains($settingsView, 'data-markdown-source')
         && str_contains($settingsView, 'data-markdown-rendered-preview')
+        && str_contains($settingsView, 'class="markdown-editor-render-stage"')
+        && str_contains($settingsView, 'class="markdown-editor-preview-status" data-markdown-editor-preview-status aria-live="polite"')
+        && strpos($settingsView, 'data-markdown-rendered-preview') < strpos($settingsView, 'data-markdown-editor-preview-status')
+        && strpos($settingsView, 'data-markdown-editor-preview-status') < $pageActionsPosition
         && str_contains($settingsView, 'data-markdown-properties-sidebar')
         && !str_contains($settingsView, 'data-markdown-context-toolbar')
         && !str_contains($settingsView, 'data-markdown-toolbar-groups')
@@ -271,9 +286,9 @@ sr_markdown_editor_check_assert(
         && str_contains($settingsView, '>기본</label>')
         && str_contains($settingsView, '>커스텀</label>')
         && !str_contains($settingsView, '<span>참고:</span>')
-        && str_contains($settingsView, 'class="markdown-editor-github-icon"')
-        && str_contains($settingsView, '<span>github-markdown-css</span>')
-        && str_contains($settingsView, 'href="https://github.com/sindresorhus/github-markdown-css"')
+        && !str_contains($settingsView, 'class="markdown-editor-github-icon"')
+        && !str_contains($settingsView, '<span>github-markdown-css</span>')
+        && !str_contains($settingsView, 'href="https://github.com/sindresorhus/github-markdown-css"')
         && !str_contains($settingsView, '>설정 저장</button>')
         && !str_contains($settingsView, '참고 프로젝트:')
         && !str_contains($settingsView, '>참조 원본</strong>')
@@ -449,6 +464,10 @@ sr_markdown_editor_check_assert(
         && !str_contains($adminStylesheet, '.markdown-editor-context-toolbar')
         && !str_contains($adminStylesheet, '.markdown-editor-context-fields')
         && str_contains($adminStylesheet, '.markdown-editor-source')
+        && str_contains($adminStylesheet, '.markdown-editor-render-stage')
+        && str_contains($adminStylesheet, '.markdown-editor-preview-status:empty')
+        && str_contains($adminStylesheet, 'background: color-mix(in oklab, var(--sr-surface) 88%, transparent)')
+        && str_contains($adminStylesheet, 'backdrop-filter: blur(2px)')
         && str_contains($adminStylesheet, '.markdown-editor-pane-toggle')
         && str_contains($adminStylesheet, 'white-space: pre-wrap')
         && str_contains($adminStylesheet, '[data-markdown-style-selected]')
@@ -622,6 +641,30 @@ sr_markdown_editor_check_assert(
             '.markdown-editor-body blockquote, .markdown-editor-body blockquote > p {'
         ),
     'Blockquote typography and color controls should reach the rendered paragraph and migrate existing custom stylesheets.'
+);
+$legacyHeadingStylesheet = $defaultStylesheet;
+$legacyHeadingSizes = ['h1' => 32, 'h2' => 24, 'h3' => 20, 'h4' => 16, 'h5' => 14, 'h6' => 13];
+$currentHeadingSizes = ['h1' => 32, 'h2' => 26, 'h3' => 24, 'h4' => 20, 'h5' => 18, 'h6' => 16];
+foreach ($legacyHeadingSizes as $heading => $legacySize) {
+    foreach ([$heading . '_size', 'text_' . $heading . '_font_size'] as $controlKey) {
+        $legacyHeadingStylesheet = str_replace(
+            '/* sr-control: ' . $controlKey . " */\n    font-size: " . $currentHeadingSizes[$heading] . 'px;',
+            '/* sr-control: ' . $controlKey . " */\n    font-size: " . $legacySize . 'px;',
+            $legacyHeadingStylesheet
+        );
+    }
+}
+$migratedHeadingStylesheet = sr_markdown_editor_migrate_default_heading_scale($legacyHeadingStylesheet);
+$customLegacyHeadingStylesheet = str_replace(
+    "/* sr-control: text_h3_font_size */\n    font-size: 20px;",
+    "/* sr-control: text_h3_font_size */\n    font-size: 21px;",
+    $legacyHeadingStylesheet
+);
+sr_markdown_editor_check_assert(
+    str_contains($migratedHeadingStylesheet, "/* sr-control: h2_size */\n    font-size: 26px;")
+        && str_contains($migratedHeadingStylesheet, "/* sr-control: text_h6_font_size */\n    font-size: 16px;")
+        && sr_markdown_editor_migrate_default_heading_scale($customLegacyHeadingStylesheet) === $customLegacyHeadingStylesheet,
+    'The complete legacy default heading scale should migrate to the UI kit reference scale without leaving overriding text controls behind.'
 );
 $missingControlMarkers = [];
 foreach (sr_markdown_editor_style_binding_map() as $controlKey => $_binding) {

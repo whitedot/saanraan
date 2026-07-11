@@ -54,11 +54,11 @@ function sr_markdown_editor_text_target_definitions(): array
     return [
         'paragraph' => ['selector' => '.markdown-editor-body p'] + $base,
         'h1' => ['selector' => '.markdown-editor-body h1', 'size' => 32, 'weight' => 700, 'line_height' => 1.25] + $base,
-        'h2' => ['selector' => '.markdown-editor-body h2', 'size' => 24, 'weight' => 700, 'line_height' => 1.25] + $base,
-        'h3' => ['selector' => '.markdown-editor-body h3', 'size' => 20, 'weight' => 700, 'line_height' => 1.25] + $base,
-        'h4' => ['selector' => '.markdown-editor-body h4', 'size' => 16, 'weight' => 700, 'line_height' => 1.25] + $base,
-        'h5' => ['selector' => '.markdown-editor-body h5', 'size' => 14, 'weight' => 700, 'line_height' => 1.25] + $base,
-        'h6' => ['selector' => '.markdown-editor-body h6', 'size' => 13, 'weight' => 700, 'line_height' => 1.25, 'token' => '--md-muted'] + $base,
+        'h2' => ['selector' => '.markdown-editor-body h2', 'size' => 26, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h3' => ['selector' => '.markdown-editor-body h3', 'size' => 24, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h4' => ['selector' => '.markdown-editor-body h4', 'size' => 20, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h5' => ['selector' => '.markdown-editor-body h5', 'size' => 18, 'weight' => 700, 'line_height' => 1.25] + $base,
+        'h6' => ['selector' => '.markdown-editor-body h6', 'size' => 16, 'weight' => 700, 'line_height' => 1.25, 'token' => '--md-muted'] + $base,
         'link' => ['selector' => '.markdown-editor-body a', 'decoration' => 'underline', 'token' => '--md-info'] + $base,
         'list' => ['selector' => '.markdown-editor-body ul, .markdown-editor-body ol'] + $base,
         'blockquote' => ['selector' => '.markdown-editor-body blockquote, .markdown-editor-body blockquote > p', 'token' => '--md-muted'] + $base,
@@ -94,11 +94,11 @@ function sr_markdown_editor_default_style_profile(): array
         'heading_text_align' => 'left',
         'heading_text_transform' => 'none',
         'h1_size' => 32,
-        'h2_size' => 24,
-        'h3_size' => 20,
-        'h4_size' => 16,
-        'h5_size' => 14,
-        'h6_size' => 13,
+        'h2_size' => 26,
+        'h3_size' => 24,
+        'h4_size' => 20,
+        'h5_size' => 18,
+        'h6_size' => 16,
         'strong_weight' => 600,
         'link_weight' => 400,
         'link_decoration' => 'underline',
@@ -222,6 +222,24 @@ function sr_markdown_editor_migrate_token_namespace(string $value): string
         ],
         $value
     );
+}
+
+function sr_markdown_editor_migrate_default_heading_scale(string $css): string
+{
+    $oldSizes = ['h1' => 32, 'h2' => 24, 'h3' => 20, 'h4' => 16, 'h5' => 14, 'h6' => 13];
+    $newSizes = ['h1' => 32, 'h2' => 26, 'h3' => 24, 'h4' => 20, 'h5' => 18, 'h6' => 16];
+    $replacements = [];
+    foreach ($oldSizes as $heading => $oldSize) {
+        foreach ([$heading . '_size', 'text_' . $heading . '_font_size'] as $controlKey) {
+            $oldDeclaration = '/* sr-control: ' . $controlKey . " */\n    font-size: " . $oldSize . 'px;';
+            if (!str_contains($css, $oldDeclaration)) {
+                return $css;
+            }
+            $replacements[$oldDeclaration] = '/* sr-control: ' . $controlKey . " */\n    font-size: " . $newSizes[$heading] . 'px;';
+        }
+    }
+
+    return str_replace(array_keys($replacements), array_values($replacements), $css);
 }
 
 function sr_markdown_editor_token_foundation_stylesheet(): string
@@ -424,7 +442,9 @@ function sr_markdown_editor_settings(PDO $pdo, ?array $override = null): array
     $settings['style_profile_json'] = sr_markdown_editor_normalize_style_profile($settings['style_profile_json'] ?? []);
     $settings['custom_declarations_json'] = sr_markdown_editor_normalize_custom_declarations($settings['custom_declarations_json'] ?? []);
     $stylesheetCss = is_string($settings['stylesheet_css'] ?? null)
-        ? trim(sr_markdown_editor_migrate_token_namespace((string) $settings['stylesheet_css']))
+        ? trim(sr_markdown_editor_migrate_default_heading_scale(
+            sr_markdown_editor_migrate_token_namespace((string) $settings['stylesheet_css'])
+        ))
         : '';
     if ($stylesheetCss === '') {
         $stylesheetCss = sr_markdown_editor_default_stylesheet_css(

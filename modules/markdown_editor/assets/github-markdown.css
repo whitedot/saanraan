@@ -176,29 +176,29 @@
 
 .markdown-editor-body h2 {
     /* sr-control: h2_size */
-    font-size: 24px;
+    font-size: 26px;
 }
 
 .markdown-editor-body h3 {
     /* sr-control: h3_size */
-    font-size: 20px;
+    font-size: 24px;
 }
 
 .markdown-editor-body h4 {
     /* sr-control: h4_size */
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .markdown-editor-body h5 {
     /* sr-control: h5_size */
-    font-size: 14px;
+    font-size: 18px;
 }
 
 .markdown-editor-body h6 {
     /* sr-control: muted_token */
     color: var(--md-muted);
     /* sr-control: h6_size */
-    font-size: 13px;
+    font-size: 16px;
 }
 
 .markdown-editor-body h1 code,

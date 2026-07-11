@@ -226,13 +226,54 @@
     border-color: var(--sr-border-soft);
 }
 
+.markdown-editor-render-stage {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
 .markdown-editor-render-canvas {
     flex: 1;
+    min-width: 0;
     min-height: 0;
     padding: 32px;
     overflow: auto;
     color: var(--sr-text);
     background: var(--sr-surface);
+}
+
+.markdown-editor-preview-status {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 24px;
+    color: var(--sr-muted-strong, var(--sr-text));
+    background: color-mix(in oklab, var(--sr-surface) 88%, transparent);
+    backdrop-filter: blur(2px);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: var(--font-weight-medium);
+    text-align: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 120ms ease, visibility 120ms ease;
+}
+
+.markdown-editor-preview-status:empty {
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.markdown-editor-preview-status-error {
+    color: var(--sr-danger, var(--color-danger));
+    background: color-mix(in oklab, var(--sr-danger, var(--color-danger)) 8%, var(--sr-surface));
 }
 
 .markdown-editor-render-canvas .markdown-editor-body * {
@@ -465,15 +506,6 @@
     tab-size: 4;
 }
 
-.markdown-editor-preview-status {
-    min-height: 1.4em;
-    margin: 12px 0 0;
-}
-
-.markdown-editor-preview-status-error {
-    color: var(--sr-danger, var(--color-danger-600));
-}
-
 .markdown-editor-css-preview-status {
     min-height: 1.4em;
     margin-top: 8px;
@@ -495,51 +527,11 @@
     justify-content: center;
 }
 
-.markdown-editor-reference {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin: 0;
-}
-
-.markdown-editor-reference a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    color: var(--sr-muted-strong, var(--sr-text, var(--color-default-700)));
-    border-radius: 4px;
-    text-decoration: none;
-}
-
-.markdown-editor-reference a:hover {
-    color: var(--sr-text, var(--color-default-900));
-}
-
-.markdown-editor-reference a:focus-visible {
-    outline: 2px solid var(--sr-info, var(--color-primary-600));
-    outline-offset: 2px;
-}
-
-.markdown-editor-github-icon {
-    width: 18px;
-    height: 18px;
-    fill: currentColor;
-}
-
 .markdown-editor-page-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 24px;
-}
-
-.markdown-editor-page-meta {
-    min-width: 0;
-}
-
-.markdown-editor-page-actions .markdown-editor-preview-status {
-    margin: 0;
 }
 
 .markdown-editor-submit-actions {
