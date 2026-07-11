@@ -61,7 +61,7 @@ function sr_markdown_editor_text_target_definitions(): array
         'h6' => ['selector' => '.markdown-editor-body h6', 'size' => 13, 'weight' => 700, 'line_height' => 1.25, 'token' => '--md-muted'] + $base,
         'link' => ['selector' => '.markdown-editor-body a', 'decoration' => 'underline', 'token' => '--md-info'] + $base,
         'list' => ['selector' => '.markdown-editor-body ul, .markdown-editor-body ol'] + $base,
-        'blockquote' => ['selector' => '.markdown-editor-body blockquote', 'token' => '--md-muted'] + $base,
+        'blockquote' => ['selector' => '.markdown-editor-body blockquote, .markdown-editor-body blockquote > p', 'token' => '--md-muted'] + $base,
         'inline_code' => ['selector' => '.markdown-editor-body :not(pre) > code, .markdown-editor-body tt', 'size' => 14] + $base,
         'code_block' => ['selector' => '.markdown-editor-body pre', 'size' => 14, 'line_height' => 1.45] + $base,
         'table' => ['selector' => '.markdown-editor-body table'] + $base,
@@ -811,6 +811,11 @@ function sr_markdown_editor_ensure_box_control_stylesheet(string $css): string
     if (!str_contains($css, 'sr-text-controls: common element text style')) {
         $css .= "\n\n" . sr_markdown_editor_text_control_stylesheet();
     }
+    $css = preg_replace(
+        '/\.markdown-editor-body blockquote\s*\{\s*(\/\*\s*sr-control:\s*text_blockquote_font_size\s*\*\/)/',
+        ".markdown-editor-body blockquote, .markdown-editor-body blockquote > p {\n    $1",
+        $css
+    ) ?? $css;
     return trim($css);
 }
 

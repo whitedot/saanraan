@@ -19,6 +19,19 @@
     var previewTimer = null;
     var previewRequestId = 0;
     var selectedTarget = 'global';
+    var globalTextToken = '--md-text';
+    var inheritedTextTokenKeys = [
+        'text_paragraph_token',
+        'text_h1_token',
+        'text_h2_token',
+        'text_h3_token',
+        'text_h4_token',
+        'text_h5_token',
+        'text_list_token',
+        'text_inline_code_token',
+        'text_code_block_token',
+        'text_table_token'
+    ];
 
     if (propertiesSidebar && inspectorControls) {
         inspectorControls.hidden = false;
@@ -62,6 +75,22 @@
                 control.value = source.value;
             }
         });
+    }
+
+    function cascadeGlobalTextToken(source) {
+        if (!source || source.dataset.markdownStyleKey !== 'text_token') {
+            return;
+        }
+        var nextToken = String(source.value || '--md-text');
+        inheritedTextTokenKeys.forEach(function (key) {
+            controlsForKey(key).forEach(function (control) {
+                if (control.value === globalTextToken || control.value === '--md-text') {
+                    control.value = nextToken;
+                    updateStylesheetControl(control);
+                }
+            });
+        });
+        globalTextToken = nextToken;
     }
 
     function stylesheetControlValue(control) {
@@ -133,6 +162,8 @@
                 relatedControl.value = value;
             });
         });
+        var globalTextControl = controlsForKey('text_token')[0];
+        globalTextToken = globalTextControl ? String(globalTextControl.value || '--md-text') : '--md-text';
     }
 
     function setPreviewStatus(message, isError) {
@@ -320,6 +351,7 @@
             controlsForKey(key).forEach(function (relatedControl) {
                 relatedControl.value = control.dataset.defaultValue;
             });
+            cascadeGlobalTextToken(control);
             updateStylesheetControl(control);
         });
         setStyleSourceMode('custom', false);
@@ -340,6 +372,7 @@
         if (event.target.dataset && event.target.dataset.markdownStyleKey) {
             setStyleSourceMode('custom', false);
             syncRelatedControls(event.target);
+            cascadeGlobalTextToken(event.target);
             updateStylesheetControl(event.target);
             scheduleServerPreview(90);
         }
@@ -357,6 +390,7 @@
         if (event.target.dataset && event.target.dataset.markdownStyleKey) {
             setStyleSourceMode('custom', false);
             syncRelatedControls(event.target);
+            cascadeGlobalTextToken(event.target);
             updateStylesheetControl(event.target);
             scheduleServerPreview(90);
             return;

@@ -328,6 +328,16 @@ sr_markdown_editor_check_assert(
     'Markdown settings view should provide a side property inspector, render-pane dark mode button, CSS-only fullscreen modal, and sticky actions.'
 );
 $adminScript = file_get_contents(SR_ROOT . '/modules/markdown_editor/assets/admin.js');
+sr_markdown_editor_check_assert(
+    is_string($adminScript)
+        && str_contains($adminScript, "source.dataset.markdownStyleKey !== 'text_token'")
+        && str_contains($adminScript, "'text_paragraph_token'")
+        && str_contains($adminScript, "'text_h5_token'")
+        && str_contains($adminScript, "'text_code_block_token'")
+        && str_contains($adminScript, 'control.value === globalTextToken')
+        && str_contains($adminScript, 'updateStylesheetControl(control);'),
+    'Changing the global Markdown text token should update elements that still inherit the previous base text token.'
+);
 $adminStylesheet = file_get_contents(SR_ROOT . '/modules/markdown_editor/assets/admin.css');
 $adminTokenStylesheet = file_get_contents(SR_ROOT . '/modules/admin/assets/tokens.css');
 $publicResetStylesheet = file_get_contents(SR_ROOT . '/assets/reset.css');
@@ -591,6 +601,27 @@ sr_markdown_editor_check_assert(
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_transform */\n    text-transform: uppercase;")
         && str_contains($textProfileStylesheet, "/* sr-control: text_h2_token */\n    color: var(--md-info);"),
     'Every text-bearing element should expose text style controls while inheriting the site font family.'
+);
+sr_markdown_editor_check_assert(
+    str_contains($defaultStylesheet, '.markdown-editor-body blockquote, .markdown-editor-body blockquote > p {')
+        && str_contains(
+            sr_markdown_editor_apply_profile_to_stylesheet(
+                $defaultStylesheet,
+                array_merge(sr_markdown_editor_default_style_profile(), ['text_blockquote_token' => '--md-success'])
+            ),
+            "/* sr-control: text_blockquote_token */\n    color: var(--md-success);"
+        )
+        && str_contains(
+            sr_markdown_editor_ensure_box_control_stylesheet(
+                str_replace(
+                    '.markdown-editor-body blockquote, .markdown-editor-body blockquote > p {',
+                    '.markdown-editor-body blockquote {',
+                    $defaultStylesheet
+                )
+            ),
+            '.markdown-editor-body blockquote, .markdown-editor-body blockquote > p {'
+        ),
+    'Blockquote typography and color controls should reach the rendered paragraph and migrate existing custom stylesheets.'
 );
 $missingControlMarkers = [];
 foreach (sr_markdown_editor_style_binding_map() as $controlKey => $_binding) {
