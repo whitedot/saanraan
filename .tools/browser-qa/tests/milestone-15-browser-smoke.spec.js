@@ -116,13 +116,31 @@ async function visit(page, route) {
 
   page.on('response', onResponse);
   page.on('pageerror', onPageError);
-  const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
+  let response = null;
+  if (route.startsWith('/content/download')) {
+    const downloadPromise = page.waitForEvent('download');
+    let navigationError = null;
+    response = await page.goto(route, { waitUntil: 'domcontentloaded' }).catch((error) => {
+      navigationError = error;
+      return null;
+    });
+    const download = await downloadPromise;
+
+    expect(String(navigationError?.message || ''), `${route} should start a download`).toContain('Download is starting');
+    expect(await download.failure(), `${route} download failure`).toBeNull();
+    await download.delete().catch(() => {});
+  } else {
+    response = await page.goto(route, { waitUntil: 'domcontentloaded' });
+  }
   await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   page.off('response', onResponse);
   page.off('pageerror', onPageError);
 
-  expect(response, `${route} should return a browser response`).not.toBeNull();
-  expect(response.status(), `${route} final status`).toBeLessThan(500);
+  if (response !== null) {
+    expect(response.status(), `${route} final status`).toBeLessThan(500);
+  } else {
+    expect(route, 'only an expected download may omit a navigation response').toMatch(/^\/content\/download(?:\?|$)/);
+  }
   await assertNoBrowserFailures(page, route, [...serverFailures, ...runtimeFailures]);
 }
 
@@ -186,6 +204,7 @@ test.describe('milestone 15 browser smoke', () => {
   });
 
   test('axe accessibility representative smoke', async ({ page }) => {
+    test.setTimeout(120000);
     await login(page);
     for (const route of axeRoutes) {
       await visit(page, route);

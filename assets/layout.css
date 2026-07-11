@@ -589,6 +589,18 @@
         width: 100%;
     }
 
+    .public-layout-nav .sr-site-menu {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .public-layout-nav .sr-site-menu-list-depth-1 {
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        justify-content: center;
+        width: 100%;
+    }
+
     .public-layout-brand-link {
         grid-column: 1;
         grid-row: 1;

@@ -87,7 +87,7 @@ $memberAvatarSamples = [
                             </div>
 
                             <div class="card-body">
-                                <div class="dropdown-menu dropdown-menu-profile dropdown-menu-profile-preview" role="menu" aria-orientation="vertical" aria-label="기본 아바타 드롭다운 샘플">
+                                <div class="dropdown-menu dropdown-menu-profile dropdown-menu-profile-preview" role="group" aria-label="기본 아바타 드롭다운 샘플">
                                     <div class="dropdown-profile-header">
                                         <span class="dropdown-profile-avatar member-avatar-color-7" aria-hidden="true">S</span>
                                         <span class="dropdown-profile-identity">

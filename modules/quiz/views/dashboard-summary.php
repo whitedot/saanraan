@@ -13,12 +13,12 @@ $attemptRow = is_array($dashboardRows[1] ?? null) ? $dashboardRows[1] : [];
         <div>
             <dt><?php echo sr_e((string) ($quizRow['label'] ?? '공개 퀴즈')); ?></dt>
             <dd><?php echo sr_e((string) ($quizRow['value'] ?? '0')); ?></dd>
-            <p><?php echo sr_e((string) ($quizRow['detail'] ?? '초안 0')); ?></p>
+            <dd class="quiz-dashboard-grid-detail"><?php echo sr_e((string) ($quizRow['detail'] ?? '초안 0')); ?></dd>
         </div>
         <div>
             <dt><?php echo sr_e((string) ($attemptRow['label'] ?? '완료 시도')); ?></dt>
             <dd><?php echo sr_e((string) ($attemptRow['value'] ?? '0')); ?></dd>
-            <p><?php echo sr_e((string) ($attemptRow['detail'] ?? '보상 대기 0')); ?></p>
+            <dd class="quiz-dashboard-grid-detail"><?php echo sr_e((string) ($attemptRow['detail'] ?? '보상 대기 0')); ?></dd>
         </div>
     </dl>
     <a href="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="btn btn-outline-default">퀴즈 관리</a>

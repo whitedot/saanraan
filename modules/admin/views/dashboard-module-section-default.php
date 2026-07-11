@@ -23,7 +23,7 @@ $dashboardLayout = (string) ($dashboardSection['layout'] ?? 'table');
                     <dt><?php echo sr_e((string) ($row['label'] ?? '')); ?></dt>
                     <dd><?php echo sr_e((string) ($row['value'] ?? '')); ?></dd>
                     <?php if ((string) ($row['detail'] ?? '') !== '') { ?>
-                        <p><?php echo sr_e((string) $row['detail']); ?></p>
+                        <dd class="admin-dashboard-module-stat-detail"><?php echo sr_e((string) $row['detail']); ?></dd>
                     <?php } ?>
                 </div>
             <?php } ?>

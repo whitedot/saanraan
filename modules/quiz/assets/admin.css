@@ -14,7 +14,7 @@
 
 .quiz-dashboard-summary .type-meta,
 .quiz-dashboard-grid dt,
-.quiz-dashboard-grid p {
+.quiz-dashboard-grid .quiz-dashboard-grid-detail {
     color: var(--text-muted);
 }
 
@@ -45,8 +45,9 @@
     margin: calc(var(--spacing) * 1) 0 0;
 }
 
-.quiz-dashboard-grid p {
+.quiz-dashboard-grid dd.quiz-dashboard-grid-detail {
     font-size: var(--type-small-size);
+    font-weight: var(--font-weight-normal);
     line-height: var(--type-small-line-height);
     margin-top: calc(var(--spacing) * 1);
 }

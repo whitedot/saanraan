@@ -510,7 +510,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-dashboard-module-stat dt{margin:0;color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);font-weight:var(--font-weight-semibold)}
 .admin-dashboard-module-stat dd{margin:.35rem 0 0;color:var(--text-strong);font-size:var(--type-section-title-size);line-height:var(--type-section-title-line-height);font-weight:var(--font-weight-bold);overflow-wrap:anywhere}
 .admin-dashboard-module-stat[data-admin-dashboard-emphasis=primary] dd{font-size:var(--text-2xl);line-height:var(--text-2xl--line-height)}
-.admin-dashboard-module-stat p{margin:.35rem 0 0;color:var(--text-muted);font-size:var(--type-small-size);line-height:var(--type-small-line-height);overflow-wrap:anywhere}
+.admin-dashboard-module-stat dd.admin-dashboard-module-stat-detail{margin:.35rem 0 0;color:var(--text-muted);font-size:var(--type-small-size);line-height:var(--type-small-line-height);font-weight:var(--font-weight-normal);overflow-wrap:anywhere}
 .admin-local-nav-wrap,.admin-notice{margin-bottom:calc(var(--spacing) * 4)}
 .admin-local-nav-wrap{justify-content:space-between;align-items:center;column-gap:calc(var(--spacing) * 4);row-gap:calc(var(--spacing) * 3);flex-wrap:wrap;display:flex}
 .admin-local-nav,.admin-summary-stats{align-items:center;gap:calc(var(--spacing) * 2);flex-wrap:wrap;display:flex}

@@ -683,13 +683,23 @@
 }
 
 .community-post-comment-count {
-    color: var(--sr-danger-text, var(--color-danger, #f43f5e));
+    color: var(--sr-danger-text, var(--color-danger-hover, #b72f47));
     display: inline;
     font-size: var(--type-meta-size, 12px);
     font-weight: var(--font-weight-semibold);
     line-height: 1.2;
     margin-left: 4px;
     white-space: nowrap;
+}
+
+[data-color-scheme="dark"] .community-post-comment-count {
+    color: var(--sr-danger-text, var(--color-danger, #f43f5e));
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-color-scheme="system"] .community-post-comment-count {
+        color: var(--sr-danger-text, var(--color-danger, #f43f5e));
+    }
 }
 
 .community-post-view-board {
