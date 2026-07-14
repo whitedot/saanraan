@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.07.001',
+    'version' => '2026.07.002',
     'type' => 'module',
     'description' => '회원 계정, 인증, 마이페이지 모듈입니다.',
     'admin' => [

@@ -368,7 +368,31 @@ function sr_member_public_account_hash(array $config, int $accountId): string
         return '';
     }
 
-    return substr(sr_hmac_hash('member-public-account|' . (string) $accountId, $config), 0, 32);
+    $accountIdHex = str_pad(strtolower(dechex($accountId)), 16, '0', STR_PAD_LEFT);
+    $left = (int) hexdec(substr($accountIdHex, 0, 8));
+    $right = (int) hexdec(substr($accountIdHex, 8, 8));
+
+    for ($round = 0; $round < 6; $round++) {
+        $roundValue = sr_member_public_account_hash_round_value($config, $round, $right);
+        $nextLeft = $right;
+        $right = ($left ^ $roundValue) & 0xffffffff;
+        $left = $nextLeft;
+    }
+
+    $payload = sprintf('%08x%08x', $left, $right);
+    $mac = substr(sr_hmac_hash('member-public-account-mac|' . $payload, $config), 0, 16);
+
+    return $payload . $mac;
+}
+
+function sr_member_public_account_hash_round_value(array $config, int $round, int $right): int
+{
+    $hash = sr_hmac_hash(
+        'member-public-account-round|' . (string) $round . '|' . sprintf('%08x', $right),
+        $config
+    );
+
+    return (int) hexdec(substr($hash, 0, 8));
 }
 
 function sr_member_public_account_hash_is_valid(string $publicHash): bool
@@ -376,56 +400,49 @@ function sr_member_public_account_hash_is_valid(string $publicHash): bool
     return preg_match('/\A[a-f0-9]{32}\z/', $publicHash) === 1;
 }
 
-function sr_member_public_account_summary_by_hash(PDO $pdo, array $config, string $publicHash): ?array
+function sr_member_public_account_id_from_hash(array $config, string $publicHash): int
 {
     $publicHash = strtolower(trim($publicHash));
     if (!sr_member_public_account_hash_is_valid($publicHash)) {
+        return 0;
+    }
+
+    $payload = substr($publicHash, 0, 16);
+    $providedMac = substr($publicHash, 16, 16);
+    $expectedMac = substr(sr_hmac_hash('member-public-account-mac|' . $payload, $config), 0, 16);
+    if (!hash_equals($expectedMac, $providedMac)) {
+        return 0;
+    }
+
+    $left = (int) hexdec(substr($payload, 0, 8));
+    $right = (int) hexdec(substr($payload, 8, 8));
+    for ($round = 5; $round >= 0; $round--) {
+        $previousRight = $left;
+        $previousLeft = ($right ^ sr_member_public_account_hash_round_value($config, $round, $previousRight)) & 0xffffffff;
+        $left = $previousLeft;
+        $right = $previousRight;
+    }
+
+    $accountIdValue = hexdec(sprintf('%08x%08x', $left, $right));
+    return is_int($accountIdValue) && $accountIdValue > 0 ? $accountIdValue : 0;
+}
+
+function sr_member_public_account_summary_by_hash(PDO $pdo, array $config, string $publicHash): ?array
+{
+    $publicHash = strtolower(trim($publicHash));
+    $accountId = sr_member_public_account_id_from_hash($config, $publicHash);
+    if ($accountId < 1) {
         return null;
     }
 
-    $accountsByHash = sr_member_public_account_summaries_by_hash($pdo, $config);
-    return $accountsByHash[$publicHash] ?? null;
-}
-
-function sr_member_public_account_summaries_by_hash(PDO $pdo, array $config): array
-{
-    static $cachedMaps = [];
-
-    $cacheKey = (string) spl_object_id($pdo) . ':' . sr_hmac_hash('member-public-account-map', $config);
-    if (isset($cachedMaps[$cacheKey])) {
-        return $cachedMaps[$cacheKey];
+    $account = sr_member_public_account_summary($pdo, $accountId);
+    if (!is_array($account) || (string) ($account['status'] ?? '') !== 'active') {
+        return null;
     }
 
-    $settings = sr_member_settings($pdo);
-    $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
-    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname' : "'' AS nickname";
-    $stmt = $pdo->query(
-        'SELECT a.id, a.display_name, a.locale, a.status, ' . $nicknameSelect . "
-         FROM sr_member_accounts a
-         " . $join . "
-         WHERE a.status = 'active'
-         ORDER BY a.id ASC"
-    );
-    $accountsByHash = [];
-    foreach ($stmt->fetchAll() as $account) {
-        $accountId = (int) ($account['id'] ?? 0);
-        if ($accountId > 0) {
-            $accountHash = sr_member_public_account_hash($config, $accountId);
-            $accountsByHash[$accountHash] = [
-                'id' => (int) $account['id'],
-                'display_name' => (string) $account['display_name'],
-                'nickname' => (string) ($account['nickname'] ?? ''),
-                'public_name' => sr_member_public_name($account, $settings),
-                'locale' => (string) $account['locale'],
-                'status' => (string) $account['status'],
-                'public_hash' => $accountHash,
-            ];
-        }
-    }
+    $account['public_hash'] = $publicHash;
 
-    $cachedMaps[$cacheKey] = $accountsByHash;
-
-    return $accountsByHash;
+    return $account;
 }
 
 function sr_member_current_request_next_path(): string

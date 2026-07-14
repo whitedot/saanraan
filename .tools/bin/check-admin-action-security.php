@@ -1047,11 +1047,10 @@ if (
     || strpos($communityNotificationsHelper, 'function sr_community_create_admin_report_notifications') === false
     || strpos($communityNotificationsHelper, "p.menu_path = '/admin/community/reports'") === false
     || strpos($communityNotificationsHelper, "p.action_key = 'view'") === false
-    || (
-        strpos($memberAccountsHelper, 'function sr_member_public_account_summaries_by_hash') === false
-        && strpos($memberAccountsHelper, 'function sr_member_public_account_summary_by_hash') === false
-    )
-    || strpos($memberAccountsHelper, 'static $cachedMaps = [];') === false
+    || strpos($memberAccountsHelper, 'function sr_member_public_account_summary_by_hash') === false
+    || strpos($memberAccountsHelper, 'function sr_member_public_account_id_from_hash') === false
+    || strpos($memberAccountsHelper, 'function sr_member_public_account_summaries_by_hash') !== false
+    || strpos($memberAccountsHelper, 'static $cachedMaps = [];') !== false
     || strpos($messageHelper, 'recipient_account_hash') === false
     || strpos($messageHelper, "return \$label;") === false
     || strpos($messageWriteAction, "'policy_bypass'") === false
