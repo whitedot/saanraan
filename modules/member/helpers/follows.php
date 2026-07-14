@@ -43,6 +43,49 @@ function sr_member_follow_status(PDO $pdo, int $followerAccountId, int $followin
     return is_array($row) ? (string) ($row['status'] ?? '') : '';
 }
 
+function sr_member_follow_statuses(PDO $pdo, int $followerAccountId, array $followingAccountIds): array
+{
+    if ($followerAccountId < 1 || !sr_member_follows_table_exists($pdo)) {
+        return [];
+    }
+
+    $cleanIds = [];
+    foreach ($followingAccountIds as $followingAccountId) {
+        $followingAccountId = (int) $followingAccountId;
+        if ($followingAccountId > 0 && $followingAccountId !== $followerAccountId) {
+            $cleanIds[$followingAccountId] = $followingAccountId;
+        }
+    }
+    if ($cleanIds === []) {
+        return [];
+    }
+
+    $placeholders = [];
+    $params = ['follower_account_id' => $followerAccountId];
+    foreach (array_values($cleanIds) as $index => $followingAccountId) {
+        $param = 'following_account_id_' . (string) $index;
+        $placeholders[] = ':' . $param;
+        $params[$param] = $followingAccountId;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT following_account_id, status
+         FROM sr_member_follows
+         WHERE follower_account_id = :follower_account_id
+           AND following_account_id IN (' . implode(', ', $placeholders) . ')'
+    );
+    $stmt->execute($params);
+
+    $statuses = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $followingAccountId = (int) ($row['following_account_id'] ?? 0);
+        if ($followingAccountId > 0) {
+            $statuses[$followingAccountId] = (string) ($row['status'] ?? '');
+        }
+    }
+
+    return $statuses;
+}
+
 function sr_member_is_following(PDO $pdo, int $followerAccountId, int $followingAccountId): bool
 {
     return sr_member_follow_status($pdo, $followerAccountId, $followingAccountId) === 'active';
@@ -177,7 +220,9 @@ function sr_member_public_name_menu_html(PDO $pdo, ?array $viewerAccount, int $t
     }
 
     if ($viewerAccountId > 0 && $viewerAccountId !== $targetAccountId && sr_member_follows_table_exists($pdo)) {
-        $isFollowing = sr_member_is_following($pdo, $viewerAccountId, $targetAccountId);
+        $isFollowing = array_key_exists('is_following', $options)
+            ? !empty($options['is_following'])
+            : sr_member_is_following($pdo, $viewerAccountId, $targetAccountId);
         $items[] = '<form method="post" action="' . sr_e(sr_url('/member/follow')) . '" class="member-profile-menu-form">'
             . sr_csrf_field()
             . '<input type="hidden" name="target_account_hash" value="' . sr_e($targetHash) . '">'

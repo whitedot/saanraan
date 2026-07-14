@@ -66,6 +66,35 @@ function sr_community_account_has_board_management_permission(PDO $pdo, int $boa
     return (bool) $stmt->fetchColumn();
 }
 
+function sr_community_account_board_management_permissions(PDO $pdo, int $boardId, int $accountId): array
+{
+    if ($boardId < 1 || $accountId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT permission_key
+         FROM sr_community_board_managers
+         WHERE board_id = :board_id
+           AND account_id = :account_id
+           AND status = 'active'"
+    );
+    $stmt->execute([
+        'board_id' => $boardId,
+        'account_id' => $accountId,
+    ]);
+
+    $permissions = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $permissionKey) {
+        $permissionKey = (string) $permissionKey;
+        if (sr_community_board_manager_permission_is_valid($permissionKey)) {
+            $permissions[$permissionKey] = true;
+        }
+    }
+
+    return $permissions;
+}
+
 function sr_community_grant_board_management_permissions(PDO $pdo, int $boardId, int $accountId, array $permissionKeys, int $actorAccountId): array
 {
     $granted = [];

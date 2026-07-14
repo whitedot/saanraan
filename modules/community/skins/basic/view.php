@@ -14,6 +14,7 @@ if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 $communityReactionCommentTargets = [];
+$communityReactionCommentSummaries = [];
 if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets') && is_array($comments ?? null) && $comments !== []) {
     $communityReactionCommentIds = [];
     foreach ($comments as $communityReactionComment) {
@@ -29,6 +30,15 @@ if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && functio
         $communityReactionCommentIds,
         is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
     );
+    if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_record_summaries')) {
+        $communityReactionCommentSummaries = sr_reaction_record_summaries(
+            $pdo,
+            'community',
+            'comment',
+            $communityReactionCommentIds,
+            is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
+        );
+    }
 }
 $memberSettings = sr_member_settings($pdo);
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
@@ -84,6 +94,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                     'community_board_key' => (string) $post['board_key'],
                     'community_board_accessible' => is_array($postBoard ?? null),
                     'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                    'is_following' => (string) ($communityFollowStatuses[(int) ($post['author_account_id'] ?? 0)] ?? '') === 'active',
                 ]); ?>
                 <?php echo sr_e(sr_t('community::ui.text.8619f779')); ?> <?php echo sr_community_time_html((string) $post['created_at']); ?>
                 <?php echo sr_e(sr_t('community::ui.text.e83def32')); ?> <?php echo sr_e((string) $post['view_count']); ?>
@@ -440,10 +451,10 @@ unset($_SESSION['sr_member_follow_feedback']);
                             ?>
                             <li id="community-comment-<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>" class="community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>">
                             <?php
-                            $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo);
+                            $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo, $communityCommentPermissionContext ?? []);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
-                            $communityCommentCanHide = is_array($account) && sr_community_account_can_hide_comment($pdo, $comment, $post, $account);
-                            $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post);
+                            $communityCommentCanHide = is_array($account) && sr_community_account_can_hide_comment($pdo, $comment, $post, $account, $communityCommentPermissionContext ?? []);
+                            $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post, $communityCommentPermissionContext ?? []);
                             $communityCommentIsGuestAuthor = (int) ($comment['author_account_id'] ?? 0) < 1 && (string) ($comment['guest_password_hash'] ?? '') !== '';
                             $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
@@ -459,6 +470,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                     'community_board_key' => (string) $post['board_key'],
                                     'community_board_accessible' => is_array($postBoard ?? null),
                                     'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                    'is_following' => (string) ($communityFollowStatuses[(int) ($comment['author_account_id'] ?? 0)] ?? '') === 'active',
                                 ]); ?>
                                 <?php if ($communityCommentCreatedAt !== '') { ?>
                                     /
@@ -479,6 +491,10 @@ unset($_SESSION['sr_member_follow_feedback']);
                                     $communityCommentReactionOptions = ['label' => '댓글 리액션'];
                                     if (isset($communityReactionCommentTargets[$communityCommentReactionId]) && is_array($communityReactionCommentTargets[$communityCommentReactionId])) {
                                         $communityCommentReactionOptions['resolved_target'] = $communityReactionCommentTargets[$communityCommentReactionId];
+                                    }
+                                    if (isset($communityReactionCommentSummaries[$communityCommentReactionId]) && is_array($communityReactionCommentSummaries[$communityCommentReactionId])) {
+                                        $communityCommentReactionOptions['counts'] = (array) ($communityReactionCommentSummaries[$communityCommentReactionId]['counts'] ?? []);
+                                        $communityCommentReactionOptions['my_record'] = $communityReactionCommentSummaries[$communityCommentReactionId]['my_record'] ?? null;
                                     }
                                     ?>
                                     <?php echo sr_reaction_render_widget($pdo, 'community', 'comment', $communityCommentReactionId, is_array($account ?? null) ? $account : null, $communityCommentReactionOptions); ?>

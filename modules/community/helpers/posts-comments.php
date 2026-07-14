@@ -84,10 +84,14 @@ function sr_community_post_comment_page(PDO $pdo, int $postId, int $page = 1, in
     $totalPages = max(1, (int) ceil($total / $perPage));
     $page = max(1, min($totalPages, $page));
     $offset = ($page - 1) * $perPage;
+    $nicknameSupported = function_exists('sr_member_nicknames_table_exists') && sr_member_nicknames_table_exists($pdo);
+    $nicknameSelect = $nicknameSupported ? ', author_nickname.nickname AS author_nickname' : ", '' AS author_nickname";
+    $nicknameJoin = $nicknameSupported ? 'LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = c.author_account_id' : '';
     $stmt = $pdo->prepare(
-        "SELECT c.id, c.post_id, c.parent_comment_id, c.thread_root_id, c.depth, c.author_account_id, c.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ", author.status AS author_account_status, c.body_text, c.is_secret, c.status, c.created_at, c.updated_at
+        "SELECT c.id, c.post_id, c.parent_comment_id, c.thread_root_id, c.depth, c.author_account_id, c.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ", author.display_name AS author_display_name, author.status AS author_account_status" . $nicknameSelect . ", c.body_text, c.is_secret, c.status, c.created_at, c.updated_at
          FROM sr_community_comments c
          LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
+         " . $nicknameJoin . "
          WHERE c.post_id = :post_id
            AND c.status = 'published'
          ORDER BY COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC
@@ -214,7 +218,7 @@ function sr_community_comment_page_path(int $postId, int $page = 1, string $anch
     return $path . '#' . rawurlencode($anchor !== '' ? $anchor : 'comments');
 }
 
-function sr_community_account_can_view_comment_body(array $comment, array $post, ?array $account, ?PDO $pdo = null): bool
+function sr_community_account_can_view_comment_body(array $comment, array $post, ?array $account, ?PDO $pdo = null, array $permissionContext = []): bool
 {
     if ((int) ($comment['is_secret'] ?? 0) !== 1) {
         return true;
@@ -228,16 +232,66 @@ function sr_community_account_can_view_comment_body(array $comment, array $post,
     return $accountId > 0
         && ($accountId === (int) ($comment['author_account_id'] ?? 0)
             || $accountId === (int) ($post['author_account_id'] ?? 0)
-            || ($pdo instanceof PDO && sr_community_account_can_manage_post_body($pdo, $post, $account)));
+            || (!empty($permissionContext['can_manage_body']))
+            || ($permissionContext === [] && $pdo instanceof PDO && sr_community_account_can_manage_post_body($pdo, $post, $account)));
 }
 
-function sr_community_account_can_hide_comment(PDO $pdo, array $comment, array $post, ?array $account): bool
+function sr_community_comment_permission_context(PDO $pdo, array $post, ?array $account): array
+{
+    $context = [
+        'can_manage_body' => false,
+        'can_hide' => false,
+        'can_delete' => false,
+    ];
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    if ($accountId < 1) {
+        return $context;
+    }
+
+    $isOwner = function_exists('sr_admin_is_owner') && sr_admin_is_owner($pdo, $accountId);
+    $adminPermissions = [];
+    if (!$isOwner && function_exists('sr_admin_current_permission_keys')) {
+        foreach (sr_admin_current_permission_keys($pdo, $accountId) as $permissionToken) {
+            $adminPermissions[(string) $permissionToken] = true;
+        }
+    }
+    $hasAdminPermission = static function (string $menuPath, string $actionKey) use ($isOwner, $adminPermissions): bool {
+        return $isOwner || isset($adminPermissions[$menuPath . '|' . $actionKey]);
+    };
+    $boardPermissions = function_exists('sr_community_account_board_management_permissions')
+        ? sr_community_account_board_management_permissions($pdo, (int) ($post['board_id'] ?? 0), $accountId)
+        : [];
+
+    $context['can_manage_body'] = $hasAdminPermission('/admin/community/posts', 'view')
+        || $hasAdminPermission('/admin/community/posts', 'edit')
+        || $hasAdminPermission('/admin/community/posts', 'delete')
+        || isset($boardPermissions['view_manage']);
+    $context['can_hide'] = $hasAdminPermission('/admin/community/comments', 'edit')
+        || $hasAdminPermission('/admin/community/comments', 'delete')
+        || $hasAdminPermission('/admin/community/posts', 'edit')
+        || $hasAdminPermission('/admin/community/posts', 'delete')
+        || isset($boardPermissions['hide_comment'])
+        || isset($boardPermissions['delete_comment'])
+        || isset($boardPermissions['delete_post']);
+    $context['can_delete'] = $hasAdminPermission('/admin/community/comments', 'delete')
+        || $hasAdminPermission('/admin/community/posts', 'delete')
+        || isset($boardPermissions['delete_comment'])
+        || isset($boardPermissions['delete_post']);
+
+    return $context;
+}
+
+function sr_community_account_can_hide_comment(PDO $pdo, array $comment, array $post, ?array $account, array $permissionContext = []): bool
 {
     if (!is_array($account) || (int) ($account['id'] ?? 0) < 1 || (string) ($comment['status'] ?? '') !== 'published') {
         return false;
     }
 
     $accountId = (int) $account['id'];
+
+    if ($permissionContext !== []) {
+        return !empty($permissionContext['can_hide']);
+    }
 
     return (function_exists('sr_admin_has_permission')
             && (sr_admin_has_permission($pdo, $accountId, '/admin/community/comments', 'edit')
@@ -504,7 +558,7 @@ function sr_community_account_can_edit_comment(array $comment, array $account): 
         && (string) $comment['status'] === 'published';
 }
 
-function sr_community_account_can_delete_comment(array $comment, array $account, ?PDO $pdo = null, ?array $post = null): bool
+function sr_community_account_can_delete_comment(array $comment, array $account, ?PDO $pdo = null, ?array $post = null, array $permissionContext = []): bool
 {
     $accountId = (int) ($account['id'] ?? 0);
     if ($accountId > 0
@@ -517,6 +571,9 @@ function sr_community_account_can_delete_comment(array $comment, array $account,
     }
     if ((string) ($comment['status'] ?? '') !== 'published') {
         return false;
+    }
+    if ($permissionContext !== []) {
+        return !empty($permissionContext['can_delete']);
     }
 
     return (function_exists('sr_admin_has_permission')

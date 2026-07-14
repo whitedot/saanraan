@@ -406,6 +406,22 @@ $assert(sr_reaction_allowed_keys($pdo, ['preset_key' => 'limited', 'reaction_key
 $fallbackKeys = sr_reaction_allowed_keys($pdo, ['preset_key' => 'missing_preset', 'reaction_keys' => ['fun']]);
 $assert(in_array('like', $fallbackKeys, true) && in_array('sad', $fallbackKeys, true), 'missing preset should fall back to the default preset.');
 $pdo->exec("INSERT INTO sr_reaction_records (account_id, target_module, target_type, target_id, reaction_key, created_at, updated_at) VALUES (3, 'community', 'post', '1', 'like', '$now', '$now')");
+$pdo->exec(
+    "INSERT INTO sr_reaction_records (account_id, target_module, target_type, target_id, reaction_key, created_at, updated_at) VALUES
+        (21, 'community', 'comment', '101', 'like', '$now', '$now'),
+        (22, 'community', 'comment', '101', 'like', '$now', '$now'),
+        (21, 'community', 'comment', '102', 'sad', '$now', '$now')"
+);
+$commentReactionSummaries = sr_reaction_record_summaries($pdo, 'community', 'comment', ['101', '102', '103'], 21);
+$assert((int) ($commentReactionSummaries['101']['counts']['like'] ?? 0) === 2, 'batch reaction summaries should count every reaction for a target.');
+$assert((string) ($commentReactionSummaries['101']['my_record']['reaction_key'] ?? '') === 'like', 'batch reaction summaries should expose the viewer reaction.');
+$assert((string) ($commentReactionSummaries['102']['my_record']['reaction_key'] ?? '') === 'sad', 'batch reaction summaries should keep viewer reactions separate by target.');
+$assert(
+    ($commentReactionSummaries['103']['counts'] ?? null) === []
+        && array_key_exists('my_record', $commentReactionSummaries['103'] ?? [])
+        && $commentReactionSummaries['103']['my_record'] === null,
+    'batch reaction summaries should retain empty requested targets.'
+);
 $adminRecordFilters = sr_reaction_admin_record_filters([
     'account_id' => '3',
     'target_module' => 'community',
@@ -517,6 +533,7 @@ $reactionRuntimeFunctions = [
     "function_exists('sr_reaction_render_widget')",
     "function_exists('sr_reaction_public_script_html')",
     "function_exists('sr_reaction_resolve_targets')",
+    "function_exists('sr_reaction_record_summaries')",
     "function_exists('sr_reaction_setting_preset_key')",
     "function_exists('sr_reaction_preset_option_html')",
 ];

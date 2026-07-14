@@ -58,16 +58,24 @@ function sr_reaction_lock_clause(PDO $pdo): string
 
 function sr_reaction_tables_available(PDO $pdo): bool
 {
+    static $availableByConnection = [];
+    $cacheKey = (string) spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $availableByConnection)) {
+        return $availableByConnection[$cacheKey];
+    }
+
     try {
         $pdo->query('SELECT 1 FROM sr_reaction_definitions LIMIT 1');
         $pdo->query('SELECT 1 FROM sr_reaction_presets LIMIT 1');
         $pdo->query('SELECT 1 FROM sr_reaction_preset_items LIMIT 1');
         $pdo->query('SELECT 1 FROM sr_reaction_records LIMIT 1');
     } catch (Throwable) {
-        return false;
+        $availableByConnection[$cacheKey] = false;
+        return $availableByConnection[$cacheKey];
     }
 
-    return true;
+    $availableByConnection[$cacheKey] = true;
+    return $availableByConnection[$cacheKey];
 }
 
 function sr_reaction_delete_target_records(PDO $pdo, string $targetModule, string $targetType, array $targetIds): int
@@ -510,6 +518,11 @@ function sr_reaction_public_preset_keys(PDO $pdo, string $presetKey): array
     if ($presetKey === '') {
         return [];
     }
+    static $keysByPreset = [];
+    $cacheKey = (string) spl_object_id($pdo) . ':' . $presetKey;
+    if (array_key_exists($cacheKey, $keysByPreset)) {
+        return $keysByPreset[$cacheKey];
+    }
 
     $presetStmt = $pdo->prepare(
         "SELECT visible_key_limit
@@ -522,7 +535,8 @@ function sr_reaction_public_preset_keys(PDO $pdo, string $presetKey): array
     $presetStmt->execute(['preset_key' => $presetKey]);
     $preset = $presetStmt->fetch();
     if (!is_array($preset)) {
-        return [];
+        $keysByPreset[$cacheKey] = [];
+        return $keysByPreset[$cacheKey];
     }
 
     $visibleKeyLimit = max(1, min(12, (int) ($preset['visible_key_limit'] ?? 6)));
@@ -545,7 +559,8 @@ function sr_reaction_public_preset_keys(PDO $pdo, string $presetKey): array
         }
     }
 
-    return array_values(array_unique($keys));
+    $keysByPreset[$cacheKey] = array_values(array_unique($keys));
+    return $keysByPreset[$cacheKey];
 }
 
 function sr_reaction_public_definitions(PDO $pdo, array $keys): array
@@ -555,6 +570,11 @@ function sr_reaction_public_definitions(PDO $pdo, array $keys): array
     }, $keys))));
     if ($keys === []) {
         return [];
+    }
+    static $definitionsByKeys = [];
+    $cacheKey = (string) spl_object_id($pdo) . ':' . implode(',', $keys);
+    if (array_key_exists($cacheKey, $definitionsByKeys)) {
+        return $definitionsByKeys[$cacheKey];
     }
 
     $placeholders = [];
@@ -588,7 +608,8 @@ function sr_reaction_public_definitions(PDO $pdo, array $keys): array
         }
     }
 
-    return $ordered;
+    $definitionsByKeys[$cacheKey] = $ordered;
+    return $definitionsByKeys[$cacheKey];
 }
 
 function sr_reaction_my_record(PDO $pdo, int $accountId, string $targetModule, string $targetType, string $targetId, bool $lock = false): ?array
@@ -656,6 +677,64 @@ function sr_reaction_counts(PDO $pdo, string $targetModule, string $targetType, 
     return $counts;
 }
 
+function sr_reaction_record_summaries(PDO $pdo, string $targetModule, string $targetType, array $targetIds, int $accountId = 0): array
+{
+    $targetModule = sr_reaction_clean_key($targetModule, 60);
+    $targetType = sr_reaction_clean_key($targetType, 60);
+    if (sr_reaction_target_key($targetModule, $targetType) === '') {
+        return [];
+    }
+
+    $cleanIds = [];
+    foreach ($targetIds as $targetId) {
+        $targetId = sr_reaction_target_id((string) $targetId);
+        if ($targetId !== '') {
+            $cleanIds[$targetId] = $targetId;
+        }
+    }
+    if ($cleanIds === []) {
+        return [];
+    }
+
+    $summaries = [];
+    $placeholders = [];
+    $params = [
+        'target_module' => $targetModule,
+        'target_type' => $targetType,
+        'account_id' => $accountId > 0 ? $accountId : -1,
+    ];
+    foreach (array_values($cleanIds) as $index => $targetId) {
+        $summaries[$targetId] = ['counts' => [], 'my_record' => null];
+        $param = 'target_id_' . (string) $index;
+        $placeholders[] = ':' . $param;
+        $params[$param] = $targetId;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT target_id, reaction_key, COUNT(*) AS count_value,
+                MAX(CASE WHEN account_id = :account_id THEN 1 ELSE 0 END) AS is_mine
+         FROM sr_reaction_records
+         WHERE target_module = :target_module
+           AND target_type = :target_type
+           AND target_id IN (' . implode(', ', $placeholders) . ')
+         GROUP BY target_id, reaction_key'
+    );
+    $stmt->execute($params);
+
+    foreach ($stmt->fetchAll() as $row) {
+        $targetId = sr_reaction_target_id((string) ($row['target_id'] ?? ''));
+        $reactionKey = sr_reaction_clean_key((string) ($row['reaction_key'] ?? ''));
+        if ($targetId === '' || $reactionKey === '' || !isset($summaries[$targetId])) {
+            continue;
+        }
+        $summaries[$targetId]['counts'][$reactionKey] = (int) ($row['count_value'] ?? 0);
+        if ((int) ($row['is_mine'] ?? 0) === 1) {
+            $summaries[$targetId]['my_record'] = ['reaction_key' => $reactionKey];
+        }
+    }
+
+    return $summaries;
+}
+
 function sr_reaction_public_icon_html(array $definition): string
 {
     $iconType = (string) ($definition['icon_type'] ?? 'emoji');
@@ -710,8 +789,12 @@ function sr_reaction_render_widget(PDO $pdo, string $targetModule, string $targe
         return '';
     }
     $allowedKeys = array_keys($definitions);
-    $counts = sr_reaction_counts($pdo, $targetModule, $targetType, $targetId, $allowedKeys);
-    $myRecord = sr_reaction_my_record($pdo, $accountId, $targetModule, $targetType, $targetId);
+    $counts = isset($options['counts']) && is_array($options['counts'])
+        ? $options['counts']
+        : sr_reaction_counts($pdo, $targetModule, $targetType, $targetId, $allowedKeys);
+    $myRecord = array_key_exists('my_record', $options)
+        ? (is_array($options['my_record']) ? $options['my_record'] : null)
+        : sr_reaction_my_record($pdo, $accountId, $targetModule, $targetType, $targetId);
     $myKey = is_array($myRecord) ? sr_reaction_clean_key((string) ($myRecord['reaction_key'] ?? '')) : '';
     $isOwner = $accountId > 0 && (int) ($target['owner_account_id'] ?? 0) === $accountId;
     $canWrite = $accountId > 0

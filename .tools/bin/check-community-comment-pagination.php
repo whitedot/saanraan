@@ -45,7 +45,7 @@ $pdo = new PDO('sqlite::memory:', null, null, [
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES => false,
 ]);
-$pdo->exec('CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY, status TEXT NOT NULL)');
+$pdo->exec("CREATE TABLE sr_member_accounts (id INTEGER PRIMARY KEY, display_name TEXT NOT NULL DEFAULT '', status TEXT NOT NULL)");
 $pdo->exec(
     'CREATE TABLE sr_community_comments (
         id INTEGER PRIMARY KEY,

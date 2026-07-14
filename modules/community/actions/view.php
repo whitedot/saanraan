@@ -314,6 +314,14 @@ $commentPage = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPos
     ? ['comments' => [], 'page' => 1, 'per_page' => $commentsPerPage, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false]
     : sr_community_post_comment_page($pdo, (int) $post['id'], $requestedCommentPage, $commentsPerPage);
 $comments = is_array($commentPage['comments'] ?? null) ? $commentPage['comments'] : [];
+$communityCommentPermissionContext = sr_community_comment_permission_context($pdo, $post, is_array($account) ? $account : null);
+$communityCommentAuthorAccountIds = [(int) ($post['author_account_id'] ?? 0)];
+foreach ($comments as $communityCommentAuthorRow) {
+    $communityCommentAuthorAccountIds[] = (int) ($communityCommentAuthorRow['author_account_id'] ?? 0);
+}
+$communityFollowStatuses = is_array($account) && function_exists('sr_member_follow_statuses')
+    ? sr_member_follow_statuses($pdo, (int) $account['id'], $communityCommentAuthorAccountIds)
+    : [];
 $post['published_comment_count'] = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody
     ? 0
     : (int) ($commentPage['total'] ?? 0);

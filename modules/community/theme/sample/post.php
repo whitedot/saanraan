@@ -146,7 +146,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php } else { ?>
                 <ol>
                     <?php foreach ($comments as $comment) { ?>
-                        <?php $commentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo); ?>
+                        <?php $commentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo, $communityCommentPermissionContext ?? []); ?>
                         <li id="community-comment-<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>">
                             <strong><?php echo sr_e(sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo)); ?></strong>
                             <?php echo sr_community_time_html((string) ($comment['created_at'] ?? '')); ?>
