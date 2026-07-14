@@ -79,7 +79,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </form>
             <?php } ?>
         </div></section>
-        <section class="card"><div class="card-body ui-card-body-stack">
+        <section id="reward-withdrawal-history" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">출금 신청 내역</h2>
             <?php if ($withdrawalRequests === []) { ?>
                 <p>출금 신청 내역이 없습니다.</p>
@@ -106,7 +106,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                 <td><?php echo sr_e((string) $request['admin_note']); ?></td>
                                 <td>
                                     <?php if ((string) $request['status'] === 'pending') { ?>
-                                        <form method="post" action="<?php echo sr_e(sr_url('/account/rewards')); ?>">
+                                        <form method="post" action="<?php echo sr_e(sr_url($rewardListPath)); ?>">
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="cancel_withdrawal_request">
                                             <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
@@ -122,8 +122,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </table>
                     </div>
             <?php } ?>
+            <?php echo sr_public_pagination_html($rewardRequestPagination, $rewardRequestPaginationBasePath, '출금 신청 내역 페이지', 'request_page', 'reward-withdrawal-history'); ?>
         </div></section>
-        <section class="card"><div class="card-body ui-card-body-stack">
+        <section id="reward-transaction-history" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">거래 내역</h2>
             <?php if ($transactions === []) { ?>
                 <p>거래 내역이 없습니다.</p>
@@ -163,6 +164,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </table>
                     </div>
             <?php } ?>
+            <?php echo sr_public_pagination_html($rewardTransactionPagination, $rewardTransactionPaginationBasePath, '적립금 거래 내역 페이지', 'transaction_page', 'reward-transaction-history'); ?>
         </div></section>
     </main>
 <?php sr_public_layout_end(); ?>

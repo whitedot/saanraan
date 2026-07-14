@@ -34,6 +34,18 @@ $rewardIdentityAvailable = function_exists('sr_identity_verification_available')
 $rewardIdentityStartUrl = $rewardIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($rewardIdentityPurpose, '/account/rewards#reward-withdrawal-request')
     : '';
+$rewardRequestPageInput = sr_get_string('request_page', 20);
+$rewardTransactionPageInput = sr_get_string('transaction_page', 20);
+$rewardRequestPage = preg_match('/\A[1-9][0-9]*\z/', $rewardRequestPageInput) === 1 ? (int) $rewardRequestPageInput : 1;
+$rewardTransactionPage = preg_match('/\A[1-9][0-9]*\z/', $rewardTransactionPageInput) === 1 ? (int) $rewardTransactionPageInput : 1;
+$rewardListQuery = [];
+if ($rewardRequestPage > 1) {
+    $rewardListQuery['request_page'] = $rewardRequestPage;
+}
+if ($rewardTransactionPage > 1) {
+    $rewardListQuery['transaction_page'] = $rewardTransactionPage;
+}
+$rewardListPath = '/account/rewards' . ($rewardListQuery !== [] ? '?' . http_build_query($rewardListQuery) : '');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -124,7 +136,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Reward withdrawal request canceled.',
             ]);
             $_SESSION['sr_reward_flash'] = ['notice' => $rewardDisplayName . ' 출금 신청을 취소했습니다.', 'errors' => []];
-            sr_redirect('/account/rewards');
+            sr_redirect($rewardListPath);
         } catch (Throwable $exception) {
             $errors[] = '취소할 수 있는 출금 신청을 찾지 못했습니다.';
         }
@@ -133,7 +145,7 @@ if (sr_request_method() === 'POST') {
     }
     if ($errors !== []) {
         $_SESSION['sr_reward_flash'] = ['notice' => '', 'errors' => $errors, 'values' => $rewardWithdrawalFormValues];
-        sr_redirect('/account/rewards' . ($intent === 'withdrawal_request' ? '#reward-withdrawal-request' : ''));
+        sr_redirect($intent === 'withdrawal_request' ? '/account/rewards#reward-withdrawal-request' : $rewardListPath);
     }
 }
 
@@ -143,15 +155,45 @@ $availableWithdrawalAmount = max(0, $balance - $pendingWithdrawalAmount);
 $withdrawalAllowedGroupKeys = sr_reward_withdrawal_allowed_group_keys($pdo);
 $withdrawalRequestsEnabled = sr_reward_withdrawal_requests_enabled($pdo);
 $canRequestWithdrawal = sr_reward_account_can_request_withdrawal($pdo, (int) $account['id']);
-$withdrawalRequests = sr_reward_withdrawal_requests_for_account($pdo, (int) $account['id']);
+$rewardRequestPerPage = 20;
+$rewardTransactionPerPage = 20;
+$rewardRequestCount = sr_reward_withdrawal_request_count_for_account($pdo, (int) $account['id']);
+$rewardRequestTotalPages = max(1, (int) ceil($rewardRequestCount / $rewardRequestPerPage));
+$rewardRequestPage = min(max(1, $rewardRequestPage), $rewardRequestTotalPages);
+$rewardRequestPagination = ['page' => $rewardRequestPage, 'total_pages' => $rewardRequestTotalPages];
+$withdrawalRequests = sr_reward_withdrawal_requests_for_account(
+    $pdo,
+    (int) $account['id'],
+    $rewardRequestPerPage,
+    ($rewardRequestPage - 1) * $rewardRequestPerPage
+);
+$stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_reward_transactions WHERE account_id = :account_id');
+$stmt->execute(['account_id' => (int) $account['id']]);
+$rewardTransactionCount = (int) $stmt->fetchColumn();
+$rewardTransactionTotalPages = max(1, (int) ceil($rewardTransactionCount / $rewardTransactionPerPage));
+$rewardTransactionPage = min(max(1, $rewardTransactionPage), $rewardTransactionTotalPages);
+$rewardTransactionPagination = ['page' => $rewardTransactionPage, 'total_pages' => $rewardTransactionTotalPages];
+$rewardListQuery = [];
+if ($rewardRequestPage > 1) {
+    $rewardListQuery['request_page'] = $rewardRequestPage;
+}
+if ($rewardTransactionPage > 1) {
+    $rewardListQuery['transaction_page'] = $rewardTransactionPage;
+}
+$rewardListPath = '/account/rewards' . ($rewardListQuery !== [] ? '?' . http_build_query($rewardListQuery) : '');
+$rewardRequestPaginationBasePath = '/account/rewards' . ($rewardTransactionPage > 1 ? '?transaction_page=' . (string) $rewardTransactionPage : '');
+$rewardTransactionPaginationBasePath = '/account/rewards' . ($rewardRequestPage > 1 ? '?request_page=' . (string) $rewardRequestPage : '');
 $stmt = $pdo->prepare(
     'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, expires_at, expires_remaining, expired_at, created_at
      FROM sr_reward_transactions
      WHERE account_id = :account_id
      ORDER BY id DESC
-     LIMIT 100'
+     LIMIT :limit OFFSET :offset'
 );
-$stmt->execute(['account_id' => (int) $account['id']]);
+$stmt->bindValue(':account_id', (int) $account['id'], PDO::PARAM_INT);
+$stmt->bindValue(':limit', $rewardTransactionPerPage, PDO::PARAM_INT);
+$stmt->bindValue(':offset', ($rewardTransactionPage - 1) * $rewardTransactionPerPage, PDO::PARAM_INT);
+$stmt->execute();
 $transactions = $stmt->fetchAll();
 
 include SR_ROOT . '/modules/reward/views/account-rewards.php';

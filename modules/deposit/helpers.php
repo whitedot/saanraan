@@ -827,19 +827,32 @@ function sr_deposit_create_refund_request(PDO $pdo, int $accountId, array $data)
     return $requestId;
 }
 
-function sr_deposit_refund_requests_for_account(PDO $pdo, int $accountId, int $limit = 20): array
+function sr_deposit_refund_request_count_for_account(PDO $pdo, int $accountId): int
+{
+    if ($accountId <= 0) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_deposit_refund_requests WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_deposit_refund_requests_for_account(PDO $pdo, int $accountId, int $limit = 20, int $offset = 0): array
 {
     if ($accountId <= 0) {
         return [];
     }
 
     $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
     $stmt = $pdo->prepare(
         'SELECT id, amount, bank_name, bank_account_number, bank_account_holder, requester_note, status, admin_note, transaction_id, requested_at, processed_at, updated_at
          FROM sr_deposit_refund_requests
          WHERE account_id = :account_id
          ORDER BY id DESC
-         LIMIT ' . $limit
+         LIMIT ' . $limit . ' OFFSET ' . $offset
     );
     $stmt->execute(['account_id' => $accountId]);
 

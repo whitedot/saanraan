@@ -17,7 +17,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
             <h2 class="card-title">현재 잔액</h2>
             <p><?php echo sr_e(number_format((int) $balance)); ?><?php echo sr_e($pointUnitLabel); ?></p>
         </div></section>
-        <section class="card"><div class="card-body ui-card-body-stack">
+        <section id="point-transaction-history" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">거래 내역</h2>
             <?php if ($transactions === []) { ?>
                 <p>거래 내역이 없습니다.</p>
@@ -57,6 +57,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </table>
                     </div>
             <?php } ?>
+            <?php echo sr_public_pagination_html($pointTransactionPagination, '/account/points', '포인트 거래 내역 페이지', 'page', 'point-transaction-history'); ?>
         </div></section>
     </main>
 <?php sr_public_layout_end(); ?>

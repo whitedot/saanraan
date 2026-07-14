@@ -30,6 +30,18 @@ $depositIdentityAvailable = function_exists('sr_identity_verification_available'
 $depositIdentityStartUrl = $depositIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($depositIdentityPurpose, '/account/deposits#deposit-refund-request')
     : '';
+$depositRequestPageInput = sr_get_string('request_page', 20);
+$depositTransactionPageInput = sr_get_string('transaction_page', 20);
+$depositRequestPage = preg_match('/\A[1-9][0-9]*\z/', $depositRequestPageInput) === 1 ? (int) $depositRequestPageInput : 1;
+$depositTransactionPage = preg_match('/\A[1-9][0-9]*\z/', $depositTransactionPageInput) === 1 ? (int) $depositTransactionPageInput : 1;
+$depositListQuery = [];
+if ($depositRequestPage > 1) {
+    $depositListQuery['request_page'] = $depositRequestPage;
+}
+if ($depositTransactionPage > 1) {
+    $depositListQuery['transaction_page'] = $depositTransactionPage;
+}
+$depositListPath = '/account/deposits' . ($depositListQuery !== [] ? '?' . http_build_query($depositListQuery) : '');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -115,7 +127,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Deposit refund request canceled.',
             ]);
             $_SESSION['sr_deposit_flash'] = ['notice' => $depositDisplayName . ' 환불 신청을 취소했습니다.', 'errors' => []];
-            sr_redirect('/account/deposits');
+            sr_redirect($depositListPath);
         } catch (Throwable $exception) {
             $errors[] = '취소할 수 있는 환불 신청을 찾지 못했습니다.';
         }
@@ -124,7 +136,7 @@ if (sr_request_method() === 'POST') {
     }
     if ($errors !== []) {
         $_SESSION['sr_deposit_flash'] = ['notice' => '', 'errors' => $errors, 'values' => $depositRefundFormValues];
-        sr_redirect('/account/deposits' . ($intent === 'refund_request' ? '#deposit-refund-request' : ''));
+        sr_redirect($intent === 'refund_request' ? '/account/deposits#deposit-refund-request' : $depositListPath);
     }
 }
 
@@ -133,15 +145,45 @@ $pendingRefundAmount = sr_deposit_pending_refund_amount($pdo, (int) $account['id
 $availableRefundAmount = max(0, $balance - $pendingRefundAmount);
 $refundRequestsEnabled = sr_deposit_refund_requests_enabled($pdo);
 $canRequestRefund = sr_deposit_account_can_request_refund($pdo, (int) $account['id']);
-$refundRequests = sr_deposit_refund_requests_for_account($pdo, (int) $account['id']);
+$depositRequestPerPage = 20;
+$depositTransactionPerPage = 20;
+$depositRequestCount = sr_deposit_refund_request_count_for_account($pdo, (int) $account['id']);
+$depositRequestTotalPages = max(1, (int) ceil($depositRequestCount / $depositRequestPerPage));
+$depositRequestPage = min(max(1, $depositRequestPage), $depositRequestTotalPages);
+$depositRequestPagination = ['page' => $depositRequestPage, 'total_pages' => $depositRequestTotalPages];
+$refundRequests = sr_deposit_refund_requests_for_account(
+    $pdo,
+    (int) $account['id'],
+    $depositRequestPerPage,
+    ($depositRequestPage - 1) * $depositRequestPerPage
+);
+$stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_deposit_transactions WHERE account_id = :account_id');
+$stmt->execute(['account_id' => (int) $account['id']]);
+$depositTransactionCount = (int) $stmt->fetchColumn();
+$depositTransactionTotalPages = max(1, (int) ceil($depositTransactionCount / $depositTransactionPerPage));
+$depositTransactionPage = min(max(1, $depositTransactionPage), $depositTransactionTotalPages);
+$depositTransactionPagination = ['page' => $depositTransactionPage, 'total_pages' => $depositTransactionTotalPages];
+$depositListQuery = [];
+if ($depositRequestPage > 1) {
+    $depositListQuery['request_page'] = $depositRequestPage;
+}
+if ($depositTransactionPage > 1) {
+    $depositListQuery['transaction_page'] = $depositTransactionPage;
+}
+$depositListPath = '/account/deposits' . ($depositListQuery !== [] ? '?' . http_build_query($depositListQuery) : '');
+$depositRequestPaginationBasePath = '/account/deposits' . ($depositTransactionPage > 1 ? '?transaction_page=' . (string) $depositTransactionPage : '');
+$depositTransactionPaginationBasePath = '/account/deposits' . ($depositRequestPage > 1 ? '?request_page=' . (string) $depositRequestPage : '');
 $stmt = $pdo->prepare(
     'SELECT id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_at
      FROM sr_deposit_transactions
      WHERE account_id = :account_id
      ORDER BY id DESC
-     LIMIT 100'
+     LIMIT :limit OFFSET :offset'
 );
-$stmt->execute(['account_id' => (int) $account['id']]);
+$stmt->bindValue(':account_id', (int) $account['id'], PDO::PARAM_INT);
+$stmt->bindValue(':limit', $depositTransactionPerPage, PDO::PARAM_INT);
+$stmt->bindValue(':offset', ($depositTransactionPage - 1) * $depositTransactionPerPage, PDO::PARAM_INT);
+$stmt->execute();
 $transactions = $stmt->fetchAll();
 
 include SR_ROOT . '/modules/deposit/views/account-deposits.php';
