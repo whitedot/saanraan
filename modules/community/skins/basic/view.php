@@ -458,7 +458,6 @@ unset($_SESSION['sr_member_follow_feedback']);
                             $communityCommentIsGuestAuthor = (int) ($comment['author_account_id'] ?? 0) < 1 && (string) ($comment['guest_password_hash'] ?? '') !== '';
                             $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
-                            $communityCommentEditModalId = 'community_comment_edit_modal_' . (string) (int) $comment['id'];
                             $communityCommentReplyId = 'modules_community_view_comment_reply_' . (string) $comment['id'];
                             $communityCommentReplyModalId = 'community_comment_reply_modal_' . (string) (int) $comment['id'];
                             $communityCommentCreatedAt = (string) ($comment['created_at'] ?? '');
@@ -564,40 +563,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                             </div>
                                         <?php } ?>
                                         <?php if ($communityCommentCanEdit) { ?>
-                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
-                                            <div id="<?php echo sr_e($communityCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
-                                                <div class="modal-dialog">
-                                                    <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>" class="modal-content">
-                                                        <?php echo sr_csrf_field(); ?>
-                                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                        <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
-                                                        <div class="modal-header">
-                                                            <h3 id="<?php echo sr_e($communityCommentEditModalId . '_title'); ?>" class="modal-title"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></h3>
-                                                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>">
-                                                                <?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?>
-                                                            </button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <p>
-                                                                <label for="<?php echo sr_e($communityCommentEditId); ?>">
-                                                                    <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                                                    <textarea id="<?php echo sr_e($communityCommentEditId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $comment['body_text']); ?></textarea>
-                                                                </label>
-                                                            </p>
-                                                            <?php if (!empty($secretCommentsEnabled) || (int) ($comment['is_secret'] ?? 0) === 1) { ?>
-                                                                <label class="community-comment-secret-toggle">
-                                                                    <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                                                                    <span><?php echo sr_e('비밀 댓글'); ?></span>
-                                                                </label>
-                                                            <?php } ?>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
-                                                            <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
+                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_edit_modal" data-overlay="#community_comment_edit_modal" data-community-comment-edit data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e((string) $comment['body_text']); ?>" data-comment-secret="<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? '1' : '0'; ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                                         <?php } ?>
                                         <?php if ($communityCommentCanHide) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
@@ -653,53 +619,77 @@ unset($_SESSION['sr_member_follow_feedback']);
                                     <?php } ?>
                                 <?php } ?>
                                 <?php if (is_array($account) && $communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
-                                    <?php
-                                    $communityCommentReportModalId = 'community_report_comment_modal_' . (string) (int) $comment['id'];
-                                    ?>
-                                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReportModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
-                                    <div id="<?php echo sr_e($communityCommentReportModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentReportModalId . '_title'); ?>" aria-hidden="true" inert>
-                                        <div class="modal-dialog">
-                                            <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>" class="modal-content">
-                                                <?php echo sr_csrf_field(); ?>
-                                                <input type="hidden" name="target_type" value="comment">
-                                                <input type="hidden" name="target_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
-                                                <div class="modal-header">
-                                                    <h3 id="<?php echo sr_e($communityCommentReportModalId . '_title'); ?>" class="modal-title"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></h3>
-                                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityCommentReportModalId); ?>">
-                                                        <?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="form-row">
-                                                        <label for="<?php echo sr_e($communityCommentReportModalId . '_reason_key'); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.162e66be')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                                        <div class="form-field">
-                                                            <select id="<?php echo sr_e($communityCommentReportModalId . '_reason_key'); ?>" name="reason_key" class="form-select" required data-overlay-focus>
-                                                                <?php foreach ($reportReasonKeys as $reasonKey) { ?>
-                                                                    <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
-                                                                <?php } ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-row">
-                                                        <label for="<?php echo sr_e($communityCommentReportModalId . '_memo_text'); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.54791a8b')); ?></label>
-                                                        <div class="form-field">
-                                                            <textarea id="<?php echo sr_e($communityCommentReportModalId . '_memo_text'); ?>" name="memo_text" rows="4" class="form-textarea"></textarea>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($communityCommentReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
-                                                    <button type="submit" class="btn btn-solid-warning modal-action"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
+                                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_report_comment_modal" data-overlay="#community_report_comment_modal" data-community-comment-report data-comment-id="<?php echo sr_e((string) $comment['id']); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
                                 <?php } ?>
                             </div>
                         </li>
                     <?php } ?>
                 </ul>
+                <?php if (is_array($account)) { ?>
+                    <div id="community_comment_edit_modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community_comment_edit_modal_title" aria-hidden="true" inert data-community-comment-edit-modal data-secret-comments-enabled="<?php echo !empty($secretCommentsEnabled) ? '1' : '0'; ?>">
+                        <div class="modal-dialog">
+                            <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>" class="modal-content">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="comment_id" value="" data-community-comment-edit-id>
+                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
+                                <div class="modal-header">
+                                    <h3 id="community_comment_edit_modal_title" class="modal-title"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></h3>
+                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#community_comment_edit_modal"><?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>
+                                        <label for="community_comment_edit_body">
+                                            <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                            <textarea id="community_comment_edit_body" name="body_text" rows="3" cols="60" required class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" data-community-comment-edit-body></textarea>
+                                        </label>
+                                    </p>
+                                    <label class="community-comment-secret-toggle" data-community-comment-edit-secret-field<?php echo empty($secretCommentsEnabled) ? ' hidden' : ''; ?>>
+                                        <input type="checkbox" name="is_secret" value="1" class="form-checkbox" data-community-comment-edit-secret>
+                                        <span><?php echo sr_e('비밀 댓글'); ?></span>
+                                    </label>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community_comment_edit_modal"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
+                                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div id="community_report_comment_modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community_report_comment_modal_title" aria-hidden="true" inert data-community-comment-report-modal>
+                        <div class="modal-dialog">
+                            <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>" class="modal-content">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="target_type" value="comment">
+                                <input type="hidden" name="target_id" value="" data-community-comment-report-id>
+                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
+                                <div class="modal-header">
+                                    <h3 id="community_report_comment_modal_title" class="modal-title"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></h3>
+                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#community_report_comment_modal"><?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-row">
+                                        <label for="community_report_comment_reason_key" class="form-label"><?php echo sr_e(sr_t('community::ui.text.162e66be')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                        <div class="form-field">
+                                            <select id="community_report_comment_reason_key" name="reason_key" class="form-select" required data-overlay-focus>
+                                                <?php foreach ($reportReasonKeys as $reasonKey) { ?>
+                                                    <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <label for="community_report_comment_memo_text" class="form-label"><?php echo sr_e(sr_t('community::ui.text.54791a8b')); ?></label>
+                                        <div class="form-field"><textarea id="community_report_comment_memo_text" name="memo_text" rows="4" class="form-textarea"></textarea></div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community_report_comment_modal"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
+                                    <button type="submit" class="btn btn-solid-warning modal-action"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                <?php } ?>
                 <?php echo sr_community_comment_pagination_html((int) $post['id'], $commentPage); ?>
             <?php } ?>
 

@@ -264,7 +264,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 - `php .tools/bin/check-release-verification-records.php`가 날짜별 기록을 받아들이는지 여부
 
 - `.tools/bin/check-community-comment-pagination.php`는 공개 댓글의 숫자 페이지 순서, 전체 댓글 수, 마지막 페이지 clamp, 새 댓글 위치 계산, 페이지 링크의 비동기 교체 hook, 전역·게시판 우선순위 적용 marker를 SQLite fixture와 정적 검사로 확인한다. 게시판 설정의 `0=전역 상속`, `1~100=게시판 우선` 런타임은 `.tools/bin/check-community-board-settings.php`가 함께 확인한다.
-- `.tools/bin/check-community-comment-render-performance.php`는 댓글 작성자 팔로우 상태 묶음 조회와 댓글 권한 context 재사용을 SQLite fixture로 확인하고, 기본 테마/스킨이 준비된 권한·팔로우·리액션 값을 댓글별 렌더러에 전달하는 marker를 확인한다. 리액션 대상별 수와 현재 사용자 선택의 묶음 집계는 `.tools/bin/check-reaction-runtime.php`가 함께 확인한다.
+- `.tools/bin/check-community-comment-render-performance.php`는 댓글 작성자 팔로우 상태 묶음 조회와 댓글 권한 context 재사용을 SQLite fixture로 확인하고, 기본 테마/스킨이 준비된 권한·팔로우·리액션 값을 댓글별 렌더러에 전달하는 marker를 확인한다. 로그인 회원용 수정·신고 공유 모달이 화면당 하나만 존재하고 버튼이 대상 값을 전달하는 JavaScript hook도 고정한다. 리액션 대상별 수와 현재 사용자 선택의 묶음 집계는 `.tools/bin/check-reaction-runtime.php`가 함께 확인한다.
 
 ## 1.0 전 보완 대상
 

@@ -846,6 +846,68 @@
     document.documentElement.setAttribute('data-community-comment-pagination-ready', '1');
   }
 
+  function initCommentSharedModals() {
+    if (document.documentElement.getAttribute('data-community-comment-shared-modals-ready') === '1') {
+      return;
+    }
+
+    document.addEventListener('click', function (event) {
+      var eventTarget = event.target instanceof Element ? event.target : null;
+      if (!eventTarget) {
+        return;
+      }
+
+      var editButton = eventTarget.closest('[data-community-comment-edit]');
+      if (editButton) {
+        var editModal = document.querySelector('[data-community-comment-edit-modal]');
+        if (!editModal) {
+          return;
+        }
+        var editId = editModal.querySelector('[data-community-comment-edit-id]');
+        var editBody = editModal.querySelector('[data-community-comment-edit-body]');
+        var editSecret = editModal.querySelector('[data-community-comment-edit-secret]');
+        var editSecretField = editModal.querySelector('[data-community-comment-edit-secret-field]');
+        var isSecret = editButton.getAttribute('data-comment-secret') === '1';
+        if (editId) {
+          editId.value = editButton.getAttribute('data-comment-id') || '';
+        }
+        if (editBody) {
+          editBody.value = editButton.getAttribute('data-comment-body') || '';
+        }
+        if (editSecret) {
+          editSecret.checked = isSecret;
+        }
+        if (editSecretField) {
+          editSecretField.hidden = editModal.getAttribute('data-secret-comments-enabled') !== '1' && !isSecret;
+        }
+        return;
+      }
+
+      var reportButton = eventTarget.closest('[data-community-comment-report]');
+      if (!reportButton) {
+        return;
+      }
+      var reportModal = document.querySelector('[data-community-comment-report-modal]');
+      if (!reportModal) {
+        return;
+      }
+      var reportId = reportModal.querySelector('[data-community-comment-report-id]');
+      var reportMemo = reportModal.querySelector('textarea[name="memo_text"]');
+      var reportReason = reportModal.querySelector('select[name="reason_key"]');
+      if (reportId) {
+        reportId.value = reportButton.getAttribute('data-comment-id') || '';
+      }
+      if (reportMemo) {
+        reportMemo.value = '';
+      }
+      if (reportReason) {
+        reportReason.selectedIndex = 0;
+      }
+    });
+
+    document.documentElement.setAttribute('data-community-comment-shared-modals-ready', '1');
+  }
+
   function init() {
     initImageLayer();
     initToasts();
@@ -853,6 +915,7 @@
     initScrollTargetButtons();
     initAssetConfirmationSubmitClose();
     initDraftAutosave();
+    initCommentSharedModals();
     initCommentPagination();
   }
 

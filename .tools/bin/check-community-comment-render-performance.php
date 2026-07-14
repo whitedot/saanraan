@@ -96,7 +96,15 @@ foreach ([
     $assert(is_string($view) && str_contains($view, 'sr_reaction_record_summaries('), $viewFile . ' must batch comment reaction summaries.');
     $assert(is_string($view) && str_contains($view, "'is_following' =>"), $viewFile . ' must pass prepared follow states to the member menu.');
     $assert(is_string($view) && str_contains($view, "\$communityCommentPermissionContext ?? []"), $viewFile . ' must reuse the prepared comment permission context.');
+    $assert(is_string($view) && substr_count($view, 'id="community_comment_edit_modal"') === 1, $viewFile . ' must render one shared member comment edit modal.');
+    $assert(is_string($view) && substr_count($view, 'id="community_report_comment_modal"') === 1, $viewFile . ' must render one shared comment report modal.');
+    $assert(is_string($view) && str_contains($view, 'data-community-comment-edit data-comment-id='), $viewFile . ' edit buttons must pass the target to the shared modal.');
+    $assert(is_string($view) && str_contains($view, 'data-community-comment-report data-comment-id='), $viewFile . ' report buttons must pass the target to the shared modal.');
+    $assert(is_string($view) && !str_contains($view, "\$communityCommentReportModalId"), $viewFile . ' must not generate a report modal id per comment.');
 }
+$communityModuleScript = file_get_contents($root . '/modules/community/assets/module.js');
+$assert(is_string($communityModuleScript) && str_contains($communityModuleScript, 'function initCommentSharedModals()'), 'Community JavaScript must populate shared comment modals.');
+$assert(is_string($communityModuleScript) && str_contains($communityModuleScript, "editButton.getAttribute('data-comment-body')"), 'Shared edit modal must restore the exact escaped comment body payload.');
 
 if ($errors !== []) {
     foreach ($errors as $error) {
