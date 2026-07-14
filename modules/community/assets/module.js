@@ -776,6 +776,76 @@
     });
   }
 
+  function initCommentPagination() {
+    if (document.documentElement.getAttribute('data-community-comment-pagination-ready') === '1') {
+      return;
+    }
+
+    document.addEventListener('click', function (event) {
+      var eventTarget = event.target instanceof Element ? event.target : null;
+      var link = eventTarget ? eventTarget.closest('[data-community-comment-page]') : null;
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+
+      var commentsSection = link.closest('#comments');
+      if (!commentsSection || commentsSection.getAttribute('aria-busy') === 'true') {
+        return;
+      }
+
+      event.preventDefault();
+      var pageUrl = new URL(link.href, window.location.href);
+      var fetchUrl = new URL(pageUrl.href);
+      fetchUrl.hash = '';
+      fetchUrl.searchParams.set('comment_fragment', '1');
+      commentsSection.setAttribute('aria-busy', 'true');
+
+      fetch(fetchUrl.href, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+          'Accept': 'text/html',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }).then(function (response) {
+        if (!response.ok) {
+          throw new Error('comment_page_http_' + String(response.status));
+        }
+        return response.text();
+      }).then(function (html) {
+        var parsed = new DOMParser().parseFromString(html, 'text/html');
+        var nextCommentsSection = parsed.querySelector('#comments');
+        if (!nextCommentsSection) {
+          throw new Error('comment_page_section_missing');
+        }
+
+        var scrollTop = window.scrollY;
+        commentsSection.replaceWith(document.importNode(nextCommentsSection, true));
+        window.history.replaceState(window.history.state, '', pageUrl.pathname + pageUrl.search + pageUrl.hash);
+        initToasts();
+        initCopyUrlButtons();
+        initScrollTargetButtons();
+        window.requestAnimationFrame(function () {
+          window.scrollTo({ top: scrollTop, left: window.scrollX, behavior: 'auto' });
+        });
+      }).catch(function () {
+        commentsSection.removeAttribute('aria-busy');
+        var previousError = commentsSection.querySelector('[data-community-comment-page-error]');
+        if (previousError) {
+          previousError.remove();
+        }
+        var error = document.createElement('div');
+        error.className = 'alert alert-danger';
+        error.setAttribute('role', 'alert');
+        error.setAttribute('data-community-comment-page-error', '1');
+        error.textContent = '댓글 페이지를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        commentsSection.insertBefore(error, commentsSection.firstChild);
+      });
+    });
+
+    document.documentElement.setAttribute('data-community-comment-pagination-ready', '1');
+  }
+
   function init() {
     initImageLayer();
     initToasts();
@@ -783,6 +853,7 @@
     initScrollTargetButtons();
     initAssetConfirmationSubmitClose();
     initDraftAutosave();
+    initCommentPagination();
   }
 
   if (document.readyState === 'loading') {

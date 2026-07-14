@@ -11,6 +11,8 @@ sr_require_csrf();
 
 $commentIdValue = sr_post_string('comment_id', 20);
 $commentId = preg_match('/\A[1-9][0-9]*\z/', $commentIdValue) === 1 ? (int) $commentIdValue : 0;
+$commentPageValue = sr_post_string('comment_page', 20);
+$commentPageNumber = preg_match('/\A[1-9][0-9]*\z/', $commentPageValue) === 1 ? (int) $commentPageValue : 1;
 $comment = sr_community_admin_comment_by_id($pdo, $commentId);
 if (!is_array($comment)) {
     sr_render_error(404, sr_t('community::action.error.comment_not_found'));
@@ -91,4 +93,4 @@ try {
     sr_render_error(409, $exception->getMessage() !== '' ? $exception->getMessage() : sr_t('community::action.error.comment_reward_reversal_failed'));
 }
 $_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.comment_deleted');
-sr_redirect('/community/post?id=' . (string) $comment['post_id'] . '#comments');
+sr_redirect(sr_community_comment_page_path((int) $comment['post_id'], $commentPageNumber));

@@ -139,7 +139,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 
     <?php if (!empty($canViewPostBody) && empty($paidReadConfirmationRequired) && empty($paidReadBlocked)) { ?>
         <section id="comments" class="example-community-panel example-community-comments">
-            <h2>Comments</h2>
+            <h2>Comments <span class="community-comments-count"><?php echo sr_e(number_format((int) ($post['published_comment_count'] ?? 0))); ?></span></h2>
             <?php echo sr_public_feedback_toasts('community', (string) ($commentNotice ?? ''), is_array($commentErrors ?? null) ? $commentErrors : []); ?>
             <?php if ($comments === []) { ?>
                 <p>댓글이 없습니다.</p>
@@ -158,6 +158,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                         </li>
                     <?php } ?>
                 </ol>
+                <?php echo sr_community_comment_pagination_html((int) ($post['id'] ?? 0), $commentPage); ?>
             <?php } ?>
 
             <?php if (!empty($canComment)) { ?>
@@ -165,6 +166,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) ($post['id'] ?? '')); ?>">
                     <input type="hidden" name="parent_comment_id" value="0">
+                    <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                     <label for="example_community_comment_body">댓글</label>
                     <textarea id="example_community_comment_body" name="body_text" rows="4" cols="80" required<?php echo is_array($account ?? null) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo (int) ($commentParentId ?? 0) < 1 ? sr_e((string) ($commentBody ?? '')) : ''; ?></textarea>
                     <?php if (!is_array($account ?? null)) { ?>
@@ -178,7 +180,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php } ?>
                     <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) ($post['board_id'] ?? 0)] + $post, ['comment'], true, 'comment_new'); ?>
                     <?php if (function_exists('sr_antispam_challenge_render')) { ?>
-                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) ($post['id'] ?? 0), ['account' => is_array($account ?? null) ? $account : null]); ?>
+                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) ($post['id'] ?? 0) . '_0', ['account' => is_array($account ?? null) ? $account : null]); ?>
                     <?php } ?>
                     <button type="submit" class="btn btn-solid-primary">댓글 등록</button>
                 </form>

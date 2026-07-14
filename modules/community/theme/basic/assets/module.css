@@ -669,6 +669,20 @@
     margin: 0;
 }
 
+.community-comments-count {
+    color: var(--sr-muted, var(--text-muted, #6b6b6b));
+    font-size: 0.85em;
+    font-weight: var(--font-weight-medium, 500);
+}
+
+.community-comments-pagination {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
 .community-screen article,
 .community-screen section,
 .community-screen nav,

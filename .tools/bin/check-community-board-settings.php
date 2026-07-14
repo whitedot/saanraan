@@ -231,6 +231,7 @@ function sr_check_community_board_settings_runtime(): void
         ['setting_key' => 'post_body_min_length', 'setting_value' => '3', 'value_type' => 'int'],
         ['setting_key' => 'post_body_max_length', 'setting_value' => '5', 'value_type' => 'int'],
         ['setting_key' => 'list_per_page', 'setting_value' => '2', 'value_type' => 'int'],
+        ['setting_key' => 'comments_per_page', 'setting_value' => '15', 'value_type' => 'int'],
         ['setting_key' => 'list_default_sort', 'setting_value' => 'comments', 'value_type' => 'string'],
     ] as $setting) {
         $groupSettingStmt->execute([
@@ -253,6 +254,7 @@ function sr_check_community_board_settings_runtime(): void
         ['setting_key' => 'post_delete_lock_comment_count', 'setting_value' => '3', 'value_type' => 'int'],
         ['setting_key' => 'comment_body_min_length', 'setting_value' => '2', 'value_type' => 'int'],
         ['setting_key' => 'comment_body_max_length', 'setting_value' => '4', 'value_type' => 'int'],
+        ['setting_key' => 'comments_per_page', 'setting_value' => '25', 'value_type' => 'int'],
         ['setting_key' => 'summary_feed_enabled', 'setting_value' => '1', 'value_type' => 'bool'],
         ['setting_key' => 'reaction_enabled', 'setting_value' => '1', 'value_type' => 'bool'],
     ] as $setting) {
@@ -312,6 +314,14 @@ function sr_check_community_board_settings_runtime(): void
     }
     if (sr_community_board_list_per_page($pdo, $board, ['posts_per_page' => 20]) !== 20) {
         sr_check_community_board_settings_error('community board list per page must not use group fallback.');
+    }
+    if (sr_community_board_comments_per_page($pdo, $board, ['comments_per_page' => 50]) !== 25) {
+        sr_check_community_board_settings_error('community board comment page size must override the global setting.');
+    }
+    $pdo->exec("UPDATE sr_community_board_settings SET setting_value = '0' WHERE board_id = 10 AND setting_key = 'comments_per_page'");
+    sr_community_clear_board_settings_runtime_cache(10);
+    if (sr_community_board_comments_per_page($pdo, $board, ['comments_per_page' => 50]) !== 50) {
+        sr_check_community_board_settings_error('community board zero comment page size must inherit the global setting.');
     }
     if (sr_community_board_list_default_sort($pdo, $board) !== 'latest') {
         sr_check_community_board_settings_error('community board list default sort must not use group fallback.');
@@ -539,6 +549,7 @@ $settingKeys = [
     'post_body_max_length',
     'comment_body_min_length',
     'comment_body_max_length',
+    'comments_per_page',
     'list_excerpt_enabled',
     'list_excerpt_length',
     'list_per_page',
@@ -565,6 +576,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts-writ
 ], 'community post write runtime setting helpers');
 sr_check_community_board_settings_contains('modules/community/helpers/posts-comments.php', [
     'sr_community_validate_comment_body_length',
+    'sr_community_post_comment_page',
 ], 'community comment runtime setting helpers');
 sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', array_merge($settingKeys, [
     'function sr_community_admin_apply_board_settings(',
@@ -588,6 +600,8 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-sett
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
     '[\'post_body_min_length\', (string) $postBodyMinLength, \'int\']',
     '[\'post_body_max_length\', (string) $postBodyMaxLength, \'int\']',
+    'sr_admin_post_int_in_range(\'comments_per_page\', 1, 100)',
+    '[\'comments_per_page\', (string) $commentsPerPage, \'int\']',
 ], 'community global post body length setting save');
 sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
     '게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
@@ -647,6 +661,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
     "\$board['post_body_max_length'] = sr_community_board_setting_value",
     "\$board['comment_body_min_length'] = sr_community_board_setting_value",
     "\$board['comment_body_max_length'] = sr_community_board_setting_value",
+    "\$board['comments_per_page'] = sr_community_board_setting_value",
     "\$board['list_excerpt_enabled'] = sr_community_board_setting_value",
     "\$board['list_excerpt_length'] = sr_community_board_setting_value",
     "\$board['list_per_page'] = sr_community_board_setting_value",
@@ -654,6 +669,18 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
     "\$summaryFeedSetting = sr_community_board_setting_value",
     "\$board['summary_feed_enabled'] = \$summaryFeedSetting ?? '1'",
 ], 'community admin board edit form value contract');
+sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
+    'function sr_community_board_comments_per_page',
+    "sr_community_effective_board_setting(\$pdo, \$board, 'comments_per_page', '0')",
+], 'community board-priority comment page size helper');
+sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
+    'name="comments_per_page"',
+    '게시판 관리에서 1~100 값을 지정하면 해당 게시판 값이 우선합니다.',
+], 'community global comment page size field');
+sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
+    'name="comments_per_page"',
+    '0이면 커뮤니티 환경설정의 기본값을 사용합니다.',
+], 'community board comment page size field');
 sr_check_community_board_settings_contains('modules/community/actions/list.php', [
     'sr_community_board_list_per_page',
     'sr_community_board_list_default_sort',

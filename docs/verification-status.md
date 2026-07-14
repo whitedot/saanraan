@@ -263,6 +263,8 @@ docs/records/release-verification-YYYY-MM-DD.md
 - 모듈 상태 등급 변경 근거가 있는지 여부
 - `php .tools/bin/check-release-verification-records.php`가 날짜별 기록을 받아들이는지 여부
 
+- `.tools/bin/check-community-comment-pagination.php`는 공개 댓글의 숫자 페이지 순서, 전체 댓글 수, 마지막 페이지 clamp, 새 댓글 위치 계산, 페이지 링크의 비동기 교체 hook, 전역·게시판 우선순위 적용 marker를 SQLite fixture와 정적 검사로 확인한다. 게시판 설정의 `0=전역 상속`, `1~100=게시판 우선` 런타임은 `.tools/bin/check-community-board-settings.php`가 함께 확인한다.
+
 ## 1.0 전 보완 대상
 
 1.0 릴리스 후보 전까지 다음 항목을 우선 보완한다.

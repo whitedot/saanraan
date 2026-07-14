@@ -76,6 +76,7 @@ function sr_community_board_group_setting_keys(): array
         'post_body_max_length',
         'comment_body_min_length',
         'comment_body_max_length',
+        'comments_per_page',
         'list_excerpt_enabled',
         'list_excerpt_length',
         'list_per_page',
@@ -200,6 +201,7 @@ function sr_community_board_group_default_settings(array $settings): array
         'post_body_max_length' => (string) sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0),
         'comment_body_min_length' => '0',
         'comment_body_max_length' => '0',
+        'comments_per_page' => '0',
         'list_excerpt_enabled' => '0',
         'list_excerpt_length' => '120',
         'list_per_page' => (string) min(100, max(1, (int) ($settings['posts_per_page'] ?? 20))),
@@ -384,6 +386,7 @@ function sr_community_board_setting_value_type(string $settingKey): string
         'post_body_max_length',
         'comment_body_min_length',
         'comment_body_max_length',
+        'comments_per_page',
         'list_excerpt_length',
         'list_per_page',
         'banner_before_list_id',
@@ -960,6 +963,7 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     $board['post_body_max_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'post_body_max_length') ?? (string) sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0);
     $board['comment_body_min_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'comment_body_min_length') ?? '0';
     $board['comment_body_max_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'comment_body_max_length') ?? '0';
+    $board['comments_per_page'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'comments_per_page') ?? '0';
     $board['list_excerpt_enabled'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'list_excerpt_enabled') ?? '0';
     $board['list_excerpt_length'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'list_excerpt_length') ?? '120';
     $board['list_per_page'] = sr_community_board_setting_value($pdo, (int) $board['id'], 'list_per_page') ?? (string) min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
@@ -1516,6 +1520,14 @@ function sr_community_effective_board_policy(PDO $pdo, array $board, string $set
     $policy = sr_community_effective_board_setting($pdo, $board, $settingKey, $fallback);
 
     return in_array($policy, sr_community_policy_values($policyType), true) ? $policy : $fallback;
+}
+
+function sr_community_board_comments_per_page(PDO $pdo, array $board, array $settings = []): int
+{
+    $globalPerPage = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
+    $boardPerPage = (int) sr_community_effective_board_setting($pdo, $board, 'comments_per_page', '0');
+
+    return $boardPerPage >= 1 && $boardPerPage <= 100 ? $boardPerPage : $globalPerPage;
 }
 
 function sr_community_effective_board_image_uploads_enabled(PDO $pdo, array $board): bool

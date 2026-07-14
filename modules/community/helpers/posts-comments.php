@@ -45,9 +45,45 @@ function sr_community_post_published_comment_count(PDO $pdo, int $postId): int
     return (int) $stmt->fetchColumn();
 }
 
-function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
+function sr_community_mark_comment_page_access(int $postId): void
 {
-    $limit = max(1, min(100, $limit));
+    if ($postId < 1) {
+        return;
+    }
+
+    $access = isset($_SESSION['sr_community_comment_page_access']) && is_array($_SESSION['sr_community_comment_page_access'])
+        ? $_SESSION['sr_community_comment_page_access']
+        : [];
+    $now = time();
+    foreach ($access as $storedPostId => $accessedAt) {
+        if ((int) $accessedAt < $now - 7200) {
+            unset($access[$storedPostId]);
+        }
+    }
+    $access[(string) $postId] = $now;
+    if (count($access) > 100) {
+        asort($access);
+        $access = array_slice($access, -100, null, true);
+    }
+    $_SESSION['sr_community_comment_page_access'] = $access;
+}
+
+function sr_community_has_comment_page_access(int $postId): bool
+{
+    if ($postId < 1 || !isset($_SESSION['sr_community_comment_page_access']) || !is_array($_SESSION['sr_community_comment_page_access'])) {
+        return false;
+    }
+
+    return (int) ($_SESSION['sr_community_comment_page_access'][(string) $postId] ?? 0) >= time() - 7200;
+}
+
+function sr_community_post_comment_page(PDO $pdo, int $postId, int $page = 1, int $perPage = 50): array
+{
+    $perPage = max(1, min(100, $perPage));
+    $total = sr_community_post_published_comment_count($pdo, $postId);
+    $totalPages = max(1, (int) ceil($total / $perPage));
+    $page = max(1, min($totalPages, $page));
+    $offset = ($page - 1) * $perPage;
     $stmt = $pdo->prepare(
         "SELECT c.id, c.post_id, c.parent_comment_id, c.thread_root_id, c.depth, c.author_account_id, c.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ", author.status AS author_account_status, c.body_text, c.is_secret, c.status, c.created_at, c.updated_at
          FROM sr_community_comments c
@@ -55,13 +91,127 @@ function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): arr
          WHERE c.post_id = :post_id
            AND c.status = 'published'
          ORDER BY COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC
-         LIMIT :limit_value"
+         LIMIT :limit_value OFFSET :offset_value"
     );
     $stmt->bindValue('post_id', $postId, PDO::PARAM_INT);
-    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('limit_value', $perPage, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $comments = $stmt->fetchAll();
+
+    return [
+        'comments' => $comments,
+        'page' => $page,
+        'per_page' => $perPage,
+        'total' => $total,
+        'total_pages' => $totalPages,
+        'offset' => $offset,
+        'has_previous' => $page > 1,
+        'has_next' => $page < $totalPages,
+    ];
+}
+
+function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
+{
+    $page = sr_community_post_comment_page($pdo, $postId, 1, $limit);
+
+    return is_array($page['comments'] ?? null) ? $page['comments'] : [];
+}
+
+function sr_community_comment_page_for_comment(PDO $pdo, int $postId, int $commentId, int $perPage): int
+{
+    if ($postId < 1 || $commentId < 1) {
+        return 1;
+    }
+
+    $perPage = max(1, min(100, $perPage));
+
+    $targetStmt = $pdo->prepare(
+        "SELECT id, thread_root_id, depth
+         FROM sr_community_comments
+         WHERE id = :id
+           AND post_id = :post_id
+           AND status = 'published'
+         LIMIT 1"
+    );
+    $targetStmt->execute([
+        'id' => $commentId,
+        'post_id' => $postId,
+    ]);
+    $target = $targetStmt->fetch();
+    if (!is_array($target)) {
+        return 1;
+    }
+
+    $targetThreadRootId = (int) (($target['thread_root_id'] ?? 0) ?: ($target['id'] ?? 0));
+    $targetDepth = min(3, max(1, (int) ($target['depth'] ?? 1)));
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_community_comments
+         WHERE post_id = :post_id
+           AND status = 'published'
+           AND (
+               COALESCE(thread_root_id, id) < :target_thread_root_lt
+               OR (COALESCE(thread_root_id, id) = :target_thread_root_depth AND depth < :target_depth_lt)
+               OR (COALESCE(thread_root_id, id) = :target_thread_root_id AND depth = :target_depth_id AND id <= :target_id)
+           )"
+    );
+    $stmt->bindValue('post_id', $postId, PDO::PARAM_INT);
+    $stmt->bindValue('target_thread_root_lt', $targetThreadRootId, PDO::PARAM_INT);
+    $stmt->bindValue('target_thread_root_depth', $targetThreadRootId, PDO::PARAM_INT);
+    $stmt->bindValue('target_thread_root_id', $targetThreadRootId, PDO::PARAM_INT);
+    $stmt->bindValue('target_depth_lt', $targetDepth, PDO::PARAM_INT);
+    $stmt->bindValue('target_depth_id', $targetDepth, PDO::PARAM_INT);
+    $stmt->bindValue('target_id', $commentId, PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt->fetchAll();
+    $position = max(1, (int) $stmt->fetchColumn());
+
+    return (int) ceil($position / $perPage);
+}
+
+function sr_community_comment_pagination_html(int $postId, array $pagination): string
+{
+    $currentPage = max(1, (int) ($pagination['page'] ?? 1));
+    $totalPages = max(1, (int) ($pagination['total_pages'] ?? 1));
+    if ($postId < 1 || $totalPages <= 1) {
+        return '';
+    }
+
+    $pageNumbers = [1 => 1, $totalPages => $totalPages];
+    for ($page = max(1, $currentPage - 2); $page <= min($totalPages, $currentPage + 2); $page++) {
+        $pageNumbers[$page] = $page;
+    }
+    ksort($pageNumbers);
+
+    $html = '<nav class="community-comments-pagination" aria-label="댓글 페이지" data-community-comment-pagination>';
+    $previousPage = 0;
+    foreach ($pageNumbers as $pageNumber) {
+        if ($previousPage > 0 && $pageNumber > $previousPage + 1) {
+            $html .= '<span class="community-comments-pagination-gap" aria-hidden="true">…</span>';
+        }
+        if ($pageNumber === $currentPage) {
+            $html .= '<span class="btn btn-solid-primary" aria-current="page">' . sr_e((string) $pageNumber) . '</span>';
+        } else {
+            $url = sr_url('/community/post?id=' . rawurlencode((string) $postId) . '&comment_page=' . rawurlencode((string) $pageNumber) . '#comments');
+            $html .= '<a class="btn btn-ghost-default" href="' . sr_e($url) . '" data-community-comment-page="' . sr_e((string) $pageNumber) . '" aria-label="댓글 ' . sr_e((string) $pageNumber) . '페이지">' . sr_e((string) $pageNumber) . '</a>';
+        }
+        $previousPage = $pageNumber;
+    }
+    $html .= '</nav>';
+
+    return $html;
+}
+
+function sr_community_comment_page_path(int $postId, int $page = 1, string $anchor = 'comments'): string
+{
+    $path = '/community/post?id=' . rawurlencode((string) max(0, $postId));
+    if ($page > 1) {
+        $path .= '&comment_page=' . rawurlencode((string) $page);
+    }
+
+    return $path . '#' . rawurlencode($anchor !== '' ? $anchor : 'comments');
 }
 
 function sr_community_account_can_view_comment_body(array $comment, array $post, ?array $account, ?PDO $pdo = null): bool

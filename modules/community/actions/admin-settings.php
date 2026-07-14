@@ -104,6 +104,7 @@ if (sr_request_method() === 'POST') {
         $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
         $postBodyMinLength = sr_admin_post_int_in_range('post_body_min_length', 0, $postBodyMaxSettingLength);
         $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, $postBodyMaxSettingLength);
+        $commentsPerPage = sr_admin_post_int_in_range('comments_per_page', 1, 100);
         $externalEmbedEnabled = ($_POST['external_embed_enabled'] ?? '') === '1';
         $internalEmbedEnabled = ($_POST['internal_embed_enabled'] ?? '') === '1';
         $businessInfoVisible = ($_POST['business_info_visible'] ?? '') === '1';
@@ -301,6 +302,10 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시글 본문 최대 길이가 올바르지 않습니다.';
             $postBodyMaxLength = (int) ($settings['post_body_max_length'] ?? 0);
         }
+        if ($commentsPerPage === null) {
+            $errors[] = '댓글 페이지당 수는 1 이상 100 이하로 입력하세요.';
+            $commentsPerPage = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
+        }
         if ($postBodyMinLength > 0 && $postBodyMaxLength > 0 && $postBodyMinLength > $postBodyMaxLength) {
             $errors[] = '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
         }
@@ -450,6 +455,7 @@ if (sr_request_method() === 'POST') {
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
                 ['post_body_min_length', (string) $postBodyMinLength, 'int'],
                 ['post_body_max_length', (string) $postBodyMaxLength, 'int'],
+                ['comments_per_page', (string) $commentsPerPage, 'int'],
                 ['external_embed_enabled', $externalEmbedEnabled ? '1' : '0', 'bool'],
                 ['internal_embed_enabled', $internalEmbedEnabled ? '1' : '0', 'bool'],
                 ['plain_text_auto_link_urls', $plainTextAutoLinkUrls ? '1' : '0', 'bool'],

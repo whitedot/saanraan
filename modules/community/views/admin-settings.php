@@ -755,6 +755,13 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
+            <label class="form-label" for="community_admin_settings_comments_per_page">댓글 페이지당 수 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <input id="community_admin_settings_comments_per_page" type="number" name="comments_per_page" min="1" max="100" value="<?php echo sr_e((string) ($settings['comments_per_page'] ?? 50)); ?>" required class="form-input">
+                <p class="form-help">게시글 읽기 화면의 댓글 한 페이지에 표시할 기본 수입니다. 게시판 관리에서 1~100 값을 지정하면 해당 게시판 값이 우선합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
             <span class="form-label">외부 서비스 임베드</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_external_embed_enabled', 'external_embed_enabled', '1', !empty($settings['external_embed_enabled']), '사용'); ?>

@@ -428,7 +428,7 @@ unset($_SESSION['sr_member_follow_feedback']);
             ]); ?>
 
             <div class="community-comments-panel-header">
-                <h2><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?></h2>
+                <h2><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="community-comments-count"><?php echo sr_e(number_format((int) ($post['published_comment_count'] ?? 0))); ?></span></h2>
             </div>
             <?php echo sr_public_feedback_toasts('community', $commentNotice, []); ?>
 
@@ -500,6 +500,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                                                         <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                        <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                                                         <div class="modal-header">
                                                             <h3 id="<?php echo sr_e($communityCommentReplyModalId . '_title'); ?>" class="modal-title">답글 작성</h3>
                                                             <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">
@@ -555,6 +556,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                     <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>" class="modal-content">
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                        <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                                                         <div class="modal-header">
                                                             <h3 id="<?php echo sr_e($communityCommentEditModalId . '_title'); ?>" class="modal-title"><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?></h3>
                                                             <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityCommentEditModalId); ?>">
@@ -587,6 +589,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                                                 <button type="submit" class="btn btn-ghost-warning"><?php echo sr_e('숨김'); ?></button>
                                             </form>
                                         <?php } ?>
@@ -594,6 +597,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                                                 <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                             </form>
                                         <?php } ?>
@@ -603,6 +607,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                    <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentEditId); ?>">
                                                             <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
@@ -620,6 +625,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                    <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                                                     <p>
                                                         <label for="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>">
                                                             <span><?php echo sr_e('삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
@@ -643,6 +649,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="target_type" value="comment">
                                                 <input type="hidden" name="target_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                                                 <div class="modal-header">
                                                     <h3 id="<?php echo sr_e($communityCommentReportModalId . '_title'); ?>" class="modal-title"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></h3>
                                                     <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#<?php echo sr_e($communityCommentReportModalId); ?>">
@@ -679,6 +686,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                         </li>
                     <?php } ?>
                 </ul>
+                <?php echo sr_community_comment_pagination_html((int) $post['id'], $commentPage); ?>
             <?php } ?>
 
             <?php echo sr_public_feedback_toasts('community', '', $commentErrors); ?>
@@ -688,6 +696,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <input type="hidden" name="parent_comment_id" value="0">
+                    <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                     <p>
                         <label for="modules_community_view_body_text_2">
                     <span><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>

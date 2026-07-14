@@ -163,6 +163,10 @@
 
 마일스톤 34 모듈 공개 테마 v1은 외부 패키지를 사용하지 않고 `core/views/theme/{theme_key}`와 각 모듈의 `modules/{module}/theme/{theme_key}` 디렉터리를 공개 화면 DOM과 theme asset의 기준으로 삼는다. 모듈 레이아웃 shell은 선택된 layout provider의 `modules/{module}/theme/{theme_key}/layout.php`가 담당하고 없으면 같은 provider의 `theme/basic/layout.php`로 fallback한다. 번들 `content.basic`, `community.basic`, `quiz.basic`, `survey.basic`은 네 공개 모듈의 필수 화면 target 전체를 지원해 각 모듈 환경설정에서 다른 모듈 레이아웃도 선택할 수 있다. `basic`은 배포판 기본 view theme이고, 기존 `default` 설정값은 호환 alias로 `basic`에 매핑된다. `sample`은 DOM/색상 차이를 확인하는 샘플이며 CSS는 `/assets/theme/sample.css` 또는 `/modules/{module}/theme/sample/assets/theme.css`에서 로드한다. 모듈 공개 화면의 reset/UI kit/UI-KIT preview/layout/module stylesheet는 선택된 view theme의 `theme/{theme_key}/assets/`를 우선한다. 콘텐츠는 `home/group/content/ui-kit`, 커뮤니티는 `home/group/list/post/form/search/ui-kit`, 퀴즈는 `home/view/result/ui-kit`, 설문은 `home/view/complete/ui-kit` view를 모듈별로 요구하고, 관리자 화면에는 적용하지 않는다. 스킨과 테마는 별도 레이어이며, theme view가 없을 때만 기존 community/quiz/survey skin view가 fallback으로 사용된다. 상세 계약은 [공개 모듈 테마 기준](public-module-themes.md)을 따른다.
 
+## 커뮤니티 댓글 페이지네이션
+
+커뮤니티 게시글 읽기 화면의 공개 댓글은 숫자 페이지로 조회하며, 공개 화면에서는 페이지 번호를 눌러도 전체 화면을 이동하지 않고 `#comments` 영역만 비동기로 교체한다. `comments_per_page`는 커뮤니티 환경설정의 1~100 기본값을 사용하되 게시판 설정이 1~100이면 게시판 값이 우선하고, 게시판 값 0은 전역값 상속을 뜻한다. 댓글 작성 성공 시 새 댓글이 포함된 숫자 페이지로 이동하고 수정·숨김·삭제·신고 결과도 현재 댓글 페이지를 유지한다. 페이지 교체 요청은 게시글 읽기 권한과 직전 열람 세션을 다시 확인하며 추가 조회수나 유료 열람 차감을 만들지 않는다.
+
 ## 검증 기준
 
 현재 정적 기준은 다음 명령으로 확인한다.

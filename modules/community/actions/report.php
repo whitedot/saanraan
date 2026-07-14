@@ -11,6 +11,8 @@ sr_require_csrf();
 $targetType = sr_post_string('target_type', 30);
 $targetIdValue = sr_post_string('target_id', 20);
 $targetId = preg_match('/\A[1-9][0-9]*\z/', $targetIdValue) === 1 ? (int) $targetIdValue : 0;
+$commentPageValue = sr_post_string('comment_page', 20);
+$commentPageNumber = preg_match('/\A[1-9][0-9]*\z/', $commentPageValue) === 1 ? (int) $commentPageValue : 1;
 $reasonKey = sr_post_string('reason_key', 40);
 $memoText = sr_post_string_without_truncation('memo_text', 1000);
 $target = sr_community_report_target($pdo, $targetType, $targetId, (int) $account['id']);
@@ -19,6 +21,9 @@ if (!is_array($target)) {
 }
 
 $redirectPath = (string) $target['redirect_path'];
+if ($targetType === 'comment' && $commentPageNumber > 1) {
+    $redirectPath = str_replace('#comments', '&comment_page=' . rawurlencode((string) $commentPageNumber) . '#comments', $redirectPath);
+}
 $errors = [];
 if (!in_array($reasonKey, sr_community_report_reason_keys(), true)) {
     $errors[] = sr_t('community::action.error.report_reason_required');

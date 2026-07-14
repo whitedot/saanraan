@@ -853,6 +853,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
+                <label class="form-label" for="community_admin_boards_comments_per_page">댓글 페이지당 수 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <div class="form-field">
+                    <input id="community_admin_boards_comments_per_page" type="number" name="comments_per_page" min="0" max="100" value="<?php echo sr_e($boardField($formBoard, 'comments_per_page', '0')); ?>" required class="form-input">
+                    <?php echo $settingSourceRadioHtml('source_comments_per_page', $boardSettingSource($formBoard, 'comments_per_page')); ?>
+                    <p class="form-help">0이면 커뮤니티 환경설정의 기본값을 사용합니다. 1~100을 지정하면 이 게시판 값이 우선합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label" for="community_admin_boards_list_excerpt_enabled">목록 본문 요약</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_list_excerpt_enabled">

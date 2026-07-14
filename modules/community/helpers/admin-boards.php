@@ -134,6 +134,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $postBodyMaxLength = sr_admin_post_int_in_range('post_body_max_length', 0, $postBodyMaxSettingLength);
         $commentBodyMinLength = sr_admin_post_int_in_range('comment_body_min_length', 0, 5000);
         $commentBodyMaxLength = sr_admin_post_int_in_range('comment_body_max_length', 0, 5000);
+        $commentsPerPage = sr_admin_post_int_in_range('comments_per_page', 0, 100);
         $listExcerptEnabled = ($_POST['list_excerpt_enabled'] ?? '') === '1';
         $listExcerptLength = sr_admin_post_int_in_range('list_excerpt_length', 1, 1000);
         $listPerPage = sr_admin_post_int_in_range('list_per_page', 1, 100);
@@ -458,6 +459,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
             'postBodyMaxLength' => ['value' => $postBodyMaxLength, 'message' => '게시글 본문 최대 길이가 올바르지 않습니다.', 'fallback' => 0],
             'commentBodyMinLength' => ['value' => $commentBodyMinLength, 'message' => '댓글 본문 최소 길이가 올바르지 않습니다.', 'fallback' => 0],
             'commentBodyMaxLength' => ['value' => $commentBodyMaxLength, 'message' => '댓글 본문 최대 길이가 올바르지 않습니다.', 'fallback' => 0],
+            'commentsPerPage' => ['value' => $commentsPerPage, 'message' => '댓글 페이지당 수가 올바르지 않습니다.', 'fallback' => 0],
             'listExcerptLength' => ['value' => $listExcerptLength, 'message' => '목록 본문 요약 길이가 올바르지 않습니다.', 'fallback' => 120],
             'listPerPage' => ['value' => $listPerPage, 'message' => '목록 페이지당 글 수가 올바르지 않습니다.', 'fallback' => 20],
         ] as $numericSettingKey => $numericSetting) {
@@ -645,6 +647,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'post_body_max_length' => (string) $postBodyMaxLength,
                 'comment_body_min_length' => (string) $commentBodyMinLength,
                 'comment_body_max_length' => (string) $commentBodyMaxLength,
+                'comments_per_page' => (string) $commentsPerPage,
                 'list_excerpt_enabled' => $listExcerptEnabled ? '1' : '0',
                 'list_excerpt_length' => (string) $listExcerptLength,
                 'list_per_page' => (string) $listPerPage,

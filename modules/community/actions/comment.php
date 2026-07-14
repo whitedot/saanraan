@@ -13,6 +13,8 @@ sr_require_csrf();
 
 $postIdValue = sr_post_string('post_id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
+$commentPageInput = sr_post_string('comment_page', 20);
+$commentPageNumber = preg_match('/\A[1-9][0-9]*\z/', $commentPageInput) === 1 ? (int) $commentPageInput : 1;
 $post = sr_community_post_for_read($pdo, $postId, is_array($account) ? $account : null);
 if (!is_array($post)) {
     sr_render_error(404, sr_t('community::action.error.post_not_found'));
@@ -96,7 +98,11 @@ if ($errors !== []) {
     if ($isGuestAuthor) {
         $_SESSION['sr_community_comment_guest_author_name'] = (string) ($values['guest_author_name'] ?? '');
     }
-    sr_redirect('/community/post?id=' . (string) $postId . '#comments');
+    $commentErrorUrl = '/community/post?id=' . (string) $postId;
+    if ($commentPageNumber > 1) {
+        $commentErrorUrl .= '&comment_page=' . rawurlencode((string) $commentPageNumber);
+    }
+    sr_redirect($commentErrorUrl . '#comments');
 }
 
 $values['parent_comment'] = $parentComment;
@@ -235,4 +241,12 @@ if (!empty($commentRewardResult['processed'])) {
 } else {
     $_SESSION['sr_community_comment_notice'] = sr_t('community::action.notice.comment_created');
 }
-sr_redirect('/community/post?id=' . (string) $postId . '#comments');
+$commentsPerPage = is_array($board)
+    ? sr_community_board_comments_per_page($pdo, $board, $settings)
+    : max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
+$commentFocusPage = sr_community_comment_page_for_comment($pdo, $postId, $commentId, $commentsPerPage);
+$commentSuccessUrl = '/community/post?id=' . (string) $postId;
+if ($commentFocusPage > 1) {
+    $commentSuccessUrl .= '&comment_page=' . rawurlencode((string) $commentFocusPage);
+}
+sr_redirect($commentSuccessUrl . '#community-comment-' . (string) $commentId);

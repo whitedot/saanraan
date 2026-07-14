@@ -15,6 +15,9 @@ if (sr_request_method() === 'POST') {
 
 $postIdValue = sr_request_method() === 'POST' ? sr_post_string('id', 20) : sr_get_string('id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
+$communityCommentFragmentRequest = sr_request_method() === 'GET' && sr_get_string('comment_fragment', 1) === '1';
+$communityCommentPageRequestValue = sr_request_method() === 'GET' ? sr_get_string('comment_page', 20) : '';
+$communityCommentPageNavigationRequest = preg_match('/\A[1-9][0-9]*\z/', $communityCommentPageRequestValue) === 1;
 $account = sr_member_current_account($pdo);
 $communityAdminPreviewRequested = sr_get_string('preview', 20) === 'admin';
 $communityAdminPreview = $communityAdminPreviewRequested
@@ -119,6 +122,12 @@ if (is_array($postBoard)) {
 }
 $categoryEnabled = is_array($postBoard) && sr_community_board_category_enabled($pdo, (int) $postBoard['id']);
 $canViewPostBody = sr_community_account_can_view_post_body($pdo, $post, is_array($account) ? $account : null);
+$hasCommentPageAccess = sr_community_has_comment_page_access((int) $post['id']);
+if ($communityCommentFragmentRequest && (!$canViewPostBody || !$hasCommentPageAccess)) {
+    sr_render_error(403, '댓글 페이지를 불러올 권한이 없거나 열람 세션이 만료되었습니다.');
+}
+$communityAuthorizedCommentPagingRequest = $hasCommentPageAccess
+    && ($communityCommentFragmentRequest || $communityCommentPageNavigationRequest);
 $secretCommentsEnabled = is_array($postBoard) ? sr_community_effective_board_secret_comments_enabled($pdo, $postBoard, $settings) : false;
 $assetReadNotices = [];
 $paidReadConfirmationRequired = false;
@@ -127,7 +136,7 @@ $paidReadBlockedMessage = '';
 $paidReadConfirmationRequestToken = '';
 $paidReadConfirmationCouponIssues = [];
 $paidReadConfirmationResult = [];
-if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
+if (!$communityAdminPreview && !$communityAuthorizedCommentPagingRequest && $canViewPostBody && is_array($postBoard)) {
     $paidReadConfig = sr_community_asset_event_config($pdo, $postBoard, $settings, 'paid_read', 'once');
     $isAuthor = is_array($account) && (int) ($post['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
     if (!$isAuthor && sr_community_asset_event_required($paidReadConfig)) {
@@ -287,14 +296,27 @@ if (!$communityAdminPreview && $canViewPostBody && is_array($postBoard)) {
         }
     }
 }
-if (!$communityAdminPreview && !$paidReadConfirmationRequired && !$paidReadBlocked && $canViewPostBody && sr_community_should_count_post_view((int) $post['id'])) {
+if (!$communityCommentFragmentRequest && !$paidReadConfirmationRequired && !$paidReadBlocked && $canViewPostBody) {
+    sr_community_mark_comment_page_access((int) $post['id']);
+}
+if (!$communityAdminPreview && !$communityAuthorizedCommentPagingRequest && !$paidReadConfirmationRequired && !$paidReadBlocked && $canViewPostBody && sr_community_should_count_post_view((int) $post['id'])) {
     sr_community_increment_post_view_count($pdo, (int) $post['id']);
     $post['view_count'] = (int) $post['view_count'] + 1;
 }
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 
-$commentsPerPage = max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
-$comments = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? [] : sr_community_post_comments($pdo, (int) $post['id'], $commentsPerPage);
+$commentsPerPage = is_array($postBoard)
+    ? sr_community_board_comments_per_page($pdo, $postBoard, $settings)
+    : max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
+$commentPageInput = $communityCommentPageRequestValue;
+$requestedCommentPage = preg_match('/\A[1-9][0-9]*\z/', $commentPageInput) === 1 ? (int) $commentPageInput : 1;
+$commentPage = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody
+    ? ['comments' => [], 'page' => 1, 'per_page' => $commentsPerPage, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false]
+    : sr_community_post_comment_page($pdo, (int) $post['id'], $requestedCommentPage, $commentsPerPage);
+$comments = is_array($commentPage['comments'] ?? null) ? $commentPage['comments'] : [];
+$post['published_comment_count'] = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody
+    ? 0
+    : (int) ($commentPage['total'] ?? 0);
 $attachments = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
 $communitySeriesContext = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
 $imageAttachments = [];
