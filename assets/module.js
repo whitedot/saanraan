@@ -82,24 +82,79 @@
             var titleRect = title.getBoundingClientRect();
             var titleStyle = window.getComputedStyle(title);
             var fontSize = parseFloat(titleStyle.fontSize) || 80;
-            var centerX = titleRect.left - canvasRect.left + titleRect.width / 2;
             var sampleStep = Math.max(3, Math.round(fontSize / 48));
 
             sampleContext.fillStyle = '#fff';
             sampleContext.font = titleStyle.fontWeight + ' ' + titleStyle.fontSize + ' ' + titleStyle.fontFamily;
-            sampleContext.textAlign = 'center';
+            sampleContext.textAlign = 'left';
             sampleContext.textBaseline = 'alphabetic';
             if ('letterSpacing' in sampleContext) {
-                sampleContext.letterSpacing = titleStyle.letterSpacing;
+                sampleContext.letterSpacing = '0px';
             }
-            var titleText = title.textContent.trim();
-            var titleMetrics = sampleContext.measureText(titleText);
+
+            var titleMetrics = sampleContext.measureText(title.textContent.trim());
             var lineHeight = parseFloat(titleStyle.lineHeight) || fontSize;
             var fontAscent = titleMetrics.fontBoundingBoxAscent || fontSize * .8;
             var fontDescent = titleMetrics.fontBoundingBoxDescent || fontSize * .2;
             var lineLeading = (lineHeight - fontAscent - fontDescent) / 2;
-            var baselineY = titleRect.top - canvasRect.top + lineLeading + fontAscent;
-            sampleContext.fillText(titleText, centerX, baselineY);
+
+            var glyphs = [];
+            var walker = document.createTreeWalker(title, window.NodeFilter.SHOW_TEXT);
+            var textNode = walker.nextNode();
+            while (textNode) {
+                var offset = 0;
+                while (offset < textNode.data.length) {
+                    var codePoint = textNode.data.codePointAt(offset);
+                    var character = String.fromCodePoint(codePoint);
+                    var nextOffset = offset + character.length;
+                    if (character.trim() !== '') {
+                        var range = document.createRange();
+                        range.setStart(textNode, offset);
+                        range.setEnd(textNode, nextOffset);
+                        var characterRect = range.getBoundingClientRect();
+                        if (characterRect.width > 0 && characterRect.height > 0) {
+                            glyphs.push({
+                                character: character,
+                                left: characterRect.left,
+                                top: characterRect.top,
+                            });
+                        }
+                    }
+                    offset = nextOffset;
+                }
+                textNode = walker.nextNode();
+            }
+
+            var lineTops = [];
+            glyphs.forEach(function (glyph) {
+                var hasLine = lineTops.some(function (lineTop) {
+                    return Math.abs(lineTop - glyph.top) < 2;
+                });
+                if (!hasLine) {
+                    lineTops.push(glyph.top);
+                }
+            });
+            lineTops.sort(function (first, second) {
+                return first - second;
+            });
+
+            glyphs.forEach(function (glyph) {
+                var lineIndex = 0;
+                var nearestDistance = Infinity;
+                lineTops.forEach(function (lineTop, index) {
+                    var distance = Math.abs(lineTop - glyph.top);
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        lineIndex = index;
+                    }
+                });
+
+                var baselineY = titleRect.top - canvasRect.top
+                    + lineIndex * lineHeight
+                    + lineLeading
+                    + fontAscent;
+                sampleContext.fillText(glyph.character, glyph.left - canvasRect.left, baselineY);
+            });
 
             var imageData = sampleContext.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
             var points = [];
@@ -114,7 +169,8 @@
             }
 
             shuffle(points);
-            return points.length > 2200 ? points.slice(0, 2200) : points;
+            var maximumParticles = width < 700 ? 1800 : 3200;
+            return points.length > maximumParticles ? points.slice(0, maximumParticles) : points;
         }
 
         function scatteredPosition(targetX, targetY) {
