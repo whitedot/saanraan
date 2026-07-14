@@ -11,7 +11,15 @@ $config = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberSettings = sr_member_settings($pdo);
 $homeData = sr_community_home_chrome_data($pdo, is_array($account) ? $account : null, $settings, $site ?? null, $memberSettings);
 $boards = is_array($homeData['boards'] ?? null) ? $homeData['boards'] : [];
+$summaryFeedBoards = is_array($homeData['summaryFeedBoards'] ?? null) ? $homeData['summaryFeedBoards'] : [];
 $latestPosts = is_array($homeData['latestPosts'] ?? null) ? $homeData['latestPosts'] : [];
+$latestPostSections = sr_community_home_latest_post_sections(
+    $pdo,
+    $summaryFeedBoards,
+    $settings,
+    is_array($homeData['homeExcerptAllowedByBoardId'] ?? null) ? $homeData['homeExcerptAllowedByBoardId'] : [],
+    5
+);
 $popularPosts = is_array($homeData['popularPosts'] ?? null) ? $homeData['popularPosts'] : [];
 $popularPostReactionCounts = is_array($homeData['popularPostReactionCounts'] ?? null) ? $homeData['popularPostReactionCounts'] : [];
 $latestComments = is_array($homeData['latestComments'] ?? null) ? $homeData['latestComments'] : [];

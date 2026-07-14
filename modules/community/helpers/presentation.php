@@ -435,6 +435,101 @@ function sr_community_home_post_feed(PDO $pdo, array $boards, array $settings, a
     return $posts;
 }
 
+function sr_community_home_latest_post_sections_from_board_posts(array $boards, array $postsByBoardId): array
+{
+    $groupSections = [];
+    $ungroupedSections = [];
+    foreach ($boards as $board) {
+        if (!is_array($board)) {
+            continue;
+        }
+
+        $boardId = (int) ($board['id'] ?? 0);
+        $boardKey = (string) ($board['board_key'] ?? '');
+        if ($boardId < 1 || !sr_community_board_key_is_valid($boardKey)) {
+            continue;
+        }
+
+        $groupId = (int) ($board['board_group_id'] ?? 0);
+        $groupKey = (string) ($board['board_group_key'] ?? '');
+        $groupTitle = trim((string) ($board['board_group_title'] ?? ''));
+        $hasPublicGroup = $groupId > 0
+            && (string) ($board['board_group_status'] ?? '') === 'enabled'
+            && sr_community_board_group_key_is_valid($groupKey);
+        $posts = is_array($postsByBoardId[$boardId] ?? null) ? $postsByBoardId[$boardId] : [];
+        $boardSection = [
+            'id' => $boardId,
+            'board_key' => $boardKey,
+            'title' => (string) ($board['title'] ?? ''),
+            'posts' => array_values(array_filter($posts, 'is_array')),
+        ];
+
+        if ($hasPublicGroup) {
+            $normalizedGroupTitle = preg_replace('/\s+/u', ' ', $groupTitle);
+            $normalizedGroupTitle = is_string($normalizedGroupTitle) ? trim($normalizedGroupTitle) : $groupTitle;
+            if (function_exists('mb_strtolower')) {
+                $normalizedGroupTitle = mb_strtolower($normalizedGroupTitle, 'UTF-8');
+            } else {
+                $normalizedGroupTitle = strtolower($normalizedGroupTitle);
+            }
+            $groupSectionKey = $normalizedGroupTitle !== '' ? 'title:' . $normalizedGroupTitle : 'key:' . $groupKey;
+            if (!isset($groupSections[$groupSectionKey])) {
+                $groupSections[$groupSectionKey] = [
+                    'is_grouped' => true,
+                    'group_id' => $groupId,
+                    'group_key' => $groupKey,
+                    'group_title' => $groupTitle,
+                    'boards' => [],
+                ];
+            } elseif ((int) ($groupSections[$groupSectionKey]['group_id'] ?? 0) !== $groupId
+                || (string) ($groupSections[$groupSectionKey]['group_key'] ?? '') !== $groupKey
+            ) {
+                $groupSections[$groupSectionKey]['group_id'] = 0;
+                $groupSections[$groupSectionKey]['group_key'] = '';
+            }
+            $groupSections[$groupSectionKey]['boards'][] = $boardSection;
+            continue;
+        }
+
+        $ungroupedSections[] = [
+            'is_grouped' => false,
+            'group_id' => 0,
+            'group_key' => '',
+            'group_title' => '',
+            'boards' => [$boardSection],
+        ];
+    }
+
+    return array_merge(array_values($groupSections), $ungroupedSections);
+}
+
+function sr_community_home_latest_post_sections(PDO $pdo, array $boards, array $settings, array $homeExcerptAllowedByBoardId, int $postsPerBoard = 5): array
+{
+    $postsPerBoard = max(1, min(10, $postsPerBoard));
+    $postsByBoardId = [];
+    foreach ($boards as $board) {
+        if (!is_array($board)) {
+            continue;
+        }
+
+        $boardId = (int) ($board['id'] ?? 0);
+        if ($boardId < 1 || isset($postsByBoardId[$boardId])) {
+            continue;
+        }
+
+        $postsByBoardId[$boardId] = sr_community_home_post_feed(
+            $pdo,
+            [$board],
+            $settings,
+            $homeExcerptAllowedByBoardId,
+            $postsPerBoard,
+            'latest'
+        );
+    }
+
+    return sr_community_home_latest_post_sections_from_board_posts($boards, $postsByBoardId);
+}
+
 function sr_community_home_latest_comment_snapshots_from_rows(array $rows, array $homeExcerptAllowedByBoardId): array
 {
     $snapshots = [];
@@ -809,6 +904,7 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
 
     $data = [
         'boards' => $boards,
+        'summaryFeedBoards' => $summaryFeedBoards,
         'latestPosts' => $latestPosts,
         'popularPosts' => $popularPosts,
         'popularPostReactionCounts' => $popularPostReactionCounts,

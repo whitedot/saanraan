@@ -397,6 +397,23 @@ sr_check_community_feed_cache_contract_assert(
 
 sr_check_community_feed_cache_contract_home_feed_fixture();
 
+$latestPostSections = sr_community_home_latest_post_sections_from_board_posts([
+    ['id' => 1, 'board_key' => 'notice', 'title' => '공지', 'board_group_id' => 10, 'board_group_key' => 'general', 'board_group_title' => '일반', 'board_group_status' => 'enabled'],
+    ['id' => 3, 'board_key' => 'question', 'title' => '질문', 'board_group_id' => 0, 'board_group_key' => '', 'board_group_title' => '', 'board_group_status' => ''],
+    ['id' => 2, 'board_key' => 'free', 'title' => '자유', 'board_group_id' => 11, 'board_group_key' => 'general_alt', 'board_group_title' => '일반', 'board_group_status' => 'enabled'],
+], [
+    1 => [['id' => 101, 'board_id' => 1]],
+    2 => [['id' => 201, 'board_id' => 2]],
+    3 => [['id' => 301, 'board_id' => 3]],
+]);
+sr_check_community_feed_cache_contract_assert(count($latestPostSections) === 2, 'home latest post sections must group non-contiguous boards with the same visible group title and keep ungrouped boards separate.');
+sr_check_community_feed_cache_contract_assert(!empty($latestPostSections[0]['is_grouped']), 'home latest post group section must remain grouped when multiple group identities share a title.');
+sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[0]['group_title'] ?? '') === '일반', 'home latest post sections must preserve the visible board group title.');
+sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[0]['group_key'] ?? '') === '', 'merged group title section must not link to one of multiple group identities.');
+sr_check_community_feed_cache_contract_assert(count($latestPostSections[0]['boards'] ?? []) === 2, 'home latest post group section must contain every board sharing the visible group title.');
+sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[1]['group_key'] ?? '') === '', 'ungrouped board latest section must not expose a group key.');
+sr_check_community_feed_cache_contract_assert((int) ($latestPostSections[1]['boards'][0]['posts'][0]['id'] ?? 0) === 301, 'ungrouped board latest section must preserve its posts.');
+
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
     "effective_summary_feed_enabled",
@@ -469,6 +486,9 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/prese
     '$latestCommentsUsePublicCache = $readableBoardIds !== [] && $readableBoardIds === $publicFeedCacheBoardIds',
     'sr_community_home_warm_public_feed_cache($pdo, $summaryFeedBoards, $settings, $homeExcerptAllowedByBoardId)',
     'function sr_community_home_filter_rows_by_board_ids',
+    'function sr_community_home_latest_post_sections_from_board_posts',
+    'function sr_community_home_latest_post_sections',
+    "'summaryFeedBoards' => \$summaryFeedBoards",
     '$latestPosts = sr_community_home_filter_rows_by_board_ids($latestPosts, $readableBoardIds)',
     '$recentSeries = sr_community_home_filter_rows_by_board_ids($recentSeries, $readableBoardIds)',
     'sr_community_feed_cache_post_feed_query($pdo',
@@ -478,6 +498,21 @@ sr_check_community_feed_cache_contract_contains('modules/community/helpers/prese
     "'feed_key' => 'community.home.latest_comments'",
     "'policy_version' => 'summary-feed-candidate-v1'",
     'sr_community_feed_cache_write_snapshots(',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/actions/home.php', [
+    '$latestPostSections = sr_community_home_latest_post_sections(',
+    '$summaryFeedBoards,',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home.php', [
+    'community-home-latest-section-grouped',
+    'card community-home-latest-board',
+    'card-body community-home-latest-board-body',
+    'community-home-latest-sections',
+    'community-home-latest-group-title',
+    'community-home-latest-board-title',
+    'community-home-latest-list',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home-frame-start.php', [
