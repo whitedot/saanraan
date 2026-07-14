@@ -1036,6 +1036,54 @@ function sr_coupon_runtime_fixture(): void
     sr_coupon_runtime_assert(!in_array($futureIssueId, $usableIssueIds, true), 'future-start coupons must not be returned as usable target candidates.');
     sr_coupon_runtime_assert(sr_coupon_active_account_issue_count($pdo, 7) === 1, 'active coupon count must include future-start holdings.');
     sr_coupon_runtime_assert(sr_coupon_usable_account_issue_count($pdo, 7) === 0, 'usable coupon count must exclude future-start holdings.');
+    $pagedTargetDefinitionId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'paged_target_access',
+        'title' => 'Paged target access',
+        'coupon_type' => 'access',
+        'target_type' => 'content',
+        'target_id' => '7701',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '1',
+    ]);
+    $pagedOtherDefinitionId = sr_coupon_create_definition($pdo, [
+        'coupon_key' => 'paged_other_access',
+        'title' => 'Paged other access',
+        'coupon_type' => 'access',
+        'target_type' => 'content',
+        'target_id' => '9999',
+        'refundable_policy' => 'none',
+        'max_uses_per_issue' => '1',
+    ]);
+    $pagedIssueInsert = $pdo->prepare(
+        "INSERT INTO sr_coupon_issues
+         (coupon_definition_id, account_id, status, issued_reason, issued_at, created_at, updated_at)
+         VALUES (:coupon_definition_id, 17, 'active', 'pagination-fixture', :issued_at, :created_at, :updated_at)"
+    );
+    $pagedIssueInsert->execute([
+        'coupon_definition_id' => $pagedTargetDefinitionId,
+        'issued_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $pagedTargetIssueId = (int) $pdo->lastInsertId();
+    for ($issueNumber = 1; $issueNumber <= 310; $issueNumber++) {
+        $pagedIssueInsert->execute([
+            'coupon_definition_id' => $pagedOtherDefinitionId,
+            'issued_at' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    sr_coupon_runtime_assert(sr_coupon_active_account_issue_count($pdo, 17) === 311, 'active coupon count must include holdings beyond the former 100-row account list.');
+    $pagedHoldingRows = sr_coupon_active_account_issues($pdo, 17, 20, 300);
+    sr_coupon_runtime_assert(count($pagedHoldingRows) === 11, 'active coupon holdings must expose the final page beyond 300 rows.');
+    sr_coupon_runtime_assert(in_array($pagedTargetIssueId, array_map('intval', array_column($pagedHoldingRows, 'id')), true), 'active coupon final page must include the oldest holding.');
+    $pagedTargetRows = sr_coupon_active_account_target_issues($pdo, 17, 'content', '7701', 5);
+    sr_coupon_runtime_assert(count($pagedTargetRows) === 1 && (int) ($pagedTargetRows[0]['id'] ?? 0) === $pagedTargetIssueId, 'target coupon lookup must not miss a matching issue behind 300 newer unrelated holdings.');
+    $couponAccountActionSource = file_get_contents(SR_ROOT . '/modules/coupon/actions/account-coupons.php');
+    $couponAccountViewSource = file_get_contents(SR_ROOT . '/modules/coupon/views/account-coupons.php');
+    sr_coupon_runtime_assert(is_string($couponAccountActionSource) && str_contains($couponAccountActionSource, 'sr_coupon_active_account_issue_count(') && str_contains($couponAccountActionSource, '$couponPagination'), 'coupon account action must build count-based pagination.');
+    sr_coupon_runtime_assert(is_string($couponAccountViewSource) && str_contains($couponAccountViewSource, 'sr_public_pagination_html($couponPagination'), 'coupon account view must render public pagination.');
     $futureRedeem = sr_coupon_redeem_for_target($pdo, 7, 'content', '7701', [
         'dedupe_key' => 'future-start-redeem',
         'coupon_issue_id' => $futureIssueId,

@@ -12,7 +12,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
     <main class="ui-page">
         <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
         <p><a href="<?php echo sr_e(sr_url('/account')); ?>">계정으로 돌아가기</a></p>
-        <section class="card">
+        <section id="coupon-holdings" class="card">
             <div class="card-header">
                 <h2 class="card-title">쿠폰 목록</h2>
             </div>
@@ -55,6 +55,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                         </table>
                     </div>
                 <?php } ?>
+                <?php echo sr_public_pagination_html($couponPagination, '/account/coupons', '보유 쿠폰·이용권 페이지', 'page', 'coupon-holdings'); ?>
             </div>
         </section>
     </main>

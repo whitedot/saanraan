@@ -3363,7 +3363,7 @@ function sr_coupon_redemption_status_label(string $status): string
     return $labels[$status] ?? $status;
 }
 
-function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 100): array
+function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 100, int $offset = 0): array
 {
     if ($accountId <= 0 || !sr_coupon_usage_enabled($pdo)) {
         return [];
@@ -3372,6 +3372,7 @@ function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 
     sr_coupon_expire_active_issues($pdo, $accountId);
 
     $limit = max(1, min(300, $limit));
+    $offset = max(0, $offset);
     $discountColumns = sr_coupon_definition_discount_columns_available($pdo)
         ? 'd.discount_amount, d.discount_percent, d.discount_currency_code'
         : '0 AS discount_amount, 0 AS discount_percent, \'\' AS discount_currency_code';
@@ -3384,7 +3385,7 @@ function sr_coupon_active_account_issues(PDO $pdo, int $accountId, int $limit = 
            AND d.status IN ('active', 'issue_stopped')
            AND (i.expires_at IS NULL OR i.expires_at >= :now_value)
          ORDER BY i.id DESC
-         LIMIT " . $limit
+         LIMIT " . $limit . " OFFSET " . $offset
     );
     $stmt->execute([
         'account_id' => $accountId,
@@ -3400,24 +3401,38 @@ function sr_coupon_active_account_target_issues(PDO $pdo, int $accountId, string
         return [];
     }
 
-    $matched = [];
+    sr_coupon_expire_active_issues($pdo, $accountId);
+
+    $limit = max(1, min(100, $limit));
+    $discountColumns = sr_coupon_definition_discount_columns_available($pdo)
+        ? 'd.discount_amount, d.discount_percent, d.discount_currency_code'
+        : '0 AS discount_amount, 0 AS discount_percent, \'\' AS discount_currency_code';
     $now = sr_now();
-    foreach (sr_coupon_active_account_issues($pdo, $accountId, max(100, $limit * 5)) as $issue) {
-        $startsAt = (string) ($issue['starts_at'] ?? '');
-        if ($startsAt !== '' && strcmp($startsAt, $now) > 0) {
-            continue;
-        }
-        if (!sr_coupon_issue_matches_target($issue, $targetType, $targetId)) {
-            continue;
-        }
+    $stmt = $pdo->prepare(
+        "SELECT i.*, d.coupon_key, d.title, d.description, d.coupon_type, " . $discountColumns . ", d.target_type, d.target_id, d.refundable_policy, d.max_uses_per_issue
+         FROM sr_coupon_issues i
+         INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
+         WHERE i.account_id = :account_id
+           AND i.status = 'active'
+           AND d.status IN ('active', 'issue_stopped')
+           AND (i.starts_at IS NULL OR i.starts_at <= :starts_now_value)
+           AND (i.expires_at IS NULL OR i.expires_at >= :expires_now_value)
+           AND (
+                d.target_type = 'all'
+                OR (d.target_type = :target_type AND (d.target_id = '' OR d.target_id = :target_id))
+           )
+         ORDER BY i.id DESC
+         LIMIT " . $limit
+    );
+    $stmt->execute([
+        'account_id' => $accountId,
+        'starts_now_value' => $now,
+        'expires_now_value' => $now,
+        'target_type' => $targetType,
+        'target_id' => $targetId,
+    ]);
 
-        $matched[] = $issue;
-        if (count($matched) >= $limit) {
-            break;
-        }
-    }
-
-    return $matched;
+    return $stmt->fetchAll();
 }
 
 function sr_coupon_active_account_issue_count(PDO $pdo, int $accountId): int
