@@ -276,6 +276,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <thead>
                 <tr>
                     <th><?php echo sr_e('범위'); ?></th>
+                    <th><?php echo sr_e('마지막 시도'); ?></th>
                     <th><?php echo sr_e('마지막 성공'); ?></th>
                     <th><?php echo sr_e('마지막 실패'); ?></th>
                     <th><?php echo sr_e('실패 메시지'); ?></th>
@@ -289,6 +290,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     ?>
                     <tr>
                         <td class="admin-table-nowrap"><?php echo sr_e($autoCleanupScopeLabel); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($autoCleanupStatusRow['last_attempt_at'] ?? ''), '-'); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($autoCleanupStatusRow['last_success_at'] ?? ''), '-'); ?></td>
                         <td class="admin-table-nowrap"><?php echo sr_admin_time_html((string) ($autoCleanupStatusRow['last_failure_at'] ?? ''), '-'); ?></td>
                         <td class="admin-table-break"><?php echo (string) ($autoCleanupStatusRow['last_failure_message'] ?? '') !== '' ? sr_e((string) $autoCleanupStatusRow['last_failure_message']) : '-'; ?></td>

@@ -723,7 +723,9 @@ foreach ([
 foreach ([
     'function sr_admin_retention_record_auto_cleanup_failure(PDO $pdo, string $autoScope, Throwable $exception): void',
     'function sr_admin_retention_auto_cleanup_runtime_status(PDO $pdo): array',
+    'function sr_admin_retention_last_auto_cleanup_attempt_setting_key(string $autoScope): string',
     '자동 정리 실행 상태',
+    '마지막 시도',
     '마지막 실패',
 ] as $marker) {
     $retentionSource = '';

@@ -383,6 +383,41 @@ if (($retentionImmediateCutoffs['auth_logs'] ?? '') === ($retentionDefaultCutoff
     sr_retention_check_error($errors, 'Immediate retention cleanup must advance operational retention cutoff.');
 }
 
+$timingPdo = new PDO('sqlite::memory:');
+$timingPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$timingPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$timingPdo->exec('CREATE TABLE sr_site_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT, value_type TEXT)');
+$timingValues = ['auto_cleanup_enabled' => 1, 'auto_cleanup_interval_hours' => 1];
+sr_clear_site_settings_cache();
+if (!sr_admin_retention_auto_cleanup_due($timingPdo, $timingValues, 'public')) {
+    sr_retention_check_error($errors, 'Retention auto cleanup without prior attempt or success must be due.');
+}
+$attemptKey = sr_admin_retention_last_auto_cleanup_attempt_setting_key('public');
+$stmt = $timingPdo->prepare('INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES (:setting_key, :setting_value, :value_type)');
+$stmt->execute(['setting_key' => $attemptKey, 'setting_value' => sr_now(), 'value_type' => 'string']);
+sr_clear_site_settings_cache();
+if (sr_admin_retention_auto_cleanup_due($timingPdo, $timingValues, 'public')) {
+    sr_retention_check_error($errors, 'Retention auto cleanup must apply the short retry delay after an attempt.');
+}
+$timingPdo->prepare('UPDATE sr_site_settings SET setting_value = :setting_value WHERE setting_key = :setting_key')->execute([
+    'setting_value' => date('Y-m-d H:i:s', time() - 600),
+    'setting_key' => $attemptKey,
+]);
+sr_clear_site_settings_cache();
+if (!sr_admin_retention_auto_cleanup_due($timingPdo, $timingValues, 'public')) {
+    sr_retention_check_error($errors, 'Retention auto cleanup must retry after the short attempt delay.');
+}
+$successKey = sr_admin_retention_last_auto_cleanup_setting_key('public');
+$stmt->execute(['setting_key' => $successKey, 'setting_value' => sr_now(), 'value_type' => 'string']);
+sr_clear_site_settings_cache();
+if (sr_admin_retention_auto_cleanup_due($timingPdo, $timingValues, 'public')) {
+    sr_retention_check_error($errors, 'Retention auto cleanup must apply the configured interval after success.');
+}
+$runtimeStatus = sr_admin_retention_auto_cleanup_runtime_status($timingPdo);
+if ((string) ($runtimeStatus['public']['last_attempt_at'] ?? '') === '' || (string) ($runtimeStatus['public']['last_success_at'] ?? '') === '') {
+    sr_retention_check_error($errors, 'Retention runtime status must expose separate attempt and success timestamps.');
+}
+
 $retentionHelper = file_get_contents($root . '/modules/admin/helpers/retention.php');
 if (!is_string($retentionHelper)) {
     sr_retention_check_error($errors, 'Retention helper cannot be read.');

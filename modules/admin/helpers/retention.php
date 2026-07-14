@@ -682,6 +682,11 @@ function sr_admin_retention_last_auto_cleanup_setting_key(string $autoScope): st
     return 'admin.retention.last_auto_cleanup_at.' . $autoScope;
 }
 
+function sr_admin_retention_last_auto_cleanup_attempt_setting_key(string $autoScope): string
+{
+    return 'admin.retention.last_auto_cleanup_attempt_at.' . $autoScope;
+}
+
 function sr_admin_retention_last_auto_cleanup_failure_setting_key(string $autoScope, string $field): string
 {
     return 'admin.retention.last_auto_cleanup_failure_' . $field . '.' . $autoScope;
@@ -720,6 +725,7 @@ function sr_admin_retention_auto_cleanup_runtime_status(PDO $pdo): array
     foreach (sr_admin_retention_auto_cleanup_scopes() as $autoScope) {
         $rows[$autoScope] = [
             'scope' => $autoScope,
+            'last_attempt_at' => (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_attempt_setting_key($autoScope), ''),
             'last_success_at' => (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_setting_key($autoScope), ''),
             'last_failure_at' => (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'at'), ''),
             'last_failure_message' => (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'message'), ''),
@@ -739,14 +745,18 @@ function sr_admin_retention_auto_cleanup_due(PDO $pdo, array $values, string $au
         return false;
     }
 
-    $lastCleanupAt = (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_setting_key($autoScope), '');
-    $lastCleanupTime = $lastCleanupAt === '' ? false : strtotime($lastCleanupAt);
-    if ($lastCleanupTime === false) {
-        return true;
+    $intervalSeconds = max(1, (int) ($values['auto_cleanup_interval_hours'] ?? 24)) * 3600;
+    $lastSuccessAt = (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_setting_key($autoScope), '');
+    $lastSuccessTime = $lastSuccessAt === '' ? false : strtotime($lastSuccessAt);
+    if ($lastSuccessTime !== false && time() - $lastSuccessTime < $intervalSeconds) {
+        return false;
     }
 
-    $intervalSeconds = max(1, (int) ($values['auto_cleanup_interval_hours'] ?? 24)) * 3600;
-    return time() - $lastCleanupTime >= $intervalSeconds;
+    $lastAttemptAt = (string) sr_site_setting($pdo, sr_admin_retention_last_auto_cleanup_attempt_setting_key($autoScope), '');
+    $lastAttemptTime = $lastAttemptAt === '' ? false : strtotime($lastAttemptAt);
+    $retryDelaySeconds = min(300, $intervalSeconds);
+
+    return $lastAttemptTime === false || time() - $lastAttemptTime >= $retryDelaySeconds;
 }
 
 function sr_admin_retention_auto_cleanup_lock_acquire(PDO $pdo, string $autoScope): bool
@@ -811,7 +821,7 @@ function sr_admin_retention_maybe_run_auto_cleanup(PDO $pdo, string $autoScope):
         }
 
         $now = sr_now();
-        sr_save_site_setting($pdo, sr_admin_retention_last_auto_cleanup_setting_key($autoScope), $now, 'string');
+        sr_save_site_setting($pdo, sr_admin_retention_last_auto_cleanup_attempt_setting_key($autoScope), $now, 'string');
 
         $batchSize = max(1, min(5000, (int) ($values['auto_cleanup_batch_size'] ?? 200)));
         $deletedCounts = sr_admin_retention_execute_cleanup(
@@ -820,6 +830,21 @@ function sr_admin_retention_maybe_run_auto_cleanup(PDO $pdo, string $autoScope):
             $batchSize,
             $autoScope
         );
+
+        sr_save_site_settings($pdo, [
+            sr_admin_retention_last_auto_cleanup_setting_key($autoScope) => [
+                'value' => sr_now(),
+                'type' => 'string',
+            ],
+            sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'at') => [
+                'value' => '',
+                'type' => 'string',
+            ],
+            sr_admin_retention_last_auto_cleanup_failure_setting_key($autoScope, 'message') => [
+                'value' => '',
+                'type' => 'string',
+            ],
+        ]);
 
         sr_audit_log($pdo, [
             'actor_account_id' => null,
