@@ -21,7 +21,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 <h2 class="card-title">콘텐츠 작성</h2>
             </div>
             <div class="card-body">
-                <form method="post" action="<?php echo sr_e(sr_url('/account/content' . (!empty($formSubmission['id']) ? '?id=' . (string) (int) $formSubmission['id'] : ''))); ?>" class="ui-card-body-stack">
+                <form method="post" action="<?php echo sr_e(sr_url($contentSubmissionFormPath)); ?>" class="ui-card-body-stack">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="submission_id" value="<?php echo sr_e((string) (int) ($formSubmission['id'] ?? 0)); ?>">
                     <p>
@@ -53,7 +53,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
         </section>
     <?php } ?>
 
-    <section class="card">
+    <section id="content-submission-history" class="card">
         <div class="card-header">
             <h2 class="card-title">제출 내역</h2>
         </div>
@@ -66,12 +66,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             <td><?php echo sr_e((string) $submission['title']); ?></td>
                             <td><?php echo sr_e((string) ($submission['group_title'] ?? '')); ?></td>
                             <td><?php echo sr_e((string) $submission['review_status']); ?></td>
-                            <td><?php if (in_array((string) $submission['review_status'], ['member_draft', 'revision_requested', 'rejected'], true)) { ?><a href="<?php echo sr_e(sr_url('/account/content?id=' . (string) (int) $submission['id'])); ?>">수정</a><?php } ?></td>
+                            <td><?php if (in_array((string) $submission['review_status'], ['member_draft', 'revision_requested', 'rejected'], true)) { ?><a href="<?php echo sr_e(sr_url('/account/content?id=' . (string) (int) $submission['id'] . ($contentSubmissionPage > 1 ? '&page=' . (string) $contentSubmissionPage : ''))); ?>">수정</a><?php } ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
         </div>
+        <?php echo sr_public_pagination_html($contentSubmissionPagination, $contentSubmissionPaginationBasePath, '콘텐츠 제출 내역 페이지', 'page', 'content-submission-history'); ?>
     </section>
 </main>
 <?php sr_public_layout_end(); ?>

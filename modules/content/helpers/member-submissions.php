@@ -515,17 +515,38 @@ function sr_content_submission_by_id(PDO $pdo, int $submissionId): ?array
     return is_array($row) ? $row : null;
 }
 
-function sr_content_member_submissions(PDO $pdo, int $accountId): array
+function sr_content_member_submission_count(PDO $pdo, int $accountId): int
 {
+    if ($accountId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_content_submissions WHERE author_account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_content_member_submissions(PDO $pdo, int $accountId, int $limit = 20, int $offset = 0): array
+{
+    if ($accountId < 1) {
+        return [];
+    }
+
+    $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
     $stmt = $pdo->prepare(
         'SELECT s.*, g.title AS group_title
          FROM sr_content_submissions s
          LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
          WHERE s.author_account_id = :account_id
          ORDER BY s.id DESC
-         LIMIT 200'
+         LIMIT :limit_value OFFSET :offset_value'
     );
-    $stmt->execute(['account_id' => $accountId]);
+    $stmt->bindValue(':account_id', $accountId, PDO::PARAM_INT);
+    $stmt->bindValue(':limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }

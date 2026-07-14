@@ -270,6 +270,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 - `.tools/bin/check-public-comment-pagination.php`는 콘텐츠·퀴즈·설문 공개 댓글이 20개 단위 숫자 페이지로 전체 게시 댓글을 조회하는지, 40개 이후 row와 전체 수·마지막 페이지 보정·새 댓글 위치 계산을 SQLite fixture로 확인한다. 각 기본·샘플 테마와 호환 스킨이 같은 페이지 helper와 공통 공개 페이지네이션을 사용하는지도 정적 marker로 확인한다.
 - `.tools/bin/check-quiz-consistency.php`는 퀴즈 제출 성공과 실패가 모두 Post/Redirect/Get으로 끝나는지, 실패 flash가 오류와 선택한 답을 한 번만 복원하는지, 기본·샘플 테마와 호환 스킨이 같은 토스트·복원 계약을 쓰는지 확인한다.
 - `.tools/bin/check-account-form-prg.php`는 회원 콘텐츠 임시저장·제출과 적립금 출금·예치금 환불 신청이 성공·검증 실패 모두 Post/Redirect/Get으로 끝나는지 확인한다. 실패 시 짧은 세션 flash로 입력값과 오류를 한 번 복원하고, 결과는 UI kit alert 기반 공개 토스트로 표시하는 계약도 함께 고정한다.
+- `.tools/bin/check-content-member-submission-pagination.php`는 회원 콘텐츠 제출 내역이 고정 200건에서 끝나지 않고 전체 목록을 페이지로 탐색하는지 확인한다. 45건 SQLite fixture의 중간·마지막 페이지와 편집 ID·목록 페이지 보존 marker도 함께 확인한다.
 - `.tools/bin/check-member-asset-history-pagination.php`는 회원 포인트 거래와 적립금·예치금 신청/거래 내역이 고정 100건에서 끝나지 않고 count 기반 페이지네이션으로 전체 이력을 탐색하는지 확인한다. 한 화면의 신청·거래 페이지 상태를 각각 보존하는 공개 pagination 계약도 함께 확인한다.
 - `.tools/bin/check-member-communication-pagination.php`는 회원 알림과 받은·보낸 쪽지함이 고정 50/100건에서 끝나지 않고 전체 목록을 페이지로 탐색하는지 확인한다. 쪽지 helper의 중간·마지막 페이지 SQLite fixture와 필터·편지함·행 작업 복귀 경로도 함께 고정한다.
 - `.tools/bin/check-content-search.php`는 콘텐츠 검색의 제목·본문 범위와 접근 제한 본문 제외 외에 기존 50페이지 경계 뒤의 1,000번째 offset 결과도 조회되는지 확인한다. `.tools/bin/check-community-board-settings.php`와 `.tools/bin/check-community-account-guards.php`는 커뮤니티 검색과 내 글·댓글 목록에 50페이지 상한이 다시 생기지 않는지 확인한다.

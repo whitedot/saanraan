@@ -19,6 +19,9 @@ $contentSubmissionFormValues = isset($contentSubmissionFlash['values']) && is_ar
     : [];
 $allowedSubmissionGroups = sr_content_member_submission_allowed_groups($pdo, (int) $account['id']);
 $submissionId = (int) sr_get_string('id', 20);
+$contentSubmissionPageInput = sr_get_string('page', 20);
+$contentSubmissionPage = preg_match('/\A[1-9][0-9]*\z/', $contentSubmissionPageInput) === 1 ? (int) $contentSubmissionPageInput : 1;
+$contentSubmissionPageQuery = $contentSubmissionPage > 1 ? '&page=' . (string) $contentSubmissionPage : '';
 $editingSubmission = $submissionId > 0 ? sr_content_submission_by_id($pdo, $submissionId) : null;
 if ($submissionId > 0 && (!is_array($editingSubmission) || (int) ($editingSubmission['author_account_id'] ?? 0) !== (int) $account['id'])) {
     sr_render_error(404, '제출본을 찾을 수 없습니다.');
@@ -41,16 +44,35 @@ if (sr_request_method() === 'POST') {
             'notice' => $intent === 'submit' ? '콘텐츠를 제출했습니다.' : '임시저장했습니다.',
             'values' => [],
         ];
-        sr_redirect('/account/content?id=' . (string) $savedSubmissionId);
+        sr_redirect('/account/content?id=' . (string) $savedSubmissionId . $contentSubmissionPageQuery);
     } catch (Throwable $exception) {
         $_SESSION['sr_content_submission_flash'] = [
             'errors' => [(string) $exception->getMessage()],
             'notice' => '',
             'values' => $contentSubmissionFormValues,
         ];
-        sr_redirect('/account/content' . ($submissionId > 0 ? '?id=' . (string) $submissionId : ''));
+        sr_redirect('/account/content' . ($submissionId > 0 ? '?id=' . (string) $submissionId . $contentSubmissionPageQuery : ($contentSubmissionPage > 1 ? '?page=' . (string) $contentSubmissionPage : '')));
     }
 }
 
-$memberSubmissions = sr_content_member_submissions($pdo, (int) $account['id']);
+$contentSubmissionPerPage = 20;
+$contentSubmissionCount = sr_content_member_submission_count($pdo, (int) $account['id']);
+$contentSubmissionTotalPages = max(1, (int) ceil($contentSubmissionCount / $contentSubmissionPerPage));
+$contentSubmissionPage = min(max(1, $contentSubmissionPage), $contentSubmissionTotalPages);
+$contentSubmissionPagination = ['page' => $contentSubmissionPage, 'total_pages' => $contentSubmissionTotalPages];
+$contentSubmissionPaginationBasePath = '/account/content' . ($submissionId > 0 ? '?id=' . (string) $submissionId : '');
+$contentSubmissionFormQuery = [];
+if ($submissionId > 0) {
+    $contentSubmissionFormQuery['id'] = $submissionId;
+}
+if ($contentSubmissionPage > 1) {
+    $contentSubmissionFormQuery['page'] = $contentSubmissionPage;
+}
+$contentSubmissionFormPath = '/account/content' . ($contentSubmissionFormQuery !== [] ? '?' . http_build_query($contentSubmissionFormQuery) : '');
+$memberSubmissions = sr_content_member_submissions(
+    $pdo,
+    (int) $account['id'],
+    $contentSubmissionPerPage,
+    ($contentSubmissionPage - 1) * $contentSubmissionPerPage
+);
 include SR_ROOT . '/modules/content/views/account-content.php';
