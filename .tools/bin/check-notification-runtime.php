@@ -935,7 +935,11 @@ sr_notification_runtime_assert(!empty(sr_notification_slack_webhook_response_res
 $deliveryTransportHelpers = sr_notification_runtime_file('modules/notification/helpers/deliveries.php');
 sr_notification_runtime_assert(str_contains($deliveryTransportHelpers, 'curl_init') && str_contains($deliveryTransportHelpers, 'allow_url_fopen'), 'notification runtime fixture must allow webhook HTTP delivery through cURL before allow_url_fopen stream fallback.');
 sr_notification_runtime_assert(!str_contains($deliveryTransportHelpers, 'sr_json_encode(') && str_contains($deliveryTransportHelpers, 'JSON_INVALID_UTF8_SUBSTITUTE'), 'notification runtime fixture must encode webhook payloads without depending on unavailable helpers.');
-sr_notification_runtime_assert(str_contains($deliveryTransportHelpers, "in_array(\$method, ['GET', 'POST'], true)") && str_contains($deliveryTransportHelpers, "if (\$method === 'GET')"), 'notification web runner must run after POST requests while keeping GET interval throttling.');
+sr_notification_runtime_assert(
+    str_contains($deliveryTransportHelpers, "in_array(\$method, ['GET', 'POST'], true)")
+        && str_contains($deliveryTransportHelpers, 'sr_notification_web_delivery_runner_due($pdo, $settings)'),
+    'notification web runner must apply the configured interval to both GET and POST requests.'
+);
 sr_notification_runtime_assert(str_contains($deliveryTransportHelpers, 'function sr_notification_absolute_link_url(') && !str_contains($deliveryTransportHelpers, 'sr_is_http_url($linkUrl) ? $linkUrl : sr_url($linkUrl)'), 'notification external push payloads must send absolute URLs for relative notification links.');
 sr_notification_runtime_assert(!empty(sr_notification_external_push_response_result('discord_webhook', ['ok' => true, 'status' => 204, 'body' => ''])['ok']), 'notification runtime fixture must accept Discord webhook success response.');
 sr_notification_runtime_assert((string) (sr_notification_external_push_response_result('telegram_bot', ['ok' => true, 'status' => 200, 'body' => '{"ok":true,"result":{"message_id":77}}'])['provider_message_id'] ?? '') === 'telegram:77', 'notification runtime fixture must accept Telegram bot success response.');
@@ -1034,6 +1038,21 @@ $notificationAdminHelpers = file_get_contents($root . '/modules/notification/hel
 $notificationPrivacyExport = file_get_contents($root . '/modules/notification/privacy-export.php');
 $requestBootstrap = sr_notification_runtime_file('core/request-bootstrap.php');
 sr_notification_runtime_assert(str_contains($requestBootstrap, "in_array(\$method, ['GET', 'POST'], true)") && str_contains($requestBootstrap, 'sr_notification_register_web_delivery_runner'), 'request bootstrap must register notification web runner for POST requests as well as GET requests.');
+http_response_code(200);
+$GLOBALS['sr_request_contract'] = ['exit_reason' => 'completed'];
+sr_notification_runtime_assert(sr_notification_web_delivery_runner_request_completed(), 'notification web runner must accept a completed successful request.');
+$GLOBALS['sr_request_contract'] = ['exit_reason' => 'guard_blocked'];
+sr_notification_runtime_assert(!sr_notification_web_delivery_runner_request_completed(), 'notification web runner must reject an auth or CSRF blocked request.');
+unset($GLOBALS['sr_request_contract']);
+http_response_code(404);
+sr_notification_runtime_assert(!sr_notification_web_delivery_runner_request_completed(), 'notification web runner must reject an unresolved route response.');
+http_response_code(200);
+sr_notification_runtime_assert(
+    is_string($notificationDeliveryHelpers)
+        && str_contains($notificationDeliveryHelpers, 'sr_notification_web_delivery_runner_lock_acquire($pdo)')
+        && str_contains($notificationDeliveryHelpers, 'sr_notification_web_delivery_runner_due($pdo, $settings)'),
+    'notification web runner must serialize and recheck the interval after request completion.'
+);
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, '$allowedDeliveryStatuses = sr_notification_delivery_statuses();'), 'notification delivery admin action must use shared delivery statuses.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "array_merge(['email'], sr_notification_admin_external_channel_keys())"), 'notification delivery admin action must expose all admin external delivery filters.');
 sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, 'channel NOT IN ('), 'notification delete action must not delete admin external deliveries with colliding notification ids.');

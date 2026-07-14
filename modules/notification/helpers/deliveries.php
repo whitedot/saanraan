@@ -1568,24 +1568,82 @@ function sr_notification_register_web_delivery_runner(PDO $pdo, array $site, str
         return;
     }
 
-    if ($method === 'GET') {
-        $lastRunAt = (string) sr_module_setting($pdo, 'notification', 'delivery_last_web_runner_at', '');
-        $lastRunTime = $lastRunAt === '' ? false : strtotime($lastRunAt);
-        $interval = max(10, (int) ($settings['delivery_web_runner_interval_seconds'] ?? 60));
-        if ($lastRunTime !== false && time() - $lastRunTime < $interval) {
-            return;
-        }
+    if (!sr_notification_web_delivery_runner_due($pdo, $settings)) {
+        return;
     }
 
     $batchSize = max(1, min(5, (int) ($settings['delivery_web_runner_batch_size'] ?? 1)));
     register_shutdown_function(static function () use ($pdo, $site, $batchSize): void {
+        if (!sr_notification_web_delivery_runner_request_completed() || !sr_notification_web_delivery_runner_lock_acquire($pdo)) {
+            return;
+        }
+
         try {
+            sr_clear_module_settings_cache('notification');
+            $settings = sr_notification_settings($pdo);
+            if (empty($settings['delivery_web_runner_enabled']) || !sr_notification_web_delivery_runner_due($pdo, $settings)) {
+                return;
+            }
+
             sr_notification_save_module_runtime_setting($pdo, 'delivery_last_web_runner_at', sr_now(), 'string');
             sr_notification_run_delivery_batch($pdo, $site, $batchSize, sr_notification_delivery_runner_lock_id());
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'notification_web_runner_failed');
+        } finally {
+            sr_notification_web_delivery_runner_lock_release($pdo);
         }
     });
+}
+
+function sr_notification_web_delivery_runner_due(PDO $pdo, array $settings): bool
+{
+    $lastRunAt = (string) sr_module_setting($pdo, 'notification', 'delivery_last_web_runner_at', '');
+    $lastRunTime = $lastRunAt === '' ? false : strtotime($lastRunAt);
+    $interval = max(10, (int) ($settings['delivery_web_runner_interval_seconds'] ?? 60));
+
+    return $lastRunTime === false || time() - $lastRunTime >= $interval;
+}
+
+function sr_notification_web_delivery_runner_request_completed(): bool
+{
+    $statusCode = http_response_code();
+    if (!is_int($statusCode) || $statusCode < 200 || $statusCode >= 400) {
+        return false;
+    }
+
+    $contract = $GLOBALS['sr_request_contract'] ?? null;
+    return !is_array($contract) || (string) ($contract['exit_reason'] ?? '') === 'completed';
+}
+
+function sr_notification_web_delivery_runner_lock_acquire(PDO $pdo): bool
+{
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            return true;
+        }
+
+        $stmt = $pdo->prepare('SELECT GET_LOCK(:lock_name, 0) AS lock_acquired');
+        $stmt->execute(['lock_name' => 'saanraan_notification_web_runner']);
+        $row = $stmt->fetch();
+
+        return is_array($row) && (string) ($row['lock_acquired'] ?? '') === '1';
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+function sr_notification_web_delivery_runner_lock_release(PDO $pdo): void
+{
+    try {
+        if ((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            return;
+        }
+
+        $stmt = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
+        $stmt->execute(['lock_name' => 'saanraan_notification_web_runner']);
+    } catch (Throwable) {
+        return;
+    }
 }
 
 function sr_notification_update_delivery_status(PDO $pdo, int $deliveryId, string $targetStatus, string $now): array

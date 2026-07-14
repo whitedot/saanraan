@@ -78,7 +78,7 @@ php .tools/bin/ops-status.php --help
 
 `/admin/notification-deliveries`는 외부 발송 작업 상태를 확인하고 알림 발송 처리기를 수동 실행할 수 있다. 처리기는 `queued` 작업을 `processing`으로 점유한 뒤 성공하면 `sent`, 실패하면 재시도 대기 `queued` 또는 최대 시도 초과 시 `dead`로 전환한다. 재시도는 `failed`, `canceled`, `dead` 상태를 `queued`로 되돌리는 작업이며, 이때 외부 발송 메시지 ID, 오류 메시지, 시도 시각, 처리 점유, 다음 시도 시각을 비워 다음 발송 시도와 이전 실패를 분리한다. 취소는 `queued`, `processing`, `failed`, `dead` 상태를 `canceled`로 바꾸는 작업이다. `sent`는 터미널 상태로 보고 재시도나 취소 대상으로 되돌리지 않는다. 수동으로 `failed`, `dead`, `sent`로 표시하는 전이는 운영자가 외부 발송 상태를 확인한 뒤 수행하며, 모든 상태 변경과 수동 처리기 실행은 CSRF, `/admin/notification-deliveries` edit 권한, 조건부 상태 업데이트, 감사 로그 기록을 거쳐야 한다.
 
-알림 발송 기본 실행 모델은 공유호스팅을 기준으로 한다. 웹 GET 요청 말미에는 설정된 간격마다 작은 배치만 처리하고, 관리자는 `/admin/notification-deliveries`에서 대기 작업을 수동 실행할 수 있다. cron이 가능한 환경에서는 다음 CLI 처리기를 권장한다.
+알림 발송 기본 실행 모델은 공유호스팅을 기준으로 한다. 정상 완료된 웹 GET/POST 요청 말미에는 설정된 간격마다 작은 배치만 처리한다. 없는 route, 4xx/5xx 응답, 인증·권한·CSRF guard에서 차단된 요청은 처리기를 실행하지 않으며, 웹 처리기는 전역 DB lock 안에서 실행 간격을 다시 확인해 동시 요청이 여러 배치를 시작하지 않게 한다. 관리자는 `/admin/notification-deliveries`에서 대기 작업을 수동 실행할 수 있다. cron이 가능한 환경에서는 다음 CLI 처리기를 권장한다.
 
 ```sh
 php .tools/bin/run-notification-deliveries.php
