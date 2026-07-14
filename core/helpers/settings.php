@@ -190,11 +190,18 @@ function sr_site_default_currency(?PDO $pdo = null): string
 
 function sr_enabled_module_keys(PDO $pdo): array
 {
+    static $cache = [];
+    $cacheKey = sr_module_registry_runtime_cache_key($pdo, 'enabled');
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
     try {
         $stmt = $pdo->query("SELECT module_key FROM sr_modules WHERE status = 'enabled' ORDER BY id ASC");
     } catch (PDOException $exception) {
         if (sr_module_registry_missing_exception($exception)) {
-            return [];
+            $cache[$cacheKey] = [];
+            return $cache[$cacheKey];
         }
         throw $exception;
     }
@@ -206,16 +213,24 @@ function sr_enabled_module_keys(PDO $pdo): array
         }
     }
 
-    return $moduleKeys;
+    $cache[$cacheKey] = $moduleKeys;
+    return $cache[$cacheKey];
 }
 
 function sr_installed_module_keys(PDO $pdo): array
 {
+    static $cache = [];
+    $cacheKey = sr_module_registry_runtime_cache_key($pdo, 'installed');
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
     try {
         $stmt = $pdo->query('SELECT module_key FROM sr_modules ORDER BY id ASC');
     } catch (PDOException $exception) {
         if (sr_module_registry_missing_exception($exception)) {
-            return [];
+            $cache[$cacheKey] = [];
+            return $cache[$cacheKey];
         }
         throw $exception;
     }
@@ -227,7 +242,23 @@ function sr_installed_module_keys(PDO $pdo): array
         }
     }
 
-    return $moduleKeys;
+    $cache[$cacheKey] = $moduleKeys;
+    return $cache[$cacheKey];
+}
+
+function sr_module_registry_runtime_cache_key(PDO $pdo, string $scope): string
+{
+    $token = (int) ($GLOBALS['sr_module_registry_cache_token'] ?? 0);
+    return (string) spl_object_id($pdo) . '|' . $scope . '|' . (string) $token;
+}
+
+function sr_clear_module_registry_cache(): void
+{
+    $GLOBALS['sr_module_registry_cache_token'] = (int) ($GLOBALS['sr_module_registry_cache_token'] ?? 0) + 1;
+    unset(
+        $GLOBALS['sr_enabled_module_contract_files_runtime_cache'],
+        $GLOBALS['sr_installed_module_contract_files_runtime_cache']
+    );
 }
 
 function sr_module_registry_missing_exception(PDOException $exception): bool
@@ -417,6 +448,13 @@ function sr_enabled_module_contract_files(PDO $pdo, string $contractFile, array 
         }
     }
 
+    $cache = $GLOBALS['sr_enabled_module_contract_files_runtime_cache'] ?? [];
+    $cache = is_array($cache) ? $cache : [];
+    $cacheKey = sr_module_registry_runtime_cache_key($pdo, 'contract:' . $contractFile . ':' . implode(',', array_keys($excluded)));
+    if (isset($cache[$cacheKey]) && is_array($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
     $files = [];
     foreach (sr_enabled_module_keys($pdo) as $moduleKey) {
         if (isset($excluded[$moduleKey])) {
@@ -442,6 +480,9 @@ function sr_enabled_module_contract_files(PDO $pdo, string $contractFile, array 
         $files[$moduleKey] = $realFile;
     }
 
+    $cache[$cacheKey] = $files;
+    $GLOBALS['sr_enabled_module_contract_files_runtime_cache'] = $cache;
+
     return $files;
 }
 
@@ -456,6 +497,13 @@ function sr_installed_module_contract_files(PDO $pdo, string $contractFile, arra
         if (is_string($moduleKey) && sr_is_safe_module_key($moduleKey)) {
             $excluded[$moduleKey] = true;
         }
+    }
+
+    $cache = $GLOBALS['sr_installed_module_contract_files_runtime_cache'] ?? [];
+    $cache = is_array($cache) ? $cache : [];
+    $cacheKey = sr_module_registry_runtime_cache_key($pdo, 'installed_contract:' . $contractFile . ':' . implode(',', array_keys($excluded)));
+    if (isset($cache[$cacheKey]) && is_array($cache[$cacheKey])) {
+        return $cache[$cacheKey];
     }
 
     $files = [];
@@ -482,6 +530,9 @@ function sr_installed_module_contract_files(PDO $pdo, string $contractFile, arra
 
         $files[$moduleKey] = $realFile;
     }
+
+    $cache[$cacheKey] = $files;
+    $GLOBALS['sr_installed_module_contract_files_runtime_cache'] = $cache;
 
     return $files;
 }

@@ -29,6 +29,21 @@ function sr_runtime_helper_server(array $server): void
     $_SERVER = $server;
 }
 
+class SrRuntimeCountingPdo extends PDO
+{
+    public int $queryCount = 0;
+
+    public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
+    {
+        $this->queryCount++;
+        if ($fetchMode === null) {
+            return parent::query($query);
+        }
+
+        return parent::query($query, $fetchMode, ...$fetchModeArgs);
+    }
+}
+
 $proxyConfig = [
     'security' => [
         'trusted_proxies' => [
@@ -158,7 +173,7 @@ sr_runtime_helper_assert(
     'SQL prefix rewriting should rewrite bare and backtick-quoted identifiers.'
 );
 
-$moduleFixturePdo = new PDO('sqlite::memory:');
+$moduleFixturePdo = new SrRuntimeCountingPdo('sqlite::memory:');
 $moduleFixturePdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 sr_runtime_helper_assert(
     sr_enabled_module_keys($moduleFixturePdo) === [] && sr_installed_module_keys($moduleFixturePdo) === [] && !sr_module_enabled($moduleFixturePdo, 'reaction'),
@@ -172,10 +187,19 @@ $moduleFixturePdo->exec(
     )"
 );
 $moduleFixturePdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('reaction', 'enabled'), ('coupon', 'disabled'), ('bad-key', 'enabled')");
+sr_clear_module_registry_cache();
+$moduleFixturePdo->queryCount = 0;
 sr_runtime_helper_assert(
     sr_enabled_module_keys($moduleFixturePdo) === ['reaction'] && sr_installed_module_keys($moduleFixturePdo) === ['reaction', 'coupon'] && sr_module_enabled($moduleFixturePdo, 'reaction') && !sr_module_enabled($moduleFixturePdo, 'coupon'),
     'Module registry helpers should read installed and enabled safe module keys.'
 );
+sr_runtime_helper_assert($moduleFixturePdo->queryCount === 2, 'Module registry helpers must query enabled and installed module lists only once per request cache token.');
+$moduleFixturePdo->exec("UPDATE sr_modules SET status = 'enabled' WHERE module_key = 'coupon'");
+sr_runtime_helper_assert(!sr_module_enabled($moduleFixturePdo, 'coupon'), 'Module registry cache must remain stable until explicitly invalidated.');
+sr_clear_module_registry_cache();
+sr_runtime_helper_assert(sr_module_enabled($moduleFixturePdo, 'coupon'), 'Module registry cache invalidation must expose status changes in the same request.');
+$moduleFixturePdo->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'coupon'");
+sr_clear_module_registry_cache();
 sr_runtime_helper_assert(
     sr_enabled_module_asset_paths($moduleFixturePdo, ['reaction' => '/modules/reaction/assets/module.css', 'coupon' => '/modules/coupon/assets/module.css'])
         === ['/modules/reaction/assets/module.css'],

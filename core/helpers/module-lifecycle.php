@@ -41,6 +41,7 @@ function sr_sync_module_version(PDO $pdo, string $moduleKey, string $newVersion)
         'updated_at' => sr_now(),
         'module_key' => $moduleKey,
     ]);
+    sr_clear_module_registry_cache();
 }
 
 function sr_sync_file_only_module_versions(PDO $pdo, array $pendingUpdateCounts): array
@@ -493,6 +494,7 @@ function sr_install_module(PDO $pdo, string $moduleKey, string $status, bool $is
             'updated_at' => $completedAt,
             'module_key' => $moduleKey,
         ]);
+        sr_clear_module_registry_cache();
 
     } catch (Throwable $exception) {
         try {
@@ -507,6 +509,8 @@ function sr_install_module(PDO $pdo, string $moduleKey, string $status, bool $is
             ]);
         } catch (Throwable $ignored) {
         }
+
+        sr_clear_module_registry_cache();
 
         throw $exception;
     }
@@ -564,6 +568,7 @@ function sr_update_module_status(PDO $pdo, string $moduleKey, string $status): a
         'updated_at' => sr_now(),
         'module_key' => $moduleKey,
     ]);
+    sr_clear_module_registry_cache();
 
     return [
         'module_key' => $moduleKey,
