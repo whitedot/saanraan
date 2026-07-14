@@ -20,6 +20,16 @@ $filters = [
 if (!in_array($filters['status'], ['', 'read'], true)) {
     $filters['status'] = '';
 }
+$notificationPageInput = sr_get_string('page', 20);
+$notificationPage = preg_match('/\A[1-9][0-9]*\z/', $notificationPageInput) === 1 ? (int) $notificationPageInput : 1;
+$notificationListQuery = [];
+if ($filters['status'] !== '') {
+    $notificationListQuery['status'] = $filters['status'];
+}
+if ($notificationPage > 1) {
+    $notificationListQuery['page'] = $notificationPage;
+}
+$notificationListPath = '/account/notifications' . ($notificationListQuery !== [] ? '?' . http_build_query($notificationListQuery) : '');
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -155,32 +165,52 @@ if (sr_request_method() === 'POST') {
         'errors' => $errors,
         'notice' => $notice,
     ];
-    sr_redirect('/account/notifications');
+    sr_redirect($notificationListPath);
 }
 
 $notifications = [];
 $notificationEventSelect = sr_notification_event_select_sql($pdo, 'n');
-$notificationSql = "SELECT n.id, n.title, n.body_text, n.body_format, n.link_url" . $notificationEventSelect . ",
-                           CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 'unread' ELSE 'read' END AS status,
-                           COALESCE(n.read_at, r.read_at) AS read_at,
-                           n.created_at
-                    FROM sr_notifications n
-                    LEFT JOIN sr_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
-                    WHERE (n.account_id = :account_id OR n.audience = 'all')";
+$notificationFromSql = " FROM sr_notifications n
+                         LEFT JOIN sr_notification_reads r ON r.notification_id = n.id AND r.account_id = :read_account_id
+                         WHERE (n.account_id = :account_id OR n.audience = 'all')";
 $notificationParams = [
     'read_account_id' => (int) $account['id'],
     'account_id' => (int) $account['id'],
 ];
 
 if ($filters['status'] === 'read') {
-    $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NOT NULL';
+    $notificationFromSql .= ' AND COALESCE(n.read_at, r.read_at) IS NOT NULL';
 } else {
-    $notificationSql .= ' AND COALESCE(n.read_at, r.read_at) IS NULL';
+    $notificationFromSql .= ' AND COALESCE(n.read_at, r.read_at) IS NULL';
 }
 
-$notificationSql .= ' ORDER BY n.id DESC LIMIT 100';
-$stmt = $pdo->prepare($notificationSql);
+$notificationPerPage = 20;
+$stmt = $pdo->prepare('SELECT COUNT(*)' . $notificationFromSql);
 $stmt->execute($notificationParams);
+$notificationCount = (int) $stmt->fetchColumn();
+$notificationTotalPages = max(1, (int) ceil($notificationCount / $notificationPerPage));
+$notificationPage = min(max(1, $notificationPage), $notificationTotalPages);
+$notificationPagination = ['page' => $notificationPage, 'total_pages' => $notificationTotalPages];
+$notificationPaginationBasePath = '/account/notifications' . ($filters['status'] !== '' ? '?status=' . rawurlencode($filters['status']) : '');
+$notificationListQuery = [];
+if ($filters['status'] !== '') {
+    $notificationListQuery['status'] = $filters['status'];
+}
+if ($notificationPage > 1) {
+    $notificationListQuery['page'] = $notificationPage;
+}
+$notificationListPath = '/account/notifications' . ($notificationListQuery !== [] ? '?' . http_build_query($notificationListQuery) : '');
+$notificationSql = "SELECT n.id, n.title, n.body_text, n.body_format, n.link_url" . $notificationEventSelect . ",
+                           CASE WHEN COALESCE(n.read_at, r.read_at) IS NULL THEN 'unread' ELSE 'read' END AS status,
+                           COALESCE(n.read_at, r.read_at) AS read_at,
+                           n.created_at" . $notificationFromSql . '
+                    ORDER BY n.id DESC LIMIT :notification_limit OFFSET :notification_offset';
+$stmt = $pdo->prepare($notificationSql);
+$stmt->bindValue(':read_account_id', (int) $account['id'], PDO::PARAM_INT);
+$stmt->bindValue(':account_id', (int) $account['id'], PDO::PARAM_INT);
+$stmt->bindValue(':notification_limit', $notificationPerPage, PDO::PARAM_INT);
+$stmt->bindValue(':notification_offset', ($notificationPage - 1) * $notificationPerPage, PDO::PARAM_INT);
+$stmt->execute();
 foreach ($stmt->fetchAll() as $row) {
     $notifications[] = $row;
 }

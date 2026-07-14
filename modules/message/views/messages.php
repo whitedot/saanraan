@@ -24,6 +24,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 
         <?php echo sr_public_feedback_toasts('message', $notice, []); ?>
 
+        <section id="message-list">
         <?php if ($messages === []) { ?>
             <p>표시할 쪽지가 없습니다.</p>
         <?php } else { ?>
@@ -56,6 +57,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                 <form method="post" action="<?php echo sr_e(sr_url('/message/delete')); ?>">
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="message_id" value="<?php echo sr_e((string) $message['id']); ?>">
+                                    <input type="hidden" name="return_page" value="<?php echo sr_e((string) $messagePage); ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
                                 </form>
                             </td>
@@ -64,5 +66,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                 </tbody>
             </table>
         <?php } ?>
+        <?php echo sr_public_pagination_html($messagePagination, $messagePaginationBasePath, '쪽지 목록 페이지', 'page', 'message-list'); ?>
+        </section>
     </main>
 <?php sr_public_layout_end(); ?>

@@ -142,14 +142,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('notification::ui.text.f8d240bf')); ?></button>
         </form>
 
+        <section id="notification-list">
         <?php if ($notifications === []) { ?>
             <p><?php echo sr_e(sr_t('notification::ui.notification.16d30d47')); ?></p>
         <?php } else { ?>
-            <form method="post" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
-                <?php echo sr_csrf_field(); ?>
-                <input type="hidden" name="intent" value="mark_all_read">
-                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('notification::ui.text.6577bbbb')); ?></button>
-            </form>
+            <?php if ($filters['status'] !== 'read') { ?>
+                <form method="post" action="<?php echo sr_e(sr_url($notificationListPath)); ?>">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="intent" value="mark_all_read">
+                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('notification::ui.text.6577bbbb')); ?></button>
+                </form>
+            <?php } ?>
             <div class="table-wrapper">
                     <table class="table">
                 <thead>
@@ -175,7 +178,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             <td><?php echo sr_notification_time_html((string) $notification['created_at']); ?></td>
                             <td>
                                 <?php if ($notification['read_at'] === null) { ?>
-                                    <form method="post" action="<?php echo sr_e(sr_url('/account/notifications')); ?>">
+                                    <form method="post" action="<?php echo sr_e(sr_url($notificationListPath)); ?>">
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="mark_read">
                                         <input type="hidden" name="notification_id" value="<?php echo sr_e((string) $notification['id']); ?>">
@@ -191,5 +194,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
             </table>
                     </div>
         <?php } ?>
+        <?php echo sr_public_pagination_html($notificationPagination, $notificationPaginationBasePath, '알림 목록 페이지', 'page', 'notification-list'); ?>
+        </section>
     </main>
 <?php sr_public_layout_end(); ?>

@@ -36,9 +36,12 @@ sr_audit_log($pdo, [
     ],
 ]);
 $_SESSION['sr_message_notice'] = '쪽지를 삭제했습니다.';
+$returnPageValue = sr_post_string('return_page', 20);
+$returnPage = preg_match('/\A[1-9][0-9]*\z/', $returnPageValue) === 1 ? (int) $returnPageValue : 1;
+$returnPageQuery = $returnPage > 1 ? '&page=' . (string) $returnPage : '';
 
 if ($box === 'sent') {
-    sr_redirect('/messages?box=sent');
+    sr_redirect('/messages?box=sent' . $returnPageQuery);
 }
 
-sr_redirect('/messages');
+sr_redirect('/messages' . ($returnPage > 1 ? '?page=' . (string) $returnPage : ''));

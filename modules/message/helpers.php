@@ -592,12 +592,30 @@ function sr_message_account_can_receive(PDO $pdo, array $recipient, array $sende
     return $policy === 'all';
 }
 
-function sr_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50): array
+function sr_message_box_count(PDO $pdo, int $accountId, string $box): int
+{
+    if ($accountId < 1) {
+        return 0;
+    }
+
+    if ($box === 'sent') {
+        $sql = 'SELECT COUNT(*) FROM sr_messages WHERE sender_account_id = :account_id AND sender_deleted_at IS NULL';
+    } else {
+        $sql = 'SELECT COUNT(*) FROM sr_messages WHERE recipient_account_id = :account_id AND recipient_deleted_at IS NULL';
+    }
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['account_id' => $accountId]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50, int $offset = 0): array
 {
     if ($accountId < 1) {
         return [];
     }
     $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
     if ($box === 'sent') {
         $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        recipient.display_name AS other_display_name,
@@ -607,7 +625,7 @@ function sr_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50):
                 WHERE m.sender_account_id = :account_id
                   AND m.sender_deleted_at IS NULL
                 ORDER BY m.id DESC
-                LIMIT :limit_value';
+                LIMIT :limit_value OFFSET :offset_value';
     } else {
         $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        sender.display_name AS other_display_name,
@@ -617,12 +635,13 @@ function sr_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50):
                 WHERE m.recipient_account_id = :account_id
                   AND m.recipient_deleted_at IS NULL
                 ORDER BY m.id DESC
-                LIMIT :limit_value';
+                LIMIT :limit_value OFFSET :offset_value';
     }
 
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue('account_id', $accountId, PDO::PARAM_INT);
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
     $stmt->execute();
 
     return $stmt->fetchAll();
