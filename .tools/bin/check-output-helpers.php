@@ -548,6 +548,7 @@ sr_output_helper_assert(
     'Public layout file lookup should resolve the selected provider theme layout shell before the basic fallback.'
 );
 $GLOBALS['sr_public_layout_options_runtime_cache'] = [];
+sr_clear_module_registry_cache();
 $layoutPdo->moduleKeyQueryCount = 0;
 sr_public_layout_options($layoutPdo);
 sr_public_layout_options($layoutPdo);
@@ -555,6 +556,13 @@ sr_output_helper_assert(
     $layoutPdo->moduleKeyQueryCount === 1,
     'Public layout options should reuse request runtime cache for repeated enabled module contract lookups.'
 );
+sr_clear_module_registry_cache();
+sr_public_layout_options($layoutPdo);
+sr_output_helper_assert(
+    $layoutPdo->moduleKeyQueryCount === 2,
+    'Public layout options should refresh after module registry cache invalidation.'
+);
+sr_clear_module_registry_cache();
 $layoutPdo->moduleKeyQueryCount = 0;
 sr_logo_manager_position_options($layoutPdo);
 sr_logo_manager_position_options($layoutPdo);
@@ -562,12 +570,25 @@ sr_output_helper_assert(
     $layoutPdo->moduleKeyQueryCount === 1,
     'Logo position options should reuse request runtime cache for repeated contract lookups.'
 );
+sr_clear_module_registry_cache();
+sr_logo_manager_position_options($layoutPdo);
+sr_output_helper_assert(
+    $layoutPdo->moduleKeyQueryCount === 2,
+    'Logo position options should refresh after module registry cache invalidation.'
+);
+sr_clear_module_registry_cache();
 $layoutPdo->moduleKeyQueryCount = 0;
 $outputSlotContracts = sr_output_slot_renderer_contracts($layoutPdo, 'core');
 sr_output_slot_renderer_contracts($layoutPdo, 'core');
 sr_output_helper_assert(
     $layoutPdo->moduleKeyQueryCount === 1,
     'Output slot renderer metadata should reuse request runtime cache for repeated contract lookups.'
+);
+sr_clear_module_registry_cache();
+sr_output_slot_renderer_contracts($layoutPdo, 'core');
+sr_output_helper_assert(
+    $layoutPdo->moduleKeyQueryCount === 2,
+    'Output slot renderer metadata should refresh after module registry cache invalidation.'
 );
 sr_output_helper_assert(
     $outputSlotContracts !== []

@@ -248,13 +248,18 @@ function sr_installed_module_keys(PDO $pdo): array
 
 function sr_module_registry_runtime_cache_key(PDO $pdo, string $scope): string
 {
-    $token = (int) ($GLOBALS['sr_module_registry_cache_token'] ?? 0);
+    $token = sr_module_registry_cache_token();
     return (string) spl_object_id($pdo) . '|' . $scope . '|' . (string) $token;
+}
+
+function sr_module_registry_cache_token(): int
+{
+    return (int) ($GLOBALS['sr_module_registry_cache_token'] ?? 0);
 }
 
 function sr_clear_module_registry_cache(): void
 {
-    $GLOBALS['sr_module_registry_cache_token'] = (int) ($GLOBALS['sr_module_registry_cache_token'] ?? 0) + 1;
+    $GLOBALS['sr_module_registry_cache_token'] = sr_module_registry_cache_token() + 1;
     unset(
         $GLOBALS['sr_enabled_module_contract_files_runtime_cache'],
         $GLOBALS['sr_installed_module_contract_files_runtime_cache']

@@ -1665,6 +1665,7 @@ function sr_public_layout_options(?PDO $pdo = null, bool $includeInstalledModule
         $includeInstalledModules ? 'installed' : 'enabled',
         function_exists('sr_locale') ? sr_locale() : 'ko',
         defined('SR_MODULE_CONTRACT_VERSION') ? SR_MODULE_CONTRACT_VERSION : 'contract-unknown',
+        function_exists('sr_module_registry_cache_token') ? (string) sr_module_registry_cache_token() : 'registry-unknown',
     ]);
     if (isset($cache[$cacheKey])) {
         return $cache[$cacheKey];
@@ -3077,6 +3078,7 @@ function sr_output_slot_renderer_contracts(PDO $pdo, string $excludedModuleKey):
         $contractName,
         $excludedModuleKey,
         $contractVersion,
+        function_exists('sr_module_registry_cache_token') ? (string) sr_module_registry_cache_token() : 'registry-unknown',
     ]);
     if (isset($cache[$cacheKey])) {
         return $cache[$cacheKey];

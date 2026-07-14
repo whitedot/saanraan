@@ -396,6 +396,7 @@ function sr_check_community_board_settings_runtime(): void
     }
     $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (1, 'identity_verification', '1.0.0', 'enabled')");
     $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (2, 'identity_kcp', '1.0.0', 'enabled')");
+    sr_clear_module_registry_cache();
     $moduleSettingStmt = $pdo->prepare(
         'INSERT INTO sr_module_settings
             (module_id, setting_key, setting_value, value_type, created_at, updated_at)
@@ -529,6 +530,7 @@ function sr_check_community_board_settings_runtime(): void
         sr_check_community_board_settings_error('community post body format must fall back to plain when markdown editor is configured but inactive.');
     }
     $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (3, 'markdown_editor', '2026.07.003', 'enabled')");
+    sr_clear_module_registry_cache();
     if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'markdown') {
         sr_check_community_board_settings_error('community post body format must use markdown when the current board editor setting is active.');
     }

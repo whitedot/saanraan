@@ -50,7 +50,8 @@ function sr_logo_manager_position_options(?PDO $pdo = null): array
 
     $locale = function_exists('sr_locale') ? sr_locale() : 'ko';
     $contractVersion = defined('SR_MODULE_CONTRACT_VERSION') ? SR_MODULE_CONTRACT_VERSION : 'contract-unknown';
-    $cacheKey = ($pdo instanceof PDO ? (string) spl_object_id($pdo) : 'no-pdo') . ':' . $locale . ':' . $contractVersion;
+    $registryToken = function_exists('sr_module_registry_cache_token') ? (string) sr_module_registry_cache_token() : 'registry-unknown';
+    $cacheKey = ($pdo instanceof PDO ? (string) spl_object_id($pdo) : 'no-pdo') . ':' . $locale . ':' . $contractVersion . ':' . $registryToken;
     if (isset($cache[$cacheKey])) {
         return $cache[$cacheKey];
     }
