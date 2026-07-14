@@ -357,6 +357,76 @@ sr_content_file_cleanup_assert(count($downloadLogs) === 1, 'content file downloa
 sr_content_file_cleanup_assert((string) ($downloadLogs[0]['download_type'] ?? '') === 'free', 'content file download admin list should read download type.');
 sr_content_file_cleanup_assert((string) ($downloadLogs[0]['refund_status'] ?? '') === '', 'content file download admin list should read empty refund status.');
 sr_content_file_cleanup_assert(sr_content_admin_file_download_log_count($pdo, ['download_type' => ['paid'], 'refund_status' => ['refunded']]) === 0, 'content file download admin list should not match paid/refunded filters on current free rows.');
+
+$selectionContentId = 97002;
+$pdo->prepare('INSERT INTO sr_content_items (id, title, slug, status, created_at, updated_at) VALUES (:id, "Selection fixture", "selection-fixture", "published", :created_at, :updated_at)')->execute([
+    'id' => $selectionContentId,
+    'created_at' => $now,
+    'updated_at' => $now,
+]);
+$selectionFileStmt = $pdo->prepare('INSERT INTO sr_content_files (id, content_id, title, original_name, status, created_at, updated_at) VALUES (:id, 0, :title, :original_name, :status, :created_at, :updated_at)');
+$selectionLinkStmt = $pdo->prepare('INSERT INTO sr_content_file_links (content_id, file_id, sort_order, status, updated_at) VALUES (:content_id, :file_id, :sort_order, "active", :updated_at)');
+for ($selectionIndex = 1; $selectionIndex <= 55; $selectionIndex++) {
+    $selectionFileId = 98000 + $selectionIndex;
+    $selectionFileStmt->execute([
+        'id' => $selectionFileId,
+        'title' => 'Selection file ' . str_pad((string) $selectionIndex, 3, '0', STR_PAD_LEFT),
+        'original_name' => 'selection-' . (string) $selectionIndex . '.txt',
+        'status' => 'active',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $selectionLinkStmt->execute([
+        'content_id' => $selectionContentId,
+        'file_id' => $selectionFileId,
+        'sort_order' => $selectionIndex,
+        'updated_at' => $now,
+    ]);
+}
+$hiddenSelectionFileId = 98999;
+$selectionFileStmt->execute([
+    'id' => $hiddenSelectionFileId,
+    'title' => 'Hidden linked selection file',
+    'original_name' => 'hidden-selection.txt',
+    'status' => 'hidden',
+    'created_at' => $now,
+    'updated_at' => $now,
+]);
+$selectionLinkStmt->execute([
+    'content_id' => $selectionContentId,
+    'file_id' => $hiddenSelectionFileId,
+    'sort_order' => 56,
+    'updated_at' => $now,
+]);
+sr_content_file_cleanup_assert(count(sr_content_files_for_content($pdo, $selectionContentId)) === 55, 'content public file list should not truncate active links after fifty rows.');
+$selectionLinkedIds = sr_content_linked_file_ids($pdo, $selectionContentId);
+sr_content_file_cleanup_assert(count($selectionLinkedIds) === 56, 'content admin linked file ids should include every current link.');
+sr_content_file_cleanup_assert(isset($selectionLinkedIds[$hiddenSelectionFileId]), 'content admin linked file ids should preserve a currently linked hidden file.');
+$selectionOptions = sr_content_all_active_download_files($pdo, 1, [$hiddenSelectionFileId]);
+sr_content_file_cleanup_assert(count($selectionOptions) === 2, 'content admin file options should append a current file outside the active option limit.');
+sr_content_file_cleanup_assert(in_array($hiddenSelectionFileId, array_map(static fn (array $file): int => (int) ($file['id'] ?? 0), $selectionOptions), true), 'content admin file options should contain the current hidden file.');
+
+$seriesInsertStmt = $pdo->prepare('INSERT INTO sr_content_series (id, series_key, title, description, status, visibility, sort_order, created_at, updated_at) VALUES (:id, :series_key, :title, "", "active", "public", :sort_order, :created_at, :updated_at)');
+for ($seriesIndex = 1; $seriesIndex <= 201; $seriesIndex++) {
+    $seriesId = 99000 + $seriesIndex;
+    $seriesInsertStmt->execute([
+        'id' => $seriesId,
+        'series_key' => 'selection_series_' . (string) $seriesIndex,
+        'title' => 'Selection series ' . (string) $seriesIndex,
+        'sort_order' => $seriesIndex,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+}
+$includedSeriesId = 99201;
+$seriesOptions = sr_content_series_list($pdo, $includedSeriesId);
+sr_content_file_cleanup_assert(count($seriesOptions) === 201, 'content admin series options should keep the base limit and append the current series.');
+sr_content_file_cleanup_assert(in_array($includedSeriesId, array_map(static fn (array $series): int => (int) ($series['id'] ?? 0), $seriesOptions), true), 'content admin series options should contain the current series outside the base limit.');
+$pdo->exec('DELETE FROM sr_content_file_links WHERE content_id = ' . (string) $selectionContentId);
+$pdo->exec('DELETE FROM sr_content_files WHERE id BETWEEN 98001 AND 98999');
+$pdo->exec('DELETE FROM sr_content_items WHERE id = ' . (string) $selectionContentId);
+$pdo->exec('DELETE FROM sr_content_series WHERE id BETWEEN 99001 AND 99201');
+
 $pdo->prepare('INSERT INTO sr_content_series (id, series_key, title, description, status, visibility, sort_order, created_by, updated_by, created_at, updated_at) VALUES (1, "runtime_series", "Runtime series", "", "active", "public", 1, 1, 1, :created_at, :updated_at)')->execute(['created_at' => $now, 'updated_at' => $now]);
 $pdo->prepare('INSERT INTO sr_content_series_items (series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_by, created_at, updated_at) VALUES (1, :content_id, :active_content_id, "1화", "active", 1, 1, :created_at, :updated_at)')->execute([
     'content_id' => $contentId,

@@ -203,7 +203,7 @@ $publicLayoutOptions = sr_public_layout_options($pdo);
 $reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
 $pageGroups = sr_content_groups($pdo);
 $memberGroups = function_exists('sr_member_groups') ? sr_member_groups($pdo) : [];
-$contentSeriesOptions = sr_content_series_list($pdo);
+$contentSeriesOptions = [];
 $currentContentSeriesItem = null;
 $pageGroupIds = [];
 foreach ($pageGroups as $pageGroup) {
@@ -211,7 +211,6 @@ foreach ($pageGroups as $pageGroup) {
 }
 
 if ($pageAdminPage === 'form') {
-    $downloadFiles = sr_content_all_active_download_files($pdo);
     $pageId = (int) sr_get_string('id', 20);
     if ($pageId > 0) {
         $editPage = sr_content_by_id($pdo, $pageId);
@@ -236,6 +235,12 @@ if ($pageAdminPage === 'form') {
             $values['editor_key'] = $newContentEditorKey;
         }
     }
+
+    $contentSeriesOptions = sr_content_series_list(
+        $pdo,
+        is_array($currentContentSeriesItem) ? (int) ($currentContentSeriesItem['series_id'] ?? 0) : 0
+    );
+    $downloadFiles = sr_content_all_active_download_files($pdo, 200, array_keys($linkedDownloadFileIds));
 } else {
     $filters = sr_content_admin_filters();
     if ((int) ($filters['content_group_id'] ?? 0) > 0 && !is_array(sr_content_group_by_id($pdo, (int) $filters['content_group_id']))) {

@@ -139,14 +139,30 @@ function sr_content_series_key_exists(PDO $pdo, string $seriesKey, int $exceptSe
     return is_array($stmt->fetch());
 }
 
-function sr_content_series_list(PDO $pdo): array
+function sr_content_series_list(PDO $pdo, int $includeSeriesId = 0): array
 {
     if (!sr_content_series_supported($pdo)) {
         return [];
     }
 
     $stmt = $pdo->query('SELECT * FROM sr_content_series ORDER BY sort_order ASC, id DESC LIMIT 200');
-    return $stmt->fetchAll();
+    $seriesList = $stmt->fetchAll();
+    if ($includeSeriesId < 1) {
+        return $seriesList;
+    }
+
+    foreach ($seriesList as $series) {
+        if ((int) ($series['id'] ?? 0) === $includeSeriesId) {
+            return $seriesList;
+        }
+    }
+
+    $currentSeries = sr_content_series_by_id($pdo, $includeSeriesId);
+    if (is_array($currentSeries)) {
+        $seriesList[] = $currentSeries;
+    }
+
+    return $seriesList;
 }
 
 function sr_content_admin_series_filters(): array

@@ -123,8 +123,7 @@ function sr_content_files_for_content(PDO $pdo, int $pageId): array
           AND l.status = 'active'
          WHERE f.status = 'active'
            AND (l.id IS NOT NULL OR f.content_id = :legacy_content_id)
-         ORDER BY COALESCE(l.sort_order, 0) ASC, f.id ASC
-         LIMIT 50"
+         ORDER BY COALESCE(l.sort_order, 0) ASC, f.id ASC"
     );
     $stmt->execute([
         'content_id_result' => $pageId,
@@ -1411,8 +1410,9 @@ function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $admi
     }
 }
 
-function sr_content_all_active_download_files(PDO $pdo, int $limit = 200): array
+function sr_content_all_active_download_files(PDO $pdo, int $limit = 200, array $includeFileIds = []): array
 {
+    $limit = max(1, min(500, $limit));
     $stmt = $pdo->prepare(
         "SELECT *
          FROM sr_content_files
@@ -1423,14 +1423,71 @@ function sr_content_all_active_download_files(PDO $pdo, int $limit = 200): array
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
     $stmt->execute();
 
-    return $stmt->fetchAll();
+    $files = $stmt->fetchAll();
+    $knownIds = [];
+    foreach ($files as $file) {
+        $knownIds[(int) ($file['id'] ?? 0)] = true;
+    }
+
+    $missingIds = [];
+    foreach ($includeFileIds as $includeFileId) {
+        $includeFileId = (int) $includeFileId;
+        if ($includeFileId > 0 && !isset($knownIds[$includeFileId])) {
+            $missingIds[$includeFileId] = $includeFileId;
+        }
+    }
+    if ($missingIds === []) {
+        return $files;
+    }
+
+    $placeholders = [];
+    $params = [];
+    foreach (array_values($missingIds) as $index => $missingId) {
+        $paramKey = 'include_file_id_' . (string) $index;
+        $placeholders[] = ':' . $paramKey;
+        $params[$paramKey] = $missingId;
+    }
+    $includeStmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_content_files
+         WHERE id IN (' . implode(', ', $placeholders) . ')
+         ORDER BY title ASC, id ASC'
+    );
+    foreach ($params as $paramKey => $missingId) {
+        $includeStmt->bindValue($paramKey, $missingId, PDO::PARAM_INT);
+    }
+    $includeStmt->execute();
+    foreach ($includeStmt->fetchAll() as $includedFile) {
+        $files[] = $includedFile;
+    }
+
+    return $files;
 }
 
 function sr_content_linked_file_ids(PDO $pdo, int $pageId): array
 {
+    if ($pageId < 1) {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT DISTINCT f.id
+         FROM sr_content_files f
+         LEFT JOIN sr_content_file_links l
+           ON l.file_id = f.id
+          AND l.content_id = :linked_content_id
+          AND l.status = 'active'
+         WHERE l.id IS NOT NULL OR f.content_id = :legacy_content_id
+         ORDER BY f.id ASC"
+    );
+    $stmt->execute([
+        'linked_content_id' => $pageId,
+        'legacy_content_id' => $pageId,
+    ]);
+
     $ids = [];
-    foreach (sr_content_files_for_content($pdo, $pageId) as $file) {
-        $ids[(int) $file['id']] = true;
+    foreach ($stmt->fetchAll() as $file) {
+        $ids[(int) ($file['id'] ?? 0)] = true;
     }
 
     return $ids;
@@ -1458,6 +1515,9 @@ function sr_content_download_file_link_badge_select_html(string $id, string $nam
             $summaryParts[] = trim($assetLabel . ' ' . number_format((int) ($file['asset_download_amount'] ?? 0)));
         } else {
             $summaryParts[] = '무료';
+        }
+        if ((string) ($file['status'] ?? 'active') !== 'active') {
+            $summaryParts[] = '현재 연결됨 · 사용 중지';
         }
 
         $options[(string) $fileId] = [
