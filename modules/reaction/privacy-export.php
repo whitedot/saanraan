@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/privacy-export.php';
+
 if (defined('SR_ROOT') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 
 return static function (PDO $pdo, int $accountId): array {
+    $sectionLimits = [];
     if ($accountId < 1) {
-        return ['records' => []];
+        return ['records' => [], '_limits' => []];
     }
 
     $stmt = $pdo->prepare(
@@ -24,10 +27,10 @@ return static function (PDO $pdo, int $accountId): array {
          LEFT JOIN sr_reaction_definitions d ON d.reaction_key = r.reaction_key
          WHERE r.account_id = :account_id
          ORDER BY r.id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
-    $records = $stmt->fetchAll();
+    $records = sr_privacy_export_limit_rows($stmt->fetchAll(), 'records', $sectionLimits, 1000);
 
     if (function_exists('sr_reaction_resolve_targets')) {
         try {
@@ -66,5 +69,6 @@ return static function (PDO $pdo, int $accountId): array {
 
     return [
         'records' => $records,
+        '_limits' => $sectionLimits,
     ];
 };

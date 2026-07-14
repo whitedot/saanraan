@@ -2,12 +2,16 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/privacy-export.php';
+
 return static function (PDO $pdo, int $accountId): array {
+    $sectionLimits = [];
     if ($accountId < 1) {
         return [
             'balance' => [],
             'transactions' => [],
             'expiration_consumptions' => [],
+            '_limits' => [],
         ];
     }
 
@@ -25,23 +29,24 @@ return static function (PDO $pdo, int $accountId): array {
          FROM sr_point_transactions
          WHERE account_id = :account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
-    $transactions = $stmt->fetchAll();
+    $transactions = sr_privacy_export_limit_rows($stmt->fetchAll(), 'transactions', $sectionLimits, 1000);
 
     $stmt = $pdo->prepare(
         'SELECT id, account_id, consume_transaction_id, source_transaction_id, amount, source_expires_at, created_at
          FROM sr_point_expiration_consumptions
          WHERE account_id = :account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
 
     return [
         'balance' => is_array($balance) ? $balance : [],
         'transactions' => $transactions,
-        'expiration_consumptions' => $stmt->fetchAll(),
+        'expiration_consumptions' => sr_privacy_export_limit_rows($stmt->fetchAll(), 'expiration_consumptions', $sectionLimits, 1000),
+        '_limits' => $sectionLimits,
     ];
 };

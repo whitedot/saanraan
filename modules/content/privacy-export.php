@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/privacy-export.php';
+
 if (!function_exists('sr_content_privacy_asset_settlement_summary')) {
     function sr_content_privacy_asset_settlement_summary(array $row): array
     {
@@ -260,6 +262,7 @@ if (!function_exists('sr_content_privacy_add_view_payment_settlement_summaries')
 }
 
 return static function (PDO $pdo, int $accountId): array {
+    $sectionLimits = [];
     if ($accountId < 1) {
         return [
             'access_entitlements' => [],
@@ -273,6 +276,7 @@ return static function (PDO $pdo, int $accountId): array {
             'comments' => [],
             'series' => [],
             'series_items' => [],
+            '_limits' => [],
         ];
     }
 
@@ -288,10 +292,10 @@ return static function (PDO $pdo, int $accountId): array {
              LEFT JOIN sr_content_items p ON p.id = e.content_id
              WHERE e.account_id = :account_id
              ORDER BY e.id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $stmt->execute(['account_id' => $accountId]);
-        $accessEntitlements = $stmt->fetchAll();
+        $accessEntitlements = sr_privacy_export_limit_rows($stmt->fetchAll(), 'access_entitlements', $sectionLimits, 1000);
     }
 
     $stmt = $pdo->prepare(
@@ -304,11 +308,13 @@ return static function (PDO $pdo, int $accountId): array {
          LEFT JOIN sr_content_items p ON p.id = l.content_id
          WHERE l.account_id = :account_id
          ORDER BY l.id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
 
-    $accessLogs = sr_content_privacy_add_asset_settlement_summaries($stmt->fetchAll());
+    $accessLogs = sr_content_privacy_add_asset_settlement_summaries(
+        sr_privacy_export_limit_rows($stmt->fetchAll(), 'asset_access_logs', $sectionLimits, 1000)
+    );
 
     $stmt = $pdo->prepare(
         'SELECT d.id, d.content_id, COALESCE(NULLIF(p.slug, \'\'), NULLIF(d.content_slug_snapshot, \'\')) AS slug,
@@ -323,10 +329,13 @@ return static function (PDO $pdo, int $accountId): array {
          LEFT JOIN sr_content_items p ON p.id = d.content_id
          WHERE d.account_id = :account_id
          ORDER BY d.id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
-    $viewPaymentLogs = sr_content_privacy_add_view_payment_settlement_summaries($pdo, $stmt->fetchAll());
+    $viewPaymentLogs = sr_content_privacy_add_view_payment_settlement_summaries(
+        $pdo,
+        sr_privacy_export_limit_rows($stmt->fetchAll(), 'view_payment_logs', $sectionLimits, 1000)
+    );
 
     $fileDownloadLogs = [];
     if (function_exists('sr_content_file_download_logs_table_exists') && sr_content_file_download_logs_table_exists($pdo)) {
@@ -345,10 +354,13 @@ return static function (PDO $pdo, int $accountId): array {
              LEFT JOIN sr_content_files f ON f.id = d.file_id
              WHERE d.account_id = :account_id
              ORDER BY d.id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $stmt->execute(['account_id' => $accountId]);
-        $fileDownloadLogs = sr_content_privacy_add_file_download_settlement_summaries($pdo, $stmt->fetchAll());
+        $fileDownloadLogs = sr_content_privacy_add_file_download_settlement_summaries(
+            $pdo,
+            sr_privacy_export_limit_rows($stmt->fetchAll(), 'file_download_logs', $sectionLimits, 1000)
+        );
     }
 
     $stmt = $pdo->prepare(
@@ -361,10 +373,12 @@ return static function (PDO $pdo, int $accountId): array {
          LEFT JOIN sr_content_items p ON p.id = l.content_id
          WHERE l.account_id = :account_id
          ORDER BY l.id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
-    $actionLogs = sr_content_privacy_add_asset_settlement_summaries($stmt->fetchAll());
+    $actionLogs = sr_content_privacy_add_asset_settlement_summaries(
+        sr_privacy_export_limit_rows($stmt->fetchAll(), 'asset_action_logs', $sectionLimits, 1000)
+    );
 
     $submissions = [];
     $submissionStmt = $pdo->prepare(
@@ -378,10 +392,10 @@ return static function (PDO $pdo, int $accountId): array {
          LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
          WHERE s.author_account_id = :account_id
          ORDER BY s.id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $submissionStmt->execute(['account_id' => $accountId]);
-    $submissions = $submissionStmt->fetchAll();
+    $submissions = sr_privacy_export_limit_rows($submissionStmt->fetchAll(), 'submissions', $sectionLimits, 1000);
 
     $authorRewardLogs = [];
     $authorApplications = [];
@@ -391,10 +405,10 @@ return static function (PDO $pdo, int $accountId): array {
          FROM sr_content_author_applications
          WHERE account_id = :account_id
          ORDER BY id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $applicationStmt->execute(['account_id' => $accountId]);
-    $authorApplications = $applicationStmt->fetchAll();
+    $authorApplications = sr_privacy_export_limit_rows($applicationStmt->fetchAll(), 'author_applications', $sectionLimits, 1000);
 
     $rewardStmt = $pdo->prepare(
         'SELECT r.id, r.submission_id, r.content_id, p.slug, p.title,
@@ -404,10 +418,10 @@ return static function (PDO $pdo, int $accountId): array {
          LEFT JOIN sr_content_items p ON p.id = r.content_id
          WHERE r.author_account_id = :account_id
          ORDER BY r.id ASC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $rewardStmt->execute(['account_id' => $accountId]);
-    $authorRewardLogs = $rewardStmt->fetchAll();
+    $authorRewardLogs = sr_privacy_export_limit_rows($rewardStmt->fetchAll(), 'author_reward_logs', $sectionLimits, 1000);
 
     $series = [];
     $seriesItems = [];
@@ -417,23 +431,23 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_content_series
              WHERE created_by = :account_id OR updated_by = :updated_account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $seriesStmt->execute([
             'account_id' => $accountId,
             'updated_account_id' => $accountId,
         ]);
-        $series = $seriesStmt->fetchAll();
+        $series = sr_privacy_export_limit_rows($seriesStmt->fetchAll(), 'series', $sectionLimits, 1000);
 
         $seriesItemStmt = $pdo->prepare(
             'SELECT id, series_id, content_id, active_content_id, episode_label, item_status, sort_order, created_at, updated_at
              FROM sr_content_series_items
              WHERE created_by = :account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $seriesItemStmt->execute(['account_id' => $accountId]);
-        $seriesItems = $seriesItemStmt->fetchAll();
+        $seriesItems = sr_privacy_export_limit_rows($seriesItemStmt->fetchAll(), 'series_items', $sectionLimits, 1000);
     }
 
     $comments = [];
@@ -445,10 +459,10 @@ return static function (PDO $pdo, int $accountId): array {
              LEFT JOIN sr_content_items p ON p.id = c.content_id
              WHERE c.author_account_id = :account_id
              ORDER BY c.id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $commentStmt->execute(['account_id' => $accountId]);
-        $comments = $commentStmt->fetchAll();
+        $comments = sr_privacy_export_limit_rows($commentStmt->fetchAll(), 'comments', $sectionLimits, 1000);
     }
 
     return [
@@ -463,5 +477,6 @@ return static function (PDO $pdo, int $accountId): array {
         'comments' => $comments,
         'series' => $series,
         'series_items' => $seriesItems,
+        '_limits' => $sectionLimits,
     ];
 };

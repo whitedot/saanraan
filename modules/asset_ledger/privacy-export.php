@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/privacy-export.php';
+
 return static function (PDO $pdo, int $accountId): array {
+    $sectionLimits = [];
     if ($accountId < 1) {
         return [
             'asset_recovery_failures' => [],
             'asset_recovery_reversal_links' => [],
+            '_limits' => [],
         ];
     }
 
@@ -21,13 +25,13 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_asset_recovery_failures
              WHERE account_id = :account_id OR actor_account_id = :actor_account_id
              ORDER BY id ASC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $stmt->execute([
             'account_id' => $accountId,
             'actor_account_id' => $accountId,
         ]);
-        $failures = $stmt->fetchAll();
+        $failures = sr_privacy_export_limit_rows($stmt->fetchAll(), 'asset_recovery_failures', $sectionLimits, 1000);
     } catch (Throwable) {
         $failures = [];
     }
@@ -50,10 +54,10 @@ return static function (PDO $pdo, int $accountId): array {
                  FROM sr_asset_recovery_reversal_links
                  WHERE failure_id IN (' . $placeholders . ')
                  ORDER BY id ASC
-                 LIMIT 1000'
+                 LIMIT 1001'
             );
             $stmt->execute($failureIds);
-            $links = $stmt->fetchAll();
+            $links = sr_privacy_export_limit_rows($stmt->fetchAll(), 'asset_recovery_reversal_links', $sectionLimits, 1000);
         } catch (Throwable) {
             $links = [];
         }
@@ -62,5 +66,6 @@ return static function (PDO $pdo, int $accountId): array {
     return [
         'asset_recovery_failures' => $failures,
         'asset_recovery_reversal_links' => $links,
+        '_limits' => $sectionLimits,
     ];
 };

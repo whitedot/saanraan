@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/privacy-export.php';
+
 return static function (PDO $pdo, int $accountId): array {
+    $sectionLimits = [];
     if ($accountId < 1) {
         return [
             'payment_records' => [],
             'payment_record_items' => [],
+            '_limits' => [],
         ];
     }
 
@@ -19,10 +23,10 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_payment_records
              WHERE account_id = :account_id
              ORDER BY id DESC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $stmt->execute(['account_id' => $accountId]);
-        $records = $stmt->fetchAll();
+        $records = sr_privacy_export_limit_rows($stmt->fetchAll(), 'payment_records', $sectionLimits, 1000);
     } catch (Throwable) {
         $records = [];
     }
@@ -46,10 +50,10 @@ return static function (PDO $pdo, int $accountId): array {
                  FROM sr_payment_record_items
                  WHERE payment_record_id IN (' . $placeholders . ')
                  ORDER BY id ASC
-                 LIMIT 2000'
+                 LIMIT 2001'
             );
             $stmt->execute($recordIds);
-            $items = $stmt->fetchAll();
+            $items = sr_privacy_export_limit_rows($stmt->fetchAll(), 'payment_record_items', $sectionLimits, 2000);
         } catch (Throwable) {
             $items = [];
         }
@@ -58,5 +62,6 @@ return static function (PDO $pdo, int $accountId): array {
     return [
         'payment_records' => $records,
         'payment_record_items' => $items,
+        '_limits' => $sectionLimits,
     ];
 };

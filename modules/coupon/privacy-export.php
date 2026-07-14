@@ -2,12 +2,16 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/privacy-export.php';
+
 return static function (PDO $pdo, int $accountId): array {
+    $sectionLimits = [];
     if ($accountId < 1) {
         return [
             'coupon_issues' => [],
             'coupon_redemptions' => [],
             'coupon_claim_logs' => [],
+            '_limits' => [],
         ];
     }
 
@@ -25,10 +29,10 @@ return static function (PDO $pdo, int $accountId): array {
          INNER JOIN sr_coupon_definitions d ON d.id = i.coupon_definition_id
          WHERE i.account_id = :account_id
          ORDER BY i.id DESC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
-    $issues = $stmt->fetchAll();
+    $issues = sr_privacy_export_limit_rows($stmt->fetchAll(), 'coupon_issues', $sectionLimits, 1000);
 
     $refundColumns = sr_coupon_redemption_refund_columns_available($pdo)
         ? 'r.refunded_at, r.refunded_by_account_id, r.refund_note'
@@ -43,10 +47,10 @@ return static function (PDO $pdo, int $accountId): array {
          INNER JOIN sr_coupon_definitions d ON d.id = r.coupon_definition_id
          WHERE r.account_id = :account_id
          ORDER BY r.id DESC
-         LIMIT 1000'
+         LIMIT 1001'
     );
     $stmt->execute(['account_id' => $accountId]);
-    $redemptions = $stmt->fetchAll();
+    $redemptions = sr_privacy_export_limit_rows($stmt->fetchAll(), 'coupon_redemptions', $sectionLimits, 1000);
 
     $claimLogs = [];
     if (sr_coupon_claim_tables_available($pdo)) {
@@ -63,15 +67,16 @@ return static function (PDO $pdo, int $accountId): array {
              INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id
              WHERE l.account_id = :account_id
              ORDER BY l.id DESC
-             LIMIT 1000'
+             LIMIT 1001'
         );
         $stmt->execute(['account_id' => $accountId]);
-        $claimLogs = $stmt->fetchAll();
+        $claimLogs = sr_privacy_export_limit_rows($stmt->fetchAll(), 'coupon_claim_logs', $sectionLimits, 1000);
     }
 
     return [
         'coupon_issues' => $issues,
         'coupon_redemptions' => $redemptions,
         'coupon_claim_logs' => $claimLogs,
+        '_limits' => $sectionLimits,
     ];
 };

@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/privacy-export.php';
+
 return static function (PDO $pdo, int $accountId): array {
+    $sectionLimits = [];
     $accountEmail = '';
     $stmt = $pdo->prepare('SELECT email FROM sr_member_accounts WHERE id = :id LIMIT 1');
     $stmt->execute(['id' => $accountId]);
@@ -18,7 +21,7 @@ return static function (PDO $pdo, int $accountId): array {
          FROM sr_notifications
          WHERE account_id = :account_id OR audience = :audience
          ORDER BY id DESC
-         LIMIT 200'
+         LIMIT 201'
     );
     $stmt->execute([
         'account_id' => $accountId,
@@ -28,7 +31,8 @@ return static function (PDO $pdo, int $accountId): array {
     $notifications = [];
     $notificationIds = [];
     $accountNotificationIds = [];
-    foreach ($stmt->fetchAll() as $row) {
+    $notificationRows = sr_privacy_export_limit_rows($stmt->fetchAll(), 'notifications', $sectionLimits, 200);
+    foreach ($notificationRows as $row) {
         $notificationId = (int) ($row['id'] ?? 0);
         if ($notificationId <= 0) {
             continue;
@@ -64,10 +68,10 @@ return static function (PDO $pdo, int $accountId): array {
              FROM sr_notification_push_endpoints
              WHERE account_id = :account_id
              ORDER BY id DESC
-             LIMIT 100'
+             LIMIT 101'
         );
         $stmt->execute(['account_id' => $accountId]);
-        $pushEndpoints = $stmt->fetchAll();
+        $pushEndpoints = sr_privacy_export_limit_rows($stmt->fetchAll(), 'push_endpoints', $sectionLimits, 100);
     } catch (Throwable) {
         $pushEndpoints = [];
     }
@@ -135,5 +139,6 @@ return static function (PDO $pdo, int $accountId): array {
         'reads' => $reads,
         'push_endpoints' => $pushEndpoints,
         'deliveries' => $deliveries,
+        '_limits' => $sectionLimits,
     ];
 };

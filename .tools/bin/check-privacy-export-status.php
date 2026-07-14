@@ -25,6 +25,7 @@ function sr_enabled_module_contract_files(PDO $pdo, string $contractFile, array 
 
     return [
         'member' => '/tmp/member-privacy-export.php',
+        'limited_module' => '/tmp/limited-privacy-export.php',
         'empty_module' => '/tmp/empty-privacy-export.php',
         'broken_module' => '/tmp/broken-privacy-export.php',
     ];
@@ -46,6 +47,17 @@ function sr_load_module_contract_file(string $moduleKey, string $file): mixed
 
     if ($moduleKey === 'empty_module') {
         return [];
+    }
+
+    if ($moduleKey === 'limited_module') {
+        return static function (): array {
+            return [
+                'events' => [['id' => 1]],
+                '_limits' => [
+                    'events' => ['limit' => 1, 'returned' => 1, 'has_more' => true],
+                ],
+            ];
+        };
     }
 
     if ($moduleKey === 'broken_module') {
@@ -93,6 +105,14 @@ $pdo->exec(
 
 $export = sr_privacy_export_data($pdo, 7);
 $encodedExport = json_encode($export, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+$sectionLimits = [];
+$limitedRows = sr_privacy_export_limit_rows([['id' => 1], ['id' => 2], ['id' => 3]], 'events', $sectionLimits, 2);
+sr_privacy_export_status_check_assert(count($limitedRows) === 2, 'Section limit helper must return only the configured number of rows.');
+sr_privacy_export_status_check_assert(
+    ($sectionLimits['events']['has_more'] ?? false) === true
+        && (int) ($sectionLimits['events']['returned'] ?? 0) === 2,
+    'Section limit helper must report overflow and returned row count.'
+);
 
 sr_privacy_export_status_check_assert(($export['export_schema_version'] ?? '') === 'privacy_export_v1', 'Privacy export must include schema version.');
 sr_privacy_export_status_check_assert(is_array($export['sections'] ?? null), 'Privacy export must include explanatory sections metadata.');
@@ -101,10 +121,17 @@ sr_privacy_export_status_check_assert(is_array($export['module_export_status'] ?
 
 $memberStatus = $export['module_export_status']['member']['status'] ?? '';
 $emptyStatus = $export['module_export_status']['empty_module']['status'] ?? '';
+$limitedStatus = $export['module_export_status']['limited_module']['status'] ?? '';
 $brokenStatus = $export['module_export_status']['broken_module']['status'] ?? '';
 
 sr_privacy_export_status_check_assert($memberStatus === 'success', 'Successful module export must be marked success.');
 sr_privacy_export_status_check_assert($emptyStatus === 'empty', 'Empty module export must be marked empty.');
+sr_privacy_export_status_check_assert($limitedStatus === 'partial', 'Overflowing module export must be marked partial.');
+sr_privacy_export_status_check_assert(
+    ($export['module_export_status']['limited_module']['overflow_sections'] ?? []) === ['events']
+        && ($export['module_export_status']['limited_module']['error_code'] ?? '') === 'module_export_section_limit',
+    'Overflowing module export must identify limited sections with a stable error code.'
+);
 sr_privacy_export_status_check_assert($brokenStatus === 'failed', 'Throwing module export must be marked failed.');
 sr_privacy_export_status_check_assert(
     ($export['module_export_status']['broken_module']['error_code'] ?? '') === 'module_export_exception',

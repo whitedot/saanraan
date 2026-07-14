@@ -761,6 +761,29 @@ foreach ([
     }
 }
 
+foreach (glob('modules/*/privacy-export.php') ?: [] as $privacyExportFile) {
+    $contents = file_get_contents($privacyExportFile);
+    if (!is_string($contents)) {
+        sr_privacy_matrix_error('privacy export source cannot be read: ' . $privacyExportFile);
+        continue;
+    }
+
+    if (preg_match("/LIMIT (?:[2-9]|[1-9][0-9]+)'/", $contents) !== 1) {
+        continue;
+    }
+    if (!str_contains($contents, "'_limits'")) {
+        sr_privacy_matrix_error('bounded privacy export must expose section limit metadata: ' . $privacyExportFile);
+    }
+    if (preg_match("/LIMIT (?:100|200|1000|2000)'/", $contents) === 1) {
+        sr_privacy_matrix_error('bounded privacy export must query one overflow row beyond its returned limit: ' . $privacyExportFile);
+    }
+    if (!str_contains($privacyExportFile, '/community/')
+        && !str_contains($privacyExportFile, '/message/')
+        && !str_contains($contents, 'sr_privacy_export_limit_rows')) {
+        sr_privacy_matrix_error('bounded privacy export must apply the common overflow helper: ' . $privacyExportFile);
+    }
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "privacy contract matrix check failed:\n");
     foreach ($errors as $error) {

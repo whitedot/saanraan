@@ -340,6 +340,10 @@ foreach ([
     'modules/quiz/sitemap.php',
     'modules/survey/sitemap.php',
     'modules/content/menu-links.php',
+] as $file) {
+    sr_performance_baseline_require_markers($file, ['LIMIT 1000']);
+}
+foreach ([
     'modules/content/privacy-export.php',
     'modules/community/privacy-export.php',
     'modules/point/privacy-export.php',
@@ -347,7 +351,16 @@ foreach ([
     'modules/deposit/privacy-export.php',
     'modules/coupon/privacy-export.php',
 ] as $file) {
-    sr_performance_baseline_require_markers($file, ['LIMIT 1000']);
+    sr_performance_baseline_require_markers($file, ['LIMIT 1001', "'_limits'"]);
+}
+foreach ([
+    'modules/content/privacy-export.php',
+    'modules/point/privacy-export.php',
+    'modules/reward/privacy-export.php',
+    'modules/deposit/privacy-export.php',
+    'modules/coupon/privacy-export.php',
+] as $file) {
+    sr_performance_baseline_require_markers($file, ['sr_privacy_export_limit_rows']);
 }
 
 sr_performance_baseline_require_markers('modules/survey/helpers.php', [

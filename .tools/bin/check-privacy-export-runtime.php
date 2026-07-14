@@ -1036,6 +1036,10 @@ function sr_privacy_export_runtime_check_retained_modules(): void
     $pdo->exec('CREATE TABLE sr_point_expiration_consumptions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, consume_transaction_id INTEGER NOT NULL, source_transaction_id INTEGER NOT NULL, amount INTEGER NOT NULL, source_expires_at TEXT NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec("INSERT INTO sr_point_balances (account_id, balance, created_at, updated_at) VALUES (7, 70, '', ''), (8, 80, '', '')");
     $pdo->exec("INSERT INTO sr_point_transactions (id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at) VALUES (1, 7, 100, 100, 'earn', 'earn7', 'quiz', '1', 99, '2026-12-31', 30, NULL, ''), (2, 8, 100, 100, 'earn', 'earn8', 'quiz', '2', 99, '2026-12-31', 30, NULL, '')");
+    $pointOverflowInsert = $pdo->prepare("INSERT INTO sr_point_transactions (id, account_id, amount, balance_after, transaction_type, reason, reference_type, reference_id, created_by_account_id, expires_at, expires_remaining, expired_at, created_at) VALUES (:id, 7, 1, 100, 'earn', 'overflow', 'fixture', :reference_id, 99, NULL, 0, NULL, '')");
+    for ($pointTransactionId = 3; $pointTransactionId <= 1002; $pointTransactionId++) {
+        $pointOverflowInsert->execute(['id' => $pointTransactionId, 'reference_id' => (string) $pointTransactionId]);
+    }
     $pdo->exec("INSERT INTO sr_point_expiration_consumptions (id, account_id, consume_transaction_id, source_transaction_id, amount, source_expires_at, created_at) VALUES (1, 7, 3, 1, 30, '2026-12-31', ''), (2, 8, 4, 2, 30, '2026-12-31', '')");
 
     $pdo->exec('CREATE TABLE sr_payment_records (id INTEGER PRIMARY KEY, dedupe_key TEXT NOT NULL, account_id INTEGER NOT NULL, subject_module TEXT NOT NULL, subject_type TEXT NOT NULL, subject_id TEXT NOT NULL, payment_kind TEXT NOT NULL, status TEXT NOT NULL, payable_amount INTEGER NOT NULL, settlement_amount INTEGER NOT NULL, settlement_currency TEXT NOT NULL, description TEXT NOT NULL, snapshot_json TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, cancelled_at TEXT NULL)');
@@ -1127,7 +1131,8 @@ function sr_privacy_export_runtime_check_retained_modules(): void
 
     $point = $pointExport($pdo, 7);
     sr_privacy_export_runtime_assert((int) ($point['balance']['balance'] ?? 0) === 70, 'point retained export must include target balance.');
-    sr_privacy_export_runtime_assert(count($point['transactions'] ?? []) === 1 && ($point['transactions'][0]['expires_at'] ?? '') === '2026-12-31', 'point retained export must include target expiration evidence.');
+    sr_privacy_export_runtime_assert(count($point['transactions'] ?? []) === 1000 && ($point['transactions'][0]['expires_at'] ?? '') === '2026-12-31', 'point retained export must include target expiration evidence up to the section limit.');
+    sr_privacy_export_runtime_assert(($point['_limits']['transactions']['has_more'] ?? false) === true, 'point retained export must report transaction rows beyond the returned section limit.');
     sr_privacy_export_runtime_assert(count($point['expiration_consumptions'] ?? []) === 1 && (int) ($point['expiration_consumptions'][0]['source_transaction_id'] ?? 0) === 1, 'point retained export must include target expiration consumption mapping.');
 
     $reward = $rewardExport($pdo, 7);

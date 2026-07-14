@@ -199,7 +199,7 @@
 
 회원 개인정보 사본 export는 단일 JSON 파일을 기본으로 유지한다. 별도 zip/README 번들은 공유호스팅 환경의 임시 파일, 압축 확장, 다운로드 실패 처리를 추가하므로 2차 개선으로 둔다. 대신 JSON 최상위에 `export_schema_version`, `description`, `sections` 설명 metadata를 포함해 사용자가 파일 구조를 이해할 수 있게 한다. 설명 metadata는 법률 문서 원문을 대체하지 않으며, 자동 삭제나 자동 정정처럼 제공하지 않는 기능을 암시하면 안 된다.
 
-모듈별 `privacy-export.php` 수집은 부분 실패를 숨기지 않는다. 각 export에는 `module_export_status`와 `partial_export`를 포함한다. 상태값은 `success`, `empty`, `failed`, `skipped` 중 하나를 사용한다. 실패한 모듈은 사용자 JSON에 raw exception message, stack trace, DB DSN, 파일 경로, secret을 넣지 않고 `error_code`와 운영자가 서버 로그와 대조할 수 있는 `evidence_id`만 제공한다. 운영자는 `partial_export = true`인 요청을 바로 완료하지 않고 재시도 또는 수동 확인 후 `export_confirmed`를 체크한다.
+모듈별 `privacy-export.php` 수집은 부분 실패와 row 상한 초과를 숨기지 않는다. 각 export에는 `module_export_status`와 `partial_export`를 포함한다. 상태값은 `success`, `empty`, `partial`, `failed`, `skipped` 중 하나를 사용한다. 모듈별 bounded section은 반환 상한보다 한 행을 더 조회하고 `_limits.{section}.has_more`로 초과를 판정한다. 초과가 있으면 조정자는 해당 모듈을 `partial`, `error_code = module_export_section_limit`로 표시하고 `overflow_sections`를 제공한다. 실패한 모듈은 사용자 JSON에 raw exception message, stack trace, DB DSN, 파일 경로, secret을 넣지 않고 `error_code`와 운영자가 서버 로그와 대조할 수 있는 `evidence_id`만 제공한다. 운영자는 `partial_export = true`인 요청을 바로 완료하지 않고 후속 구간 사본 또는 수동 확인 후 `export_confirmed`를 체크한다.
 
 ## 마일스톤 12 conformance 자동화 기준
 
@@ -210,7 +210,7 @@
 | `check-retention-targets.php` | 감사 로그, 알림, 배너 클릭 hash 같은 보존/정리 대상과 삭제 SQL 안전 경계를 확인한다. |
 | `check-privacy-contract-matrix.php` | 32개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
 | `check-privacy-export-runtime.php` | SQLite fixture로 활동 데이터, 결제 기록, 보존형 원장이 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다. |
-| `check-privacy-export-status.php` | 테스트용 모듈 export 실패를 시뮬레이션해 `partial_export`, `module_export_status`, `evidence_id`가 JSON에 남고 raw exception/secret이 노출되지 않는지 확인한다. |
+| `check-privacy-export-status.php` | 테스트용 모듈 export 실패와 section row 초과를 시뮬레이션해 `partial_export`, `module_export_status`, `overflow_sections`, `evidence_id`가 JSON에 남고 raw exception/secret이 노출되지 않는지 확인한다. |
 | `check-privacy-cleanup-runtime.php` | SQLite fixture로 탈퇴/익명화 cleanup이 공개 노출 데이터와 secret을 줄이고, 결제 record account 연결과 item account 참조를 익명화하며, 보존 원장은 유지하는지 확인한다. |
 | `check-policy-documents-runtime.php` | 정책 문서 version, 안내메일 job/delivery, 비활성 계정 delivery skip 기준을 확인한다. |
 | `check-member-oauth-runtime.php` | OAuth state/PKCE 원문 비저장, provider subject HMAC과 hash prefix 표시값, completion 동의 gate를 확인한다. |

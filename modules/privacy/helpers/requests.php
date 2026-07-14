@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
 require_once dirname(__DIR__, 3) . '/core/helpers/ops.php';
+require_once dirname(__DIR__, 3) . '/core/helpers/privacy-export.php';
 
 function sr_admin_privacy_request_statuses(): array
 {
@@ -579,7 +580,7 @@ function sr_privacy_export_data(PDO $pdo, int $accountId): array
         'sections' => [
             'privacy_requests' => '개인정보 요청 대응 기록',
             'module_exports' => '활성 모듈이 privacy-export.php 계약으로 제공한 회원 관련 데이터',
-            'module_export_status' => '모듈별 사본 제공 성공, 빈 결과, 실패 또는 건너뜀 증빙',
+            'module_export_status' => '모듈별 사본 제공 성공, 빈 결과, 일부 제공, 실패 또는 건너뜀 증빙',
         ],
         'exported_at' => $exportedAt,
         'account_id' => $accountId,
@@ -609,9 +610,19 @@ function sr_privacy_module_export_results(PDO $pdo, int $accountId, string $expo
                 $moduleExportData = $moduleExport($pdo, $accountId);
                 if (is_array($moduleExportData)) {
                     $exports[$moduleKey] = sr_privacy_export_sanitize_module_data($moduleExportData);
-                    $statuses[$moduleKey] = [
-                        'status' => $exports[$moduleKey] === [] ? 'empty' : 'success',
-                    ];
+                    $overflowSections = sr_privacy_export_overflow_sections($moduleExportData);
+                    if ($overflowSections !== []) {
+                        $statuses[$moduleKey] = [
+                            'status' => 'partial',
+                            'error_code' => 'module_export_section_limit',
+                            'overflow_sections' => $overflowSections,
+                        ];
+                        $partialExport = true;
+                    } else {
+                        $statuses[$moduleKey] = [
+                            'status' => $exports[$moduleKey] === [] ? 'empty' : 'success',
+                        ];
+                    }
                 } else {
                     $statuses[$moduleKey] = [
                         'status' => 'skipped',
@@ -621,9 +632,19 @@ function sr_privacy_module_export_results(PDO $pdo, int $accountId, string $expo
                 }
             } elseif (is_array($moduleExport)) {
                 $exports[$moduleKey] = sr_privacy_export_sanitize_module_data($moduleExport);
-                $statuses[$moduleKey] = [
-                    'status' => $exports[$moduleKey] === [] ? 'empty' : 'success',
-                ];
+                $overflowSections = sr_privacy_export_overflow_sections($moduleExport);
+                if ($overflowSections !== []) {
+                    $statuses[$moduleKey] = [
+                        'status' => 'partial',
+                        'error_code' => 'module_export_section_limit',
+                        'overflow_sections' => $overflowSections,
+                    ];
+                    $partialExport = true;
+                } else {
+                    $statuses[$moduleKey] = [
+                        'status' => $exports[$moduleKey] === [] ? 'empty' : 'success',
+                    ];
+                }
             } else {
                 $statuses[$moduleKey] = [
                     'status' => 'skipped',
