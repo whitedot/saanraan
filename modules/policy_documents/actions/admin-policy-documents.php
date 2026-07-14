@@ -20,6 +20,7 @@ $selectedVersionId = max(0, (int) ($_GET['version_id'] ?? $_POST['version_id'] ?
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $action = (string) ($_POST['action'] ?? '');
+    $mailActionReturnTo = sr_admin_post_return_url('/admin/policy-documents');
 
     try {
         if ($action === 'save_document') {
@@ -139,17 +140,17 @@ if (sr_request_method() === 'POST') {
                 'failed' => (string) (int) $result['failed'],
             ]);
             sr_admin_flash_result(sr_admin_action_result([], $notice));
-            sr_redirect('/admin/policy-documents');
+            sr_redirect($mailActionReturnTo);
         } elseif ($action === 'requeue_mail_failures') {
             $jobId = max(0, (int) ($_POST['job_id'] ?? 0));
             $changed = sr_policy_document_requeue_failed_mail_deliveries($pdo, $jobId);
             sr_admin_flash_result(sr_admin_action_result([], '실패 안내메일 ' . (string) $changed . '건을 다시 대기 상태로 돌렸습니다.'));
-            sr_redirect('/admin/policy-documents');
+            sr_redirect($mailActionReturnTo);
         } elseif ($action === 'cancel_mail_pending') {
             $jobId = max(0, (int) ($_POST['job_id'] ?? 0));
             $changed = sr_policy_document_cancel_pending_mail_deliveries($pdo, $jobId);
             sr_admin_flash_result(sr_admin_action_result([], '남은 안내메일 ' . (string) $changed . '건을 취소했습니다.'));
-            sr_redirect('/admin/policy-documents');
+            sr_redirect($mailActionReturnTo);
         }
     } catch (Throwable $exception) {
         sr_admin_flash_result(sr_admin_action_result([$exception->getMessage()], ''));
@@ -163,7 +164,7 @@ if (sr_request_method() === 'POST') {
             }
             sr_redirect($fallback);
         }
-        sr_redirect('/admin/policy-documents');
+        sr_redirect($mailActionReturnTo);
     }
 }
 
@@ -181,7 +182,13 @@ foreach ($documents as $document) {
 }
 
 $versions = sr_policy_document_all_versions($pdo);
-$mailJobs = sr_policy_document_mail_jobs($pdo);
+$mailJobCount = sr_policy_document_mail_job_count($pdo);
+$mailJobPagination = sr_admin_pagination_from_total($pdo, $mailJobCount, 'mail_page');
+$mailJobs = sr_policy_document_mail_jobs(
+    $pdo,
+    (int) $mailJobPagination['per_page'],
+    sr_admin_pagination_offset($mailJobPagination)
+);
 $formVersion = null;
 if ($policyDocumentAdminPage === 'form' && $policyDocumentFormMode === 'edit') {
     $formVersion = sr_policy_document_version_by_id($pdo, $selectedVersionId);

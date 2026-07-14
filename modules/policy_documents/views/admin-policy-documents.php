@@ -492,6 +492,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e(sr_t('policy_documents::ui.mail_jobs')); ?></h2>
         </div>
+        <?php echo sr_admin_pagination_summary_html($mailJobPagination); ?>
         <div class="table-wrapper">
             <table class="table table-list admin-policy-document-mail-job-table">
                 <caption class="sr-only"><?php echo sr_e(sr_t('policy_documents::ui.mail_jobs')); ?></caption>
@@ -530,6 +531,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="action" value="run_mail_batch">
                                         <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $mailJob['id']); ?>">
+                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/policy-documents')); ?>">
                                         <button class="btn btn-sm btn-solid-primary" type="submit"><?php echo sr_e(sr_t('policy_documents::ui.mail_run')); ?></button>
                                     </form>
                                 <?php } ?>
@@ -538,6 +540,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="action" value="requeue_mail_failures">
                                         <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $mailJob['id']); ?>">
+                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/policy-documents')); ?>">
                                         <button class="btn btn-sm btn-solid-light" type="submit"><?php echo sr_e('실패 재대기'); ?></button>
                                     </form>
                                 <?php } ?>
@@ -546,6 +549,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="action" value="cancel_mail_pending">
                                         <input type="hidden" name="job_id" value="<?php echo sr_e((string) (int) $mailJob['id']); ?>">
+                                        <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/policy-documents')); ?>">
                                         <button class="btn btn-sm btn-outline-danger" type="submit" data-confirm="<?php echo sr_e('아직 발송 완료되지 않은 안내메일을 취소합니다. 계속할까요?'); ?>"><?php echo sr_e('남은 발송 취소'); ?></button>
                                     </form>
                                 <?php } ?>
@@ -559,6 +563,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </tbody>
             </table>
         </div>
+        <?php echo sr_admin_pagination_html($mailJobPagination, '정책 문서 안내메일 작업 목록 페이지'); ?>
         <?php echo sr_admin_status_description_list_html('policy_document_mail_status', $policyDocumentMailStatusLabels); ?>
     </section>
 <?php } ?>

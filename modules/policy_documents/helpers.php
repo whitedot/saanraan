@@ -1115,9 +1115,23 @@ function sr_policy_document_seed_notice_deliveries(PDO $pdo, int $jobId): int
     return $stmt->rowCount();
 }
 
-function sr_policy_document_mail_jobs(PDO $pdo): array
+function sr_policy_document_mail_job_count(PDO $pdo): int
 {
     $stmt = $pdo->query(
+        'SELECT COUNT(*)
+         FROM sr_policy_document_mail_jobs j
+         INNER JOIN sr_policy_documents d ON d.id = j.document_id
+         INNER JOIN sr_policy_document_versions v ON v.id = j.version_id'
+    );
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_policy_document_mail_jobs(PDO $pdo, int $limit = 100, int $offset = 0): array
+{
+    $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
+    $stmt = $pdo->prepare(
         'SELECT j.id, j.job_key, j.status, j.subject_snapshot, j.dry_run, j.created_at, j.updated_at,
                 d.document_key, d.title AS document_title,
                 (SELECT COUNT(*) FROM sr_policy_document_mail_deliveries q WHERE q.job_id = j.id) AS delivery_count,
@@ -1131,8 +1145,11 @@ function sr_policy_document_mail_jobs(PDO $pdo): array
          INNER JOIN sr_policy_documents d ON d.id = j.document_id
          INNER JOIN sr_policy_document_versions v ON v.id = j.version_id
          ORDER BY j.id DESC
-         LIMIT 100'
+         LIMIT :limit OFFSET :offset'
     );
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }

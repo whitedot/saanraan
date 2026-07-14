@@ -52,6 +52,8 @@ function sr_policy_documents_check_assert(bool $condition, string $message): voi
 }
 
 $policyDocumentViewSource = file_get_contents('modules/policy_documents/views/admin-policy-documents.php');
+$policyDocumentActionSource = file_get_contents('modules/policy_documents/actions/admin-policy-documents.php');
+$policyDocumentHelperSource = file_get_contents('modules/policy_documents/helpers.php');
 if (is_string($policyDocumentViewSource)) {
     sr_policy_documents_check_assert(
         str_contains($policyDocumentViewSource, 'policy_documents::ui.version.body_view')
@@ -84,6 +86,26 @@ if (is_string($policyDocumentViewSource)) {
         'policy document admin view should hide internal version keys and provide fullscreen read-only body viewing for each version.'
     );
 }
+sr_policy_documents_check_assert(
+    is_string($policyDocumentViewSource)
+        && str_contains($policyDocumentViewSource, 'sr_admin_pagination_summary_html($mailJobPagination)')
+        && str_contains($policyDocumentViewSource, 'sr_admin_pagination_html($mailJobPagination')
+        && str_contains($policyDocumentViewSource, 'name="return_to"'),
+    'policy document mail jobs should expose pagination and preserve the current list URL for row actions.'
+);
+sr_policy_documents_check_assert(
+    is_string($policyDocumentActionSource)
+        && str_contains($policyDocumentActionSource, "sr_admin_pagination_from_total(\$pdo, \$mailJobCount, 'mail_page')")
+        && str_contains($policyDocumentActionSource, "sr_admin_post_return_url('/admin/policy-documents')"),
+    'policy document mail job actions should use an independent mail page and return to it after POST.'
+);
+sr_policy_documents_check_assert(
+    is_string($policyDocumentHelperSource)
+        && str_contains($policyDocumentHelperSource, 'function sr_policy_document_mail_job_count')
+        && str_contains($policyDocumentHelperSource, 'LIMIT :limit OFFSET :offset')
+        && !str_contains($policyDocumentHelperSource, 'LIMIT 100'),
+    'policy document mail job helper should provide count-based slices without a fixed 100-row list cap.'
+);
 $policyDocumentInstallSource = file_get_contents('modules/policy_documents/install.sql');
 if (is_string($policyDocumentInstallSource)) {
     sr_policy_documents_check_assert(
@@ -492,6 +514,32 @@ sr_policy_documents_check_assert(
 sr_policy_documents_check_assert(
     (string) $pdo->query('SELECT status FROM sr_policy_document_mail_jobs WHERE id = ' . (int) $jobId)->fetchColumn() === 'cancelled',
     'policy document mail job should be marked cancelled when remaining live deliveries are cancelled.'
+);
+
+$pdo->exec('DELETE FROM sr_policy_document_mail_deliveries');
+$pdo->exec('DELETE FROM sr_policy_document_mail_jobs');
+$mailJobInsert = $pdo->prepare(
+    "INSERT INTO sr_policy_document_mail_jobs
+        (document_id, version_id, job_key, status, target_status_snapshot, subject_snapshot, body_snapshot, dry_run, created_at, updated_at)
+     VALUES (1, :version_id, :job_key, 'sent', 'active', :subject, 'body', 1, '', '')"
+);
+for ($rowNumber = 1; $rowNumber <= 45; $rowNumber++) {
+    $mailJobInsert->execute([
+        'version_id' => $secondVersionId,
+        'job_key' => 'fixture-mail-job-' . (string) $rowNumber,
+        'subject' => 'fixture subject ' . (string) $rowNumber,
+    ]);
+}
+sr_policy_documents_check_assert(
+    sr_policy_document_mail_job_count($pdo) === 45,
+    'policy document mail job count should include every joined job.'
+);
+$mailJobLastPage = sr_policy_document_mail_jobs($pdo, 20, 40);
+sr_policy_documents_check_assert(
+    count($mailJobLastPage) === 5
+        && (string) ($mailJobLastPage[0]['job_key'] ?? '') === 'fixture-mail-job-5'
+        && (string) ($mailJobLastPage[4]['job_key'] ?? '') === 'fixture-mail-job-1',
+    'policy document mail job pagination should expose the final partial page in newest-first order.'
 );
 
 if ($errors !== []) {
