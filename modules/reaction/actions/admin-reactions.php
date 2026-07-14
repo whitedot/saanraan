@@ -170,6 +170,7 @@ $reactionDefinitions = sr_reaction_admin_definitions($pdo);
 $reactionPresets = sr_reaction_admin_presets($pdo);
 $reactionPresetItems = sr_reaction_admin_preset_items($pdo);
 $reactionRecordFilters = sr_reaction_admin_record_filters([]);
+$reactionRecordPagination = sr_admin_pagination_meta(0, 20, 1);
 $reactionRecords = [];
 $reactionRecordTargets = [];
 $reactionRecordTargetGroups = [];
@@ -181,7 +182,13 @@ if ($reactionAdminPage === 'records') {
         'target_id' => sr_get_string('target_id', 60),
         'reaction_key' => sr_get_string('reaction_key', 80),
     ]);
-    $reactionRecords = sr_reaction_admin_records($pdo, $reactionRecordFilters, 100);
+    $reactionRecordPagination = sr_admin_pagination_from_total($pdo, sr_reaction_admin_record_count($pdo, $reactionRecordFilters));
+    $reactionRecords = sr_reaction_admin_records(
+        $pdo,
+        $reactionRecordFilters,
+        (int) $reactionRecordPagination['per_page'],
+        sr_admin_pagination_offset($reactionRecordPagination)
+    );
     foreach ($reactionRecords as $reactionRecord) {
         $groupKey = (string) ($reactionRecord['target_module'] ?? '') . '/' . (string) ($reactionRecord['target_type'] ?? '');
         $targetId = sr_reaction_target_id((string) ($reactionRecord['target_id'] ?? ''));

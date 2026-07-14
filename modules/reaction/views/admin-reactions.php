@@ -98,8 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-summary-meta">묶음 <strong><?php echo sr_e((string) count($reactionPresets)); ?>개</strong></span>
             <span class="admin-summary-meta">공개 리액션 키 수는 최대 12개입니다.</span>
         <?php } else { ?>
-            <span class="admin-summary-meta">최근 사용 기록 <strong><?php echo sr_e((string) count($reactionRecords)); ?>개</strong></span>
-            <span class="admin-summary-meta">최대 100건까지 조회합니다.</span>
+            <span class="admin-summary-meta">전체 사용 기록 <strong><?php echo sr_e(number_format((int) ($reactionRecordPagination['total'] ?? 0))); ?>개</strong></span>
         <?php } ?>
     </div>
 </div>
@@ -144,9 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title">리액션 사용 기록</h2>
     </div>
-    <div class="admin-list-summary-row">
-        <span class="admin-summary-meta">조회 결과 <?php echo sr_e(number_format(count($reactionRecords))); ?>건</span>
-    </div>
+    <?php echo sr_admin_pagination_summary_html($reactionRecordPagination); ?>
     <div class="table-wrapper">
         <table class="table table-list admin-reaction-record-table">
             <caption class="sr-only">리액션 사용 기록 최근 목록</caption>
@@ -207,6 +204,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
     </div>
     <?php echo sr_admin_status_description_list_html('reaction_target_status', $reactionTargetStatusLabels, [], '대상 상태 설명'); ?>
+    <?php echo sr_admin_pagination_html($reactionRecordPagination, '리액션 사용 기록 페이지'); ?>
 </section>
 <?php } ?>
 

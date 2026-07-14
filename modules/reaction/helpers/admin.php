@@ -189,14 +189,9 @@ function sr_reaction_admin_record_filters(array $input): array
     ];
 }
 
-function sr_reaction_admin_records(PDO $pdo, array $filters = [], int $limit = 100): array
+function sr_reaction_admin_record_query_parts(array $filters = []): array
 {
-    if (!sr_reaction_tables_available($pdo)) {
-        return [];
-    }
-
     $filters = sr_reaction_admin_record_filters($filters);
-    $limit = max(1, min(200, $limit));
     $where = [];
     $params = [];
 
@@ -211,17 +206,51 @@ function sr_reaction_admin_records(PDO $pdo, array $filters = [], int $limit = 1
         }
     }
 
+    return [
+        'where' => $where === [] ? '' : 'WHERE ' . implode(' AND ', $where),
+        'params' => $params,
+    ];
+}
+
+function sr_reaction_admin_record_count(PDO $pdo, array $filters = []): int
+{
+    if (!sr_reaction_tables_available($pdo)) {
+        return 0;
+    }
+
+    $query = sr_reaction_admin_record_query_parts($filters);
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_reaction_records r ' . $query['where']);
+    $stmt->execute($query['params']);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_reaction_admin_records(PDO $pdo, array $filters = [], int $limit = 100, int $offset = 0): array
+{
+    if (!sr_reaction_tables_available($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+    $query = sr_reaction_admin_record_query_parts($filters);
+
     $stmt = $pdo->prepare(
         'SELECT r.*,
                 d.label AS reaction_label,
                 d.status AS reaction_status
          FROM sr_reaction_records r
          LEFT JOIN sr_reaction_definitions d ON d.reaction_key = r.reaction_key
-         ' . ($where === [] ? '' : 'WHERE ' . implode(' AND ', $where)) . '
+         ' . $query['where'] . '
          ORDER BY r.updated_at DESC, r.id DESC
-         LIMIT ' . (string) $limit
+         LIMIT :limit_value OFFSET :offset_value'
     );
-    $stmt->execute($params);
+    foreach ($query['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }

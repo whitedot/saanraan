@@ -36,10 +36,12 @@ if (sr_request_method() === 'POST') {
         sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'delete');
         $surveyId = (int) sr_post_string('survey_id', 20);
         if ($surveyId < 1 || !is_array(sr_survey_by_id($pdo, $surveyId))) {
-            sr_admin_redirect_with_result(sr_admin_action_result(['삭제할 설문을 찾을 수 없습니다.'], ''), '/admin/surveys');
+            sr_admin_flash_result(sr_admin_action_result(['삭제할 설문을 찾을 수 없습니다.'], ''));
+            sr_redirect(sr_admin_post_return_url('/admin/surveys'));
         }
         if (!sr_survey_soft_delete_redacted($pdo, $surveyId, (int) ($account['id'] ?? 0))) {
-            sr_admin_redirect_with_result(sr_admin_action_result(['삭제할 설문을 찾을 수 없습니다.'], ''), '/admin/surveys');
+            sr_admin_flash_result(sr_admin_action_result(['삭제할 설문을 찾을 수 없습니다.'], ''));
+            sr_redirect(sr_admin_post_return_url('/admin/surveys'));
         }
         sr_url_embed_mark_target_url_cache_stale($pdo, 'survey', 'survey_form', $surveyId);
         sr_audit_log($pdo, [
@@ -52,7 +54,8 @@ if (sr_request_method() === 'POST') {
             'message' => 'Survey form deleted.',
             'metadata' => [],
         ]);
-        sr_admin_redirect_with_result(sr_admin_action_result([], '설문을 삭제했습니다.'), '/admin/surveys');
+        sr_admin_flash_result(sr_admin_action_result([], '설문을 삭제했습니다.'));
+        sr_redirect(sr_admin_post_return_url('/admin/surveys'));
     }
     if ($intent === 'permanent_delete') {
         sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'delete');
@@ -62,14 +65,15 @@ if (sr_request_method() === 'POST') {
             $deleteResult = sr_survey_permanently_delete($pdo, $surveyId, $confirmationPhrase, (int) ($account['id'] ?? 0));
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'survey_permanent_delete_failed');
-            sr_admin_redirect_with_result(sr_admin_action_result(['설문 영구 삭제 중 오류가 발생했습니다.'], ''), '/admin/surveys?deleted=1');
+            sr_admin_flash_result(sr_admin_action_result(['설문 영구 삭제 중 오류가 발생했습니다.'], ''));
+            sr_redirect(sr_admin_post_return_url('/admin/surveys?deleted=1'));
         }
-        sr_admin_redirect_with_result(
+        sr_admin_flash_result(
             !empty($deleteResult['ok'])
                 ? sr_admin_action_result([], (string) ($deleteResult['message'] ?? '설문을 영구 삭제했습니다.'))
-                : sr_admin_action_result([(string) ($deleteResult['message'] ?? '설문을 영구 삭제할 수 없습니다.')], ''),
-            '/admin/surveys?deleted=1'
+                : sr_admin_action_result([(string) ($deleteResult['message'] ?? '설문을 영구 삭제할 수 없습니다.')], '')
         );
+        sr_redirect(sr_admin_post_return_url('/admin/surveys?deleted=1'));
     }
 
     sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'edit');
@@ -115,6 +119,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $surveySortOptions = is_array($surveyListState['sort_options'] ?? null) ? $surveyListState['sort_options'] : [];
     $surveyDefaultSort = is_array($surveyListState['default_sort'] ?? null) ? $surveyListState['default_sort'] : sr_survey_admin_survey_default_sort();
     $surveySort = is_array($surveyListState['sort'] ?? null) ? $surveyListState['sort'] : $surveyDefaultSort;
+    $surveyPagination = is_array($surveyListState['pagination'] ?? null) ? $surveyListState['pagination'] : sr_admin_pagination_meta(0, 20, 1);
     $surveys = is_array($surveyListState['surveys'] ?? null) ? $surveyListState['surveys'] : [];
     $surveyCanDelete = sr_admin_has_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'delete');
     ?>
@@ -157,6 +162,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php endif; ?>
             </div>
         </div>
+        <?php echo sr_admin_pagination_summary_html($surveyPagination); ?>
         <?php if (empty($surveySort['is_default'])) { ?>
             <div class="admin-list-summary-row">
                 <a href="<?php echo sr_e(sr_admin_sort_url($surveySortOptions, $surveyDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="설문 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
@@ -234,6 +240,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="intent" value="delete">
                                                 <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) $survey['id']); ?>">
+                                                <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/surveys')); ?>">
                                                 <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="설문 삭제" title="삭제" data-confirm="<?php echo sr_e('설문을 삭제할까요? 기존 응답과 보상 이력은 보관됩니다.'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                             </form>
                                         <?php endif; ?>
@@ -256,6 +263,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_status_description_list_html('survey_status', array_combine(sr_survey_statuses(), array_map('sr_survey_status_label', sr_survey_statuses())) ?: [], [], '설문 상태 설명'); ?>
         <?php echo sr_admin_status_description_list_html('survey_qa_status', array_combine(sr_survey_qa_statuses(), array_map('sr_survey_qa_status_label', sr_survey_qa_statuses())) ?: [], [], '점검 상태 설명'); ?>
         <?php echo sr_admin_status_description_list_html('survey_reward_enabled', ['enabled' => '사용', 'disabled' => '사용안함'], [], '보상 사용 설명'); ?>
+        <?php echo sr_admin_pagination_html($surveyPagination, '설문 목록 페이지'); ?>
     </section>
     <?php foreach ($surveys as $survey): ?>
         <?php if (empty($survey['deleted_at'])) { continue; } ?>
@@ -266,6 +274,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="permanent_delete">
                     <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) $survey['id']); ?>">
+                    <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/surveys?deleted=1')); ?>">
                     <div class="modal-header">
                         <h3 id="<?php echo sr_e($permanentDeleteModalId); ?>-label" class="modal-title">설문 영구 삭제</h3>
                         <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($permanentDeleteModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
