@@ -180,7 +180,30 @@ function sr_community_series_for_read(PDO $pdo, int $seriesId, ?array $account =
     return $series;
 }
 
-function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0): array
+function sr_community_account_series_count(PDO $pdo, int $accountId): int
+{
+    if ($accountId < 1 || !sr_community_series_supported($pdo)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_community_series s
+         INNER JOIN sr_community_boards b ON b.id = s.board_id
+         LEFT JOIN sr_community_board_settings bs
+           ON bs.board_id = b.id
+          AND bs.setting_key = 'series_enabled'
+         WHERE s.owner_account_id = :account_id
+           AND s.status IN ('pending', 'active', 'hidden')
+           AND b.status = 'enabled'
+           AND COALESCE(NULLIF(LOWER(TRIM(bs.setting_value)), ''), '1') IN ('1', 'true', 'yes', 'on')"
+    );
+    $stmt->execute(['account_id' => $accountId]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0, int $limit = 200, int $offset = 0): array
 {
     if ($accountId < 1 || !sr_community_series_supported($pdo)) {
         return [];
@@ -193,44 +216,40 @@ function sr_community_account_series(PDO $pdo, int $accountId, int $boardId = 0)
         }
     }
 
-    $where = 'owner_account_id = :account_id AND status IN (\'pending\', \'active\', \'hidden\')';
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+    $where = 's.owner_account_id = :account_id AND s.status IN (\'pending\', \'active\', \'hidden\')';
     $params = ['account_id' => $accountId];
     if ($boardId > 0) {
-        $where .= ' AND board_id = :board_id';
+        $where .= ' AND s.board_id = :board_id';
         $params['board_id'] = $boardId;
     }
 
+    $boardJoin = $boardId > 0
+        ? ''
+        : " INNER JOIN sr_community_boards b ON b.id = s.board_id
+            LEFT JOIN sr_community_board_settings bs
+              ON bs.board_id = b.id
+             AND bs.setting_key = 'series_enabled'";
+    if ($boardId === 0) {
+        $where .= " AND b.status = 'enabled'
+                    AND COALESCE(NULLIF(LOWER(TRIM(bs.setting_value)), ''), '1') IN ('1', 'true', 'yes', 'on')";
+    }
     $stmt = $pdo->prepare(
-        'SELECT id, board_id, owner_account_id, title, description, status, visibility, admin_note, created_at, updated_at
-         FROM sr_community_series
+        'SELECT s.id, s.board_id, s.owner_account_id, s.title, s.description, s.status, s.visibility, s.admin_note, s.created_at, s.updated_at
+         FROM sr_community_series s' . $boardJoin . '
          WHERE ' . $where . '
-         ORDER BY updated_at DESC, id DESC
-         LIMIT 200'
+         ORDER BY s.updated_at DESC, s.id DESC
+         LIMIT :limit OFFSET :offset'
     );
-    $stmt->execute($params);
-
-    $seriesList = $stmt->fetchAll();
-    if ($boardId > 0) {
-        return $seriesList;
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, (int) $value, PDO::PARAM_INT);
     }
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
-    $boards = [];
-    $filtered = [];
-    foreach ($seriesList as $series) {
-        $seriesBoardId = (int) ($series['board_id'] ?? 0);
-        if ($seriesBoardId < 1) {
-            continue;
-        }
-        if (!array_key_exists($seriesBoardId, $boards)) {
-            $boards[$seriesBoardId] = sr_community_board_by_id($pdo, $seriesBoardId);
-        }
-        $board = $boards[$seriesBoardId];
-        if (is_array($board) && sr_community_series_available_for_board($pdo, $board)) {
-            $filtered[] = $series;
-        }
-    }
-
-    return $filtered;
+    return $stmt->fetchAll();
 }
 
 function sr_community_admin_series_filters(): array

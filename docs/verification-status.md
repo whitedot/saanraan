@@ -267,6 +267,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 
 - `.tools/bin/check-community-comment-pagination.php`는 공개 댓글의 숫자 페이지 순서, 전체 댓글 수, 마지막 페이지 clamp, 새 댓글 위치 계산, 페이지 링크의 비동기 교체 hook, 전역·게시판 우선순위 적용 marker를 SQLite fixture와 정적 검사로 확인한다. 게시판 설정의 `0=전역 상속`, `1~100=게시판 우선` 런타임은 `.tools/bin/check-community-board-settings.php`가 함께 확인한다.
 - `.tools/bin/check-community-scrap-pagination.php`는 회원 게시글·시리즈 스크랩이 고정 50건에서 끝나지 않고 독립 페이지로 전체 목록을 탐색하는지 확인한다. 각 45건 SQLite fixture의 중간·마지막 페이지와 목록 해제 후 복귀 경로도 함께 고정한다.
+- `.tools/bin/check-community-series-pagination.php`는 `/community/series`의 내 시리즈가 200건에서 끝나지 않고 전체 count 기반 페이지네이션으로 탐색되는지 확인한다. 목록 count와 각 페이지가 회원, 상태, 게시판 활성화, 게시판별 시리즈 사용 설정을 같은 기준으로 적용하는 45건 SQLite fixture도 함께 고정한다.
 - `.tools/bin/check-public-comment-pagination.php`는 콘텐츠·퀴즈·설문 공개 댓글이 20개 단위 숫자 페이지로 전체 게시 댓글을 조회하는지, 40개 이후 row와 전체 수·마지막 페이지 보정·새 댓글 위치 계산을 SQLite fixture로 확인한다. 각 기본·샘플 테마와 호환 스킨이 같은 페이지 helper와 공통 공개 페이지네이션을 사용하는지도 정적 marker로 확인한다.
 - `.tools/bin/check-admin-comment-pagination.php`는 퀴즈·설문 관리자 댓글 목록이 고정 200건에서 끝나지 않고 필터 count 기반 공통 관리자 페이지네이션을 사용하는지 확인한다. 각 45건 SQLite fixture의 중간·마지막 페이지와 검색·상태 필터 count 일치도 함께 고정한다.
 - `.tools/bin/check-quiz-consistency.php`는 퀴즈 제출 성공과 실패가 모두 Post/Redirect/Get으로 끝나는지, 실패 flash가 오류와 선택한 답을 한 번만 복원하는지, 기본·샘플 테마와 호환 스킨이 같은 토스트·복원 계약을 쓰는지 확인한다.

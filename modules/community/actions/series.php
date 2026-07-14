@@ -106,7 +106,16 @@ foreach ($pdo->query("SELECT id, board_key, title, board_group_id, status, write
         $boards[] = $boardOption;
     }
 }
-$seriesList = sr_community_account_series($pdo, (int) $account['id']);
+$seriesPerPage = 20;
+$seriesPageInput = sr_get_string('page', 20);
+$seriesPage = preg_match('/\A[1-9][0-9]*\z/', $seriesPageInput) === 1 ? (int) $seriesPageInput : 1;
+$seriesCount = $seriesSupported ? sr_community_account_series_count($pdo, (int) $account['id']) : 0;
+$seriesTotalPages = max(1, (int) ceil($seriesCount / $seriesPerPage));
+$seriesPage = min(max(1, $seriesPage), $seriesTotalPages);
+$seriesPagination = ['page' => $seriesPage, 'total_pages' => $seriesTotalPages];
+$seriesList = $seriesSupported
+    ? sr_community_account_series($pdo, (int) $account['id'], 0, $seriesPerPage, ($seriesPage - 1) * $seriesPerPage)
+    : [];
 if (!$seriesSupported && sr_request_method() !== 'POST') {
     $errors[] = sr_community_series_unavailable_message($pdo);
 }

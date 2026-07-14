@@ -23,7 +23,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             </form>
         <?php } ?>
     </section>
-    <section>
+    <section id="community-series-list">
         <h2>시리즈 목록</h2>
         <?php if ($seriesList === []) { ?><p>아직 시리즈가 없습니다.</p><?php } else { ?>
             <ul>
@@ -32,6 +32,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                 <?php } ?>
             </ul>
         <?php } ?>
+        <?php echo sr_public_pagination_html($seriesPagination, '/community/series', '내 시리즈 목록 페이지', 'page', 'community-series-list', 'community-pagination'); ?>
     </section>
 </main>
 <?php sr_public_layout_end(); ?>
