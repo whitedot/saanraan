@@ -3,7 +3,8 @@
 require_once SR_ROOT . '/modules/quiz/helpers.php';
 
 $quizSettings = sr_quiz_settings($pdo);
-$quizzes = sr_quiz_public_quizzes($pdo);
+$quizzes = isset($quizzes) && is_array($quizzes) ? $quizzes : sr_quiz_public_quizzes($pdo);
+$quizListPagination = isset($quizListPagination) && is_array($quizListPagination) ? $quizListPagination : ['page' => 1, 'total_pages' => 1];
 $quizPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
     'title' => '퀴즈·테스트',
@@ -80,6 +81,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
+            <?php echo sr_public_pagination_html($quizListPagination, '/quiz', '퀴즈 목록 페이지'); ?>
         </div>
     </section>
 </main>

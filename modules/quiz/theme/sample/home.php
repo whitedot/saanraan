@@ -1,7 +1,8 @@
 <?php
 
 $quizSettings = isset($quizSettings) && is_array($quizSettings) ? $quizSettings : sr_quiz_settings($pdo);
-$quizzes = sr_quiz_public_quizzes($pdo);
+$quizzes = isset($quizzes) && is_array($quizzes) ? $quizzes : sr_quiz_public_quizzes($pdo);
+$quizListPagination = isset($quizListPagination) && is_array($quizListPagination) ? $quizListPagination : ['page' => 1, 'total_pages' => 1];
 $quizPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
     'title' => '퀴즈·테스트',
@@ -59,6 +60,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
             <?php } ?>
         <?php } ?>
     </section>
+    <?php echo sr_public_pagination_html($quizListPagination, '/quiz', '퀴즈 목록 페이지'); ?>
 </main>
 
 <?php sr_public_layout_end(); ?>

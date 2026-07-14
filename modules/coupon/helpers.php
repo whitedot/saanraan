@@ -2738,13 +2738,41 @@ function sr_coupon_issue_to_account(PDO $pdo, int $definitionId, int $accountId,
     return $issueId;
 }
 
-function sr_coupon_public_claim_campaigns(PDO $pdo, int $accountId = 0, int $limit = 50): array
+function sr_coupon_public_claim_campaign_count(PDO $pdo): int
+{
+    if (!sr_coupon_usage_enabled($pdo) || !sr_coupon_claim_tables_available($pdo)) {
+        return 0;
+    }
+
+    $now = sr_now();
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_coupon_claim_campaigns c
+         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
+         WHERE c.status = 'active'
+           AND c.visibility = 'public'
+           AND c.exposure_surfaces_json LIKE :surface_like
+           AND (c.starts_at IS NULL OR c.starts_at <= :starts_now)
+           AND (c.ends_at IS NULL OR c.ends_at >= :ends_now)
+           AND d.status = 'active'"
+    );
+    $stmt->execute([
+        'surface_like' => '%"coupon_zone"%',
+        'starts_now' => $now,
+        'ends_now' => $now,
+    ]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_coupon_public_claim_campaigns(PDO $pdo, int $accountId = 0, int $limit = 50, int $offset = 0): array
 {
     if (!sr_coupon_usage_enabled($pdo) || !sr_coupon_claim_tables_available($pdo)) {
         return [];
     }
 
     $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
     $now = sr_now();
     $stmt = $pdo->prepare(
         "SELECT c.*, d.coupon_key, d.title AS coupon_title, d.description AS coupon_description, d.status AS coupon_status, d.target_type, d.target_id, d.max_uses_per_issue
@@ -2757,7 +2785,7 @@ function sr_coupon_public_claim_campaigns(PDO $pdo, int $accountId = 0, int $lim
            AND (c.ends_at IS NULL OR c.ends_at >= :ends_now)
            AND d.status = 'active'
          ORDER BY c.id DESC
-         LIMIT " . $limit
+         LIMIT " . $limit . " OFFSET " . $offset
     );
     $stmt->execute([
         'surface_like' => '%"coupon_zone"%',

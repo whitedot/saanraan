@@ -101,9 +101,9 @@ $surveySettingsHelp = [
     ],
     'public_list_limit' => [
         'id' => 'survey-settings-help-public-list-limit',
-        'title' => '공개 목록 노출 수',
+        'title' => '공개 목록 페이지당 표시 수',
         'body_html' => $surveySettingsHelpBodyHtml([
-            '공개 설문 목록에서 한 번에 가져올 설문 수입니다.',
+            '공개 설문 목록의 한 페이지에 표시할 설문 수입니다. 다음 페이지에서 나머지 설문을 계속 탐색할 수 있습니다.',
             '관리자 목록과 응답 목록의 페이지 크기는 관리자 공통 페이징 설정을 계속 사용합니다.',
         ]),
     ],
@@ -262,7 +262,7 @@ $surveySettingsHelp = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('survey_settings_public_list_limit', '공개 목록 노출 수', $surveySettingsHelp['public_list_limit']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('survey_settings_public_list_limit', '공개 목록 페이지당 표시 수', $surveySettingsHelp['public_list_limit']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <input id="survey_settings_public_list_limit" type="number" name="public_list_limit" value="<?php echo sr_e((string) (int) ($settings['public_list_limit'] ?? 50)); ?>" class="form-input" min="1" max="100" required>
                 </div>

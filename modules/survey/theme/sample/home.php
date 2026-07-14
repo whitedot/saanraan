@@ -1,7 +1,8 @@
 <?php
 
 $settings = isset($settings) && is_array($settings) ? $settings : sr_survey_settings($pdo);
-$surveys = sr_survey_public_forms($pdo, (int) ($settings['public_list_limit'] ?? 50));
+$surveys = isset($surveys) && is_array($surveys) ? $surveys : sr_survey_public_forms($pdo, (int) ($settings['public_list_limit'] ?? 50));
+$surveyListPagination = isset($surveyListPagination) && is_array($surveyListPagination) ? $surveyListPagination : ['page' => 1, 'total_pages' => 1];
 $surveyPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
     'title' => '설문·여론조사',
@@ -55,6 +56,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
             <?php } ?>
         <?php } ?>
     </section>
+    <?php echo sr_public_pagination_html($surveyListPagination, '/survey', '설문 목록 페이지'); ?>
 </main>
 
 <?php sr_public_layout_end(); ?>

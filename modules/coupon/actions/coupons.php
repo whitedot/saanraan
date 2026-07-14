@@ -60,6 +60,15 @@ $flashResult = sr_coupon_public_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $singleCampaign = $selectedCampaignKey !== '' ? sr_coupon_public_claim_campaign($pdo, $selectedCampaignKey, $accountId, ['direct_link', 'coupon_zone', 'content_embed']) : null;
-$campaigns = is_array($singleCampaign) ? [$singleCampaign] : sr_coupon_public_claim_campaigns($pdo, $accountId);
+$couponCampaignPerPage = 50;
+$couponCampaignPageInput = sr_get_string('page', 20);
+$couponCampaignPage = preg_match('/\A[1-9][0-9]*\z/', $couponCampaignPageInput) === 1 ? (int) $couponCampaignPageInput : 1;
+$couponCampaignCount = is_array($singleCampaign) ? 1 : sr_coupon_public_claim_campaign_count($pdo);
+$couponCampaignTotalPages = max(1, (int) ceil($couponCampaignCount / $couponCampaignPerPage));
+$couponCampaignPage = min(max(1, $couponCampaignPage), $couponCampaignTotalPages);
+$couponCampaignPagination = ['page' => $couponCampaignPage, 'total_pages' => $couponCampaignTotalPages];
+$campaigns = is_array($singleCampaign)
+    ? [$singleCampaign]
+    : sr_coupon_public_claim_campaigns($pdo, $accountId, $couponCampaignPerPage, ($couponCampaignPage - 1) * $couponCampaignPerPage);
 
 include SR_ROOT . '/modules/coupon/views/coupons.php';

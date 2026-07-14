@@ -1,6 +1,7 @@
 <?php
 
 $singleCampaign = isset($singleCampaign) && is_array($singleCampaign) ? $singleCampaign : null;
+$couponCampaignPagination = isset($couponCampaignPagination) && is_array($couponCampaignPagination) ? $couponCampaignPagination : ['page' => 1, 'total_pages' => 1];
 $couponZoneLabel = isset($pdo) && $pdo instanceof PDO ? sr_coupon_zone_label($pdo) : '쿠폰존';
 $pageTitle = is_array($singleCampaign) ? (string) ($singleCampaign['title'] ?? $couponZoneLabel) : $couponZoneLabel;
 $canonicalPath = is_array($singleCampaign)
@@ -95,5 +96,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 <?php } ?>
             <?php } ?>
         </section>
+        <?php if (!is_array($singleCampaign)) { ?>
+            <?php echo sr_public_pagination_html($couponCampaignPagination, '/coupons', '쿠폰 발급 캠페인 목록 페이지'); ?>
+        <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>

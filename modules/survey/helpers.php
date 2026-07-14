@@ -1240,7 +1240,24 @@ function sr_survey_public_window_is_open(array $survey, ?string $now = null): bo
     return ($startsAt === '' || $startsAt <= $now) && ($endsAt === '' || $endsAt >= $now);
 }
 
-function sr_survey_public_forms(PDO $pdo, int $limit = 50): array
+function sr_survey_public_form_count(PDO $pdo): int
+{
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_survey_forms
+         WHERE status = 'active'
+           AND deleted_at IS NULL
+           AND public_listed = 1
+           AND (starts_at IS NULL OR starts_at <= :now_start)
+           AND (ends_at IS NULL OR ends_at >= :now_end)"
+    );
+    $now = sr_now();
+    $stmt->execute(['now_start' => $now, 'now_end' => $now]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_survey_public_forms(PDO $pdo, int $limit = 50, int $offset = 0): array
 {
     $stmt = $pdo->prepare(
         "SELECT id, survey_key, title, description, cover_image_url, updated_at
@@ -1251,12 +1268,13 @@ function sr_survey_public_forms(PDO $pdo, int $limit = 50): array
            AND (starts_at IS NULL OR starts_at <= :now_start)
            AND (ends_at IS NULL OR ends_at >= :now_end)
          ORDER BY updated_at DESC, id DESC
-         LIMIT :limit_value"
+         LIMIT :limit_value OFFSET :offset_value"
     );
     $now = sr_now();
     $stmt->bindValue('now_start', $now);
     $stmt->bindValue('now_end', $now);
     $stmt->bindValue('limit_value', max(1, min(100, $limit)), PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     $stmt->execute();
 
     return $stmt->fetchAll();

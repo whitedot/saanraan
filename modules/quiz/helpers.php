@@ -1137,7 +1137,23 @@ function sr_quiz_key_exists(PDO $pdo, string $quizKey, int $excludeId = 0): bool
     return (bool) $stmt->fetchColumn();
 }
 
-function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null): array
+function sr_quiz_public_quiz_count(PDO $pdo): int
+{
+    $stmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_quiz_sets
+         WHERE status = 'active'
+           AND deleted_at IS NULL
+           AND (starts_at IS NULL OR starts_at <= :now_start)
+           AND (ends_at IS NULL OR ends_at >= :now_end)"
+    );
+    $now = sr_now();
+    $stmt->execute(['now_start' => $now, 'now_end' => $now]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null, int $offset = 0): array
 {
     if ($limit === null) {
         $settings = sr_quiz_settings($pdo);
@@ -1152,12 +1168,13 @@ function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null): array
            AND (starts_at IS NULL OR starts_at <= :now_start)
            AND (ends_at IS NULL OR ends_at >= :now_end)
          ORDER BY created_at DESC, id DESC
-         LIMIT :limit_value"
+         LIMIT :limit_value OFFSET :offset_value"
     );
     $now = sr_now();
     $stmt->bindValue('now_start', $now);
     $stmt->bindValue('now_end', $now);
     $stmt->bindValue('limit_value', max(1, min(100, $limit)), PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     $stmt->execute();
 
     return $stmt->fetchAll();

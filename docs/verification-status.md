@@ -276,6 +276,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 - `.tools/bin/check-admin-domain-list-pagination.php`는 설문 관리 목록과 리액션 사용 기록이 고정 200/100건에서 끝나지 않고 필터 count 기반 공통 관리자 페이지네이션을 사용하는지 확인한다. 각 45건 SQLite fixture의 마지막 부분 페이지와 필터 count, 설문 삭제 후 현재 목록 복귀 marker를 함께 고정한다.
 - `.tools/bin/check-coupon-claim-campaign-runtime.php`의 관리자 목록 fixture는 쿠폰 발급 캠페인과 발급 로그가 고정 100건에서 끝나지 않고 필터 count 기반 페이지네이션으로 전체 이력을 탐색하는지 확인한다. 각 45건 목록의 마지막 부분 페이지와 필터 count, 300건 후보 밖의 현재 연결 쿠폰 정의 보존도 함께 고정한다.
 - `.tools/bin/check-admin-selector-current-values.php`는 설문 응답·통계·보상 로그 선택기가 300건 후보 밖의 현재 설문을, 퀴즈·설문 보상 설정이 200건 후보 밖의 현재 쿠폰 정의를 유지하는지 SQLite fixture와 action marker로 확인한다.
+- `.tools/bin/check-public-service-list-pagination.php`는 기존 `/quiz`, `/survey`, `/coupons` 경로가 고정 50건에서 끝나지 않고 전체 공개 목록을 페이지로 탐색하는지 확인한다. 각 45건 SQLite fixture의 count와 마지막 부분 페이지, 기본·샘플 테마 및 쿠폰존 페이지 링크 marker를 함께 고정한다.
 - `.tools/bin/check-member-asset-history-pagination.php`는 회원 포인트 거래와 적립금·예치금 신청/거래 내역이 고정 100건에서 끝나지 않고 count 기반 페이지네이션으로 전체 이력을 탐색하는지 확인한다. 한 화면의 신청·거래 페이지 상태를 각각 보존하는 공개 pagination 계약도 함께 확인한다.
 - `.tools/bin/check-member-communication-pagination.php`는 회원 알림과 받은·보낸 쪽지함이 고정 50/100건에서 끝나지 않고 전체 목록을 페이지로 탐색하는지 확인한다. 쪽지 helper의 중간·마지막 페이지 SQLite fixture와 필터·편지함·행 작업 복귀 경로도 함께 고정한다.
 - `.tools/bin/check-content-search.php`는 콘텐츠 검색의 제목·본문 범위와 접근 제한 본문 제외 외에 기존 50페이지 경계 뒤의 1,000번째 offset 결과도 조회되는지 확인한다. `.tools/bin/check-community-board-settings.php`와 `.tools/bin/check-community-account-guards.php`는 커뮤니티 검색과 내 글·댓글 목록에 50페이지 상한이 다시 생기지 않는지 확인한다.

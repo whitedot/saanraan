@@ -183,9 +183,9 @@ $quizSettingsHelp = [
     ],
     'public_list_limit' => [
         'id' => 'quiz-settings-help-public-list-limit',
-        'title' => '공개 목록 노출 수',
+        'title' => '공개 목록 페이지당 표시 수',
         'body_html' => $quizSettingsHelpBodyHtml([
-            '공개 퀴즈 목록에서 한 번에 가져올 퀴즈 수입니다.',
+            '공개 퀴즈 목록의 한 페이지에 표시할 퀴즈 수입니다. 다음 페이지에서 나머지 퀴즈를 계속 탐색할 수 있습니다.',
             '관리자 목록과 시도 목록의 page size는 관리자 공통 페이징 설정을 계속 사용합니다.',
         ]),
     ],
@@ -523,7 +523,7 @@ $quizSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_settings_public_list_limit', '공개 목록 노출 수', $quizSettingsHelp['public_list_limit']['id'], $quizSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_public_list_limit', '공개 목록 페이지당 표시 수', $quizSettingsHelp['public_list_limit']['id'], $quizSettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <input id="quiz_settings_public_list_limit" type="number" name="public_list_limit" value="<?php echo sr_e((string) ($settings['public_list_limit'] ?? 50)); ?>" class="form-input" min="1" max="100" step="1" required>
                 </div>
