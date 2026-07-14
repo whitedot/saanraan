@@ -388,10 +388,8 @@ $skinView = sr_community_skin_view($skinKey, 'post');
 $communityThemeFallbackViewFile = $skinView;
 if ($communityCommentFragmentRequest) {
     header('Content-Type: text/html; charset=UTF-8');
-    header('Cache-Control: no-store');
-    header('X-SR-Response: community-comments');
     include sr_community_public_view_file($pdo, $settings, 'post.php', $skinView);
-    exit;
+    sr_finish_response();
 }
 
 $attachments = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? [] : sr_community_post_attachments($pdo, (int) $post['id']);

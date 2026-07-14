@@ -134,7 +134,7 @@ sr_community_comment_pagination_assert(str_contains((string) $viewAction, 'sr_co
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, "\$post['published_comment_count']"), 'Post view action must expose the full published comment count.');
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, 'sr_community_board_comments_per_page('), 'Post view action must resolve the board-priority page size.');
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, "sr_get_string('comment_fragment'"), 'Post view action must recognize asynchronous comment page requests.');
-sr_community_comment_pagination_assert(str_contains((string) $viewAction, "header('X-SR-Response: community-comments')"), 'Comment page requests must return an identifiable comments-only response.');
+sr_community_comment_pagination_assert(str_contains((string) $viewAction, 'sr_finish_response();'), 'Comment page requests must finish through the standard response helper.');
 $fragmentBranchPosition = strpos((string) $viewAction, 'if ($communityCommentFragmentRequest)');
 $attachmentLoadPosition = strpos((string) $viewAction, 'sr_community_post_attachments(');
 sr_community_comment_pagination_assert(
