@@ -24,6 +24,7 @@ if (!sr_quiz_account_can_delete_comment($comment, $account, $pdo)) {
     sr_render_error(403, '댓글을 삭제할 권한이 없습니다.');
 }
 
+$commentPage = sr_quiz_comment_page_for_comment($pdo, (int) $comment['quiz_id'], $commentId, 20);
 sr_quiz_update_comment_status($pdo, $commentId, 'deleted');
 $isAuthorDelete = (int) ($comment['author_account_id'] ?? 0) === (int) ($account['id'] ?? 0);
 sr_audit_log($pdo, [
@@ -42,4 +43,4 @@ sr_audit_log($pdo, [
 ]);
 
 $_SESSION['sr_quiz_comment_notice'] = '댓글을 삭제했습니다.';
-sr_redirect('/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1#quiz-comments');
+sr_redirect('/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1' . ($commentPage > 1 ? '&comment_page=' . rawurlencode((string) $commentPage) : '') . '#quiz-comments');

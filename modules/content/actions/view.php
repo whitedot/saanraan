@@ -108,7 +108,12 @@ foreach ($contentFiles as $contentFile) {
     }
 }
 $contentSeriesContext = sr_content_series_for_content($pdo, (int) $page['id'], is_array($account) ? $account : null, $contentAdminPreview);
-$contentComments = !empty($pageAccess['allowed']) ? sr_content_comments($pdo, (int) $page['id']) : [];
+$contentCommentPageValue = sr_get_string('comment_page', 20);
+$contentRequestedCommentPage = preg_match('/\A[1-9][0-9]*\z/', $contentCommentPageValue) === 1 ? (int) $contentCommentPageValue : 1;
+$contentCommentPage = !empty($pageAccess['allowed'])
+    ? sr_content_comment_page($pdo, (int) $page['id'], $contentRequestedCommentPage, 20)
+    : ['comments' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
+$contentComments = is_array($contentCommentPage['comments'] ?? null) ? $contentCommentPage['comments'] : [];
 $contentCommentNotice = $_SESSION['sr_content_comment_notice'] ?? '';
 $contentCommentErrors = $_SESSION['sr_content_comment_errors'] ?? [];
 $contentCommentBody = $_SESSION['sr_content_comment_body'] ?? '';

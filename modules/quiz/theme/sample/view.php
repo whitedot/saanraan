@@ -66,6 +66,20 @@ if ($quizEmbedded) {
 if ($quizQuery !== []) {
     $quizNextUrl .= '?' . http_build_query($quizQuery);
 }
+$quizCommentsEnabled = (int) ($quiz['comments_enabled'] ?? 0) === 1 && sr_quiz_comments_table_exists($pdo);
+$quizSecretCommentsEnabled = (int) ($quiz['secret_comments_enabled'] ?? 0) === 1;
+$quizCommentPageValue = sr_get_string('comment_page', 20);
+$quizRequestedCommentPage = preg_match('/\A[1-9][0-9]*\z/', $quizCommentPageValue) === 1 ? (int) $quizCommentPageValue : 1;
+$quizCommentPage = $quizCommentsEnabled
+    ? sr_quiz_comment_page($pdo, (int) ($quiz['id'] ?? 0), $quizRequestedCommentPage, 20)
+    : ['comments' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
+$quizComments = is_array($quizCommentPage['comments'] ?? null) ? $quizCommentPage['comments'] : [];
+$quizCommentNotice = (string) ($_SESSION['sr_quiz_comment_notice'] ?? '');
+$quizCommentErrors = (array) ($_SESSION['sr_quiz_comment_errors'] ?? []);
+$quizCommentBody = (string) ($_SESSION['sr_quiz_comment_body'] ?? '');
+$quizCommentIsSecret = !empty($_SESSION['sr_quiz_comment_is_secret']);
+$quizCommentParentId = isset($_SESSION['sr_quiz_comment_parent_id']) ? (int) $_SESSION['sr_quiz_comment_parent_id'] : 0;
+unset($_SESSION['sr_quiz_comment_notice'], $_SESSION['sr_quiz_comment_errors'], $_SESSION['sr_quiz_comment_body'], $_SESSION['sr_quiz_comment_is_secret'], $_SESSION['sr_quiz_comment_parent_id']);
 
 if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
     $account = sr_member_require_login($pdo);
@@ -252,6 +266,44 @@ if ($quizEmbedded) {
 
     <?php if ($submitResult !== null) { ?>
         <p><a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/quiz')); ?>" target="_top">메인으로</a></p>
+    <?php } ?>
+
+    <?php if ($quizCommentsEnabled && $submitResult !== null && !$quizEmbedded) { ?>
+        <section id="quiz-comments" class="example-quiz-panel example-quiz-comments">
+            <h2>댓글 <?php echo sr_e(number_format((int) ($quizCommentPage['total'] ?? 0))); ?></h2>
+            <?php echo sr_public_feedback_toasts('quiz', $quizCommentNotice, $quizCommentErrors); ?>
+            <?php if ($quizComments === []) { ?>
+                <p>아직 작성된 댓글이 없습니다.</p>
+            <?php } else { ?>
+                <ol>
+                    <?php foreach ($quizComments as $quizComment) { ?>
+                        <li id="quiz-comment-<?php echo sr_e((string) (int) ($quizComment['id'] ?? 0)); ?>">
+                            <strong><?php echo sr_e((string) ($quizComment['author_public_name'] ?? '회원')); ?></strong>
+                            <?php if (sr_quiz_account_can_view_comment_body($quizComment, is_array($currentAccount) ? $currentAccount : null, $pdo)) { ?>
+                                <p><?php echo sr_member_mention_plain_text_html((string) ($quizComment['body_text'] ?? '')); ?></p>
+                            <?php } else { ?>
+                                <p>비밀 댓글입니다.</p>
+                            <?php } ?>
+                        </li>
+                    <?php } ?>
+                </ol>
+                <?php echo sr_public_pagination_html($quizCommentPage, '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1', '퀴즈 댓글 페이지', 'comment_page', 'quiz-comments', 'quiz-comments-pagination'); ?>
+            <?php } ?>
+            <?php if (!$canPreviewAsAdmin && is_array($currentAccount)) { ?>
+                <form method="post" action="<?php echo sr_e(sr_url('/quiz/comment')); ?>">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($quiz['id'] ?? 0)); ?>">
+                    <input type="hidden" name="parent_comment_id" value="0">
+                    <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($quizCommentPage['page'] ?? 1)); ?>">
+                    <label for="example_quiz_comment_body">댓글</label>
+                    <textarea id="example_quiz_comment_body" name="body_text" rows="4" required><?php echo $quizCommentParentId < 1 ? sr_e($quizCommentBody) : ''; ?></textarea>
+                    <?php if ($quizSecretCommentsEnabled) { ?>
+                        <label><input type="checkbox" name="is_secret" value="1"<?php echo $quizCommentIsSecret ? ' checked' : ''; ?>> 비밀 댓글</label>
+                    <?php } ?>
+                    <button type="submit" class="btn btn-solid-primary">댓글 작성</button>
+                </form>
+            <?php } ?>
+        </section>
     <?php } ?>
 </main>
 

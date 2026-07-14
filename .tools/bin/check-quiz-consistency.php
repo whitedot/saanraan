@@ -344,7 +344,8 @@ function sr_quiz_check_paths_and_admin(): void
         'sr_quiz_create_comment_mention_notifications',
         'sr_quiz_public_window_is_open',
         'sr_quiz_account_has_result',
-        '?result=1#quiz-comments',
+        "'?result=1'",
+        'sr_quiz_comment_page_for_comment',
     ]);
     sr_quiz_check_file_contains('modules/quiz/actions/comment-edit.php', [
         'sr_quiz_update_comment_content',

@@ -67,6 +67,96 @@ function sr_content_comments(PDO $pdo, int $contentId, int $limit = 100): array
     return $comments;
 }
 
+function sr_content_comment_page(PDO $pdo, int $contentId, int $page = 1, int $perPage = 20): array
+{
+    $perPage = max(1, min(100, $perPage));
+    if ($contentId < 1 || !sr_content_comments_table_exists($pdo)) {
+        return ['comments' => [], 'page' => 1, 'per_page' => $perPage, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
+    }
+
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM sr_content_comments WHERE content_id = :content_id AND status = 'published'");
+    $countStmt->execute(['content_id' => $contentId]);
+    $total = (int) $countStmt->fetchColumn();
+    $totalPages = max(1, (int) ceil($total / $perPage));
+    $page = max(1, min($page, $totalPages));
+    $offset = ($page - 1) * $perPage;
+
+    $join = sr_member_nicknames_table_exists($pdo) ? 'LEFT JOIN sr_member_nicknames n ON n.account_id = a.id' : '';
+    $nicknameSelect = sr_member_nicknames_table_exists($pdo) ? 'n.nickname AS author_nickname,' : "'' AS author_nickname,";
+    $stmt = $pdo->prepare(
+        "SELECT c.*, a.display_name AS author_display_name, " . $nicknameSelect . " a.status AS author_account_status
+         FROM sr_content_comments c
+         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+         " . $join . "
+         WHERE c.content_id = :content_id
+           AND c.status = 'published'
+         ORDER BY COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC
+         LIMIT :limit_value OFFSET :offset_value"
+    );
+    $stmt->bindValue('content_id', $contentId, PDO::PARAM_INT);
+    $stmt->bindValue('limit_value', $perPage, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $settings = sr_member_settings($pdo);
+    $comments = [];
+    foreach ($stmt->fetchAll() as $comment) {
+        $snapshot = trim((string) ($comment['author_public_name_snapshot'] ?? ''));
+        $comment['author_public_name'] = !in_array((string) ($comment['author_account_status'] ?? ''), ['withdrawn', 'anonymized'], true) && $snapshot !== ''
+            ? $snapshot
+            : sr_member_public_name([
+                'display_name' => (string) ($comment['author_display_name'] ?? ''),
+                'nickname' => (string) ($comment['author_nickname'] ?? ''),
+                'status' => (string) ($comment['author_account_status'] ?? ''),
+            ], $settings, '회원');
+        $comments[] = $comment;
+    }
+
+    return [
+        'comments' => $comments,
+        'page' => $page,
+        'per_page' => $perPage,
+        'total' => $total,
+        'total_pages' => $totalPages,
+        'has_previous' => $page > 1,
+        'has_next' => $page < $totalPages,
+    ];
+}
+
+function sr_content_comment_page_for_comment(PDO $pdo, int $contentId, int $commentId, int $perPage = 20): int
+{
+    $perPage = max(1, min(100, $perPage));
+    $targetStmt = $pdo->prepare("SELECT id, COALESCE(thread_root_id, id) AS root_id, depth FROM sr_content_comments WHERE id = :id AND content_id = :content_id AND status = 'published' LIMIT 1");
+    $targetStmt->execute(['id' => $commentId, 'content_id' => $contentId]);
+    $target = $targetStmt->fetch();
+    if (!is_array($target)) {
+        return 1;
+    }
+
+    $positionStmt = $pdo->prepare(
+        "SELECT COUNT(*)
+         FROM sr_content_comments
+         WHERE content_id = :content_id
+           AND status = 'published'
+           AND (
+               COALESCE(thread_root_id, id) < :root_before
+               OR (COALESCE(thread_root_id, id) = :root_equal AND depth < :depth_before)
+               OR (COALESCE(thread_root_id, id) = :root_same AND depth = :depth_equal AND id <= :comment_id)
+           )"
+    );
+    $positionStmt->execute([
+        'content_id' => $contentId,
+        'root_before' => (int) $target['root_id'],
+        'root_equal' => (int) $target['root_id'],
+        'depth_before' => (int) $target['depth'],
+        'root_same' => (int) $target['root_id'],
+        'depth_equal' => (int) $target['depth'],
+        'comment_id' => $commentId,
+    ]);
+
+    return max(1, (int) ceil(((int) $positionStmt->fetchColumn()) / $perPage));
+}
+
 function sr_content_recent_comments(PDO $pdo, int $limit = 8): array
 {
     if (!sr_content_comments_table_exists($pdo)) {

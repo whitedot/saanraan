@@ -71,7 +71,12 @@ if ($quizQuery !== []) {
 }
 $quizCommentsEnabled = (int) ($quiz['comments_enabled'] ?? 0) === 1 && sr_quiz_comments_table_exists($pdo);
 $quizSecretCommentsEnabled = (int) ($quiz['secret_comments_enabled'] ?? 0) === 1;
-$quizComments = $quizCommentsEnabled ? sr_quiz_comments($pdo, (int) ($quiz['id'] ?? 0)) : [];
+$quizCommentPageValue = sr_get_string('comment_page', 20);
+$quizRequestedCommentPage = preg_match('/\A[1-9][0-9]*\z/', $quizCommentPageValue) === 1 ? (int) $quizCommentPageValue : 1;
+$quizCommentPage = $quizCommentsEnabled
+    ? sr_quiz_comment_page($pdo, (int) ($quiz['id'] ?? 0), $quizRequestedCommentPage, 20)
+    : ['comments' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
+$quizComments = is_array($quizCommentPage['comments'] ?? null) ? $quizCommentPage['comments'] : [];
 $quizCommentNotice = (string) ($_SESSION['sr_quiz_comment_notice'] ?? '');
 $quizCommentErrors = (array) ($_SESSION['sr_quiz_comment_errors'] ?? []);
 $quizCommentBody = (string) ($_SESSION['sr_quiz_comment_body'] ?? '');
@@ -358,7 +363,7 @@ if ($quizEmbedded) {
             <?php if ($quizCommentsEnabled && $submitResult !== null): ?>
                 <section id="quiz-comments" class="sr-quiz-comments">
                     <div class="sr-quiz-comments-panel-header">
-                        <h2>댓글</h2>
+                        <h2>댓글 <span><?php echo sr_e(number_format((int) ($quizCommentPage['total'] ?? 0))); ?></span></h2>
                     </div>
                     <?php echo sr_public_feedback_toasts('quiz', $quizCommentNotice, $quizCommentErrors); ?>
                     <?php if ($quizComments === []): ?>
@@ -378,7 +383,7 @@ if ($quizEmbedded) {
                                 $quizCommentReplyId = 'quiz_comment_reply_' . (string) $quizCommentId;
                                 $quizCommentReplyModalId = 'quiz_comment_reply_modal_' . (string) $quizCommentId;
                                 ?>
-                                <li class="sr-quiz-comment-depth-<?php echo sr_e((string) $quizCommentDepth); ?>">
+                                <li id="quiz-comment-<?php echo sr_e((string) $quizCommentId); ?>" class="sr-quiz-comment-depth-<?php echo sr_e((string) $quizCommentDepth); ?>">
                                     <div class="sr-quiz-comment-meta">
                                         <strong><?php echo sr_e((string) ($quizComment['author_public_name'] ?? $quizComment['author_public_name_snapshot'] ?? '회원')); ?></strong>
                                         <?php echo sr_quiz_time_html((string) ($quizComment['created_at'] ?? '')); ?>
@@ -413,6 +418,7 @@ if ($quizEmbedded) {
                                                             <?php echo sr_csrf_field(); ?>
                                                             <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($quiz['id'] ?? 0)); ?>">
                                                             <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $quizCommentId); ?>">
+                                                            <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($quizCommentPage['page'] ?? 1)); ?>">
                                                             <div class="modal-header">
                                                                 <h3 id="<?php echo sr_e($quizCommentReplyModalId . '_title'); ?>" class="modal-title">답글 작성</h3>
                                                                 <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($quizCommentReplyModalId); ?>">
@@ -482,6 +488,7 @@ if ($quizEmbedded) {
                                 </li>
                             <?php endforeach; ?>
                         </ul>
+                        <?php echo sr_public_pagination_html($quizCommentPage, '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1', '퀴즈 댓글 페이지', 'comment_page', 'quiz-comments', 'quiz-comments-pagination'); ?>
                     <?php endif; ?>
                     <?php if ($canPreviewAsAdmin): ?>
                         <p>관리자 미리보기에서는 댓글을 작성할 수 없습니다.</p>
@@ -490,6 +497,7 @@ if ($quizEmbedded) {
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($quiz['id'] ?? 0)); ?>">
                             <input type="hidden" name="parent_comment_id" value="0">
+                            <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($quizCommentPage['page'] ?? 1)); ?>">
                             <label class="sr-only" for="quiz_comment_body">댓글 본문</label>
                             <textarea id="quiz_comment_body" name="body_text" rows="4" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($quizCommentParentId ?? 0) < 1 ? sr_e($quizCommentBody) : ''; ?></textarea>
                             <?php if (!empty($quizSecretCommentsEnabled)): ?>

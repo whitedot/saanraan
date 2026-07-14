@@ -157,8 +157,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     </article>
 
     <?php if (!empty($pageAccess['allowed'])) { ?>
-        <section class="example-content-panel example-content-comments" aria-label="댓글">
-            <h2>Comments</h2>
+        <section id="content-comments" class="example-content-panel example-content-comments" aria-label="댓글">
+            <h2>Comments <?php echo sr_e(number_format((int) ($contentCommentPage['total'] ?? 0))); ?></h2>
             <?php echo sr_public_feedback_toasts('content', (string) ($contentCommentNotice ?? ''), is_array($contentCommentErrors ?? null) ? $contentCommentErrors : []); ?>
             <?php if ($contentComments === []) { ?>
                 <p>등록된 댓글이 없습니다.</p>
@@ -166,7 +166,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <ol>
                     <?php foreach ($contentComments as $contentComment) { ?>
                         <?php $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null, $pdo); ?>
-                        <li>
+                        <li id="content-comment-<?php echo sr_e((string) (int) ($contentComment['id'] ?? 0)); ?>">
                             <strong><?php echo sr_e((string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원')); ?></strong>
                             <?php if ($contentCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) ($contentComment['body_text'] ?? '')); ?></p>
@@ -176,6 +176,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         </li>
                     <?php } ?>
                 </ol>
+                <?php echo sr_public_pagination_html($contentCommentPage, sr_content_path((string) $page['slug']), '콘텐츠 댓글 페이지', 'comment_page', 'content-comments', 'content-comments-pagination'); ?>
             <?php } ?>
 
             <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
@@ -183,6 +184,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="content_id" value="<?php echo sr_e((string) ($page['id'] ?? '')); ?>">
                     <input type="hidden" name="parent_comment_id" value="0">
+                    <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($contentCommentPage['page'] ?? 1)); ?>">
                     <label for="example_content_comment_body">댓글</label>
                     <textarea id="example_content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) < 1 ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
                     <button type="submit" class="btn btn-solid-light">댓글 등록</button>

@@ -75,6 +75,80 @@ function sr_survey_comments(PDO $pdo, int $surveyId, int $limit = 100): array
     return $comments;
 }
 
+function sr_survey_comment_page(PDO $pdo, int $surveyId, int $page = 1, int $perPage = 20): array
+{
+    $perPage = max(1, min(100, $perPage));
+    if ($surveyId < 1 || !sr_survey_comments_table_exists($pdo)) {
+        return ['comments' => [], 'page' => 1, 'per_page' => $perPage, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
+    }
+
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM sr_survey_comments WHERE survey_id = :survey_id AND status = 'published'");
+    $countStmt->execute(['survey_id' => $surveyId]);
+    $total = (int) $countStmt->fetchColumn();
+    $totalPages = max(1, (int) ceil($total / $perPage));
+    $page = max(1, min($page, $totalPages));
+    $stmt = $pdo->prepare(
+        "SELECT c.*, a.display_name AS author_display_name, a.status AS author_account_status
+         FROM sr_survey_comments c
+         LEFT JOIN sr_member_accounts a ON a.id = c.author_account_id
+         WHERE c.survey_id = :survey_id
+           AND c.status = 'published'
+         ORDER BY COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC
+         LIMIT :limit_value OFFSET :offset_value"
+    );
+    $stmt->bindValue('survey_id', $surveyId, PDO::PARAM_INT);
+    $stmt->bindValue('limit_value', $perPage, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', ($page - 1) * $perPage, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $settings = sr_member_settings($pdo);
+    $comments = [];
+    foreach ($stmt->fetchAll() as $comment) {
+        $snapshot = trim((string) ($comment['author_public_name_snapshot'] ?? ''));
+        $comment['author_public_name'] = !in_array((string) ($comment['author_account_status'] ?? ''), ['withdrawn', 'anonymized'], true) && $snapshot !== ''
+            ? $snapshot
+            : sr_member_public_name([
+                'display_name' => (string) ($comment['author_display_name'] ?? ''),
+                'status' => (string) ($comment['author_account_status'] ?? ''),
+            ], $settings, '회원');
+        $comments[] = $comment;
+    }
+
+    return ['comments' => $comments, 'page' => $page, 'per_page' => $perPage, 'total' => $total, 'total_pages' => $totalPages, 'has_previous' => $page > 1, 'has_next' => $page < $totalPages];
+}
+
+function sr_survey_comment_page_for_comment(PDO $pdo, int $surveyId, int $commentId, int $perPage = 20): int
+{
+    $perPage = max(1, min(100, $perPage));
+    $targetStmt = $pdo->prepare("SELECT id, COALESCE(thread_root_id, id) AS root_id, depth FROM sr_survey_comments WHERE id = :id AND survey_id = :survey_id AND status = 'published' LIMIT 1");
+    $targetStmt->execute(['id' => $commentId, 'survey_id' => $surveyId]);
+    $target = $targetStmt->fetch();
+    if (!is_array($target)) {
+        return 1;
+    }
+
+    $positionStmt = $pdo->prepare(
+        "SELECT COUNT(*) FROM sr_survey_comments
+         WHERE survey_id = :survey_id AND status = 'published'
+           AND (
+               COALESCE(thread_root_id, id) < :root_before
+               OR (COALESCE(thread_root_id, id) = :root_equal AND depth < :depth_before)
+               OR (COALESCE(thread_root_id, id) = :root_same AND depth = :depth_equal AND id <= :comment_id)
+           )"
+    );
+    $positionStmt->execute([
+        'survey_id' => $surveyId,
+        'root_before' => (int) $target['root_id'],
+        'root_equal' => (int) $target['root_id'],
+        'depth_before' => (int) $target['depth'],
+        'root_same' => (int) $target['root_id'],
+        'depth_equal' => (int) $target['depth'],
+        'comment_id' => $commentId,
+    ]);
+
+    return max(1, (int) ceil(((int) $positionStmt->fetchColumn()) / $perPage));
+}
+
 function sr_survey_comment_input_values(): array
 {
     $parentCommentIdValue = sr_post_string('parent_comment_id', 20);

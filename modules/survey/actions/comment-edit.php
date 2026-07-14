@@ -31,7 +31,8 @@ if ((int) ($survey['secret_comments_enabled'] ?? 0) !== 1) {
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
 }
 $errors = sr_survey_validate_comment_input($values);
-$redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1#survey-comments';
+$commentPage = sr_survey_comment_page_for_comment($pdo, (int) $comment['survey_id'], $commentId, 20);
+$redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1' . ($commentPage > 1 ? '&comment_page=' . rawurlencode((string) $commentPage) : '') . '#survey-comment-' . (string) $commentId;
 if ($errors !== []) {
     $_SESSION['sr_survey_comment_errors'] = $errors;
     sr_redirect($redirectUrl);

@@ -440,3 +440,26 @@
 .survey-toast {
     overflow-wrap: anywhere;
 }
+.survey-comments-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: 1.25rem 0;
+}
+
+.survey-comments-pagination a,
+.survey-comments-pagination span {
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    border: 1px solid var(--sr-border, var(--color-default-300));
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.65rem;
+    text-decoration: none;
+}
+
+.survey-comments-pagination span[aria-current="page"] {
+    color: var(--sr-surface, #fff);
+    background: var(--sr-text, var(--color-default-900));
+    border-color: var(--sr-text, var(--color-default-900));
+}

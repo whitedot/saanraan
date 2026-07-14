@@ -25,6 +25,7 @@ if (!sr_content_account_can_hide_comment($pdo, $comment, $account)) {
     sr_render_error(403, '댓글을 숨길 권한이 없습니다.');
 }
 
+$commentPage = sr_content_comment_page_for_comment($pdo, (int) $comment['content_id'], $commentId, 20);
 sr_content_update_comment_status($pdo, $commentId, 'hidden');
 sr_audit_log($pdo, [
     'actor_account_id' => (int) $account['id'],
@@ -41,4 +42,4 @@ sr_audit_log($pdo, [
     ],
 ]);
 $_SESSION['sr_content_comment_notice'] = '댓글을 숨겼습니다.';
-sr_redirect(sr_content_path((string) $page['slug']) . '#content-comments');
+sr_redirect(sr_content_path((string) $page['slug']) . ($commentPage > 1 ? '?comment_page=' . rawurlencode((string) $commentPage) : '') . '#content-comments');

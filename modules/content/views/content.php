@@ -293,7 +293,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <?php if (!empty($pageAccess['allowed'])) { ?>
             <section id="content-comments" class="content-comments">
                 <div class="content-comments-panel-header">
-                    <h2>댓글</h2>
+                    <h2>댓글 <span><?php echo sr_e(number_format((int) ($contentCommentPage['total'] ?? 0))); ?></span></h2>
                     <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
                         <a href="#content-comment-form" class="btn btn-solid-light">작성</a>
                     <?php } ?>
@@ -305,7 +305,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             <?php
                             $contentCommentDepth = min(3, max(1, (int) ($contentComment['depth'] ?? 1)));
                             ?>
-                            <li class="content-comment-depth-<?php echo sr_e((string) $contentCommentDepth); ?>">
+                            <li id="content-comment-<?php echo sr_e((string) (int) ($contentComment['id'] ?? 0)); ?>" class="content-comment-depth-<?php echo sr_e((string) $contentCommentDepth); ?>">
                                 <?php
                                 $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null, $pdo);
                                 $contentCommentCanEdit = is_array($account ?? null) && sr_content_account_can_edit_comment($contentComment, $account);
@@ -358,6 +358,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
                                                         <input type="hidden" name="parent_comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
+                                                        <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($contentCommentPage['page'] ?? 1)); ?>">
                                                         <div class="modal-header">
                                                             <h3 id="<?php echo sr_e($contentCommentReplyModalId . '_title'); ?>" class="modal-title">답글 작성</h3>
                                                             <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($contentCommentReplyModalId); ?>">
@@ -434,6 +435,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             </li>
                         <?php } ?>
                     </ul>
+                    <?php echo sr_public_pagination_html($contentCommentPage, sr_content_path((string) $page['slug']), '콘텐츠 댓글 페이지', 'comment_page', 'content-comments', 'content-comments-pagination'); ?>
                 <?php } else { ?>
                     <p>등록된 댓글이 없습니다.</p>
                 <?php } ?>
@@ -442,6 +444,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
                         <input type="hidden" name="parent_comment_id" value="0">
+                        <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($contentCommentPage['page'] ?? 1)); ?>">
                         <label for="content_comment_body">댓글</label>
                         <textarea id="content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) < 1 ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
                         <?php if (!empty($contentSecretCommentsEnabled)) { ?>

@@ -666,6 +666,26 @@ sr_output_helper_assert(
     'Untruncated GET helper should reject array values.'
 );
 
+$publicPaginationHtml = sr_public_pagination_html(
+    ['page' => 3, 'total_pages' => 8],
+    '/content/example?mode=full',
+    '댓글 페이지',
+    'comment_page',
+    'content-comments',
+    'content-comments-pagination'
+);
+sr_output_helper_assert(
+    str_contains($publicPaginationHtml, 'class="content-comments-pagination"')
+        && str_contains($publicPaginationHtml, 'aria-current="page">3</span>')
+        && str_contains($publicPaginationHtml, 'comment_page=2#content-comments')
+        && str_contains($publicPaginationHtml, 'comment_page=4#content-comments'),
+    'Public pagination helper should render a namespaced numeric page window with previous/next anchors.'
+);
+sr_output_helper_assert(
+    sr_public_pagination_html(['page' => 1, 'total_pages' => 1], '/content/example', '댓글 페이지') === '',
+    'Public pagination helper should omit a single-page navigation surface.'
+);
+
 $outputHelper = file_get_contents($root . '/core/helpers/output.php');
 if (is_string($outputHelper)) {
     sr_output_helper_assert(

@@ -385,7 +385,7 @@ foreach (['sr_reaction_render_widget($pdo, \'survey\', \'survey_form\'', '$submi
         'Survey reactions must stay on the completion screen'
     );
 }
-foreach (['sr_survey_account_has_submitted_response', '?submitted=1#survey-comments'] as $needle) {
+foreach (['sr_survey_account_has_submitted_response', "'?submitted=1'", 'sr_survey_comment_page_for_comment'] as $needle) {
     sr_survey_check_contains(
         'modules/survey/actions/comment.php',
         $needle,

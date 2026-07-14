@@ -50,6 +50,20 @@ if ($returnTo !== '') {
     $surveyQuery['return_to'] = $returnTo;
 }
 $surveyNextUrl = $surveySelfUrl . ($surveyQuery === [] ? '' : '?' . http_build_query($surveyQuery, '', '&', PHP_QUERY_RFC3986));
+$surveyCommentsEnabled = (int) ($survey['comments_enabled'] ?? 0) === 1 && sr_survey_comments_table_exists($pdo);
+$surveySecretCommentsEnabled = (int) ($survey['secret_comments_enabled'] ?? 0) === 1;
+$surveyCommentPageValue = sr_get_string('comment_page', 20);
+$surveyRequestedCommentPage = preg_match('/\A[1-9][0-9]*\z/', $surveyCommentPageValue) === 1 ? (int) $surveyCommentPageValue : 1;
+$surveyCommentPage = $surveyCommentsEnabled
+    ? sr_survey_comment_page($pdo, (int) ($survey['id'] ?? 0), $surveyRequestedCommentPage, 20)
+    : ['comments' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
+$surveyComments = is_array($surveyCommentPage['comments'] ?? null) ? $surveyCommentPage['comments'] : [];
+$surveyCommentNotice = (string) ($_SESSION['sr_survey_comment_notice'] ?? '');
+$surveyCommentErrors = (array) ($_SESSION['sr_survey_comment_errors'] ?? []);
+$surveyCommentBody = (string) ($_SESSION['sr_survey_comment_body'] ?? '');
+$surveyCommentIsSecret = !empty($_SESSION['sr_survey_comment_is_secret']);
+$surveyCommentParentId = isset($_SESSION['sr_survey_comment_parent_id']) ? (int) $_SESSION['sr_survey_comment_parent_id'] : 0;
+unset($_SESSION['sr_survey_comment_notice'], $_SESSION['sr_survey_comment_errors'], $_SESSION['sr_survey_comment_body'], $_SESSION['sr_survey_comment_is_secret'], $_SESSION['sr_survey_comment_parent_id']);
 
 if (sr_request_method() === 'POST') {
     $isPreviewTestSubmit = $canPreviewAsAdmin && ($_POST['test_submit'] ?? '') === '1';
@@ -216,6 +230,44 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
             <?php } ?>
         <?php } ?>
     </section>
+
+    <?php if ($surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)) { ?>
+        <section id="survey-comments" class="example-survey-panel example-survey-comments">
+            <h2>댓글 <?php echo sr_e(number_format((int) ($surveyCommentPage['total'] ?? 0))); ?></h2>
+            <?php echo sr_public_feedback_toasts('survey', $surveyCommentNotice, $surveyCommentErrors); ?>
+            <?php if ($surveyComments === []) { ?>
+                <p>아직 작성된 댓글이 없습니다.</p>
+            <?php } else { ?>
+                <ol>
+                    <?php foreach ($surveyComments as $surveyComment) { ?>
+                        <li id="survey-comment-<?php echo sr_e((string) (int) ($surveyComment['id'] ?? 0)); ?>">
+                            <strong><?php echo sr_e((string) ($surveyComment['author_public_name'] ?? '회원')); ?></strong>
+                            <?php if (sr_survey_account_can_view_comment_body($surveyComment, is_array($currentAccount) ? $currentAccount : null, $pdo)) { ?>
+                                <p><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
+                            <?php } else { ?>
+                                <p>비밀 댓글입니다.</p>
+                            <?php } ?>
+                        </li>
+                    <?php } ?>
+                </ol>
+                <?php echo sr_public_pagination_html($surveyCommentPage, '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1', '설문 댓글 페이지', 'comment_page', 'survey-comments', 'survey-comments-pagination'); ?>
+            <?php } ?>
+            <?php if (!$canPreviewAsAdmin && is_array($currentAccount) && sr_survey_account_has_submitted_response($pdo, (int) ($survey['id'] ?? 0), (int) ($currentAccount['id'] ?? 0))) { ?>
+                <form method="post" action="<?php echo sr_e(sr_url('/survey/comment')); ?>">
+                    <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($survey['id'] ?? 0)); ?>">
+                    <input type="hidden" name="parent_comment_id" value="0">
+                    <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($surveyCommentPage['page'] ?? 1)); ?>">
+                    <label for="example_survey_comment_body">댓글</label>
+                    <textarea id="example_survey_comment_body" name="body_text" rows="4" required><?php echo $surveyCommentParentId < 1 ? sr_e($surveyCommentBody) : ''; ?></textarea>
+                    <?php if ($surveySecretCommentsEnabled) { ?>
+                        <label><input type="checkbox" name="is_secret" value="1"<?php echo $surveyCommentIsSecret ? ' checked' : ''; ?>> 비밀 댓글</label>
+                    <?php } ?>
+                    <button type="submit" class="btn btn-solid-primary">댓글 작성</button>
+                </form>
+            <?php } ?>
+        </section>
+    <?php } ?>
 </main>
 
 <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>

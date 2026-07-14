@@ -29,7 +29,10 @@ $errors = sr_survey_validate_comment_input($values);
 $parentValidation = sr_survey_validate_comment_parent($pdo, $surveyId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
 $errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
-$redirectUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1#survey-comments';
+$commentPageValue = sr_post_string('comment_page', 20);
+$commentPage = preg_match('/\A[1-9][0-9]*\z/', $commentPageValue) === 1 ? (int) $commentPageValue : 1;
+$redirectBaseUrl = '/survey/' . rawurlencode((string) ($survey['survey_key'] ?? '')) . '?submitted=1';
+$redirectUrl = $redirectBaseUrl . ($commentPage > 1 ? '&comment_page=' . rawurlencode((string) $commentPage) : '') . '#survey-comments';
 if ($errors !== []) {
     $_SESSION['sr_survey_comment_errors'] = $errors;
     $_SESSION['sr_survey_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';
@@ -70,4 +73,5 @@ sr_audit_log($pdo, [
 ]);
 
 $_SESSION['sr_survey_comment_notice'] = '댓글을 등록했습니다.';
-sr_redirect($redirectUrl);
+$commentPage = sr_survey_comment_page_for_comment($pdo, $surveyId, $commentId, 20);
+sr_redirect($redirectBaseUrl . ($commentPage > 1 ? '&comment_page=' . rawurlencode((string) $commentPage) : '') . '#survey-comment-' . (string) $commentId);

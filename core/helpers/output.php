@@ -252,6 +252,56 @@ function sr_public_feedback_toasts(string $namespace, string $notice = '', array
     return (string) ob_get_clean();
 }
 
+function sr_public_pagination_html(
+    array $pagination,
+    string $basePath,
+    string $label,
+    string $pageParam = 'page',
+    string $anchor = '',
+    string $className = 'public-pagination'
+): string {
+    $page = max(1, (int) ($pagination['page'] ?? 1));
+    $totalPages = max(1, (int) ($pagination['total_pages'] ?? 1));
+    if ($totalPages <= 1) {
+        return '';
+    }
+
+    $pageParam = preg_match('/\A[a-z][a-z0-9_]*\z/', $pageParam) === 1 ? $pageParam : 'page';
+    $className = preg_match('/\A[a-z][a-z0-9_-]*\z/', $className) === 1 ? $className : 'public-pagination';
+    $anchor = preg_match('/\A[a-z][a-z0-9_-]*\z/', $anchor) === 1 ? $anchor : '';
+    $urlForPage = static function (int $targetPage) use ($basePath, $pageParam, $anchor): string {
+        $separator = str_contains($basePath, '?') ? '&' : '?';
+        $url = $basePath . $separator . rawurlencode($pageParam) . '=' . rawurlencode((string) max(1, $targetPage));
+        if ($anchor !== '') {
+            $url .= '#' . rawurlencode($anchor);
+        }
+
+        return sr_url($url);
+    };
+
+    $startPage = max(1, min($page - 2, $totalPages - 4));
+    $endPage = min($totalPages, max($page + 2, 5));
+    ob_start();
+    ?>
+    <nav class="<?php echo sr_e($className); ?>" aria-label="<?php echo sr_e($label); ?>">
+        <?php if ($page > 1) { ?>
+            <a href="<?php echo sr_e($urlForPage($page - 1)); ?>" rel="prev">이전</a>
+        <?php } ?>
+        <?php for ($pageNumber = $startPage; $pageNumber <= $endPage; $pageNumber++) { ?>
+            <?php if ($pageNumber === $page) { ?>
+                <span aria-current="page"><?php echo sr_e((string) $pageNumber); ?></span>
+            <?php } else { ?>
+                <a href="<?php echo sr_e($urlForPage($pageNumber)); ?>"><?php echo sr_e((string) $pageNumber); ?></a>
+            <?php } ?>
+        <?php } ?>
+        <?php if ($page < $totalPages) { ?>
+            <a href="<?php echo sr_e($urlForPage($page + 1)); ?>" rel="next">다음</a>
+        <?php } ?>
+    </nav>
+    <?php
+    return (string) ob_get_clean();
+}
+
 function sr_time_tooltip_html(?string $value, string $label, string $emptyText = ''): string
 {
     $value = trim((string) $value);

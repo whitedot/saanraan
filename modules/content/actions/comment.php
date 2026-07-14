@@ -29,12 +29,15 @@ $errors = sr_content_validate_comment_input($values);
 $parentValidation = sr_content_validate_comment_parent($pdo, $contentId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
 $errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
+$commentPageValue = sr_post_string('comment_page', 20);
+$commentPage = preg_match('/\A[1-9][0-9]*\z/', $commentPageValue) === 1 ? (int) $commentPageValue : 1;
+$commentBaseUrl = sr_content_path((string) $page['slug']);
 if ($errors !== []) {
     $_SESSION['sr_content_comment_errors'] = $errors;
     $_SESSION['sr_content_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';
     $_SESSION['sr_content_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
     $_SESSION['sr_content_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
-    sr_redirect(sr_content_path((string) $page['slug']) . '#content-comments');
+    sr_redirect($commentBaseUrl . ($commentPage > 1 ? '?comment_page=' . rawurlencode((string) $commentPage) : '') . '#content-comments');
 }
 
 $values['parent_comment'] = $parentComment;
@@ -73,4 +76,5 @@ sr_audit_log($pdo, [
 ]);
 
 $_SESSION['sr_content_comment_notice'] = '댓글을 등록했습니다.';
-sr_redirect(sr_content_path((string) $page['slug']) . '#content-comments');
+$commentPage = sr_content_comment_page_for_comment($pdo, $contentId, $commentId, 20);
+sr_redirect($commentBaseUrl . ($commentPage > 1 ? '?comment_page=' . rawurlencode((string) $commentPage) : '') . '#content-comment-' . (string) $commentId);

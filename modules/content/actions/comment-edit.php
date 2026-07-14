@@ -19,6 +19,8 @@ $page = sr_content_by_id($pdo, (int) $comment['content_id']);
 if (!is_array($page) || (string) ($page['status'] ?? '') !== 'published') {
     sr_render_error(404, sr_t('content::action.error.content_not_found'));
 }
+$commentPage = sr_content_comment_page_for_comment($pdo, (int) $comment['content_id'], $commentId, 20);
+$redirectUrl = sr_content_path((string) $page['slug']) . ($commentPage > 1 ? '?comment_page=' . rawurlencode((string) $commentPage) : '') . '#content-comment-' . (string) $commentId;
 
 if (!sr_content_account_can_edit_comment($comment, $account)) {
     sr_render_error(403, '댓글을 수정할 권한이 없습니다.');
@@ -31,7 +33,7 @@ if (empty(sr_content_settings($pdo)['secret_comments_enabled'])) {
 $errors = sr_content_validate_comment_input($values);
 if ($errors !== []) {
     $_SESSION['sr_content_comment_errors'] = $errors;
-    sr_redirect(sr_content_path((string) $page['slug']) . '#content-comments');
+    sr_redirect($redirectUrl);
 }
 
 sr_content_update_comment_content($pdo, $commentId, $values);
@@ -63,4 +65,4 @@ sr_audit_log($pdo, [
     ],
 ]);
 $_SESSION['sr_content_comment_notice'] = '댓글을 수정했습니다.';
-sr_redirect(sr_content_path((string) $page['slug']) . '#content-comments');
+sr_redirect($redirectUrl);
