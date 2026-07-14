@@ -56,7 +56,6 @@ $popupLayerEditorAttributes = sr_editor_textarea_attributes($pdo, $popupLayerEdi
 if ($popupLayerEditorAttributes !== '' && $popupLayerEditorKey === 'ckeditor') {
     $popupLayerEditorAttributes .= ' data-sr-editor-upload-url="' . sr_e(sr_popup_layer_body_file_upload_url()) . '" data-sr-editor-upload-field="upload" data-sr-editor-upload-csrf="' . sr_e(sr_csrf_token()) . '" data-sr-editor-upload-token="' . sr_e(sr_popup_layer_body_file_upload_token()) . '"';
 }
-$popupLayerCouponCampaignOptions = sr_popup_layer_coupon_claim_campaign_options($pdo);
 $allowedTargetOptions = [sr_popup_layer_public_target_option_value()];
 foreach ($availableTargets as $availableTarget) {
     $allowedTargetOptions[] = sr_popup_layer_target_option_value($availableTarget);
@@ -565,6 +564,10 @@ if ($editId > 0) {
         }
     }
 }
+$popupLayerCouponCampaignOptions = sr_popup_layer_coupon_claim_campaign_options(
+    $pdo,
+    is_array($editPopup) ? (string) ($editPopup['coupon_claim_campaign_key'] ?? '') : ''
+);
 
 $popupStatusCounts = [
     'total' => 0,

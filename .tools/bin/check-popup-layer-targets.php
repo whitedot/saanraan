@@ -503,6 +503,42 @@ function sr_popup_layer_check_runtime_fixture(): array
             (1, \'claim_popup\', 1, \'Popup claim\', \'\', \'active\', \'free\', NULL, \'\', NULL, NULL, NULL, NULL, 10, 1, \'public\', \'["popup_layer"]\', 1, :created_at, :updated_at)'
     )->execute(['created_at' => $now, 'updated_at' => $now]);
 
+    $campaignInsert = $pdo->prepare(
+        'INSERT INTO sr_coupon_claim_campaigns
+            (id, campaign_key, coupon_definition_id, title, description, status, claim_type, price_amount, price_currency_code, starts_at, ends_at, issue_expires_in_days, issue_expires_at, total_claim_limit, per_account_limit, visibility, exposure_surfaces_json, login_required, created_at, updated_at)
+         VALUES
+            (:id, :campaign_key, 1, :title, \'\', \'active\', \'free\', NULL, \'\', NULL, NULL, NULL, NULL, 10, 1, :visibility, :surfaces, 1, :created_at, :updated_at)'
+    );
+    for ($rowNumber = 2; $rowNumber <= 306; $rowNumber++) {
+        $campaignInsert->execute([
+            'id' => $rowNumber,
+            'campaign_key' => 'non_popup_' . (string) $rowNumber,
+            'title' => 'Non-popup ' . (string) $rowNumber,
+            'visibility' => 'public',
+            'surfaces' => '["coupon_zone"]',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+    $campaignInsert->execute([
+        'id' => 307,
+        'campaign_key' => 'stored_hidden',
+        'title' => 'Stored hidden campaign',
+        'visibility' => 'hidden',
+        'surfaces' => '["popup_layer"]',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    $campaignOptions = sr_popup_layer_coupon_claim_campaign_options($pdo);
+    if (count($campaignOptions) !== 1 || (string) ($campaignOptions[0]['campaign_key'] ?? '') !== 'claim_popup') {
+        $errors[] = 'popup layer coupon campaign options must filter eligible campaigns before applying the 300-row bound.';
+    }
+    $campaignOptionsWithCurrent = sr_popup_layer_coupon_claim_campaign_options($pdo, 'stored_hidden');
+    $campaignOptionKeys = array_map(static fn (array $row): string => (string) ($row['campaign_key'] ?? ''), $campaignOptionsWithCurrent);
+    if (!in_array('claim_popup', $campaignOptionKeys, true) || !in_array('stored_hidden', $campaignOptionKeys, true)) {
+        $errors[] = 'popup layer coupon campaign options must preserve the currently stored campaign outside eligible candidates.';
+    }
+
     $html = sr_popup_layer_render($pdo, [
         'module_key' => 'content',
         'point_key' => 'content.view',

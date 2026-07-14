@@ -458,7 +458,7 @@ function sr_popup_layer_coupon_helpers_available(PDO $pdo): bool
         && sr_coupon_claim_tables_available($pdo);
 }
 
-function sr_popup_layer_coupon_claim_campaign_options(PDO $pdo): array
+function sr_popup_layer_coupon_claim_campaign_options(PDO $pdo, string $includeCampaignKey = ''): array
 {
     if (!sr_popup_layer_coupon_helpers_available($pdo)) {
         return [];
@@ -469,11 +469,14 @@ function sr_popup_layer_coupon_claim_campaign_options(PDO $pdo): array
          FROM sr_coupon_claim_campaigns c
          INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
          WHERE c.claim_type = 'free'
+           AND c.visibility = 'public'
+           AND c.exposure_surfaces_json LIKE '%\"popup_layer\"%'
          ORDER BY c.id DESC
          LIMIT 300"
     );
 
     $rows = [];
+    $knownKeys = [];
     foreach ($stmt->fetchAll() as $row) {
         $surfaces = function_exists('sr_coupon_claim_surfaces_from_value')
             ? sr_coupon_claim_surfaces_from_value($row['exposure_surfaces_json'] ?? '')
@@ -485,6 +488,24 @@ function sr_popup_layer_coupon_claim_campaign_options(PDO $pdo): array
             continue;
         }
         $rows[] = $row;
+        $knownKeys[(string) ($row['campaign_key'] ?? '')] = true;
+    }
+
+    $includeCampaignKey = preg_replace('/[^a-z0-9_]/', '', strtolower(trim($includeCampaignKey))) ?? '';
+    $includeCampaignKey = substr($includeCampaignKey, 0, 60);
+    if ($includeCampaignKey !== '' && !isset($knownKeys[$includeCampaignKey])) {
+        $stmt = $pdo->prepare(
+            'SELECT c.campaign_key, c.title, c.status, c.visibility, c.exposure_surfaces_json, d.title AS coupon_title
+             FROM sr_coupon_claim_campaigns c
+             INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id
+             WHERE c.campaign_key = :campaign_key
+             LIMIT 1'
+        );
+        $stmt->execute(['campaign_key' => $includeCampaignKey]);
+        $currentCampaign = $stmt->fetch();
+        if (is_array($currentCampaign)) {
+            $rows[] = $currentCampaign;
+        }
     }
 
     return $rows;
