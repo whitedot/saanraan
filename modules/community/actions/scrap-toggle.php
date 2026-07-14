@@ -14,6 +14,19 @@ $seriesIdValue = sr_post_string('series_id', 20);
 $seriesId = preg_match('/\A[1-9][0-9]*\z/', $seriesIdValue) === 1 ? (int) $seriesIdValue : 0;
 $targetType = sr_post_string('target_type', 30);
 $intent = sr_post_string('intent', 20);
+$returnTo = sr_post_string('return_to', 20);
+$returnPostPageValue = sr_post_string('return_post_page', 20);
+$returnSeriesPageValue = sr_post_string('return_series_page', 20);
+$returnPostPage = preg_match('/\A[1-9][0-9]*\z/', $returnPostPageValue) === 1 ? (int) $returnPostPageValue : 1;
+$returnSeriesPage = preg_match('/\A[1-9][0-9]*\z/', $returnSeriesPageValue) === 1 ? (int) $returnSeriesPageValue : 1;
+$scrapReturnQuery = [];
+if ($returnPostPage > 1) {
+    $scrapReturnQuery['post_page'] = $returnPostPage;
+}
+if ($returnSeriesPage > 1) {
+    $scrapReturnQuery['series_page'] = $returnSeriesPage;
+}
+$scrapReturnPath = '/community/scraps' . ($scrapReturnQuery !== [] ? '?' . http_build_query($scrapReturnQuery) : '');
 
 if ($targetType === 'series') {
     if ($intent === 'remove') {
@@ -32,7 +45,7 @@ if ($targetType === 'series') {
         } else {
             $_SESSION['sr_community_scrap_notice'] = sr_t('community::action.notice.series_scrap_already_removed');
         }
-        sr_redirect('/community/scraps');
+        sr_redirect($returnTo === 'scraps' ? $scrapReturnPath : '/community/scraps');
     }
 
     $series = sr_community_series_for_read($pdo, $seriesId, $account);
@@ -76,6 +89,9 @@ if ($intent === 'remove') {
         ]);
     } else {
         $_SESSION['sr_community_scrap_notice'] = sr_t('community::action.notice.scrap_already_removed');
+    }
+    if ($returnTo === 'scraps') {
+        sr_redirect($scrapReturnPath);
     }
     $post = sr_community_post_for_read($pdo, $postId, $account);
     if (!is_array($post)) {

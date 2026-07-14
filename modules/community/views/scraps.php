@@ -19,6 +19,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php } ?>
 
         <?php if ($scraps !== []) { ?>
+            <section id="community-post-scraps">
             <h2>게시글 스크랩</h2>
             <table>
                 <thead>
@@ -67,6 +68,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $scrap['post_id']); ?>">
                                     <input type="hidden" name="intent" value="remove">
+                                    <input type="hidden" name="return_to" value="scraps">
+                                    <input type="hidden" name="return_post_page" value="<?php echo sr_e((string) $scrapPage); ?>">
+                                    <input type="hidden" name="return_series_page" value="<?php echo sr_e((string) $seriesScrapPage); ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('community::ui.text.293182ec')); ?></button>
                                 </form>
                             </td>
@@ -74,9 +78,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php } ?>
                 </tbody>
             </table>
+            <?php echo sr_public_pagination_html($scrapPagination, $scrapPaginationBasePath, '게시글 스크랩 페이지', 'post_page', 'community-post-scraps'); ?>
+            </section>
         <?php } ?>
 
         <?php if ($seriesScraps !== []) { ?>
+            <section id="community-series-scraps">
             <h2>시리즈 스크랩</h2>
             <table>
                 <thead>
@@ -121,6 +128,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                                     <input type="hidden" name="target_type" value="series">
                                     <input type="hidden" name="series_id" value="<?php echo sr_e((string) $seriesScrap['series_id']); ?>">
                                     <input type="hidden" name="intent" value="remove">
+                                    <input type="hidden" name="return_to" value="scraps">
+                                    <input type="hidden" name="return_post_page" value="<?php echo sr_e((string) $scrapPage); ?>">
+                                    <input type="hidden" name="return_series_page" value="<?php echo sr_e((string) $seriesScrapPage); ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger"><?php echo sr_e(sr_t('community::ui.text.293182ec')); ?></button>
                                 </form>
                             </td>
@@ -128,6 +138,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php } ?>
                 </tbody>
             </table>
+            <?php echo sr_public_pagination_html($seriesScrapPagination, $seriesScrapPaginationBasePath, '시리즈 스크랩 페이지', 'series_page', 'community-series-scraps'); ?>
+            </section>
         <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>

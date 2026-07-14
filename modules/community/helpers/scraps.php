@@ -124,13 +124,26 @@ function sr_community_remove_series_scrap(PDO $pdo, int $accountId, int $seriesI
     return $stmt->rowCount() > 0;
 }
 
-function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50): array
+function sr_community_account_scrap_count(PDO $pdo, int $accountId): int
+{
+    if ($accountId < 1) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_community_scraps WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50, int $offset = 0): array
 {
     if ($accountId < 1) {
         return [];
     }
 
     $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
     $categorySupported = sr_community_categories_supported($pdo);
     $categorySelectSql = $categorySupported
         ? 'cat.category_key, cat.title AS category_title, cat.status AS category_status'
@@ -150,10 +163,11 @@ function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account =
          ' . $categoryJoinSql . '
          WHERE s.account_id = :account_id
          ORDER BY s.id DESC
-         LIMIT :limit_value'
+         LIMIT :limit_value OFFSET :offset_value'
     );
     $stmt->bindValue('account_id', $accountId, PDO::PARAM_INT);
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
     $stmt->execute();
 
     $scraps = $stmt->fetchAll();
@@ -172,13 +186,26 @@ function sr_community_account_scraps(PDO $pdo, int $accountId, ?array $account =
     return $scraps;
 }
 
-function sr_community_account_series_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50): array
+function sr_community_account_series_scrap_count(PDO $pdo, int $accountId): int
+{
+    if ($accountId < 1 || !sr_community_series_scraps_supported($pdo)) {
+        return 0;
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_community_series_scraps WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_community_account_series_scraps(PDO $pdo, int $accountId, ?array $account = null, int $limit = 50, int $offset = 0): array
 {
     if ($accountId < 1 || !sr_community_series_scraps_supported($pdo)) {
         return [];
     }
 
     $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
     $stmt = $pdo->prepare(
         'SELECT ss.id, ss.account_id, ss.series_id, ss.created_at,
                 s.board_id, s.owner_account_id, s.title, s.description, s.status AS series_status,
@@ -189,10 +216,11 @@ function sr_community_account_series_scraps(PDO $pdo, int $accountId, ?array $ac
          LEFT JOIN sr_community_boards b ON b.id = s.board_id
          WHERE ss.account_id = :account_id
          ORDER BY ss.id DESC
-         LIMIT :limit_value'
+         LIMIT :limit_value OFFSET :offset_value'
     );
     $stmt->bindValue('account_id', $accountId, PDO::PARAM_INT);
     $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
     $stmt->execute();
 
     $scraps = $stmt->fetchAll();
