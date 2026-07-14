@@ -66,6 +66,12 @@ if ($quizEmbedded) {
 if ($quizQuery !== []) {
     $quizNextUrl .= '?' . http_build_query($quizQuery);
 }
+$quizResultQuery = $quizQuery;
+$quizResultQuery['result'] = '1';
+$quizResultUrl = $quizFormUrl . '?' . http_build_query($quizResultQuery, '', '&', PHP_QUERY_RFC3986);
+$quizSubmissionFlash = sr_quiz_submission_flash_take((int) ($quiz['id'] ?? 0));
+$submitErrors = (array) ($quizSubmissionFlash['errors'] ?? []);
+$quizSelectedChoiceIds = (array) ($quizSubmissionFlash['selected_choice_ids'] ?? []);
 $quizCommentsEnabled = (int) ($quiz['comments_enabled'] ?? 0) === 1 && sr_quiz_comments_table_exists($pdo);
 $quizSecretCommentsEnabled = (int) ($quiz['secret_comments_enabled'] ?? 0) === 1;
 $quizCommentPageValue = sr_get_string('comment_page', 20);
@@ -84,6 +90,7 @@ unset($_SESSION['sr_quiz_comment_notice'], $_SESSION['sr_quiz_comment_errors'], 
 if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
     $account = sr_member_require_login($pdo);
     sr_require_csrf();
+    $quizSelectedChoiceIds = sr_quiz_selected_choice_ids_from_post();
     if ($questions === []) {
         $submitErrors[] = '응시 가능한 문제가 없습니다.';
     } else {
@@ -99,11 +106,12 @@ if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
                 $quiz,
                 $questions,
                 (int) ($account['id'] ?? 0),
-                sr_quiz_selected_choice_ids_from_post(),
+                $quizSelectedChoiceIds,
                 sr_quiz_asset_options($pdo)
             );
             $currentAccount = $account;
             $attemptAccess = sr_quiz_account_can_attempt($pdo, $quiz, (int) ($account['id'] ?? 0));
+            sr_redirect($quizResultUrl);
         } catch (RuntimeException $exception) {
             $message = (string) $exception->getMessage();
             if (!in_array($message, [
@@ -121,6 +129,8 @@ if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
             $submitErrors[] = '퀴즈 제출 중 오류가 발생했습니다.';
         }
     }
+    sr_quiz_submission_flash_store((int) ($quiz['id'] ?? 0), $submitErrors, $quizSelectedChoiceIds);
+    sr_redirect($quizNextUrl);
 }
 
 if ($submitResult === null && $quizResultScreenRequested && is_array($currentAccount) && !$canPreviewAsAdmin) {
@@ -212,13 +222,7 @@ if ($quizEmbedded) {
         <?php } elseif ($questions === []) { ?>
             <p>응시 가능한 문제가 없습니다.</p>
         <?php } else { ?>
-            <?php if ($submitErrors !== []) { ?>
-                <div class="sr-form-errors">
-                    <?php foreach ($submitErrors as $error) { ?>
-                        <p><?php echo sr_e((string) $error); ?></p>
-                    <?php } ?>
-                </div>
-            <?php } ?>
+            <?php echo sr_public_feedback_toasts('quiz', '', $submitErrors); ?>
             <?php if ($canPreviewAsAdmin) { ?>
                 <form class="example-quiz-question-stack">
                     <?php foreach ($questions as $questionIndex => $question) { ?>
@@ -249,9 +253,9 @@ if ($quizEmbedded) {
                             <?php foreach ((array) ($question['choices'] ?? []) as $choice) { ?>
                                 <label>
                                     <?php if ($questionType === 'multiple_choice') { ?>
-                                        <input type="checkbox" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>">
+                                        <input type="checkbox" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>"<?php echo in_array((int) ($choice['id'] ?? 0), (array) ($quizSelectedChoiceIds[(int) ($question['id'] ?? 0)] ?? []), true) ? ' checked' : ''; ?>>
                                     <?php } else { ?>
-                                        <input type="radio" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>">
+                                        <input type="radio" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>"<?php echo in_array((int) ($choice['id'] ?? 0), (array) ($quizSelectedChoiceIds[(int) ($question['id'] ?? 0)] ?? []), true) ? ' checked' : ''; ?>>
                                     <?php } ?>
                                     <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
                                 </label>

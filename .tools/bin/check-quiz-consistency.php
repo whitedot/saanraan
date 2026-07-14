@@ -511,12 +511,42 @@ function sr_quiz_check_docs(): void
     ]);
 }
 
+function sr_quiz_check_submission_prg(): void
+{
+    require_once 'modules/quiz/helpers/attempts.php';
+    $_SESSION = [];
+    sr_quiz_submission_flash_store(7, ['필수 문항입니다.'], [11 => [101, 102]]);
+    $flash = sr_quiz_submission_flash_take(7);
+    if (($flash['errors'] ?? []) !== ['필수 문항입니다.'] || ($flash['selected_choice_ids'][11] ?? []) !== [101, 102]) {
+        sr_quiz_check_error('Quiz submission flash must preserve validation errors and selected choices across redirect.');
+    }
+    if (sr_quiz_submission_flash_take(7) !== ['errors' => [], 'selected_choice_ids' => []]) {
+        sr_quiz_check_error('Quiz submission flash must be consumed once.');
+    }
+
+    foreach ([
+        'modules/quiz/theme/basic/view.php',
+        'modules/quiz/theme/sample/view.php',
+        'modules/quiz/skins/basic/view.php',
+    ] as $viewFile) {
+        sr_quiz_check_file_contains($viewFile, [
+            'sr_quiz_submission_flash_take(',
+            'sr_quiz_submission_flash_store(',
+            'sr_redirect($quizResultUrl)',
+            'sr_redirect($quizNextUrl)',
+            "sr_public_feedback_toasts('quiz', '', \$submitErrors)",
+            "? ' checked' : ''",
+        ]);
+    }
+}
+
 sr_quiz_check_module_files();
 sr_quiz_check_schema();
 sr_quiz_check_asset_lookup_contracts();
 sr_quiz_check_paths_and_admin();
 sr_quiz_check_privacy_contracts();
 sr_quiz_check_docs();
+sr_quiz_check_submission_prg();
 
 if ($errors !== []) {
     fwrite(STDERR, "quiz consistency checks failed:\n");

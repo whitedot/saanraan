@@ -185,6 +185,35 @@ function sr_quiz_selected_choice_ids_from_post(): array
     return $selected;
 }
 
+function sr_quiz_submission_flash_store(int $quizId, array $errors, array $selectedChoiceIds): void
+{
+    if ($quizId < 1) {
+        return;
+    }
+
+    $_SESSION['sr_quiz_submission_flash'] = [
+        'quiz_id' => $quizId,
+        'errors' => array_values(array_filter(array_map('strval', $errors), static fn (string $error): bool => trim($error) !== '')),
+        'selected_choice_ids' => $selectedChoiceIds,
+    ];
+}
+
+function sr_quiz_submission_flash_take(int $quizId): array
+{
+    $flash = isset($_SESSION['sr_quiz_submission_flash']) && is_array($_SESSION['sr_quiz_submission_flash'])
+        ? $_SESSION['sr_quiz_submission_flash']
+        : [];
+    unset($_SESSION['sr_quiz_submission_flash']);
+    if ($quizId < 1 || (int) ($flash['quiz_id'] ?? 0) !== $quizId) {
+        return ['errors' => [], 'selected_choice_ids' => []];
+    }
+
+    return [
+        'errors' => isset($flash['errors']) && is_array($flash['errors']) ? array_values(array_map('strval', $flash['errors'])) : [],
+        'selected_choice_ids' => isset($flash['selected_choice_ids']) && is_array($flash['selected_choice_ids']) ? $flash['selected_choice_ids'] : [],
+    ];
+}
+
 function sr_quiz_source_context_from_request(): array
 {
     $sourceModule = sr_quiz_clean_key(sr_post_string('source_module', 40), 40);

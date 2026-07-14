@@ -267,6 +267,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 
 - `.tools/bin/check-community-comment-pagination.php`는 공개 댓글의 숫자 페이지 순서, 전체 댓글 수, 마지막 페이지 clamp, 새 댓글 위치 계산, 페이지 링크의 비동기 교체 hook, 전역·게시판 우선순위 적용 marker를 SQLite fixture와 정적 검사로 확인한다. 게시판 설정의 `0=전역 상속`, `1~100=게시판 우선` 런타임은 `.tools/bin/check-community-board-settings.php`가 함께 확인한다.
 - `.tools/bin/check-public-comment-pagination.php`는 콘텐츠·퀴즈·설문 공개 댓글이 20개 단위 숫자 페이지로 전체 게시 댓글을 조회하는지, 40개 이후 row와 전체 수·마지막 페이지 보정·새 댓글 위치 계산을 SQLite fixture로 확인한다. 각 기본·샘플 테마와 호환 스킨이 같은 페이지 helper와 공통 공개 페이지네이션을 사용하는지도 정적 marker로 확인한다.
+- `.tools/bin/check-quiz-consistency.php`는 퀴즈 제출 성공과 실패가 모두 Post/Redirect/Get으로 끝나는지, 실패 flash가 오류와 선택한 답을 한 번만 복원하는지, 기본·샘플 테마와 호환 스킨이 같은 토스트·복원 계약을 쓰는지 확인한다.
 - `.tools/bin/check-content-search.php`는 콘텐츠 검색의 제목·본문 범위와 접근 제한 본문 제외 외에 기존 50페이지 경계 뒤의 1,000번째 offset 결과도 조회되는지 확인한다. `.tools/bin/check-community-board-settings.php`와 `.tools/bin/check-community-account-guards.php`는 커뮤니티 검색과 내 글·댓글 목록에 50페이지 상한이 다시 생기지 않는지 확인한다.
 - `.tools/bin/check-community-comment-render-performance.php`는 댓글 작성자 팔로우 상태 묶음 조회와 댓글 권한 context 재사용을 SQLite fixture로 확인하고, 기본 테마/스킨이 준비된 권한·팔로우·리액션 값을 댓글별 렌더러에 전달하는 marker를 확인한다. 로그인 회원용 수정·신고 공유 모달이 화면당 하나만 존재하고 버튼이 대상 값을 전달하는 JavaScript hook도 고정한다. 리액션 대상별 수와 현재 사용자 선택의 묶음 집계는 `.tools/bin/check-reaction-runtime.php`가 함께 확인한다.
 
