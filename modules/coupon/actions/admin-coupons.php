@@ -450,8 +450,11 @@ $issues = [];
 $redemptions = [];
 $claimCampaigns = [];
 $claimLogs = [];
+$claimCampaignPagination = sr_admin_pagination_meta(0, 1, 1);
+$claimLogPagination = sr_admin_pagination_meta(0, 1, 1);
 $claimCampaignAssetOptions = [];
 $claimCampaignScreen = 'list';
+$editClaimCampaign = null;
 if ($couponAdminPage === 'issues') {
     $issuePagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_issue_count($pdo, $runtimeConfig, $issueFilters));
     $issues = sr_coupon_admin_issues($pdo, $runtimeConfig, $issueFilters, (int) $issuePagination['per_page'], $issueSort, sr_admin_pagination_offset($issuePagination));
@@ -463,30 +466,40 @@ if ($couponAdminPage === 'issues') {
         $claimCampaignScreen = 'new';
     } elseif ($requestPath === '/admin/coupons/campaigns/logs') {
         $claimCampaignScreen = 'logs';
+    } elseif ($requestPath === '/admin/coupons/campaigns') {
+        $editClaimCampaignId = (int) sr_get_string('edit_campaign_id', 20);
+        if ($editClaimCampaignId > 0) {
+            $claimCampaignScreen = 'edit';
+            $editClaimCampaign = sr_coupon_claim_campaign_by_id($pdo, $editClaimCampaignId);
+            if (!is_array($editClaimCampaign)) {
+                $errors[] = '수정할 발급 캠페인을 찾을 수 없습니다.';
+                $claimCampaignScreen = 'list';
+            }
+        }
     }
-    if ($claimCampaignScreen === 'new') {
+    if ($claimCampaignScreen === 'new' || $claimCampaignScreen === 'edit') {
         $claimCampaignAssetOptions = sr_coupon_asset_options($pdo);
     } elseif ($claimCampaignScreen === 'list') {
-        $claimCampaigns = sr_coupon_admin_claim_campaigns($pdo, 100, $claimCampaignFilters);
+        $claimCampaignPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_claim_campaign_count($pdo, $claimCampaignFilters));
+        $claimCampaigns = sr_coupon_admin_claim_campaigns(
+            $pdo,
+            (int) $claimCampaignPagination['per_page'],
+            $claimCampaignFilters,
+            sr_admin_pagination_offset($claimCampaignPagination)
+        );
     } elseif ($claimCampaignScreen === 'logs') {
-        $claimLogs = sr_coupon_admin_claim_logs($pdo, 100, $claimLogFilters);
+        $claimLogPagination = sr_admin_pagination_from_total($pdo, sr_coupon_admin_claim_log_count($pdo, $claimLogFilters));
+        $claimLogs = sr_coupon_admin_claim_logs(
+            $pdo,
+            (int) $claimLogPagination['per_page'],
+            $claimLogFilters,
+            sr_admin_pagination_offset($claimLogPagination)
+        );
     }
 }
 $claimCampaignDefinitionOptions = $couponAdminPage === 'campaigns' && $claimCampaignScreen !== 'logs'
-    ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300)
+    ? sr_coupon_admin_claim_campaign_definition_options($pdo, 300, is_array($editClaimCampaign) ? (int) ($editClaimCampaign['coupon_definition_id'] ?? 0) : 0)
     : [];
 $couponNotificationEmailWarnings = sr_coupon_admin_notification_email_warnings($pdo);
-$editClaimCampaign = null;
-if ($couponAdminPage === 'campaigns' && $requestPath === '/admin/coupons/campaigns') {
-    $editClaimCampaignId = (int) sr_get_string('edit_campaign_id', 20);
-    if ($editClaimCampaignId > 0) {
-        $claimCampaignScreen = 'edit';
-        $editClaimCampaign = sr_coupon_claim_campaign_by_id($pdo, $editClaimCampaignId);
-        $claimCampaignAssetOptions = sr_coupon_asset_options($pdo);
-        if (!is_array($editClaimCampaign)) {
-            $errors[] = '수정할 발급 캠페인을 찾을 수 없습니다.';
-        }
-    }
-}
 
 include SR_ROOT . '/modules/coupon/views/admin-coupons.php';

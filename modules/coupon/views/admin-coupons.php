@@ -75,6 +75,8 @@ $redemptionSort = isset($redemptionSort) && is_array($redemptionSort) ? $redempt
 $definitionPagination = isset($definitionPagination) && is_array($definitionPagination) ? $definitionPagination : [];
 $issuePagination = isset($issuePagination) && is_array($issuePagination) ? $issuePagination : [];
 $redemptionPagination = isset($redemptionPagination) && is_array($redemptionPagination) ? $redemptionPagination : [];
+$claimCampaignPagination = isset($claimCampaignPagination) && is_array($claimCampaignPagination) ? $claimCampaignPagination : [];
+$claimLogPagination = isset($claimLogPagination) && is_array($claimLogPagination) ? $claimLogPagination : [];
 $claimCampaigns = isset($claimCampaigns) && is_array($claimCampaigns) ? $claimCampaigns : [];
 $claimLogs = isset($claimLogs) && is_array($claimLogs) ? $claimLogs : [];
 $claimCampaignDefinitionOptions = isset($claimCampaignDefinitionOptions) && is_array($claimCampaignDefinitionOptions) ? $claimCampaignDefinitionOptions : [];
@@ -520,6 +522,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e(sr_url('/admin/coupons/campaigns')); ?>">캠페인 목록</a>
         </div>
     </div>
+    <?php echo sr_admin_pagination_summary_html($claimLogPagination); ?>
     <div class="table-wrapper">
         <table class="table table-list admin-coupon-campaign-log-table">
             <thead>
@@ -575,6 +578,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_pagination_html($claimLogPagination, '쿠폰 발급 로그 페이지'); ?>
 </section>
 <?php } else { ?>
 <?php $claimCampaignDetailFilterOpen = $selectedClaimCampaignStatuses !== [] || $selectedClaimCampaignTypes !== [] || $selectedClaimCampaignVisibility !== []; ?>
@@ -622,6 +626,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
         </div>
     </div>
+    <?php echo sr_admin_pagination_summary_html($claimCampaignPagination); ?>
     <div class="table-wrapper">
         <table class="table table-list admin-coupon-campaign-table">
             <thead>
@@ -674,6 +679,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_pagination_html($claimCampaignPagination, '쿠폰 발급 캠페인 페이지'); ?>
 </section>
 <?php if (!$claimCampaignCanCreate) { ?>
 <script>

@@ -11,6 +11,7 @@ if (!defined('SR_ROOT')) {
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/core/helpers/url-embed.php';
+require_once $root . '/modules/admin/helpers.php';
 require_once $root . '/modules/coupon/helpers.php';
 
 $errors = [];
@@ -208,6 +209,8 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
 function sr_coupon_claim_runtime_static_contract(): void
 {
     $helpers = (string) file_get_contents('modules/coupon/helpers.php');
+    $adminAction = (string) file_get_contents('modules/coupon/actions/admin-coupons.php');
+    $adminView = (string) file_get_contents('modules/coupon/views/admin-coupons.php');
     $moduleGuide = (string) file_get_contents('docs/module-guide.md');
     $verificationStatus = (string) file_get_contents('docs/verification-status.md');
 
@@ -224,6 +227,83 @@ function sr_coupon_claim_runtime_static_contract(): void
     sr_coupon_claim_runtime_assert(str_contains((string) file_get_contents('modules/coupon/actions/coupons.php'), 'sr_coupon_public_claim_intent_token_matches'), 'public coupon claim POST must validate the session-bound intent token.');
     sr_coupon_claim_runtime_assert(str_contains($moduleGuide, 'campaign row를 `FOR UPDATE`로 잠근 뒤 발급 한도 검증'), 'module guide must document campaign row locking for coupon claims.');
     sr_coupon_claim_runtime_assert(str_contains($verificationStatus, 'campaign row `FOR UPDATE` 잠금 아래에서 한도 검증과 점유'), 'verification status must describe the claim campaign lock contract check.');
+    sr_coupon_claim_runtime_assert(str_contains($helpers, 'function sr_coupon_admin_claim_campaign_count('), 'claim campaign admin list must expose a filtered total count.');
+    sr_coupon_claim_runtime_assert(str_contains($helpers, 'function sr_coupon_admin_claim_log_count('), 'claim log admin list must expose a filtered total count.');
+    sr_coupon_claim_runtime_assert(str_contains($adminAction, 'sr_admin_pagination_offset($claimCampaignPagination)') && str_contains($adminAction, 'sr_admin_pagination_offset($claimLogPagination)'), 'claim campaign and log actions must request the current bounded page.');
+    sr_coupon_claim_runtime_assert(str_contains($adminView, "sr_admin_pagination_html(\$claimCampaignPagination") && str_contains($adminView, "sr_admin_pagination_html(\$claimLogPagination"), 'claim campaign and log views must expose full-list navigation.');
+}
+
+function sr_coupon_claim_runtime_admin_pagination_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    sr_coupon_claim_runtime_schema($pdo);
+
+    $definitionStmt = $pdo->prepare(
+        "INSERT INTO sr_coupon_definitions
+            (coupon_key, title, description, status, coupon_type, target_type, target_id, refundable_policy, max_uses_per_issue, valid_from, valid_until, created_at, updated_at)
+         VALUES
+            (:coupon_key, :title, '', 'active', 'access', 'all', '', 'none', 1, NULL, NULL, :created_at, :updated_at)"
+    );
+    $campaignStmt = $pdo->prepare(
+        "INSERT INTO sr_coupon_claim_campaigns
+            (campaign_key, coupon_definition_id, title, description, status, claim_type, price_amount, price_currency_code, allowed_asset_modules_json, starts_at, ends_at, issue_expires_in_days, issue_expires_at, total_claim_limit, per_account_limit, visibility, exposure_surfaces_json, login_required, created_at, updated_at)
+         VALUES
+            (:campaign_key, :definition_id, :title, '', :status, 'free', NULL, '', '[]', NULL, NULL, NULL, NULL, NULL, 1, 'public', '[\"coupon_zone\"]', 1, :created_at, :updated_at)"
+    );
+    $logStmt = $pdo->prepare(
+        "INSERT INTO sr_coupon_claim_logs
+            (campaign_id, coupon_definition_id, account_id, coupon_issue_id, claim_source, source_context_json, dedupe_key, dedupe_hash, occupying_account_id, status, reserved_until, failure_code, failure_message, created_at, issued_at, updated_at)
+         VALUES
+            (:campaign_id, :definition_id, 7, NULL, :claim_source, '{}', :dedupe_key, :dedupe_hash, 7, 'reserved', :reserved_until, '', '', :created_at, NULL, :updated_at)"
+    );
+    for ($rowNumber = 1; $rowNumber <= 305; $rowNumber++) {
+        $now = sprintf('2026-07-14 00:%02d:00', $rowNumber % 60);
+        $definitionStmt->execute([
+            'coupon_key' => 'admin_coupon_' . (string) $rowNumber,
+            'title' => 'Admin coupon ' . (string) $rowNumber,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $definitionId = (int) $pdo->lastInsertId();
+        if ($rowNumber > 45) {
+            continue;
+        }
+        $campaignStmt->execute([
+            'campaign_key' => 'admin_campaign_' . (string) $rowNumber,
+            'definition_id' => $definitionId,
+            'title' => 'Admin campaign ' . (string) $rowNumber,
+            'status' => $rowNumber % 2 === 0 ? 'active' : 'draft',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $campaignId = (int) $pdo->lastInsertId();
+        $logStmt->execute([
+            'campaign_id' => $campaignId,
+            'definition_id' => $definitionId,
+            'claim_source' => $rowNumber % 2 === 0 ? 'admin' : 'coupon_zone',
+            'dedupe_key' => 'admin-log-' . (string) $rowNumber,
+            'dedupe_hash' => hash('sha256', 'admin-log-' . (string) $rowNumber),
+            'reserved_until' => '2099-01-01 00:00:00',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    sr_coupon_claim_runtime_assert(sr_coupon_admin_claim_campaign_count($pdo) === 45, 'claim campaign count must include every matching row.');
+    sr_coupon_claim_runtime_assert(sr_coupon_admin_claim_campaign_count($pdo, ['status' => ['active']]) === 22, 'claim campaign count must apply filters.');
+    $campaignFinalPage = sr_coupon_admin_claim_campaigns($pdo, 20, [], 40);
+    sr_coupon_claim_runtime_assert(count($campaignFinalPage) === 5 && (int) ($campaignFinalPage[0]['id'] ?? 0) === 5 && (int) ($campaignFinalPage[4]['id'] ?? 0) === 1, 'claim campaign list must expose the final ordered partial page.');
+
+    sr_coupon_claim_runtime_assert(sr_coupon_admin_claim_log_count($pdo) === 45, 'claim log count must include every matching row.');
+    sr_coupon_claim_runtime_assert(sr_coupon_admin_claim_log_count($pdo, ['claim_source' => ['admin']]) === 22, 'claim log count must apply filters.');
+    $logFinalPage = sr_coupon_admin_claim_logs($pdo, 20, [], 40);
+    sr_coupon_claim_runtime_assert(count($logFinalPage) === 5 && (int) ($logFinalPage[0]['id'] ?? 0) === 5 && (int) ($logFinalPage[4]['id'] ?? 0) === 1, 'claim log list must expose the final ordered partial page.');
+
+    $definitionOptions = sr_coupon_admin_claim_campaign_definition_options($pdo, 300, 1);
+    sr_coupon_claim_runtime_assert(count($definitionOptions) === 301, 'campaign definition selector must append a selected row beyond its bounded candidate set.');
+    sr_coupon_claim_runtime_assert(in_array(1, array_map('intval', array_column($definitionOptions, 'id')), true), 'campaign definition selector must preserve the current selected definition.');
 }
 
 function sr_coupon_claim_runtime_intent_token_fixture(): void
@@ -750,6 +830,7 @@ function sr_coupon_claim_runtime_fixture(): void
 
 sr_coupon_claim_runtime_static_contract();
 sr_coupon_claim_runtime_intent_token_fixture();
+sr_coupon_claim_runtime_admin_pagination_fixture();
 sr_coupon_claim_runtime_fixture();
 
 if ($errors !== []) {

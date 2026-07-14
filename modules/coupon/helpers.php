@@ -2220,13 +2220,8 @@ function sr_coupon_admin_claim_campaign_filters(): array
     ];
 }
 
-function sr_coupon_admin_claim_campaigns(PDO $pdo, int $limit = 100, array $filters = []): array
+function sr_coupon_admin_claim_campaign_query_parts(array $filters = []): array
 {
-    if (!sr_coupon_claim_tables_available($pdo)) {
-        return [];
-    }
-
-    $limit = max(1, min(300, $limit));
     $where = [];
     $params = [];
 
@@ -2254,21 +2249,55 @@ function sr_coupon_admin_claim_campaigns(PDO $pdo, int $limit = 100, array $filt
         $params['campaign_keyword_like'] = sr_coupon_like_keyword($keyword);
     }
 
+    return [
+        'where' => $where === [] ? '' : ' WHERE ' . implode(' AND ', $where),
+        'params' => $params,
+    ];
+}
+
+function sr_coupon_admin_claim_campaign_count(PDO $pdo, array $filters = []): int
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        return 0;
+    }
+
+    $query = sr_coupon_admin_claim_campaign_query_parts($filters);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_coupon_claim_campaigns c
+         INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id'
+        . $query['where']
+    );
+    $stmt->execute($query['params']);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_coupon_admin_claim_campaigns(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(300, $limit));
+    $offset = max(0, $offset);
+    $query = sr_coupon_admin_claim_campaign_query_parts($filters);
+
     $sql = 'SELECT c.id, c.campaign_key, c.title, c.status, c.claim_type, c.price_amount, c.price_currency_code,
                    c.allowed_asset_modules_json, c.total_claim_limit, c.per_account_limit, c.visibility,
                    d.coupon_key, d.title AS coupon_title
             FROM sr_coupon_claim_campaigns c
             INNER JOIN sr_coupon_definitions d ON d.id = c.coupon_definition_id'
-        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . $query['where']
         . ' ORDER BY c.id DESC
-            LIMIT ' . $limit;
+            LIMIT ' . $limit . ' OFFSET ' . $offset;
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    $stmt->execute($query['params']);
 
     return $stmt->fetchAll();
 }
 
-function sr_coupon_admin_claim_campaign_definition_options(PDO $pdo, int $limit = 300): array
+function sr_coupon_admin_claim_campaign_definition_options(PDO $pdo, int $limit = 300, int $includeDefinitionId = 0): array
 {
     $limit = max(1, min(1000, $limit));
     $stmt = $pdo->query(
@@ -2278,7 +2307,24 @@ function sr_coupon_admin_claim_campaign_definition_options(PDO $pdo, int $limit 
          LIMIT ' . $limit
     );
 
-    return $stmt->fetchAll();
+    $options = $stmt->fetchAll();
+    if ($includeDefinitionId < 1) {
+        return $options;
+    }
+    foreach ($options as $option) {
+        if ((int) ($option['id'] ?? 0) === $includeDefinitionId) {
+            return $options;
+        }
+    }
+
+    $currentStmt = $pdo->prepare('SELECT id, coupon_key, title, status FROM sr_coupon_definitions WHERE id = :id LIMIT 1');
+    $currentStmt->execute(['id' => $includeDefinitionId]);
+    $current = $currentStmt->fetch();
+    if (is_array($current)) {
+        $options[] = $current;
+    }
+
+    return $options;
 }
 
 function sr_coupon_admin_claim_log_filters(PDO $pdo, array $runtimeConfig): array
@@ -2291,14 +2337,8 @@ function sr_coupon_admin_claim_log_filters(PDO $pdo, array $runtimeConfig): arra
     ];
 }
 
-function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100, array $filters = []): array
+function sr_coupon_admin_claim_log_query_parts(array $filters, string $now): array
 {
-    if (!sr_coupon_claim_tables_available($pdo)) {
-        return [];
-    }
-
-    $limit = max(1, min(300, $limit));
-    $now = sr_now();
     $where = [];
     $params = [];
 
@@ -2341,6 +2381,43 @@ function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100, array $filters =
         $where[] = '1 = 0';
     }
 
+    return [
+        'where' => $where === [] ? '' : ' WHERE ' . implode(' AND ', $where),
+        'params' => $params,
+    ];
+}
+
+function sr_coupon_admin_claim_log_count(PDO $pdo, array $filters = []): int
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        return 0;
+    }
+
+    $query = sr_coupon_admin_claim_log_query_parts($filters, sr_now());
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_coupon_claim_logs l
+         INNER JOIN sr_coupon_claim_campaigns c ON c.id = l.campaign_id
+         INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id
+         LEFT JOIN sr_member_accounts a ON a.id = l.account_id'
+        . $query['where']
+    );
+    $stmt->execute($query['params']);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100, array $filters = [], int $offset = 0): array
+{
+    if (!sr_coupon_claim_tables_available($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(300, $limit));
+    $offset = max(0, $offset);
+    $now = sr_now();
+    $query = sr_coupon_admin_claim_log_query_parts($filters, $now);
+
     $sql = 'SELECT l.id, l.campaign_id, l.coupon_definition_id, l.account_id, l.coupon_issue_id, l.dedupe_key,
                    l.claim_source, l.status, l.reserved_until, l.failure_code, l.failure_message, l.created_at,
                    c.campaign_key, c.title AS campaign_title, d.coupon_key, d.title AS coupon_title,
@@ -2349,11 +2426,11 @@ function sr_coupon_admin_claim_logs(PDO $pdo, int $limit = 100, array $filters =
             INNER JOIN sr_coupon_claim_campaigns c ON c.id = l.campaign_id
             INNER JOIN sr_coupon_definitions d ON d.id = l.coupon_definition_id
             LEFT JOIN sr_member_accounts a ON a.id = l.account_id'
-        . ($where === [] ? '' : ' WHERE ' . implode(' AND ', $where))
+        . $query['where']
         . ' ORDER BY l.id DESC
-            LIMIT ' . $limit;
+            LIMIT ' . $limit . ' OFFSET ' . $offset;
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    $stmt->execute($query['params']);
 
     $rows = [];
     foreach ($stmt->fetchAll() as $row) {
