@@ -133,14 +133,30 @@ foreach ($assets as $moduleKey => $asset) {
     $balances[$moduleKey] = $balanceFunction($pdo, (int) $account['id']);
 }
 
-$stmt = $pdo->prepare(
-    'SELECT *
-     FROM sr_asset_exchange_logs
-     WHERE account_id = :account_id
-     ORDER BY id DESC
-     LIMIT 50'
+$assetExchangeHistoryPerPage = 20;
+$assetExchangeHistoryPageInput = sr_get_string('history_page', 20);
+$assetExchangeHistoryPage = preg_match('/\A[1-9][0-9]*\z/', $assetExchangeHistoryPageInput) === 1
+    ? (int) $assetExchangeHistoryPageInput
+    : 1;
+$assetExchangeHistoryCount = sr_asset_exchange_log_count_for_account($pdo, (int) $account['id']);
+$assetExchangeHistoryTotalPages = max(1, (int) ceil($assetExchangeHistoryCount / $assetExchangeHistoryPerPage));
+$assetExchangeHistoryPage = min(max(1, $assetExchangeHistoryPage), $assetExchangeHistoryTotalPages);
+$assetExchangeHistoryPagination = [
+    'page' => $assetExchangeHistoryPage,
+    'total_pages' => $assetExchangeHistoryTotalPages,
+];
+$logs = sr_asset_exchange_logs_for_account(
+    $pdo,
+    (int) $account['id'],
+    $assetExchangeHistoryPerPage,
+    ($assetExchangeHistoryPage - 1) * $assetExchangeHistoryPerPage
 );
-$stmt->execute(['account_id' => (int) $account['id']]);
-$logs = $stmt->fetchAll();
+$assetExchangeHistoryQuery = [];
+if (is_array($selectedPolicy) && is_array($quote)) {
+    $assetExchangeHistoryQuery['policy_id'] = (int) $selectedPolicy['id'];
+    $assetExchangeHistoryQuery['amount'] = (int) $quote['request_amount'];
+}
+$assetExchangeHistoryBasePath = '/account/asset-exchange'
+    . ($assetExchangeHistoryQuery !== [] ? '?' . http_build_query($assetExchangeHistoryQuery) : '');
 
 include SR_ROOT . '/modules/asset_exchange/views/account-asset-exchange.php';

@@ -64,11 +64,32 @@ if (str_contains($source('modules/point/actions/account-points.php'), 'LIMIT 100
     $errors[] = 'modules/point/actions/account-points.php still caps member transaction history at 100 rows';
 }
 
+$assertContains('modules/asset_exchange/actions/account-asset-exchange.php', [
+    "sr_get_string('history_page'",
+    'sr_asset_exchange_log_count_for_account',
+    'sr_asset_exchange_logs_for_account',
+    '$assetExchangeHistoryPagination',
+]);
+$assertContains('modules/asset_exchange/views/account-asset-exchange.php', [
+    'id="asset-exchange-history"',
+    'sr_public_pagination_html($assetExchangeHistoryPagination',
+    "'history_page'",
+]);
+$assertContains('modules/asset_exchange/helpers.php', [
+    'function sr_asset_exchange_log_count_for_account',
+    'function sr_asset_exchange_logs_for_account',
+    'LIMIT :limit OFFSET :offset',
+]);
+if (str_contains($source('modules/asset_exchange/actions/account-asset-exchange.php'), 'LIMIT 50')) {
+    $errors[] = 'modules/asset_exchange/actions/account-asset-exchange.php still caps member exchange history at 50 rows';
+}
+
 if (!defined('SR_ROOT')) {
     define('SR_ROOT', $root);
 }
 require_once $root . '/modules/reward/helpers.php';
 require_once $root . '/modules/deposit/helpers.php';
+require_once $root . '/modules/asset_exchange/helpers.php';
 
 $pdo = new PDO('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -114,6 +135,19 @@ if (sr_deposit_refund_request_count_for_account($pdo, 1) !== 45) {
 $depositPage = sr_deposit_refund_requests_for_account($pdo, 1, 20, 40);
 if (count($depositPage) !== 5 || (int) ($depositPage[0]['id'] ?? 0) !== 5 || (int) ($depositPage[4]['id'] ?? 0) !== 1) {
     $errors[] = 'deposit refund pagination must expose the final partial page';
+}
+
+$pdo->exec('CREATE TABLE sr_asset_exchange_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL, request_amount INTEGER NOT NULL)');
+$insert = $pdo->prepare('INSERT INTO sr_asset_exchange_logs (account_id, request_amount) VALUES (1, :amount)');
+for ($rowNumber = 1; $rowNumber <= 45; $rowNumber++) {
+    $insert->execute(['amount' => $rowNumber]);
+}
+if (sr_asset_exchange_log_count_for_account($pdo, 1) !== 45) {
+    $errors[] = 'asset exchange log count must include every account exchange';
+}
+$exchangePage = sr_asset_exchange_logs_for_account($pdo, 1, 20, 40);
+if (count($exchangePage) !== 5 || (int) ($exchangePage[0]['id'] ?? 0) !== 5 || (int) ($exchangePage[4]['id'] ?? 0) !== 1) {
+    $errors[] = 'asset exchange log pagination must expose the final partial page';
 }
 
 if ($errors !== []) {

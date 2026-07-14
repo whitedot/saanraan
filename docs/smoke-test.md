@@ -192,6 +192,8 @@ TOTP 활성화 직후 백업 코드가 한 번 표시되고, `/login/mfa`에서 
 
 공개 중인 퀴즈·설문·쿠폰 발급 캠페인이 각각 페이지당 표시 수보다 많은 로컬 fixture에서는 `/quiz`, `/survey`, `/coupons`의 다음 페이지와 마지막 부분 페이지까지 이동할 수 있어야 한다. 기간 종료·비공개·삭제 항목은 전체 count와 각 페이지 행에서 모두 빠져야 하며, `/coupons?campaign={campaign_key}` 단건 화면은 목록 페이지네이션 없이 기존 상세 캠페인만 표시해야 한다.
 
+회원의 자산 환전 내역이 20건을 넘는 로컬 fixture에서는 `/account/asset-exchange`의 `history_page`로 다음 페이지와 마지막 부분 페이지까지 이동할 수 있어야 한다. 환전 견적을 확인한 상태에서 내역 페이지를 이동해도 `policy_id`와 `amount` 쿼리가 유지되어야 하며, 다른 회원의 환전 내역은 count와 페이지 행에 포함되면 안 된다.
+
 인증 로그나 로그인 세션이 100건을 넘는 회원의 개인정보 사본은 최신 100건만 포함하되 해당 섹션의 `has_more`와 모듈별 `partial` 상태를 기록해야 한다. 100건 이하인 섹션은 완전 제공으로 표시되어야 하며, 초과 사실 없이 조용히 잘린 사본을 완료 상태로 제공하면 안 된다.
 
 /admin/community/posts, /admin/community/comments, /admin/quiz/comments, /admin/surveys/comments, /admin/admin-notifications, /admin/notification-deliveries, /admin/surveys/responses, /admin/community/series, /admin/content/series, /admin/privacy-requests 목록의 행 단위 상태 변경은 필터용·생성/편집용 셀렉트를 제외하고 상태 변경 셀렉트를 사용하지 않아야 한다. 현재 상태를 제외한 다음 상태 버튼만 보이고, 삭제·거절·취소·실패·분석 제외 계열은 확인 후 제출되어야 하며, 직접 POST한 허용되지 않은 상태 값은 서버에서 거부되어야 한다. 처리 후에는 기존 필터·검색·정렬·페이지 쿼리로 돌아와야 한다. `/admin/community/posts`의 상태 필터와 행 버튼은 대기->공개->숨김->삭제 순서로 표시하고, `/admin/community/comments`는 현재 댓글 상태 계약에 대기 상태가 없으므로 공개->숨김->삭제 순서로 표시해야 한다. 상태 배지는 삭제됨처럼 상태명을 표시해도 행 작업 버튼은 삭제처럼 실행명을 표시해야 한다.

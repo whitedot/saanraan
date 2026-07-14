@@ -123,7 +123,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </div>
             </section>
 
-            <section class="card">
+            <section id="asset-exchange-history" class="card">
                 <div class="card-header">
                     <h2 class="card-title">환전 내역</h2>
                 </div>
@@ -161,6 +161,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             </table>
                         </div>
                     <?php } ?>
+                    <?php echo sr_public_pagination_html($assetExchangeHistoryPagination, $assetExchangeHistoryBasePath, '환전 내역 페이지', 'history_page', 'asset-exchange-history'); ?>
                 </div>
             </section>
         </div>

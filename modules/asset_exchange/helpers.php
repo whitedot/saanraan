@@ -137,6 +137,33 @@ function sr_asset_exchange_log_status_label(string $status): string
     };
 }
 
+function sr_asset_exchange_log_count_for_account(PDO $pdo, int $accountId): int
+{
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_asset_exchange_logs WHERE account_id = :account_id');
+    $stmt->execute(['account_id' => $accountId]);
+
+    return (int) $stmt->fetchColumn();
+}
+
+function sr_asset_exchange_logs_for_account(PDO $pdo, int $accountId, int $limit = 20, int $offset = 0): array
+{
+    $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
+    $stmt = $pdo->prepare(
+        'SELECT *
+         FROM sr_asset_exchange_logs
+         WHERE account_id = :account_id
+         ORDER BY id DESC
+         LIMIT :limit OFFSET :offset'
+    );
+    $stmt->bindValue(':account_id', $accountId, PDO::PARAM_INT);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function sr_asset_exchange_canonical_asset_keys(): array
 {
     return ['point', 'reward', 'deposit'];
