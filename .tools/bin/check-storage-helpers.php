@@ -126,6 +126,15 @@ $adminNavigation = file_get_contents($root . '/modules/admin/helpers/navigation.
 $adminStorageCacheAction = file_get_contents($root . '/modules/admin/actions/storage-cache.php');
 $adminStorageCacheView = file_get_contents($root . '/modules/admin/views/storage-cache.php');
 sr_storage_helper_assert(
+    is_string($adminStorageCacheAction)
+        && strpos($adminStorageCacheAction, 'sr_admin_paginate_array($pdo, $cacheRows)') !== false
+        && strpos($adminStorageCacheAction, 'array_slice($cacheRows, 0, 500)') === false
+        && is_string($adminStorageCacheView)
+        && strpos($adminStorageCacheView, 'sr_admin_pagination_summary_html($cachePagination)') !== false
+        && strpos($adminStorageCacheView, 'sr_admin_pagination_html($cachePagination') !== false,
+    'Storage cache admin list must paginate every scanned cache row instead of showing only 500.'
+);
+sr_storage_helper_assert(
     is_string($htaccess)
         && strpos($htaccess, 'storage/cache/thumbnails/[a-f0-9]{2}') !== false
         && strpos($htaccess, 'storage/cache/thumbnails/[a-z][a-z0-9_]{1,39}') !== false,

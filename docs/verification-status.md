@@ -282,6 +282,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 - `.tools/bin/check-survey-member-group-references.php`는 설문 회원그룹 참조 수집이 대상 key를 500건 상한 전에 SQL로 좁혀, 최근의 무관한 설문 500건 뒤에 있는 오래된 참조도 놓치지 않는지 SQLite fixture로 확인한다.
 - `.tools/bin/check-privacy-export-runtime.php`의 회원 fixture는 인증 로그와 세션이 각각 100건을 넘으면 최신 100건을 반환하면서 `_limits.has_more`를 기록해 개인정보 사본 전체가 부분 제공 상태로 판정되도록 확인한다.
 - `.tools/bin/check-policy-documents-runtime.php`는 정책 문서 안내메일 작업이 고정 100건에서 끝나지 않고 독립 `mail_page`의 count 기반 페이지네이션으로 전체 목록을 탐색하는지 확인한다. 45건 SQLite fixture의 마지막 부분 페이지와 행 작업 후 현재 목록 복귀 marker도 함께 고정한다.
+- `.tools/bin/check-storage-helpers.php`와 `.tools/bin/check-url-embed-contracts.php`는 썸네일·URL 임베드 캐시 관리자 목록이 스캔 결과를 500건에서 자르지 않고 공통 관리자 페이지네이션으로 전체 탐색하는지 확인한다. 집계와 bounded cleanup은 전체 필터 결과 기준으로 유지한다.
 - `.tools/bin/check-member-asset-history-pagination.php`는 회원 포인트 거래, 적립금·예치금 신청/거래 내역, 자산 환전 내역이 고정 50/100건에서 끝나지 않고 count 기반 페이지네이션으로 전체 이력을 탐색하는지 확인한다. 한 화면의 신청·거래 페이지 상태와 환전 견적 쿼리를 각각 보존하는 공개 pagination 계약도 함께 확인한다.
 - `.tools/bin/check-member-communication-pagination.php`는 회원 알림과 받은·보낸 쪽지함이 고정 50/100건에서 끝나지 않고 전체 목록을 페이지로 탐색하는지 확인한다. 쪽지 helper의 중간·마지막 페이지 SQLite fixture와 필터·편지함·행 작업 복귀 경로도 함께 고정한다.
 - `.tools/bin/check-content-search.php`는 콘텐츠 검색의 제목·본문 범위와 접근 제한 본문 제외 외에 기존 50페이지 경계 뒤의 1,000번째 offset 결과도 조회되는지 확인한다. `.tools/bin/check-community-board-settings.php`와 `.tools/bin/check-community-account-guards.php`는 커뮤니티 검색과 내 글·댓글 목록에 50페이지 상한이 다시 생기지 않는지 확인한다.

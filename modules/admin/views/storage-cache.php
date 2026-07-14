@@ -114,13 +114,11 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">캐시 파일</h2>
-        <?php if ((int) ($cacheRowTotal ?? 0) > count($cacheRows)) { ?>
-            <span class="admin-summary-meta">최근 <?php echo sr_e(number_format(count($cacheRows))); ?>개 표시 / 전체 <?php echo sr_e(number_format((int) $cacheRowTotal)); ?>개</span>
-        <?php } ?>
         <?php if ($currentQuery !== '') { ?>
             <a class="btn btn-sm btn-ghost-secondary" href="<?php echo sr_e(sr_url('/admin/storage-cache?' . $currentQuery)); ?>">현재 조건 링크</a>
         <?php } ?>
     </div>
+    <?php echo sr_admin_pagination_summary_html($cachePagination); ?>
     <div class="table-wrapper">
         <table class="table table-list">
             <thead>
@@ -158,6 +156,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_pagination_html($cachePagination, '썸네일 캐시 파일 목록 페이지'); ?>
 </section>
 
 <?php if ($canDeleteStorageCache) { ?>

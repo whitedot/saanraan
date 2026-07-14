@@ -42,13 +42,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
         <h2 class="card-title">캐시 파일</h2>
-        <?php if ((int) ($urlEmbedCacheRowTotal ?? 0) > count($urlEmbedCacheRows)) { ?>
-            <span class="admin-summary-meta">최근 <?php echo sr_e(number_format(count($urlEmbedCacheRows))); ?>개 표시 / 전체 <?php echo sr_e(number_format((int) $urlEmbedCacheRowTotal)); ?>개</span>
-        <?php } ?>
         <?php if ($currentQuery !== '') { ?>
             <a class="btn btn-sm btn-ghost-secondary" href="<?php echo sr_e(sr_url($urlEmbedCacheAdminPath . '?' . $currentQuery)); ?>">현재 조건 링크</a>
         <?php } ?>
     </div>
+    <?php echo sr_admin_pagination_summary_html($urlEmbedCachePagination); ?>
     <div class="admin-list-summary-row admin-url-embed-cache-summary-row">
         <div class="badge-list">
             <span class="badge badge-soft-secondary">대상 모듈 <?php echo sr_e($urlEmbedCacheModuleLabel); ?></span>
@@ -85,6 +83,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_pagination_html($urlEmbedCachePagination, $urlEmbedCacheModuleLabel . ' 임베드 캐시 파일 목록 페이지'); ?>
 </section>
 
 <?php if ($canDeleteUrlEmbedFragmentCache) { ?>

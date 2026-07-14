@@ -87,8 +87,9 @@ asort($moduleOptions, SORT_NATURAL);
 
 $cacheScan = sr_admin_thumbnail_cache_scan($filters);
 $cacheRows = isset($cacheScan['rows']) && is_array($cacheScan['rows']) ? $cacheScan['rows'] : [];
-$cacheRowTotal = count($cacheRows);
-$cacheRows = array_slice($cacheRows, 0, 500);
+$cachePage = sr_admin_paginate_array($pdo, $cacheRows);
+$cacheRows = $cachePage['rows'];
+$cachePagination = $cachePage['pagination'];
 $cacheSummary = isset($cacheScan['summary']) && is_array($cacheScan['summary']) ? $cacheScan['summary'] : [];
 $canDeleteStorageCache = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/storage-cache', 'delete');
 

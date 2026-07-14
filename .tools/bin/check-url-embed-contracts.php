@@ -591,6 +591,10 @@ sr_url_embed_contract_contains('modules/coupon/actions/admin-embed-cache.php', "
 sr_url_embed_contract_contains('core/actions/admin-url-embed-fragment-cache.php', "sr_admin_require_permission(\$pdo, (int) \$account['id'], \$urlEmbedCacheAdminPath, 'delete')");
 sr_url_embed_contract_contains('core/actions/admin-url-embed-fragment-cache.php', 'sr_require_csrf()');
 sr_url_embed_contract_contains('core/actions/admin-url-embed-fragment-cache.php', 'admin.url_embed_fragment_cache.cleaned');
+sr_url_embed_contract_contains('core/actions/admin-url-embed-fragment-cache.php', 'sr_admin_paginate_array($pdo, $urlEmbedCacheRows)');
+sr_url_embed_contract_not_contains('core/actions/admin-url-embed-fragment-cache.php', 'array_slice($urlEmbedCacheRows, 0, 500)');
+sr_url_embed_contract_contains('core/views/admin-url-embed-fragment-cache.php', 'sr_admin_pagination_summary_html($urlEmbedCachePagination)');
+sr_url_embed_contract_contains('core/views/admin-url-embed-fragment-cache.php', 'sr_admin_pagination_html($urlEmbedCachePagination');
 sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_fragment_cache_admin_scan');
 sr_url_embed_contract_contains('core/helpers/url-embed.php', 'function sr_url_embed_fragment_cache_admin_cleanup');
 

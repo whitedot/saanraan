@@ -86,8 +86,9 @@ if (sr_request_method() === 'POST') {
 
 $cacheScan = sr_url_embed_fragment_cache_admin_scan($filters);
 $urlEmbedCacheRows = isset($cacheScan['rows']) && is_array($cacheScan['rows']) ? $cacheScan['rows'] : [];
-$urlEmbedCacheRowTotal = count($urlEmbedCacheRows);
-$urlEmbedCacheRows = array_slice($urlEmbedCacheRows, 0, 500);
+$urlEmbedCachePage = sr_admin_paginate_array($pdo, $urlEmbedCacheRows);
+$urlEmbedCacheRows = $urlEmbedCachePage['rows'];
+$urlEmbedCachePagination = $urlEmbedCachePage['pagination'];
 $urlEmbedCacheSummary = isset($cacheScan['summary']) && is_array($cacheScan['summary']) ? $cacheScan['summary'] : [];
 $urlEmbedCacheCleanupLimit = sr_url_embed_fragment_cache_admin_cleanup_limit();
 
