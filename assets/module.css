@@ -4,82 +4,201 @@
  */
 
 .public-home {
+    align-self: stretch;
     background: transparent;
-    color: var(--sr-text, var(--text-strong, #20242a));
-    width: 100%;
+    color: var(--sr-text, var(--text-strong, #000));
     display: grid;
     place-items: center;
-    padding: clamp(3rem, 8vw, 7rem) clamp(1.25rem, 5vw, 4rem);
+    padding: 0 clamp(16px, 4vw, 48px);
+    width: 100%;
 }
 
-.public-home-hero {
-    width: min(56rem, 100%);
+.sr-site-home {
+    background: var(--sr-surface, var(--color-card, #fff));
+}
+
+.public-home-editorial {
     display: grid;
-    gap: 1.75rem;
-    justify-items: center;
-    text-align: center;
-}
-
-.public-home-module-links {
-    width: min(56rem, 100%);
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-    text-align: center;
-}
-
-.public-home-hero > p {
-    color: var(--public-ui-muted);
-    font-weight: var(--font-weight-normal);
-    max-width: 42rem;
-}
-
-.public-home-module-card {
-    min-height: 13rem;
-    display: grid;
-    align-content: center;
-    justify-items: center;
-    padding: 1.35rem;
-    color: var(--sr-text, var(--text-strong, #20242a));
-    text-align: center;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    isolation: isolate;
+    min-height: clamp(32rem, calc(100dvh - 11rem), 58rem);
+    place-items: center;
+    margin: 0 auto;
     position: relative;
-    transition: color .18s ease;
+    text-align: center;
+    width: min(88rem, 100%);
 }
 
-.public-home-module-card:hover .public-home-module-card-title,
-.public-home-module-card:focus-visible .public-home-module-card-title {
-    text-decoration: underline;
-    text-underline-offset: .12em;
+.public-home-particle-canvas {
+    height: 140%;
+    inset: -20% -10%;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity .9s cubic-bezier(.22, 1, .36, 1);
+    width: 120%;
+    z-index: 0;
 }
 
-.public-home-module-card:focus-visible {
-    outline: 3px solid color-mix(in oklab, var(--sr-primary, #243b5a) 24%, transparent);
-    outline-offset: 3px;
+.public-home-heading {
+    display: grid;
+    justify-items: center;
+    max-width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
-.public-home-module-card-title {
-    min-width: 0;
+.public-home-title {
+    animation: public-home-title-reveal 1.8s cubic-bezier(.22, 1, .36, 1) .12s both;
+    color: var(--sr-text, var(--text-strong, #000));
+    font-size: clamp(5rem, 18vw, 14rem);
+    font-weight: 800;
+    letter-spacing: -.065em;
+    line-height: .9;
+    margin: 0;
+    max-width: 100%;
     overflow-wrap: anywhere;
+    position: relative;
+    will-change: filter, opacity;
 }
 
-.public-home-module-card-title {
-    color: var(--sr-text, var(--text-strong, #20242a));
-    font-size: 3rem;
-    font-weight: 900;
-    line-height: 1.02;
-    word-break: keep-all;
+.public-home-editorial.is-public-home-particles-ready .public-home-title {
+    animation: none;
+    filter: none;
+    opacity: 0;
+    transition: opacity .9s cubic-bezier(.22, 1, .36, 1);
+}
+
+.public-home-editorial.is-public-home-particles-ready .public-home-particle-canvas {
+    opacity: 1;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-title {
+    opacity: 1;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-particle-canvas {
+    opacity: 0;
+}
+
+.public-home-tagline {
+    color: var(--sr-muted-strong, var(--sr-text, var(--text-strong, #000)));
+    font-size: clamp(.85rem, 1.2vw, 1.1rem);
+    font-weight: 500;
+    letter-spacing: .3em;
+    line-height: 1;
+    margin: clamp(1.25rem, 3vh, 2rem) 0 0;
+    padding-left: .3em;
+    white-space: nowrap;
+}
+
+.public-home-tagline-character {
+    animation: public-home-tagline-character-reveal .75s cubic-bezier(.22, 1, .36, 1) both;
+    animation-delay: 1.75s;
+    display: inline-block;
+    will-change: filter, opacity;
+}
+
+.public-home-tagline-character:nth-child(2) {
+    animation-delay: 1.86s;
+}
+
+.public-home-tagline-character:nth-child(3) {
+    animation-delay: 1.97s;
+}
+
+.public-home-tagline-character:nth-child(4) {
+    animation-delay: 2.08s;
+}
+
+.public-home-tagline-character:nth-child(5) {
+    animation-delay: 2.19s;
+}
+
+.public-home-tagline-character:nth-child(6) {
+    animation-delay: 2.3s;
+}
+
+.public-home-editorial.is-public-home-particles-ready .public-home-tagline-character {
+    animation: none;
+    filter: blur(6px);
+    opacity: 0;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-tagline-character {
+    animation: public-home-tagline-character-reveal .75s cubic-bezier(.22, 1, .36, 1) both;
+    animation-delay: .25s;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-tagline-character:nth-child(2) {
+    animation-delay: .36s;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-tagline-character:nth-child(3) {
+    animation-delay: .47s;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-tagline-character:nth-child(4) {
+    animation-delay: .58s;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-tagline-character:nth-child(5) {
+    animation-delay: .69s;
+}
+
+.public-home-editorial.is-public-home-particles-complete .public-home-tagline-character:nth-child(6) {
+    animation-delay: .8s;
+}
+
+.public-home-tagline-space {
+    width: .45em;
+}
+
+@keyframes public-home-title-reveal {
+    from {
+        filter: blur(12px);
+        opacity: 0;
+    }
+
+    to {
+        filter: blur(0);
+        opacity: 1;
+    }
+}
+
+@keyframes public-home-tagline-character-reveal {
+    from {
+        filter: blur(6px);
+        opacity: 0;
+    }
+
+    to {
+        filter: blur(0);
+        opacity: 1;
+    }
 }
 
 @media (max-width: 767px) {
-    .public-home-module-links {
-        grid-template-columns: 1fr;
+    .public-home-editorial {
+        min-height: max(32rem, calc(100dvh - 9rem));
     }
 
-    .public-home-module-card {
-        min-height: 9rem;
+    .public-home-title {
+        font-size: clamp(4rem, 17vw, 5.5rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .public-home-title {
+        animation: none;
+        will-change: auto;
+    }
+
+    .public-home-tagline-character {
+        animation: none;
+        will-change: auto;
+    }
+
+    .public-home-particle-canvas {
+        display: none;
     }
 }

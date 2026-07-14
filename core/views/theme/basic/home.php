@@ -1,9 +1,10 @@
 <?php
 
-$layoutPdo = isset($pdo) && $pdo instanceof PDO ? $pdo : null;
-$pageTitle = sr_site_display_name(is_array($site ?? null) ? $site : null, $layoutPdo);
+$homeSite = is_array($site ?? null) ? $site : [];
+$homePdo = isset($pdo) && $pdo instanceof PDO ? $pdo : null;
+$homeSiteName = sr_site_display_name($homeSite, $homePdo);
 $seo = [
-    'title' => $pageTitle,
+    'title' => $homeSiteName,
     'canonical' => sr_canonical_url($site, '/'),
 ];
 
@@ -14,6 +15,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         '/assets/module.css',
         '/modules/banner/assets/module.css',
     ],
+    'scripts' => [
+        '/assets/module.js',
+    ],
     'output_slots' => [
         ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content'],
         ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content'],
@@ -21,10 +25,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
 ]);
 ?>
     <main class="public-ui-scope public-home">
-        <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
-        <h1><?php echo sr_e($pageTitle); ?></h1>
-        <p><?php echo sr_e($pageTitle . ' 사이트가 설치되었습니다.'); ?></p>
-        <p><a href="<?php echo sr_e(sr_url('/admin')); ?>"><?php echo sr_e(sr_t('ui.admin.c68cbc05')); ?></a></p>
-        <?php echo sr_render_output_slot($pdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
+        <?php if ($homePdo instanceof PDO) { ?>
+            <?php echo sr_render_output_slot($homePdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'before_content']); ?>
+        <?php } ?>
+        <?php include SR_ROOT . '/core/views/home-editorial.php'; ?>
+        <?php if ($homePdo instanceof PDO) { ?>
+            <?php echo sr_render_output_slot($homePdo, ['module_key' => 'core', 'point_key' => 'site.home', 'slot_key' => 'after_content']); ?>
+        <?php } ?>
     </main>
 <?php sr_public_layout_end(); ?>
