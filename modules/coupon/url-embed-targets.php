@@ -57,7 +57,7 @@ return [
                 $campaignUrl = '/coupons?campaign=' . rawurlencode((string) ($campaign['campaign_key'] ?? ''));
                 $ctaUrl = $accountId > 0
                     ? $campaignUrl
-                    : '/login?return_to=' . rawurlencode($campaignUrl);
+                    : '/login?next=' . rawurlencode($campaignUrl);
                 $ctaLabel = $accountId > 0 ? '쿠폰 받기' : '로그인하고 받기';
                 if ($accountId > 0 && empty($state['claimable'])) {
                     $ctaLabel = (string) ($state['message'] ?? '받을 수 없음');

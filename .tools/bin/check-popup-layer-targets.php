@@ -550,7 +550,7 @@ function sr_popup_layer_check_runtime_fixture(): array
             $errors[] = 'popup layer runtime fixture must render expected popup: ' . $expected;
         }
     }
-    if (!str_contains($html, 'data-sr-popup-layer-coupon-cta') || !str_contains($html, '/login?return_to=%2Fcoupons%3Fcampaign%3Dclaim_popup')) {
+    if (!str_contains($html, 'data-sr-popup-layer-coupon-cta') || !str_contains($html, '/login?next=%2Fcoupons%3Fcampaign%3Dclaim_popup')) {
         $errors[] = 'popup layer runtime fixture should render coupon campaign CTA without mixing it with dismiss cookie state.';
     }
     foreach (['draft hidden', 'future hidden', 'expired hidden', 'exact hidden'] as $unexpected) {

@@ -204,6 +204,24 @@ sr_member_auth_policy_assert(
     sr_member_safe_next_path('/login/mfa') === '/',
     'MFA route should not be accepted as a login next destination.'
 );
+$previousServer = $_SERVER;
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+$_SERVER['REQUEST_URI'] = '/community/posts?sort=recent&page=2';
+sr_member_auth_policy_assert(
+    sr_member_login_url_for_current_request() === '/login?next=%2Fcommunity%2Fposts%3Fsort%3Drecent%26page%3D2',
+    'Public login links should preserve the current safe path and query as an explicit next destination.'
+);
+$_SERVER['REQUEST_URI'] = '/register';
+sr_member_auth_policy_assert(
+    sr_member_login_url_for_current_request() === '/login',
+    'Public login links on authentication entry pages should not redirect back into the authentication flow.'
+);
+$_SERVER['REQUEST_URI'] = '/unsafe%2Fpath';
+sr_member_auth_policy_assert(
+    sr_member_login_url_for_current_request() === '/login',
+    'Public login links should omit an unsafe current path.'
+);
+$_SERVER = $previousServer;
 $_SESSION['sr_member_mfa_challenge']['expires_at'] = time() - 1;
 sr_member_auth_policy_assert(
     sr_member_mfa_challenge() === null && !isset($_SESSION['sr_member_mfa_challenge']),
@@ -986,6 +1004,24 @@ if ($memberSettingsHelper !== '' && $memberLoginAction !== '') {
             && strpos($memberLoginAction, "sr_member_skin_view(sr_member_skin_key(\$memberSettings), 'login')") !== false
             && is_file($root . '/modules/member/skins/basic/login.php'),
         'Member public views should render through explicit member skin views with a basic fallback.'
+    );
+}
+
+foreach ([
+    'layouts/public/basic/layout.php',
+    'modules/content/theme/basic/layout.php',
+    'modules/content/theme/sample/layout.php',
+    'modules/community/theme/basic/layout.php',
+    'modules/community/theme/sample/layout.php',
+    'modules/quiz/theme/basic/layout.php',
+    'modules/quiz/theme/sample/layout.php',
+    'modules/survey/theme/basic/layout.php',
+    'modules/survey/theme/sample/layout.php',
+] as $publicLayoutPath) {
+    $publicLayout = sr_member_auth_policy_read($publicLayoutPath);
+    sr_member_auth_policy_assert(
+        substr_count($publicLayout, 'sr_member_login_url_for_current_request()') >= 2,
+        'Public layout login entry points should preserve the current page: ' . $publicLayoutPath
     );
 }
 

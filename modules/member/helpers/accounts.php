@@ -456,6 +456,21 @@ function sr_member_current_request_next_path(): string
     return sr_member_safe_next_path($path);
 }
 
+function sr_member_login_url_for_current_request(): string
+{
+    $requestPath = sr_request_path();
+    if (in_array($requestPath, ['/', '/login', '/login/mfa', '/logout', '/register', '/password/reset', '/password/reset/confirm'], true)) {
+        return sr_url('/login');
+    }
+
+    $next = sr_member_current_request_next_path();
+    if ($next === '/') {
+        return sr_url('/login');
+    }
+
+    return sr_url('/login?next=' . rawurlencode($next));
+}
+
 function sr_member_login_next_path(): string
 {
     $rawNext = sr_get_string_without_truncation('next', 1024);

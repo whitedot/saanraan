@@ -896,7 +896,7 @@ function sr_popup_layer_prepare_render_popup(PDO $pdo, array $popup): array
     $campaignUrl = '/coupons?campaign=' . rawurlencode((string) ($campaign['campaign_key'] ?? ''));
     $state = is_array($campaign['claim_state'] ?? null) ? $campaign['claim_state'] : [];
     $label = $accountId > 0 ? '쿠폰 받기' : '로그인하고 받기';
-    $url = $accountId > 0 ? $campaignUrl : '/login?return_to=' . rawurlencode($campaignUrl);
+    $url = $accountId > 0 ? $campaignUrl : '/login?next=' . rawurlencode($campaignUrl);
     if ($accountId > 0 && empty($state['claimable'])) {
         $label = (string) ($state['message'] ?? '쿠폰 확인');
         $url = $campaignUrl;

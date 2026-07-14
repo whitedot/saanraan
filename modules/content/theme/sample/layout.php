@@ -248,7 +248,7 @@ if (
                             <?php if ($layoutNotificationHasAccount) { ?>
                                 <a href="<?php echo sr_e(sr_url('/account/notifications')); ?>"><?php echo sr_e('전체'); ?></a>
                             <?php } else { ?>
-                                <a href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e('로그인'); ?></a>
+                                <a href="<?php echo sr_e(sr_member_login_url_for_current_request()); ?>"><?php echo sr_e('로그인'); ?></a>
                             <?php } ?>
                         </div>
                         <?php if (!$layoutNotificationHasAccount) { ?>
@@ -356,7 +356,7 @@ if (
                         </div>
                     </details>
                 <?php } else { ?>
-                    <a class="content-layout-icon-button content-layout-member-link content-layout-member-link-login" href="<?php echo sr_e(sr_url('/login')); ?>" aria-label="<?php echo sr_e('로그인'); ?>">
+                    <a class="content-layout-icon-button content-layout-member-link content-layout-member-link-login" href="<?php echo sr_e(sr_member_login_url_for_current_request()); ?>" aria-label="<?php echo sr_e('로그인'); ?>">
                         <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>login</span>
                     </a>
                 <?php } ?>

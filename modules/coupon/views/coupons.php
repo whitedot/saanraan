@@ -70,7 +70,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                 </div>
                             </dl>
                             <?php if ($accountId <= 0) { ?>
-                                <a class="btn btn-primary" href="<?php echo sr_e(sr_url('/login?return_to=' . rawurlencode($campaignUrl))); ?>">로그인하고 받기</a>
+                                <a class="btn btn-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($campaignUrl))); ?>">로그인하고 받기</a>
                             <?php } elseif ($canClaim) { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/coupons')); ?>">
                                     <?php echo sr_csrf_field(); ?>
