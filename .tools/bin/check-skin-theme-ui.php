@@ -958,6 +958,27 @@ sr_skin_theme_check_contains(['assets/common.css', 'modules/admin/assets/common.
     'background-image:url("data:image/svg+xml',
 ], 'Checkbox checked indicator');
 
+$publicCommonStylesheetPaths = [
+    'assets/common.css',
+    'modules/content/theme/basic/assets/common.css',
+    'modules/content/theme/sample/assets/common.css',
+    'modules/community/theme/basic/assets/common.css',
+    'modules/community/theme/sample/assets/common.css',
+    'modules/quiz/theme/basic/assets/common.css',
+    'modules/quiz/theme/sample/assets/common.css',
+    'modules/survey/theme/basic/assets/common.css',
+    'modules/survey/theme/sample/assets/common.css',
+];
+sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
+    '.card{border:1px solid var(--sr-border,var(--color-default-300));',
+    'height:fit-content;box-shadow:none;',
+    '.table-card{border:1px solid var(--sr-border,var(--color-default-300));box-shadow:none;',
+], 'Public UI kit flat card style');
+sr_skin_theme_check_not_contains($publicCommonStylesheetPaths, [
+    '.card{border:0;',
+    '.table-card{border:0;',
+], 'Public UI kit cards should not remove their border');
+
 sr_skin_theme_check_contains([
     'assets/common.css',
     'modules/admin/assets/common.css',
