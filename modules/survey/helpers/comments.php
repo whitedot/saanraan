@@ -656,12 +656,8 @@ function sr_survey_admin_comment_filters_from_request(): array
     ];
 }
 
-function sr_survey_admin_comments(PDO $pdo, array $filters = [], int $limit = 100): array
+function sr_survey_admin_comment_query_parts(array $filters = []): array
 {
-    if (!sr_survey_comments_table_exists($pdo)) {
-        return [];
-    }
-
     $where = ['1 = 1'];
     $params = [];
     $keyword = trim((string) ($filters['q'] ?? ''));
@@ -680,15 +676,50 @@ function sr_survey_admin_comments(PDO $pdo, array $filters = [], int $limit = 10
         $params['is_secret'] = $secret === 'yes' ? 1 : 0;
     }
 
+    return ['where' => implode(' AND ', $where), 'params' => $params];
+}
+
+function sr_survey_admin_comment_count(PDO $pdo, array $filters = []): int
+{
+    if (!sr_survey_comments_table_exists($pdo)) {
+        return 0;
+    }
+
+    $query = sr_survey_admin_comment_query_parts($filters);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*)
+         FROM sr_survey_comments c
+         INNER JOIN sr_survey_forms s ON s.id = c.survey_id
+         WHERE ' . $query['where']
+    );
+    $stmt->execute($query['params']);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_survey_admin_comments(PDO $pdo, array $filters = [], int $limit = 100, int $offset = 0): array
+{
+    if (!sr_survey_comments_table_exists($pdo)) {
+        return [];
+    }
+
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+    $query = sr_survey_admin_comment_query_parts($filters);
     $stmt = $pdo->prepare(
         'SELECT c.*, s.survey_key, s.title AS survey_title
          FROM sr_survey_comments c
          INNER JOIN sr_survey_forms s ON s.id = c.survey_id
-         WHERE ' . implode(' AND ', $where) . '
+         WHERE ' . $query['where'] . '
          ORDER BY c.created_at DESC, c.id DESC
-         LIMIT ' . (string) max(1, min(200, $limit))
+         LIMIT :limit_value OFFSET :offset_value'
     );
-    $stmt->execute($params);
+    foreach ($query['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }

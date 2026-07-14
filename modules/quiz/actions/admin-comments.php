@@ -51,7 +51,13 @@ if (sr_request_method() === 'POST') {
 }
 
 $commentFilters = sr_quiz_admin_comment_filters_from_request();
-$comments = sr_quiz_admin_comments($pdo, $commentFilters, 200);
+$commentPagination = sr_admin_pagination_from_total($pdo, sr_quiz_admin_comment_count($pdo, $commentFilters));
+$comments = sr_quiz_admin_comments(
+    $pdo,
+    $commentFilters,
+    (int) $commentPagination['per_page'],
+    sr_admin_pagination_offset($commentPagination)
+);
 $commentStatusOptions = [];
 foreach (sr_quiz_comment_statuses() as $status) {
     $commentStatusOptions[$status] = sr_quiz_comment_status_label($status);
@@ -99,6 +105,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <h2 class="card-title">댓글 목록</h2>
     </div>
+    <?php echo sr_admin_pagination_summary_html($commentPagination); ?>
     <div class="table-wrapper">
         <table class="table table-list admin-quiz-comment-table">
             <thead>
@@ -158,6 +165,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </table>
     </div>
     <?php echo sr_admin_status_description_list_html('quiz_comment_status', array_combine(sr_quiz_comment_statuses(), array_map('sr_quiz_comment_status_label', sr_quiz_comment_statuses())) ?: []); ?>
+    <?php echo sr_admin_pagination_html($commentPagination, '퀴즈 댓글 목록 페이지'); ?>
 </section>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
