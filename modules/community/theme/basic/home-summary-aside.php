@@ -1,7 +1,9 @@
 <aside class="community-home-aside" aria-label="커뮤니티 요약">
-    <section class="community-home-aside-section" aria-labelledby="community_home_popular_posts_title">
-        <div class="community-home-aside-body">
+    <section class="card community-home-aside-section" aria-labelledby="community_home_popular_posts_title">
+        <div class="card-header">
             <h2 id="community_home_popular_posts_title" class="community-home-aside-title">인기글</h2>
+        </div>
+        <div class="card-body community-home-aside-body">
             <?php if (empty($popularPosts)) { ?>
                 <p>인기글이 없습니다.</p>
             <?php } else { ?>
@@ -39,9 +41,11 @@
         </div>
     </section>
 
-    <section class="community-home-aside-section" aria-labelledby="community_home_latest_comments_title">
-        <div class="community-home-aside-body">
+    <section class="card community-home-aside-section" aria-labelledby="community_home_latest_comments_title">
+        <div class="card-header">
             <h2 id="community_home_latest_comments_title" class="community-home-aside-title">최신댓글</h2>
+        </div>
+        <div class="card-body community-home-aside-body">
             <?php if (empty($latestComments)) { ?>
                 <p>최신댓글이 없습니다.</p>
             <?php } else { ?>

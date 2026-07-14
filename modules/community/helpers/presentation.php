@@ -481,11 +481,6 @@ function sr_community_home_latest_post_sections_from_board_posts(array $boards, 
                     'group_title' => $groupTitle,
                     'boards' => [],
                 ];
-            } elseif ((int) ($groupSections[$groupSectionKey]['group_id'] ?? 0) !== $groupId
-                || (string) ($groupSections[$groupSectionKey]['group_key'] ?? '') !== $groupKey
-            ) {
-                $groupSections[$groupSectionKey]['group_id'] = 0;
-                $groupSections[$groupSectionKey]['group_key'] = '';
             }
             $groupSections[$groupSectionKey]['boards'][] = $boardSection;
             continue;

@@ -21,13 +21,14 @@ if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_
 }
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityBoardReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, $board, $communityLayoutSettings);
-if ($communityBoardReactionsEnabled && sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
+$communityListReactionVisible = $communityBoardReactionsEnabled && sr_module_enabled($pdo, 'reaction');
+if ($communityListReactionVisible && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 $memberSettings = sr_member_settings($pdo);
 $communityBoardPaidReadConfig = sr_community_asset_event_config($pdo, $board, $communityLayoutSettings, 'paid_read', 'once');
 $communityBoardHomeExcerptAllowed = !sr_community_asset_event_required($communityBoardPaidReadConfig);
-$communityListReactionCounts = $communityBoardReactionsEnabled && sr_module_enabled($pdo, 'reaction') && is_array($posts ?? null)
+$communityListReactionCounts = $communityListReactionVisible && is_array($posts ?? null)
     ? sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $posts))
     : [];
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
@@ -122,74 +123,86 @@ $communityFrameModifier = 'list';
         <?php } elseif ($posts === []) { ?>
             <p><?php echo sr_e($keyword !== '' ? sr_t('community::ui.search.58726bf2') : sr_t('community::ui.text.6a3d84bd')); ?></p>
         <?php } else { ?>
-            <div class="community-board-post-list">
-                <?php foreach ($posts as $post) { ?>
-                    <?php
-                    $postUrl = sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0));
-                    $thumbnailUrl = sr_community_post_list_thumbnail_url($pdo, $post, $board, $communityLayoutSettings);
-                    $postExcerpt = !empty($post['is_secret']) || !$communityBoardHomeExcerptAllowed || empty($listExcerptEnabled)
-                        ? ''
-                        : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), (int) $listExcerptLength);
-                    $postAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo);
-                    $postAuthorInitial = $postAuthorLabel !== ''
-                        ? (function_exists('mb_substr') ? mb_substr($postAuthorLabel, 0, 1) : substr($postAuthorLabel, 0, 1))
-                        : '?';
-                    $postAuthorAccountId = (int) ($post['author_account_id'] ?? 0);
-                    $postAuthorAvatarClass = $postAuthorAccountId > 0
-                        ? sr_member_default_avatar_color_class(sr_member_public_account_hash($config, $postAuthorAccountId))
-                        : sr_member_default_avatar_color_class($postAuthorLabel);
-                    ?>
-                    <article class="community-home-post community-board-post-list-item">
-                        <?php if ($thumbnailUrl !== '') { ?>
-                            <a class="community-home-post-image-link" href="<?php echo sr_e($postUrl); ?>" aria-hidden="true" tabindex="-1">
-                                <img class="community-home-post-image" src="<?php echo sr_e($thumbnailUrl); ?>" alt="" loading="lazy">
-                            </a>
-                        <?php } ?>
-                        <div class="community-home-post-body">
-                            <h2 class="community-post-title community-home-post-title">
-                                <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
-                                    <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
+            <div class="card table-card community-board-table-card">
+                <div class="table-wrapper">
+                    <table class="table table-list community-board-table">
+                        <thead>
+                            <tr>
+                                <th class="community-board-table-number" scope="col">번호</th>
+                                <th class="community-board-table-title" scope="col">제목</th>
+                                <th class="community-board-table-author" scope="col">작성자</th>
+                                <th class="community-board-table-date" scope="col">작성일</th>
+                                <th class="community-board-table-count" scope="col">조회</th>
+                                <?php if ($communityListReactionVisible) { ?>
+                                    <th class="community-board-table-count" scope="col">반응</th>
                                 <?php } ?>
-                                <a href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
-                            </h2>
-                            <?php if ($communityListCategoryEnabled && (string) ($post['category_title'] ?? '') !== '') { ?>
-                                <p class="community-board-post-category">
-                                    <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
-                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
-                                    <?php } else { ?>
-                                        <?php echo sr_e((string) $post['category_title']); ?>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($posts as $post) { ?>
+                                <?php
+                                $postId = (int) ($post['id'] ?? 0);
+                                $postUrl = sr_url('/community/post?id=' . (string) $postId);
+                                $postAuthorAccountId = (int) ($post['author_account_id'] ?? 0);
+                                $postAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo);
+                                $postExcerpt = !empty($post['is_secret']) || !$communityBoardHomeExcerptAllowed || empty($listExcerptEnabled)
+                                    ? ''
+                                    : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), (int) $listExcerptLength);
+                                $postReactionCount = (int) ($communityListReactionCounts[$postId] ?? 0);
+                                ?>
+                                <tr class="community-board-table-row">
+                                    <td class="community-board-table-number"><?php echo sr_e(number_format($postId)); ?></td>
+                                    <td class="community-board-table-title">
+                                        <div class="community-board-table-title-line">
+                                            <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
+                                                <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
+                                            <?php } ?>
+                                            <?php if ($communityListCategoryEnabled && (string) ($post['category_title'] ?? '') !== '') { ?>
+                                                <span class="community-board-table-category">
+                                                    <?php if ((string) ($post['category_status'] ?? '') === 'enabled' && (string) ($post['category_key'] ?? '') !== '') { ?>
+                                                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $post['category_key']))); ?>"><?php echo sr_e((string) $post['category_title']); ?></a>
+                                                    <?php } else { ?>
+                                                        <?php echo sr_e((string) $post['category_title']); ?>
+                                                    <?php } ?>
+                                                </span>
+                                            <?php } ?>
+                                            <a class="community-board-table-title-link" href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e((string) ($post['title'] ?? '')); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
+                                            <?php if ((int) ($post['active_attachment_count'] ?? 0) > 0) { ?>
+                                                <span class="community-board-table-attachment"><?php echo sr_e('첨부 ' . number_format((int) ($post['active_attachment_count'] ?? 0))); ?></span>
+                                            <?php } ?>
+                                        </div>
+                                        <?php if ($postExcerpt !== '') { ?>
+                                            <p class="community-board-table-excerpt"><?php echo sr_e($postExcerpt); ?></p>
+                                        <?php } ?>
+                                        <div class="community-board-table-mobile-meta">
+                                            <span><?php echo sr_e($postAuthorLabel); ?></span>
+                                            <span aria-hidden="true">&middot;</span>
+                                            <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
+                                            <span aria-hidden="true">&middot;</span>
+                                            <span><?php echo sr_e('조회 ' . number_format((int) ($post['view_count'] ?? 0))); ?></span>
+                                            <?php if ($postReactionCount > 0) { ?>
+                                                <span aria-hidden="true">&middot;</span>
+                                                <span><?php echo sr_e('반응 ' . number_format($postReactionCount)); ?></span>
+                                            <?php } ?>
+                                        </div>
+                                    </td>
+                                    <td class="community-board-table-author">
+                                        <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $postAuthorAccountId, $postAuthorLabel, [
+                                            'community_board_key' => (string) $board['board_key'],
+                                            'community_board_accessible' => true,
+                                            'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                        ]); ?>
+                                    </td>
+                                    <td class="community-board-table-date"><?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?></td>
+                                    <td class="community-board-table-count"><?php echo sr_e(number_format((int) ($post['view_count'] ?? 0))); ?></td>
+                                    <?php if ($communityListReactionVisible) { ?>
+                                        <td class="community-board-table-count"><?php echo sr_e(number_format($postReactionCount)); ?></td>
                                     <?php } ?>
-                                </p>
+                                </tr>
                             <?php } ?>
-                            <?php if ($postExcerpt !== '') { ?>
-                                <p><?php echo sr_e($postExcerpt); ?></p>
-                            <?php } ?>
-                            <div class="community-home-post-meta">
-                                <span class="member-default-avatar community-home-post-avatar <?php echo sr_e($postAuthorAvatarClass); ?>" aria-hidden="true"><?php echo sr_e($postAuthorInitial); ?></span>
-                                <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $postAuthorAccountId, $postAuthorLabel, [
-                                    'community_board_key' => (string) $board['board_key'],
-                                    'community_board_accessible' => true,
-                                    'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                ]); ?>
-                                <span aria-hidden="true">&middot;</span>
-                                <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
-                                <?php if ((int) ($post['active_attachment_count'] ?? 0) > 0) { ?>
-                                    <span aria-hidden="true">&middot;</span>
-                                    <span><?php echo sr_e('첨부 ' . number_format((int) ($post['active_attachment_count'] ?? 0))); ?></span>
-                                <?php } ?>
-                                <?php if ((int) ($post['view_count'] ?? 0) > 0) { ?>
-                                    <span aria-hidden="true">&middot;</span>
-                                    <span><?php echo sr_e('조회 ' . number_format((int) ($post['view_count'] ?? 0))); ?></span>
-                                <?php } ?>
-                                <?php $postReactionCount = (int) ($communityListReactionCounts[(int) ($post['id'] ?? 0)] ?? 0); ?>
-                                <?php if ($postReactionCount > 0) { ?>
-                                    <span aria-hidden="true">&middot;</span>
-                                    <span><?php echo sr_e('반응 ' . number_format($postReactionCount)); ?></span>
-                                <?php } ?>
-                            </div>
-                        </div>
-                    </article>
-                <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         <?php } ?>
 

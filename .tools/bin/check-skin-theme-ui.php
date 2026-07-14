@@ -742,6 +742,37 @@ sr_skin_theme_check_contains([
     '공개 테마',
 ], 'Public module theme setting UI');
 
+sr_skin_theme_check_contains([
+    'modules/community/skins/basic/list.php',
+    'modules/community/theme/basic/list.php',
+], [
+    'card table-card community-board-table-card',
+    'table table-list community-board-table',
+    'community-board-table-title-link',
+    'community-board-table-mobile-meta',
+    '>번호</th>',
+    '>제목</th>',
+    '>작성자</th>',
+    '>작성일</th>',
+    '>조회</th>',
+], 'Community basic board conventional table list');
+
+sr_skin_theme_check_not_contains([
+    'modules/community/skins/basic/list.php',
+    'modules/community/theme/basic/list.php',
+], [
+    'community-board-post-list',
+    'community-board-post-list-item',
+], 'Community basic board list must not use feed card rows');
+
+sr_skin_theme_check_contains('modules/community/theme/basic/assets/module.css', [
+    '.community-board-table-card',
+    '.community-board-table.table-list thead th',
+    '.community-board-table-mobile-meta',
+    'var(--sr-surface-muted',
+    'var(--sr-border-soft',
+], 'Community basic board responsive themed table styles');
+
 foreach ([
     'content' => [
         'helper' => 'modules/content/helpers.php',
