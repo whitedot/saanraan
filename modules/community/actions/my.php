@@ -13,10 +13,10 @@ $myType = sr_get_string('type', 20);
 if (!in_array($myType, ['posts', 'comments'], true)) {
     $myType = 'posts';
 }
+$myPerPage = 20;
 $myPageValue = sr_get_string('page', 20);
 $myPage = preg_match('/\A[1-9][0-9]*\z/', $myPageValue) === 1 ? (int) $myPageValue : 1;
-$myPage = min($myPage, 50);
-$myPerPage = 20;
+$myPage = min($myPage, intdiv(PHP_INT_MAX, $myPerPage));
 $myOffset = ($myPage - 1) * $myPerPage;
 $myReadableBoards = [];
 foreach (sr_community_enabled_boards($pdo) as $board) {

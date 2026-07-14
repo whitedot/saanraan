@@ -570,6 +570,13 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts.php'
     'function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = \'\', int $categoryId = 0, string $sort = \'latest\')',
     'published_comment_count DESC, p.id DESC',
 ], 'community board runtime setting helpers');
+sr_check_community_board_settings_contains('modules/community/actions/search.php', [
+    'intdiv(PHP_INT_MAX, $perPage)',
+], 'community search page range');
+$communitySearchAction = sr_check_community_board_settings_content('modules/community/actions/search.php');
+if (str_contains($communitySearchAction, 'min($page, 50)')) {
+    sr_check_community_board_settings_error('community search must not hide results after page 50.');
+}
 sr_check_community_board_settings_contains('modules/community/helpers/posts-writing.php', [
     'sr_community_validate_post_body_length',
     'sr_community_post_locked_by_comments',

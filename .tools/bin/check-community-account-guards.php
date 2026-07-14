@@ -111,7 +111,12 @@ sr_community_account_guard_check_contains('modules/community/helpers/posts-writi
 sr_community_account_guard_check_contains('modules/community/actions/my.php', [
     "AND p.status IN (\\'published\\', \\'pending\\')",
     "unset(\$_SESSION['sr_community_post_notice'])",
+    'intdiv(PHP_INT_MAX, $myPerPage)',
 ]);
+$communityMyAction = file_get_contents('modules/community/actions/my.php');
+if (is_string($communityMyAction) && str_contains($communityMyAction, 'min($myPage, 50)')) {
+    sr_community_account_guard_check_error('community my activity must not hide results after page 50.');
+}
 
 sr_community_account_guard_check_contains('modules/community/views/my.php', [
     '검토 대기 중',

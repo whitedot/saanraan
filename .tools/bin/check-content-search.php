@@ -33,6 +33,21 @@ function sr_check_content_search_contains(string $path, array $needles): void
     }
 }
 
+function sr_check_content_search_not_contains(string $path, array $needles): void
+{
+    $content = file_get_contents($path);
+    if (!is_string($content)) {
+        sr_check_content_search_error('file cannot be read: ' . $path);
+        return;
+    }
+
+    foreach ($needles as $needle) {
+        if (str_contains($content, (string) $needle)) {
+            sr_check_content_search_error($path . ' must not contain: ' . (string) $needle);
+        }
+    }
+}
+
 function sr_check_content_search_runtime(): void
 {
     if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
@@ -109,6 +124,24 @@ function sr_check_content_search_runtime(): void
             'updated_at' => '2026-07-14 12:00:00',
         ]);
     }
+    for ($id = 6; $id <= 1025; $id++) {
+        $insert->execute([
+            'id' => $id,
+            'slug' => 'page-' . (string) $id,
+            'title' => '페이지경계 ' . (string) $id,
+            'summary' => '',
+            'body_text' => '',
+            'body_format' => 'plain',
+            'status' => 'published',
+            'asset_access_enabled' => 0,
+            'asset_module' => '',
+            'asset_access_amount' => 0,
+            'asset_charge_policy' => 'once',
+            'published_at' => '2026-07-14 12:00:00',
+            'created_at' => '2026-07-14 12:00:00',
+            'updated_at' => '2026-07-14 12:00:00',
+        ]);
+    }
 
     $results = sr_content_search_items($pdo, '바늘', [], 20, 0);
     $ids = array_map(static fn (array $row): int => (int) $row['id'], $results);
@@ -129,6 +162,11 @@ function sr_check_content_search_runtime(): void
         sr_check_content_search_error('Search LIKE escaping must treat percent as a literal character.');
     }
 
+    $pageFiftyOneResults = sr_content_search_items($pdo, '페이지경계', [], 21, 1000);
+    if (count($pageFiftyOneResults) !== 20 || (int) ($pageFiftyOneResults[0]['id'] ?? 0) !== 25) {
+        sr_check_content_search_error('Search must keep results reachable after the former fifty-page boundary.');
+    }
+
     if (sr_content_body_excerpt('<p>첫 문장<br>둘째 문장</p>', 'html', 100) !== '첫 문장 둘째 문장') {
         sr_check_content_search_error('HTML search excerpt must be converted to normalized plain text.');
     }
@@ -141,7 +179,9 @@ sr_check_content_search_contains($root . '/modules/content/actions/search.php', 
     'sr_content_search_items(',
     'sr_content_once_access_already_granted(',
     "'search_body_excerpt_allowed'",
+    'intdiv(PHP_INT_MAX, $perPage)',
 ]);
+sr_check_content_search_not_contains($root . '/modules/content/actions/search.php', ['min($page, 50)']);
 sr_check_content_search_contains($root . '/modules/content/theme/basic/layout.php', [
     "sr_url('/content/search')",
     'data-content-layout-search-form',
