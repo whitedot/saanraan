@@ -14,6 +14,7 @@ core/views/theme/{theme_key}/home.php
 modules/content/theme/{theme_key}/home.php
 modules/content/theme/{theme_key}/group.php
 modules/content/theme/{theme_key}/content.php
+modules/content/theme/{theme_key}/search.php
 modules/content/theme/{theme_key}/ui-kit.php
 
 modules/community/theme/{theme_key}/home.php
@@ -81,7 +82,7 @@ modules/{module_key}/theme/{theme_key}/assets/theme.css
 
 ## 레이아웃 지원 범위
 
-공개 layout option은 `site`, `content`, `community`, `quiz`, `survey` 도메인과 `content.home`, `community.post`, `quiz.result`, `survey.complete` 같은 화면 target을 선언할 수 있다.
+공개 layout option은 `site`, `content`, `community`, `quiz`, `survey` 도메인과 `content.home`, `content.search`, `community.post`, `quiz.result`, `survey.complete` 같은 화면 target을 선언할 수 있다.
 
 콘텐츠, 커뮤니티, 퀴즈, 설문 환경설정의 단일 `layout_key`는 해당 모듈의 필수 공개 화면 전체에 적용된다. 따라서 후보 layout은 그 모듈의 필수 target 전체를 지원해야 한다. 번들 `content.basic`, `community.basic`, `quiz.basic`, `survey.basic`은 네 공개 모듈 target 전체를 지원하므로 각 모듈 설정에서 다른 모듈 layout도 선택할 수 있다.
 

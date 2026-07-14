@@ -41,6 +41,8 @@ $layoutModuleLabel = trim((string) ($layoutContext['module_label'] ?? '콘텐츠
 $layoutModuleLabel = $layoutModuleLabel !== '' ? $layoutModuleLabel : '콘텐츠';
 $layoutModuleMenuLabel = trim((string) ($layoutContext['module_menu_label'] ?? ($layoutModuleLabel . ' 메뉴')));
 $layoutModuleMenuLabel = $layoutModuleMenuLabel !== '' ? $layoutModuleMenuLabel : ($layoutModuleLabel . ' 메뉴');
+$layoutSearchKeywordValue = sr_get_string_without_truncation('q', 100);
+$layoutSearchKeyword = is_string($layoutSearchKeywordValue) ? trim(preg_replace('/\s+/u', ' ', $layoutSearchKeywordValue) ?? '') : '';
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
 $layoutBeforeLayoutHtml = '';
@@ -208,8 +210,9 @@ if (
 <body class="<?php echo sr_e(trim('content-layout-body ' . $layoutBodyClass)); ?>">
     <?php echo $layoutBeforeLayoutHtml; ?>
     <?php echo $layoutModuleBeforeLayoutHtml; ?>
-    <header class="content-layout-header" data-content-scroll-header>
-        <div class="content-layout-brand-link">
+    <header class="content-layout-header">
+        <div class="content-layout-topbar">
+            <div class="content-layout-brand-link">
             <a class="content-layout-site-link" href="<?php echo sr_e($layoutBrandLinkUrl); ?>">
                 <?php if ($layoutBrandLogoHtml !== '' || $layoutMobileBrandLogoHtml !== '') { ?>
                     <?php echo $layoutMobileBrandLogoHtml; ?>
@@ -222,11 +225,15 @@ if (
                 <?php } ?>
             </a>
             <a class="content-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e($layoutModuleLabel); ?></a>
-        </div>
-        <nav class="content-layout-nav" aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>">
-            <?php echo $layoutPrimaryNavigationHtml; ?>
-        </nav>
-        <div class="content-layout-actions">
+            </div>
+            <form class="content-layout-search" method="get" action="<?php echo sr_e(sr_url('/content/search')); ?>" role="search" data-content-layout-search-form data-content-layout-search-min-length="2" data-content-layout-search-alert="<?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?>">
+                <label for="content_layout_search_q"><?php echo sr_e('콘텐츠 검색'); ?></label>
+                <input id="content_layout_search_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($layoutSearchKeyword); ?>" placeholder="<?php echo sr_e('검색'); ?>" autocomplete="off" data-content-layout-search-input>
+                <button type="submit" aria-label="<?php echo sr_e('검색'); ?>">
+                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>search</span>
+                </button>
+            </form>
+            <div class="content-layout-actions">
             <?php if ($layoutNotificationEnabled) { ?>
                 <details class="content-layout-notification-menu">
                     <summary class="content-layout-icon-button content-layout-notification-button" aria-label="<?php echo sr_e('알림'); ?>">
@@ -354,8 +361,12 @@ if (
                     </a>
                 <?php } ?>
             <?php } ?>
+            </div>
         </div>
     </header>
+    <nav class="content-layout-nav" aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>" data-content-scroll-nav>
+        <?php echo $layoutPrimaryNavigationHtml; ?>
+    </nav>
     <div class="content-layout-main">
         <?php echo $layoutContent; ?>
     </div>

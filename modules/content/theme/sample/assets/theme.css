@@ -92,7 +92,7 @@
     }
 }
 
-.content-layout-body .content-layout-header.is-content-layout-header-stuck,
+.content-layout-body .content-layout-nav.is-content-layout-nav-stuck::before,
 .content-layout-body .content-layout-footer,
 .content-layout-body .content-theme-menu,
 .content-layout-body .dropdown-menu {

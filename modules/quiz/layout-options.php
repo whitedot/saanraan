@@ -11,6 +11,7 @@ return [
             'content.home',
             'content.group',
             'content.view',
+            'content.search',
             'community',
             'community.home',
             'community.group',

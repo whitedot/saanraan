@@ -142,6 +142,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'content search entry',
+        'path' => '/content/search?q=' . rawurlencode('검색'),
+        'allowed_statuses' => [200, 302],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'admin content entry',
         'path' => '/admin/content',
         'allowed_statuses' => [200, 302, 403, 404],
@@ -660,8 +666,9 @@ $checks = [
         'path' => '/modules/content/assets/layout.js',
         'allowed_statuses' => [200],
         'must_contain' => [
-            '[data-content-scroll-header]',
-            'is-content-layout-header-hidden',
+            '[data-content-scroll-nav]',
+            'is-content-layout-nav-hidden',
+            'data-content-layout-search-form',
         ],
     ],
     [

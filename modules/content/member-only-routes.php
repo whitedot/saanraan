@@ -11,6 +11,7 @@ return [
     ],
     'public_routes' => [
         'GET /content',
+        'GET /content/search',
         'GET /content/group',
         'GET /content/ui-kit',
         'GET /content/*',

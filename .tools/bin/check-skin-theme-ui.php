@@ -475,6 +475,7 @@ $publicModuleLayoutTargets = [
     'content.home',
     'content.group',
     'content.view',
+    'content.search',
     'community',
     'community.home',
     'community.group',
@@ -493,7 +494,7 @@ $publicModuleLayoutTargets = [
 ];
 
 foreach ([
-    'content' => ['content.home', 'content.group', 'content.view'],
+    'content' => ['content.home', 'content.group', 'content.view', 'content.search'],
     'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
     'quiz' => ['quiz.home', 'quiz.view', 'quiz.result'],
     'survey' => ['survey.home', 'survey.view', 'survey.complete'],
@@ -527,7 +528,7 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
 sr_skin_theme_check_contains('modules/content/helpers.php', [
     'function sr_content_theme_options(): array',
     "SR_ROOT . '/modules/content/theme'",
-    "['home.php' => true, 'group.php' => true, 'content.php' => true, 'ui-kit.php' => true]",
+    "['home.php' => true, 'group.php' => true, 'content.php' => true, 'search.php' => true, 'ui-kit.php' => true]",
     "sr_public_layout_module_theme_asset_url('content', \$themeKey, 'common.css')",
     "sr_public_layout_module_theme_asset_url('content', \$themeKey, 'ui-kit-layout.css')",
     "sr_module_view_theme_stylesheet_url('content'",
@@ -581,6 +582,7 @@ foreach ([
     'modules/content/theme/basic/home.php',
     'modules/content/theme/basic/group.php',
     'modules/content/theme/basic/content.php',
+    'modules/content/theme/basic/search.php',
     'modules/content/theme/basic/ui-kit.php',
     'modules/community/theme/basic/home.php',
     'modules/community/theme/basic/group.php',
@@ -601,6 +603,7 @@ foreach ([
     'modules/content/theme/sample/home.php',
     'modules/content/theme/sample/group.php',
     'modules/content/theme/sample/content.php',
+    'modules/content/theme/sample/search.php',
     'modules/content/theme/sample/ui-kit.php',
     'modules/community/theme/sample/home.php',
     'modules/community/theme/sample/group.php',
@@ -681,6 +684,7 @@ sr_skin_theme_check_contains([
     'modules/content/actions/home.php',
     'modules/content/actions/group.php',
     'modules/content/actions/view.php',
+    'modules/content/actions/search.php',
     'modules/community/actions/home.php',
     'modules/community/actions/group.php',
     'modules/community/actions/list.php',
@@ -709,6 +713,7 @@ sr_skin_theme_check_not_contains([
     'modules/content/actions/home.php',
     'modules/content/actions/group.php',
     'modules/content/actions/view.php',
+    'modules/content/actions/search.php',
     'modules/community/actions/home.php',
     'modules/community/actions/group.php',
     'modules/community/actions/list.php',

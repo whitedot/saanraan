@@ -2,6 +2,7 @@
 
 return [
     'GET /content' => 'actions/home.php',
+    'GET /content/search' => 'actions/search.php',
     'GET /content/download' => 'actions/download.php',
     'POST /content/download' => 'actions/download.php',
     'GET /content/cover-image' => 'actions/cover-image.php',

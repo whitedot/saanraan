@@ -382,7 +382,7 @@ function sr_content_settings(PDO $pdo): array
 
 function sr_content_layout_required_targets(): array
 {
-    return ['content.home', 'content.group', 'content.view'];
+    return ['content.home', 'content.group', 'content.view', 'content.search'];
 }
 
 function sr_content_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
@@ -458,7 +458,7 @@ function sr_content_public_layout_context(array $settings, array $context = []):
 
 function sr_content_theme_options(): array
 {
-    return sr_view_theme_options(SR_ROOT . '/modules/content/theme', ['home.php', 'group.php', 'content.php', 'ui-kit.php'], '기본 콘텐츠 테마', 'content_view_theme', false);
+    return sr_view_theme_options(SR_ROOT . '/modules/content/theme', ['home.php', 'group.php', 'content.php', 'search.php', 'ui-kit.php'], '기본 콘텐츠 테마', 'content_view_theme', false);
 }
 
 function sr_content_theme_key(string $themeKey): string
@@ -468,7 +468,7 @@ function sr_content_theme_key(string $themeKey): string
 
 function sr_content_theme_view_file(array $settings, string $viewFile): ?string
 {
-    $allowedFiles = ['home.php' => true, 'group.php' => true, 'content.php' => true, 'ui-kit.php' => true];
+    $allowedFiles = ['home.php' => true, 'group.php' => true, 'content.php' => true, 'search.php' => true, 'ui-kit.php' => true];
     if (!isset($allowedFiles[$viewFile])) {
         return null;
     }
@@ -478,7 +478,7 @@ function sr_content_theme_view_file(array $settings, string $viewFile): ?string
 
 function sr_content_public_view_file(PDO $pdo, array $settings, string $viewFile): string
 {
-    $allowedFiles = ['home.php' => true, 'group.php' => true, 'content.php' => true];
+    $allowedFiles = ['home.php' => true, 'group.php' => true, 'content.php' => true, 'search.php' => true];
     if (!isset($allowedFiles[$viewFile])) {
         return SR_ROOT . '/modules/content/views/content.php';
     }
@@ -808,7 +808,7 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
 
 function sr_content_reserved_slugs(): array
 {
-    return ['account', 'action', 'admin', 'api', 'assets', 'community', 'content', 'download', 'group', 'login', 'logout', 'modules', 'pages', 'register'];
+    return ['account', 'action', 'admin', 'api', 'assets', 'community', 'content', 'download', 'group', 'login', 'logout', 'modules', 'pages', 'register', 'search'];
 }
 
 function sr_content_clean_single_line(string $value, int $maxLength): string
@@ -1334,6 +1334,115 @@ function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
     return array_map(static function (array $row) use ($pdo): array {
         return sr_content_with_effective_settings($pdo, $row);
     }, $stmt->fetchAll());
+}
+
+function sr_content_search_like_pattern(string $keyword): string
+{
+    return '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $keyword) . '%';
+}
+
+function sr_content_search_access_rows(PDO $pdo): array
+{
+    sr_content_publish_due_scheduled($pdo);
+
+    $stmt = $pdo->query(
+        "SELECT *
+         FROM sr_content_items
+         WHERE status = 'published'
+           AND asset_access_enabled = 1
+           AND asset_access_amount > 0
+         ORDER BY id ASC"
+    );
+
+    return array_map(static function (array $row) use ($pdo): array {
+        return sr_content_with_effective_settings($pdo, $row);
+    }, $stmt->fetchAll());
+}
+
+function sr_content_search_items(PDO $pdo, string $keyword, array $bodySearchContentIds, int $limit = 20, int $offset = 0, bool $includePublicBodies = true): array
+{
+    $keyword = trim($keyword);
+    $bodySearchContentIds = array_values(array_unique(array_filter(
+        array_map('intval', $bodySearchContentIds),
+        static fn (int $contentId): bool => $contentId > 0
+    )));
+    $limit = max(1, min(100, $limit));
+    $offset = max(0, $offset);
+    if ($keyword === '') {
+        return [];
+    }
+
+    sr_content_publish_due_scheduled($pdo);
+
+    $params = [
+        'title_keyword' => sr_content_search_like_pattern($keyword),
+        'summary_keyword' => sr_content_search_like_pattern($keyword),
+    ];
+    $conditions = [
+        "p.title LIKE :title_keyword ESCAPE '!'",
+        "p.summary LIKE :summary_keyword ESCAPE '!'",
+    ];
+    if ($includePublicBodies) {
+        $bodyPlaceholders = [];
+        foreach ($bodySearchContentIds as $index => $contentId) {
+            $placeholder = 'body_content_id_' . (string) $index;
+            $bodyPlaceholders[] = ':' . $placeholder;
+            $params[$placeholder] = $contentId;
+        }
+        $bodyAccessConditions = ['p.asset_access_enabled <> 1', 'p.asset_access_amount <= 0'];
+        if ($bodyPlaceholders !== []) {
+            $bodyAccessConditions[] = 'p.id IN (' . implode(', ', $bodyPlaceholders) . ')';
+        }
+        $params['body_keyword'] = sr_content_search_like_pattern($keyword);
+        $conditions[] = "((" . implode(' OR ', $bodyAccessConditions) . ") AND p.body_text LIKE :body_keyword ESCAPE '!')";
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT p.*, g.group_key AS content_group_key, g.title AS content_group_title
+         FROM sr_content_items p
+         LEFT JOIN sr_content_groups g ON g.id = p.content_group_id AND g.status = \'enabled\'
+         WHERE p.status = \'published\'
+           AND (' . implode(' OR ', $conditions) . ')
+         ORDER BY p.published_at DESC, p.updated_at DESC, p.id DESC
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, str_starts_with($key, 'body_content_id_') ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return array_map(static function (array $row) use ($pdo): array {
+        return sr_content_with_effective_settings($pdo, $row);
+    }, $stmt->fetchAll());
+}
+
+function sr_content_body_plain_text(string $bodyText, string $bodyFormat = 'plain'): string
+{
+    if ($bodyFormat === 'html') {
+        $bodyText = str_replace(['<br>', '<br/>', '<br />'], ' ', $bodyText);
+        $bodyText = html_entity_decode(strip_tags($bodyText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    } elseif ($bodyFormat === 'markdown') {
+        $globalPdo = $GLOBALS['pdo'] ?? null;
+        $bodyText = $globalPdo instanceof PDO
+            ? sr_markdown_plain_text_for_body($globalPdo, $bodyText)
+            : sr_markdown_plain_text($bodyText);
+    }
+
+    return trim(preg_replace('/\s+/u', ' ', $bodyText) ?? '');
+}
+
+function sr_content_body_excerpt(string $bodyText, string $bodyFormat, int $length = 180): string
+{
+    $length = max(1, min(1000, $length));
+    $plainText = sr_content_body_plain_text($bodyText, $bodyFormat);
+    $textLength = function_exists('mb_strlen') ? mb_strlen($plainText) : strlen($plainText);
+    if ($textLength <= $length) {
+        return $plainText;
+    }
+
+    return (function_exists('mb_substr') ? mb_substr($plainText, 0, $length) : substr($plainText, 0, $length)) . '...';
 }
 
 function sr_content_optional_table_exists(PDO $pdo, string $tableName): bool
