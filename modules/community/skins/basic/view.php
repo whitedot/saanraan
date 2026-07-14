@@ -511,6 +511,9 @@ unset($_SESSION['sr_member_follow_feedback']);
                                 <?php if (is_array($account) || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
                                     <?php if ($communityCommentCanEdit || $communityCommentCanHide || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
                                         <?php if ($communityCommentCanReply) { ?>
+                                            <?php if (is_array($account)) { ?>
+                                                <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_reply_modal" data-overlay="#community_comment_reply_modal" data-community-comment-reply data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e((string) $comment['body_text']); ?>">답글</button>
+                                            <?php } else { ?>
                                             <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">답글</button>
                                             <div id="<?php echo sr_e($communityCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
                                                 <div class="modal-dialog">
@@ -566,6 +569,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                     </form>
                                                 </div>
                                             </div>
+                                            <?php } ?>
                                         <?php } ?>
                                         <?php if ($communityCommentCanEdit) { ?>
                                             <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_edit_modal" data-overlay="#community_comment_edit_modal" data-community-comment-edit data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e((string) $comment['body_text']); ?>" data-comment-secret="<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? '1' : '0'; ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
@@ -631,6 +635,44 @@ unset($_SESSION['sr_member_follow_feedback']);
                     <?php } ?>
                 </ul>
                 <?php if (is_array($account)) { ?>
+                    <div id="community_comment_reply_modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community_comment_reply_modal_title" aria-hidden="true" inert data-community-comment-reply-modal>
+                        <div class="modal-dialog">
+                            <form method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>" class="modal-content">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                                <input type="hidden" name="parent_comment_id" value="<?php echo $commentParentId > 0 ? sr_e((string) $commentParentId) : ''; ?>" data-community-comment-reply-id>
+                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
+                                <div class="modal-header">
+                                    <h3 id="community_comment_reply_modal_title" class="modal-title">답글 작성</h3>
+                                    <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="<?php echo sr_e(sr_t('community::ui.close')); ?>" data-overlay="#community_comment_reply_modal"><?php echo sr_material_icon_html('close', '', sr_t('community::ui.close')); ?></button>
+                                </div>
+                                <div class="modal-body">
+                                    <strong class="community-comment-reply-source-label"><?php echo sr_e('댓글'); ?></strong>
+                                    <p class="community-comment-reply-source" data-community-comment-reply-source></p>
+                                    <p>
+                                        <label for="community_comment_reply_body">
+                                            <span>답글 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                            <textarea id="community_comment_reply_body" name="body_text" rows="3" cols="60" required class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" data-community-comment-reply-body><?php echo $commentParentId > 0 ? sr_e($commentBody) : ''; ?></textarea>
+                                        </label>
+                                    </p>
+                                    <?php if (!empty($secretCommentsEnabled)) { ?>
+                                        <label class="community-comment-secret-toggle">
+                                            <input type="checkbox" name="is_secret" value="1" class="form-checkbox" data-community-comment-reply-secret<?php echo $commentParentId > 0 && !empty($commentIsSecret) ? ' checked' : ''; ?>>
+                                            <span><?php echo sr_e('비밀 댓글'); ?></span>
+                                        </label>
+                                    <?php } ?>
+                                    <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_reply_member'); ?>
+                                    <?php if (function_exists('sr_antispam_challenge_render')) { ?>
+                                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_member_reply', ['account' => $account]); ?>
+                                    <?php } ?>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community_comment_reply_modal"><?php echo sr_e(sr_t('community::ui.close')); ?></button>
+                                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e('답글 작성'); ?></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     <div id="community_comment_edit_modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community_comment_edit_modal_title" aria-hidden="true" inert data-community-comment-edit-modal data-secret-comments-enabled="<?php echo !empty($secretCommentsEnabled) ? '1' : '0'; ?>">
                         <div class="modal-dialog">
                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>" class="modal-content">

@@ -857,6 +857,33 @@
         return;
       }
 
+      var replyButton = eventTarget.closest('[data-community-comment-reply]');
+      if (replyButton) {
+        var replyModal = document.querySelector('[data-community-comment-reply-modal]');
+        if (!replyModal) {
+          return;
+        }
+        var replyId = replyModal.querySelector('[data-community-comment-reply-id]');
+        var replyBody = replyModal.querySelector('[data-community-comment-reply-body]');
+        var replySource = replyModal.querySelector('[data-community-comment-reply-source]');
+        var replySecret = replyModal.querySelector('[data-community-comment-reply-secret]');
+        var nextReplyId = replyButton.getAttribute('data-comment-id') || '';
+        var preserveReplyInput = replyId && replyId.value === nextReplyId && replyBody && replyBody.value !== '';
+        if (replyId) {
+          replyId.value = nextReplyId;
+        }
+        if (replySource) {
+          replySource.textContent = replyButton.getAttribute('data-comment-body') || '';
+        }
+        if (replyBody && !preserveReplyInput) {
+          replyBody.value = '';
+        }
+        if (replySecret && !preserveReplyInput) {
+          replySecret.checked = false;
+        }
+        return;
+      }
+
       var editButton = eventTarget.closest('[data-community-comment-edit]');
       if (editButton) {
         var editModal = document.querySelector('[data-community-comment-edit-modal]');

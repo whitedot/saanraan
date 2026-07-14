@@ -80,10 +80,12 @@ $assert(sr_community_account_can_delete_comment($comment, ['id' => 7], $pdo, $po
 $assert($adminPermissionSnapshotCalls === 1 && $boardPermissionSnapshotCalls === 1, 'Per-comment permission decisions must reuse the prepared context.');
 
 $viewAction = file_get_contents($root . '/modules/community/actions/view.php');
+$commentAction = file_get_contents($root . '/modules/community/actions/comment.php');
 $memberFollowHelper = file_get_contents($root . '/modules/member/helpers/follows.php');
 $reactionHelper = file_get_contents($root . '/modules/reaction/helpers.php');
 $assert(is_string($viewAction) && str_contains($viewAction, 'sr_member_follow_statuses('), 'Community post view must batch follow statuses for comment authors.');
 $assert(is_string($viewAction) && str_contains($viewAction, 'sr_community_comment_permission_context('), 'Community post view must prepare one comment permission context.');
+$assert(is_string($commentAction) && str_contains($commentAction, "'_member_reply'"), 'Logged-in comment replies must verify the shared reply antispam form key.');
 $assert(is_string($memberFollowHelper) && str_contains($memberFollowHelper, "array_key_exists('is_following', \$options)"), 'Member name menu must accept a prepared follow state.');
 $assert(is_string($reactionHelper) && str_contains($reactionHelper, 'function sr_reaction_record_summaries('), 'Reaction helper must expose batch target summaries.');
 $assert(is_string($reactionHelper) && str_contains($reactionHelper, "array_key_exists('my_record', \$options)"), 'Reaction widget must accept a prepared viewer record.');
@@ -97,13 +99,16 @@ foreach ([
     $assert(is_string($view) && str_contains($view, "'is_following' =>"), $viewFile . ' must pass prepared follow states to the member menu.');
     $assert(is_string($view) && str_contains($view, "\$communityCommentPermissionContext ?? []"), $viewFile . ' must reuse the prepared comment permission context.');
     $assert(is_string($view) && substr_count($view, 'id="community_comment_edit_modal"') === 1, $viewFile . ' must render one shared member comment edit modal.');
+    $assert(is_string($view) && substr_count($view, 'id="community_comment_reply_modal"') === 1, $viewFile . ' must render one shared member comment reply modal.');
     $assert(is_string($view) && substr_count($view, 'id="community_report_comment_modal"') === 1, $viewFile . ' must render one shared comment report modal.');
+    $assert(is_string($view) && str_contains($view, 'data-community-comment-reply data-comment-id='), $viewFile . ' member reply buttons must pass the parent target to the shared modal.');
     $assert(is_string($view) && str_contains($view, 'data-community-comment-edit data-comment-id='), $viewFile . ' edit buttons must pass the target to the shared modal.');
     $assert(is_string($view) && str_contains($view, 'data-community-comment-report data-comment-id='), $viewFile . ' report buttons must pass the target to the shared modal.');
     $assert(is_string($view) && !str_contains($view, "\$communityCommentReportModalId"), $viewFile . ' must not generate a report modal id per comment.');
 }
 $communityModuleScript = file_get_contents($root . '/modules/community/assets/module.js');
 $assert(is_string($communityModuleScript) && str_contains($communityModuleScript, 'function initCommentSharedModals()'), 'Community JavaScript must populate shared comment modals.');
+$assert(is_string($communityModuleScript) && str_contains($communityModuleScript, "replyButton.getAttribute('data-comment-id')"), 'Shared reply modal must receive the selected parent comment id.');
 $assert(is_string($communityModuleScript) && str_contains($communityModuleScript, "editButton.getAttribute('data-comment-body')"), 'Shared edit modal must restore the exact escaped comment body payload.');
 
 if ($errors !== []) {

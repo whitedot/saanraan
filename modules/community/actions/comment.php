@@ -54,7 +54,10 @@ if ($isGuestAuthor) {
 }
 $antispamCommentContext = ['account' => is_array($account) ? $account : null];
 if (function_exists('sr_antispam_verify')) {
-    $antispamResult = sr_antispam_verify($pdo, 'community.comment.guest', 'community_comment_' . (string) $postId . '_' . (string) (int) ($values['parent_comment_id'] ?? 0), $_POST, $antispamCommentContext);
+    $antispamFormKey = !$isGuestAuthor && (int) ($values['parent_comment_id'] ?? 0) > 0
+        ? 'community_comment_' . (string) $postId . '_member_reply'
+        : 'community_comment_' . (string) $postId . '_' . (string) (int) ($values['parent_comment_id'] ?? 0);
+    $antispamResult = sr_antispam_verify($pdo, 'community.comment.guest', $antispamFormKey, $_POST, $antispamCommentContext);
     $errors = array_merge($errors, (array) ($antispamResult['errors'] ?? []));
 }
 if (!is_array($board) || !sr_community_effective_board_secret_comments_enabled($pdo, $board, $settings)) {
