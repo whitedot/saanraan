@@ -279,6 +279,7 @@ docs/records/release-verification-YYYY-MM-DD.md
 - `.tools/bin/check-admin-selector-current-values.php`는 설문 응답·통계·보상 로그 선택기가 300건 후보 밖의 현재 설문을, 퀴즈·설문 보상 설정이 200건 후보 밖의 현재 쿠폰 정의를 유지하는지 SQLite fixture와 action marker로 확인한다.
 - `.tools/bin/check-popup-layer-targets.php`는 팝업레이어 쿠폰 CTA 선택기가 공개 무료·팝업 노출 캠페인을 300건 상한 전에 거르고, 현재 저장 캠페인은 후보 상태가 바뀌었거나 상한 밖이어도 편집 화면에서 식별 가능하게 유지하는지 SQLite fixture로 확인한다.
 - `.tools/bin/check-public-service-list-pagination.php`는 기존 `/quiz`, `/survey`, `/coupons` 경로가 고정 50건에서 끝나지 않고 전체 공개 목록을 페이지로 탐색하는지 확인한다. 각 45건 SQLite fixture의 count와 마지막 부분 페이지, 기본·샘플 테마 및 쿠폰존 페이지 링크 marker를 함께 고정한다.
+- `.tools/bin/check-survey-member-group-references.php`는 설문 회원그룹 참조 수집이 대상 key를 500건 상한 전에 SQL로 좁혀, 최근의 무관한 설문 500건 뒤에 있는 오래된 참조도 놓치지 않는지 SQLite fixture로 확인한다.
 - `.tools/bin/check-privacy-export-runtime.php`의 회원 fixture는 인증 로그와 세션이 각각 100건을 넘으면 최신 100건을 반환하면서 `_limits.has_more`를 기록해 개인정보 사본 전체가 부분 제공 상태로 판정되도록 확인한다.
 - `.tools/bin/check-policy-documents-runtime.php`는 정책 문서 안내메일 작업이 고정 100건에서 끝나지 않고 독립 `mail_page`의 count 기반 페이지네이션으로 전체 목록을 탐색하는지 확인한다. 45건 SQLite fixture의 마지막 부분 페이지와 행 작업 후 현재 목록 복귀 marker도 함께 고정한다.
 - `.tools/bin/check-member-asset-history-pagination.php`는 회원 포인트 거래, 적립금·예치금 신청/거래 내역, 자산 환전 내역이 고정 50/100건에서 끝나지 않고 count 기반 페이지네이션으로 전체 이력을 탐색하는지 확인한다. 한 화면의 신청·거래 페이지 상태와 환전 견적 쿼리를 각각 보존하는 공개 pagination 계약도 함께 확인한다.

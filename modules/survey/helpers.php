@@ -1143,15 +1143,17 @@ function sr_survey_member_group_reference_rows(PDO $pdo, array $target, array $c
         return [];
     }
 
-    $stmt = $pdo->query(
+    $stmt = $pdo->prepare(
         'SELECT id, survey_key, title, status, member_group_keys_json, updated_at
          FROM sr_survey_forms
          WHERE member_group_keys_json IS NOT NULL
            AND member_group_keys_json <> \'\'
            AND deleted_at IS NULL
+           AND INSTR(member_group_keys_json, :target_key_json) > 0
          ORDER BY updated_at DESC, id DESC
          LIMIT 500'
     );
+    $stmt->execute(['target_key_json' => '"' . $targetKey . '"']);
     $rows = [];
     foreach ($stmt->fetchAll() as $row) {
         $groupKeys = sr_survey_member_group_keys_from_json($row['member_group_keys_json'] ?? '[]');
