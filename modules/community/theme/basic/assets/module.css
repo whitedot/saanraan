@@ -411,6 +411,11 @@
 .community-board-table-card {
     background: var(--sr-surface, var(--color-card, #fff));
     border-color: var(--sr-border, var(--color-default-300, #d8dde6));
+    overflow: visible;
+}
+
+.community-board-table-card > .table-wrapper {
+    overflow: visible;
 }
 
 .community-board-table {

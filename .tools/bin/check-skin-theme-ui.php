@@ -767,6 +767,7 @@ sr_skin_theme_check_not_contains([
 
 sr_skin_theme_check_contains('modules/community/theme/basic/assets/module.css', [
     '.community-board-table-card',
+    ".community-board-table-card > .table-wrapper {\n    overflow: visible;\n}",
     '.community-board-table.table-list thead th',
     '.community-board-table-mobile-meta',
     'var(--sr-surface-muted',
