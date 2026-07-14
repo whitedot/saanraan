@@ -307,7 +307,7 @@ $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo,
 
 $commentsPerPage = is_array($postBoard)
     ? sr_community_board_comments_per_page($pdo, $postBoard, $settings)
-    : max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
+    : max(1, min(100, (int) ($settings['comments_per_page'] ?? 20)));
 $commentPageInput = $communityCommentPageRequestValue;
 $requestedCommentPage = preg_match('/\A[1-9][0-9]*\z/', $commentPageInput) === 1 ? (int) $commentPageInput : 1;
 $commentPage = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody

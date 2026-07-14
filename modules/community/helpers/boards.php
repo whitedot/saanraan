@@ -1524,7 +1524,7 @@ function sr_community_effective_board_policy(PDO $pdo, array $board, string $set
 
 function sr_community_board_comments_per_page(PDO $pdo, array $board, array $settings = []): int
 {
-    $globalPerPage = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
+    $globalPerPage = min(100, max(1, (int) ($settings['comments_per_page'] ?? 20)));
     $boardPerPage = (int) sr_community_effective_board_setting($pdo, $board, 'comments_per_page', '0');
 
     return $boardPerPage >= 1 && $boardPerPage <= 100 ? $boardPerPage : $globalPerPage;

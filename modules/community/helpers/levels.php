@@ -11,7 +11,7 @@ function sr_community_default_settings(): array
     $settings = isset($metadata['settings']) && is_array($metadata['settings']) ? $metadata['settings'] : [];
     return [
         'posts_per_page' => (int) ($settings['posts_per_page'] ?? 20),
-        'comments_per_page' => (int) ($settings['comments_per_page'] ?? 50),
+        'comments_per_page' => (int) ($settings['comments_per_page'] ?? 20),
         'post_create_window_seconds' => (int) ($settings['post_create_window_seconds'] ?? 300),
         'post_create_limit' => (int) ($settings['post_create_limit'] ?? 10),
         'comment_create_window_seconds' => (int) ($settings['comment_create_window_seconds'] ?? 300),
@@ -207,7 +207,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     }
     $settings = array_merge(sr_community_default_settings(), $settings);
     $settings['posts_per_page'] = min(100, max(1, (int) ($settings['posts_per_page'] ?? 20)));
-    $settings['comments_per_page'] = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
+    $settings['comments_per_page'] = min(100, max(1, (int) ($settings['comments_per_page'] ?? 20)));
     $settings['post_create_window_seconds'] = min(86400, max(60, (int) ($settings['post_create_window_seconds'] ?? 300)));
     $settings['post_create_limit'] = min(100, max(1, (int) ($settings['post_create_limit'] ?? 10)));
     $settings['comment_create_window_seconds'] = min(86400, max(60, (int) ($settings['comment_create_window_seconds'] ?? 300)));

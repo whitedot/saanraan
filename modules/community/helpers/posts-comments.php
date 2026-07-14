@@ -77,7 +77,7 @@ function sr_community_has_comment_page_access(int $postId): bool
     return (int) ($_SESSION['sr_community_comment_page_access'][(string) $postId] ?? 0) >= time() - 7200;
 }
 
-function sr_community_post_comment_page(PDO $pdo, int $postId, int $page = 1, int $perPage = 50): array
+function sr_community_post_comment_page(PDO $pdo, int $postId, int $page = 1, int $perPage = 20): array
 {
     $perPage = max(1, min(100, $perPage));
     $total = sr_community_post_published_comment_count($pdo, $postId);
@@ -115,7 +115,7 @@ function sr_community_post_comment_page(PDO $pdo, int $postId, int $page = 1, in
     ];
 }
 
-function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 50): array
+function sr_community_post_comments(PDO $pdo, int $postId, int $limit = 20): array
 {
     $page = sr_community_post_comment_page($pdo, $postId, 1, $limit);
 

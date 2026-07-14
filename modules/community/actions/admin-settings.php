@@ -304,7 +304,7 @@ if (sr_request_method() === 'POST') {
         }
         if ($commentsPerPage === null) {
             $errors[] = '댓글 페이지당 수는 1 이상 100 이하로 입력하세요.';
-            $commentsPerPage = min(100, max(1, (int) ($settings['comments_per_page'] ?? 50)));
+            $commentsPerPage = min(100, max(1, (int) ($settings['comments_per_page'] ?? 20)));
         }
         if ($postBodyMinLength > 0 && $postBodyMaxLength > 0 && $postBodyMinLength > $postBodyMaxLength) {
             $errors[] = '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';

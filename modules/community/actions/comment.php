@@ -246,7 +246,7 @@ if (!empty($commentRewardResult['processed'])) {
 }
 $commentsPerPage = is_array($board)
     ? sr_community_board_comments_per_page($pdo, $board, $settings)
-    : max(1, min(100, (int) ($settings['comments_per_page'] ?? 50)));
+    : max(1, min(100, (int) ($settings['comments_per_page'] ?? 20)));
 $commentFocusPage = sr_community_comment_page_for_comment($pdo, $postId, $commentId, $commentsPerPage);
 $commentSuccessUrl = '/community/post?id=' . (string) $postId;
 if ($commentFocusPage > 1) {

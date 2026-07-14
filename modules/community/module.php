@@ -61,7 +61,7 @@ return [
     ],
     'settings' => [
         'posts_per_page' => 20,
-        'comments_per_page' => 50,
+        'comments_per_page' => 20,
         'post_create_window_seconds' => 300,
         'post_create_limit' => 10,
         'comment_create_window_seconds' => 300,

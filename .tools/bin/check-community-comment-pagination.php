@@ -99,6 +99,8 @@ $firstPage = sr_community_post_comment_page($pdo, 1, 1, 2);
 sr_community_comment_pagination_assert(sr_community_comment_pagination_ids($firstPage) === [1, 2], 'First comment page must return the first two threaded rows.');
 sr_community_comment_pagination_assert((int) ($firstPage['total_pages'] ?? 0) === 4, 'Comment pagination must expose the total page count.');
 sr_community_comment_pagination_assert(!empty($firstPage['has_next']) && empty($firstPage['has_previous']), 'First comment page must expose only a next page.');
+$defaultPage = sr_community_post_comment_page($pdo, 1);
+sr_community_comment_pagination_assert((int) ($defaultPage['per_page'] ?? 0) === 20, 'Comment pagination must use the performance-oriented default page size of 20.');
 
 $secondPage = sr_community_post_comment_page($pdo, 1, 2, 2);
 sr_community_comment_pagination_assert(sr_community_comment_pagination_ids($secondPage) === [3, 4], 'Second comment page must continue without gaps or duplicates.');
@@ -123,9 +125,11 @@ sr_community_comment_pagination_assert(str_contains($paginationHtml, 'aria-curre
 
 $viewAction = file_get_contents($root . '/modules/community/actions/view.php');
 $commentAction = file_get_contents($root . '/modules/community/actions/comment.php');
-foreach ([$viewAction, $commentAction] as $contents) {
+$moduleDefinition = file_get_contents($root . '/modules/community/module.php');
+foreach ([$viewAction, $commentAction, $moduleDefinition] as $contents) {
     sr_community_comment_pagination_assert(is_string($contents), 'Community comment action source must be readable.');
 }
+sr_community_comment_pagination_assert(str_contains((string) $moduleDefinition, "'comments_per_page' => 20"), 'Community module settings must default to 20 comments per page.');
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, 'sr_community_post_comment_page('), 'Post view action must use the numeric page helper.');
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, "\$post['published_comment_count']"), 'Post view action must expose the full published comment count.');
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, 'sr_community_board_comments_per_page('), 'Post view action must resolve the board-priority page size.');
