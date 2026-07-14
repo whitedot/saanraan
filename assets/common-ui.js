@@ -486,6 +486,28 @@
   init();
 })();
 
+(function () {
+  'use strict';
+
+  document.addEventListener('click', function (event) {
+    var closeButton = event.target && event.target.closest ? event.target.closest('[data-sr-public-toast-close]') : null;
+    if (!closeButton) {
+      return;
+    }
+
+    var toast = closeButton.closest('[data-sr-public-toast]');
+    if (!toast) {
+      return;
+    }
+
+    event.preventDefault();
+    toast.classList.add('is-hiding');
+    window.setTimeout(function () {
+      toast.remove();
+    }, 180);
+  });
+})();
+
 
 (function () {
   'use strict';

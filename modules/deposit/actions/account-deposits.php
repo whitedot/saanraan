@@ -14,8 +14,11 @@ $depositUnitLabel = sr_deposit_unit_label($pdo);
 $depositAmountLabel = static function (int $amount) use ($depositUnitLabel): string {
     return number_format($amount) . $depositUnitLabel;
 };
-$errors = [];
-$notice = '';
+$depositFlash = isset($_SESSION['sr_deposit_flash']) && is_array($_SESSION['sr_deposit_flash']) ? $_SESSION['sr_deposit_flash'] : [];
+unset($_SESSION['sr_deposit_flash']);
+$errors = isset($depositFlash['errors']) && is_array($depositFlash['errors']) ? array_values(array_map('strval', $depositFlash['errors'])) : [];
+$notice = (string) ($depositFlash['notice'] ?? '');
+$depositRefundFormValues = isset($depositFlash['values']) && is_array($depositFlash['values']) ? $depositFlash['values'] : [];
 $depositSettings = sr_deposit_settings($pdo);
 $depositIdentityPurpose = 'deposit.refund_request';
 $depositIdentityRequired = !empty($depositSettings['identity_refund_required']);
@@ -31,6 +34,13 @@ $depositIdentityStartUrl = $depositIdentityAvailable && function_exists('sr_iden
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
+    $depositRefundFormValues = $intent === 'refund_request' ? [
+        'amount' => sr_post_string('amount', 30),
+        'bank_name' => sr_post_string('bank_name', 80),
+        'bank_account_number' => sr_post_string('bank_account_number', 80),
+        'bank_account_holder' => sr_post_string('bank_account_holder', 80),
+        'requester_note' => sr_post_string('requester_note', 255),
+    ] : [];
 
     if ($intent === 'refund_request') {
         if ($depositIdentityRequired && !$depositIdentitySatisfied) {
@@ -38,7 +48,7 @@ if (sr_request_method() === 'POST') {
                 ? $depositDisplayName . ' 환불 신청 전 본인확인을 완료해 주세요.'
                 : '본인확인 기능이 준비되지 않아 환불 신청을 진행할 수 없습니다.';
         }
-        $amountInput = sr_post_string('amount', 30);
+        $amountInput = (string) ($depositRefundFormValues['amount'] ?? '');
         if (preg_match('/\A\d+\z/', $amountInput) !== 1) {
             $errors[] = '환불 신청 금액은 양의 정수로 입력하세요.';
         }
@@ -54,10 +64,10 @@ if (sr_request_method() === 'POST') {
             try {
                 $requestId = sr_deposit_create_refund_request($pdo, (int) $account['id'], [
                     'amount' => $amount,
-                    'bank_name' => sr_post_string('bank_name', 80),
-                    'bank_account_number' => sr_post_string('bank_account_number', 80),
-                    'bank_account_holder' => sr_post_string('bank_account_holder', 80),
-                    'requester_note' => sr_post_string('requester_note', 255),
+                    'bank_name' => (string) ($depositRefundFormValues['bank_name'] ?? ''),
+                    'bank_account_number' => (string) ($depositRefundFormValues['bank_account_number'] ?? ''),
+                    'bank_account_holder' => (string) ($depositRefundFormValues['bank_account_holder'] ?? ''),
+                    'requester_note' => (string) ($depositRefundFormValues['requester_note'] ?? ''),
                 ]);
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
@@ -112,17 +122,10 @@ if (sr_request_method() === 'POST') {
     } else {
         $errors[] = '요청 유형이 올바르지 않습니다.';
     }
-}
-
-if (isset($_SESSION['sr_deposit_flash']) && is_array($_SESSION['sr_deposit_flash'])) {
-    $notice = (string) ($_SESSION['sr_deposit_flash']['notice'] ?? '');
-    $flashErrors = $_SESSION['sr_deposit_flash']['errors'] ?? [];
-    if (is_array($flashErrors)) {
-        foreach ($flashErrors as $flashError) {
-            $errors[] = (string) $flashError;
-        }
+    if ($errors !== []) {
+        $_SESSION['sr_deposit_flash'] = ['notice' => '', 'errors' => $errors, 'values' => $depositRefundFormValues];
+        sr_redirect('/account/deposits' . ($intent === 'refund_request' ? '#deposit-refund-request' : ''));
     }
-    unset($_SESSION['sr_deposit_flash']);
 }
 
 $balance = sr_deposit_balance($pdo, (int) $account['id']);

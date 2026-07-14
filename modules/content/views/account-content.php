@@ -2,13 +2,15 @@
 
 $pageTitle = '내 콘텐츠';
 $seo = ['title' => $pageTitle, 'robots' => 'noindex, nofollow'];
-$formSubmission = is_array($editingSubmission ?? null) ? $editingSubmission : [];
+$formSubmission = array_merge(
+    is_array($editingSubmission ?? null) ? $editingSubmission : [],
+    is_array($contentSubmissionFormValues ?? null) ? $contentSubmissionFormValues : []
+);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
 <main class="ui-page">
     <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
-    <?php foreach ($errors as $error) { ?><p><?php echo sr_e((string) $error); ?></p><?php } ?>
-    <?php if ($notice !== '') { ?><p><?php echo sr_e($notice); ?></p><?php } ?>
+    <?php echo sr_public_feedback_toasts('content', $notice, $errors); ?>
 
     <?php if ($allowedSubmissionGroups === []) { ?>
         <p>제출 가능한 콘텐츠 그룹이 없습니다.</p>

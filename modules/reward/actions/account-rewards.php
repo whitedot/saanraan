@@ -18,8 +18,11 @@ $rewardUnitLabel = sr_reward_unit_label($pdo);
 $rewardAmountLabel = static function (int $amount) use ($rewardUnitLabel): string {
     return number_format($amount) . $rewardUnitLabel;
 };
-$errors = [];
-$notice = '';
+$rewardFlash = isset($_SESSION['sr_reward_flash']) && is_array($_SESSION['sr_reward_flash']) ? $_SESSION['sr_reward_flash'] : [];
+unset($_SESSION['sr_reward_flash']);
+$errors = isset($rewardFlash['errors']) && is_array($rewardFlash['errors']) ? array_values(array_map('strval', $rewardFlash['errors'])) : [];
+$notice = (string) ($rewardFlash['notice'] ?? '');
+$rewardWithdrawalFormValues = isset($rewardFlash['values']) && is_array($rewardFlash['values']) ? $rewardFlash['values'] : [];
 $rewardSettings = sr_reward_settings($pdo);
 $rewardIdentityPurpose = 'reward.withdrawal_request';
 $rewardIdentityRequired = !empty($rewardSettings['identity_withdrawal_required']);
@@ -35,6 +38,13 @@ $rewardIdentityStartUrl = $rewardIdentityAvailable && function_exists('sr_identi
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     $intent = sr_post_string('intent', 40);
+    $rewardWithdrawalFormValues = $intent === 'withdrawal_request' ? [
+        'amount' => sr_post_string('amount', 30),
+        'bank_name' => sr_post_string('bank_name', 80),
+        'bank_account_number' => sr_post_string('bank_account_number', 80),
+        'bank_account_holder' => sr_post_string('bank_account_holder', 80),
+        'requester_note' => sr_post_string('requester_note', 255),
+    ] : [];
 
     if ($intent === 'withdrawal_request') {
         if (!sr_reward_withdrawal_requests_enabled($pdo)) {
@@ -47,7 +57,7 @@ if (sr_request_method() === 'POST') {
                 ? $rewardDisplayName . ' 출금 신청 전 본인확인을 완료해 주세요.'
                 : '본인확인 기능이 준비되지 않아 출금 신청을 진행할 수 없습니다.';
         }
-        $amountInput = sr_post_string('amount', 30);
+        $amountInput = (string) ($rewardWithdrawalFormValues['amount'] ?? '');
         if (preg_match('/\A\d+\z/', $amountInput) !== 1) {
             $errors[] = '출금 신청 금액은 양의 정수로 입력하세요.';
         }
@@ -63,10 +73,10 @@ if (sr_request_method() === 'POST') {
             try {
                 $requestId = sr_reward_create_withdrawal_request($pdo, (int) $account['id'], [
                     'amount' => $amount,
-                    'bank_name' => sr_post_string('bank_name', 80),
-                    'bank_account_number' => sr_post_string('bank_account_number', 80),
-                    'bank_account_holder' => sr_post_string('bank_account_holder', 80),
-                    'requester_note' => sr_post_string('requester_note', 255),
+                    'bank_name' => (string) ($rewardWithdrawalFormValues['bank_name'] ?? ''),
+                    'bank_account_number' => (string) ($rewardWithdrawalFormValues['bank_account_number'] ?? ''),
+                    'bank_account_holder' => (string) ($rewardWithdrawalFormValues['bank_account_holder'] ?? ''),
+                    'requester_note' => (string) ($rewardWithdrawalFormValues['requester_note'] ?? ''),
                 ]);
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],
@@ -121,17 +131,10 @@ if (sr_request_method() === 'POST') {
     } else {
         $errors[] = '요청 유형이 올바르지 않습니다.';
     }
-}
-
-if (isset($_SESSION['sr_reward_flash']) && is_array($_SESSION['sr_reward_flash'])) {
-    $notice = (string) ($_SESSION['sr_reward_flash']['notice'] ?? '');
-    $flashErrors = $_SESSION['sr_reward_flash']['errors'] ?? [];
-    if (is_array($flashErrors)) {
-        foreach ($flashErrors as $flashError) {
-            $errors[] = (string) $flashError;
-        }
+    if ($errors !== []) {
+        $_SESSION['sr_reward_flash'] = ['notice' => '', 'errors' => $errors, 'values' => $rewardWithdrawalFormValues];
+        sr_redirect('/account/rewards' . ($intent === 'withdrawal_request' ? '#reward-withdrawal-request' : ''));
     }
-    unset($_SESSION['sr_reward_flash']);
 }
 
 $balance = sr_reward_balance($pdo, (int) $account['id']);

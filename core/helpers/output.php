@@ -240,9 +240,9 @@ function sr_public_feedback_toasts(string $namespace, string $notice = '', array
     ?>
     <div class="<?php echo sr_e($namespace); ?>-toast-stack" data-<?php echo sr_e($namespace); ?>-toast-stack role="status" aria-live="polite" aria-atomic="false">
         <?php foreach ($items as $item) { ?>
-            <div class="alert-removable alert <?php echo (string) $item['type'] === 'success' ? 'alert-success' : 'alert-danger'; ?> <?php echo sr_e($namespace); ?>-toast <?php echo sr_e($namespace); ?>-toast-<?php echo sr_e((string) $item['type']); ?>" data-<?php echo sr_e($namespace); ?>-toast role="<?php echo (string) $item['type'] === 'error' ? 'alert' : 'status'; ?>">
+            <div class="alert-removable alert <?php echo (string) $item['type'] === 'success' ? 'alert-success' : 'alert-danger'; ?> <?php echo sr_e($namespace); ?>-toast <?php echo sr_e($namespace); ?>-toast-<?php echo sr_e((string) $item['type']); ?>" data-<?php echo sr_e($namespace); ?>-toast data-sr-public-toast role="<?php echo (string) $item['type'] === 'error' ? 'alert' : 'status'; ?>">
                 <?php echo sr_e((string) $item['message']); ?>
-                <button type="button" class="btn btn-sm btn-ghost-default btn-icon alert-close-leading <?php echo sr_e($namespace); ?>-toast-close" data-<?php echo sr_e($namespace); ?>-toast-close aria-label="<?php echo sr_e('닫기'); ?>">
+                <button type="button" class="btn btn-sm btn-ghost-default btn-icon alert-close-leading <?php echo sr_e($namespace); ?>-toast-close" data-<?php echo sr_e($namespace); ?>-toast-close data-sr-public-toast-close aria-label="<?php echo sr_e('닫기'); ?>">
                     <?php echo sr_material_icon_html('close', $namespace . '-toast-close-icon'); ?>
                 </button>
             </div>

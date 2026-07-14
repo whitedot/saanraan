@@ -730,6 +730,11 @@ if (is_string($outputHelper)) {
         'JS JSON helper should expose a script-safe JSON encoding policy.'
     );
     sr_output_helper_assert(
+        strpos($outputHelper, 'data-sr-public-toast') !== false
+            && strpos($outputHelper, 'data-sr-public-toast-close') !== false,
+        'Public feedback toasts should expose shared close interaction markers.'
+    );
+    sr_output_helper_assert(
         strpos($outputHelper, 'sr_load_module_contract_file($rendererModuleKey, $file)') !== false
             && strpos($outputHelper, 'catch (Throwable $exception)') !== false
             && strpos($outputHelper, "sr_log_exception(\$exception, 'module_output_slot_failed_' . \$rendererModuleKey)") !== false,

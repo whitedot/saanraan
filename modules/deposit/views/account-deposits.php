@@ -16,16 +16,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
     <main class="ui-page">
         <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
         <p><a href="<?php echo sr_e(sr_url('/account')); ?>">계정으로 돌아가기</a></p>
-        <?php if ($notice !== '') { ?>
-            <p><?php echo sr_e($notice); ?></p>
-        <?php } ?>
-        <?php if ($errors !== []) { ?>
-            <ul>
-                <?php foreach ($errors as $error) { ?>
-                    <li><?php echo sr_e($error); ?></li>
-                <?php } ?>
-            </ul>
-        <?php } ?>
+        <?php echo sr_public_feedback_toasts('deposit', $notice, $errors); ?>
         <section class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">현재 잔액</h2>
             <p><?php echo sr_e($depositAmountLabel((int) $balance)); ?></p>
@@ -55,32 +46,32 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <p>
                         <label for="deposit_refund_amount">
                             <span>신청 금액 <span class="sr-required-label">(필수)</span></span>
-                            <input id="deposit_refund_amount" type="number" name="amount" min="<?php echo sr_e((string) sr_deposit_refund_min_amount()); ?>" max="<?php echo sr_e((string) min(sr_deposit_refund_max_amount(), (int) $availableRefundAmount)); ?>" step="1" required class="form-input">
+                            <input id="deposit_refund_amount" type="number" name="amount" value="<?php echo sr_e((string) ($depositRefundFormValues['amount'] ?? '')); ?>" min="<?php echo sr_e((string) sr_deposit_refund_min_amount()); ?>" max="<?php echo sr_e((string) min(sr_deposit_refund_max_amount(), (int) $availableRefundAmount)); ?>" step="1" required class="form-input">
                         </label>
                         <small>최소 <?php echo sr_e($depositAmountLabel(sr_deposit_refund_min_amount())); ?>, 최대 <?php echo sr_e($depositAmountLabel(sr_deposit_refund_max_amount())); ?>까지 신청할 수 있습니다.</small>
                     </p>
                 <p>
                     <label for="deposit_refund_bank_name">
                         <span>은행명 <span class="sr-required-label">(필수)</span></span>
-                        <input id="deposit_refund_bank_name" type="text" name="bank_name" maxlength="80" required class="form-input">
+                        <input id="deposit_refund_bank_name" type="text" name="bank_name" value="<?php echo sr_e((string) ($depositRefundFormValues['bank_name'] ?? '')); ?>" maxlength="80" required class="form-input">
                     </label>
                 </p>
                 <p>
                     <label for="deposit_refund_bank_account_number">
                         <span>계좌번호 <span class="sr-required-label">(필수)</span></span>
-                        <input id="deposit_refund_bank_account_number" type="text" name="bank_account_number" maxlength="80" required class="form-input">
+                        <input id="deposit_refund_bank_account_number" type="text" name="bank_account_number" value="<?php echo sr_e((string) ($depositRefundFormValues['bank_account_number'] ?? '')); ?>" maxlength="80" required class="form-input">
                     </label>
                 </p>
                 <p>
                     <label for="deposit_refund_bank_account_holder">
                         <span>예금주 <span class="sr-required-label">(필수)</span></span>
-                        <input id="deposit_refund_bank_account_holder" type="text" name="bank_account_holder" maxlength="80" required class="form-input">
+                        <input id="deposit_refund_bank_account_holder" type="text" name="bank_account_holder" value="<?php echo sr_e((string) ($depositRefundFormValues['bank_account_holder'] ?? '')); ?>" maxlength="80" required class="form-input">
                     </label>
                 </p>
                 <p>
                     <label for="deposit_refund_requester_note">
                         <span>요청 메모</span>
-                        <input id="deposit_refund_requester_note" type="text" name="requester_note" maxlength="255" class="form-input">
+                        <input id="deposit_refund_requester_note" type="text" name="requester_note" value="<?php echo sr_e((string) ($depositRefundFormValues['requester_note'] ?? '')); ?>" maxlength="255" class="form-input">
                     </label>
                     <small>관리자가 환불 입금 확인에 참고할 내용을 적을 수 있습니다.</small>
                 </p>
