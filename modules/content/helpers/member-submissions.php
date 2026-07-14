@@ -89,7 +89,7 @@ function sr_content_author_application_by_account(PDO $pdo, int $accountId): ?ar
     return is_array($row) ? $row : null;
 }
 
-function sr_content_author_applications(PDO $pdo, $statuses = 'pending', int $applicationId = 0): array
+function sr_content_author_application_query_parts($statuses = 'pending', int $applicationId = 0): array
 {
     $params = [];
     $whereParts = [];
@@ -115,21 +115,45 @@ function sr_content_author_applications(PDO $pdo, $statuses = 'pending', int $ap
         }
         $whereParts[] = 'a.status IN (' . implode(', ', $statusPlaceholders) . ')';
     }
-    $where = $whereParts !== [] ? 'WHERE ' . implode(' AND ', $whereParts) : '';
+    return [
+        'where' => $whereParts !== [] ? 'WHERE ' . implode(' AND ', $whereParts) : '',
+        'params' => $params,
+    ];
+}
+
+function sr_content_author_application_count(PDO $pdo, $statuses = 'pending', int $applicationId = 0): int
+{
+    $query = sr_content_author_application_query_parts($statuses, $applicationId);
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_content_author_applications a ' . $query['where']);
+    $stmt->execute($query['params']);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_content_author_applications(PDO $pdo, $statuses = 'pending', int $applicationId = 0, int $limit = 100, int $offset = 0): array
+{
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+    $query = sr_content_author_application_query_parts($statuses, $applicationId);
     $stmt = $pdo->prepare(
         'SELECT a.*, m.email, m.display_name, m.status AS account_status
          FROM sr_content_author_applications a
          LEFT JOIN sr_member_accounts m ON m.id = a.account_id
-         ' . $where . '
+         ' . $query['where'] . '
          ORDER BY a.id DESC
-         LIMIT 200'
+         LIMIT :limit_value OFFSET :offset_value'
     );
-    $stmt->execute($params);
+    foreach ($query['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }
 
-function sr_content_author_permissions(PDO $pdo, array $statuses = [], array $reviewOverrides = []): array
+function sr_content_author_permission_query_parts(array $statuses = [], array $reviewOverrides = []): array
 {
     $params = [];
     $whereParts = [];
@@ -170,16 +194,40 @@ function sr_content_author_permissions(PDO $pdo, array $statuses = [], array $re
         $whereParts[] = 'p.review_required_override IN (' . implode(', ', $reviewPlaceholders) . ')';
     }
 
-    $where = $whereParts !== [] ? 'WHERE ' . implode(' AND ', $whereParts) : '';
+    return [
+        'where' => $whereParts !== [] ? 'WHERE ' . implode(' AND ', $whereParts) : '',
+        'params' => $params,
+    ];
+}
+
+function sr_content_author_permission_count(PDO $pdo, array $statuses = [], array $reviewOverrides = []): int
+{
+    $query = sr_content_author_permission_query_parts($statuses, $reviewOverrides);
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_content_author_permissions p ' . $query['where']);
+    $stmt->execute($query['params']);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_content_author_permissions(PDO $pdo, array $statuses = [], array $reviewOverrides = [], int $limit = 100, int $offset = 0): array
+{
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+    $query = sr_content_author_permission_query_parts($statuses, $reviewOverrides);
     $stmt = $pdo->prepare(
         'SELECT p.*, a.email, a.display_name, a.status AS account_status
          FROM sr_content_author_permissions p
          LEFT JOIN sr_member_accounts a ON a.id = p.account_id
-         ' . $where . '
+         ' . $query['where'] . '
          ORDER BY p.id DESC
-         LIMIT 200'
+         LIMIT :limit_value OFFSET :offset_value'
     );
-    $stmt->execute($params);
+    foreach ($query['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }
@@ -551,7 +599,7 @@ function sr_content_member_submissions(PDO $pdo, int $accountId, int $limit = 20
     return $stmt->fetchAll();
 }
 
-function sr_content_admin_submissions(PDO $pdo, $statuses = ''): array
+function sr_content_admin_submission_query_parts($statuses = ''): array
 {
     $params = [];
     $where = '';
@@ -573,16 +621,38 @@ function sr_content_admin_submissions(PDO $pdo, $statuses = ''): array
         }
         $where = 'WHERE s.review_status IN (' . implode(', ', $statusPlaceholders) . ')';
     }
+    return ['where' => $where, 'params' => $params];
+}
+
+function sr_content_admin_submission_count(PDO $pdo, $statuses = ''): int
+{
+    $query = sr_content_admin_submission_query_parts($statuses);
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM sr_content_submissions s ' . $query['where']);
+    $stmt->execute($query['params']);
+
+    return max(0, (int) $stmt->fetchColumn());
+}
+
+function sr_content_admin_submissions(PDO $pdo, $statuses = '', int $limit = 100, int $offset = 0): array
+{
+    $limit = max(1, min(200, $limit));
+    $offset = max(0, $offset);
+    $query = sr_content_admin_submission_query_parts($statuses);
     $stmt = $pdo->prepare(
         'SELECT s.*, g.title AS group_title, a.email AS author_email, a.display_name AS author_display_name
          FROM sr_content_submissions s
          LEFT JOIN sr_content_groups g ON g.id = s.content_group_id
          LEFT JOIN sr_member_accounts a ON a.id = s.author_account_id
-         ' . $where . '
+         ' . $query['where'] . '
          ORDER BY s.id DESC
-         LIMIT 200'
+         LIMIT :limit_value OFFSET :offset_value'
     );
-    $stmt->execute($params);
+    foreach ($query['params'] as $key => $value) {
+        $stmt->bindValue(':' . $key, $value);
+    }
+    $stmt->bindValue(':limit_value', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset_value', $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
     return $stmt->fetchAll();
 }

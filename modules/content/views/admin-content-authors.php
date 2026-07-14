@@ -33,6 +33,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="content-author-add-modal" data-overlay="#content-author-add-modal">승인 추가</button>
         <?php } ?>
     </div>
+    <?php echo sr_admin_pagination_summary_html($contentAuthorPagination); ?>
     <div class="table-wrapper">
         <table class="table table-list">
             <caption class="sr-only">콘텐츠 작성자 승인 목록</caption>
@@ -67,6 +68,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
         </div>
     <?php } ?>
+    <?php echo sr_admin_pagination_html($contentAuthorPagination, '콘텐츠 작성자 승인 목록 페이지'); ?>
 </section>
 <?php if ($canEditContentAuthors) { ?>
     <div id="content-author-add-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="content-author-add-modal-title" aria-hidden="true" inert>

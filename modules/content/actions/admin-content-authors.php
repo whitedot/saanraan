@@ -94,5 +94,15 @@ foreach ($authorReviewValues as $authorReviewValue) {
 }
 $authorReviewOverrides = array_values(array_unique($authorReviewOverrides));
 
-$contentAuthorPermissions = sr_content_author_permissions($pdo, $authorStatuses, $authorReviewOverrides);
+$contentAuthorPagination = sr_admin_pagination_from_total(
+    $pdo,
+    sr_content_author_permission_count($pdo, $authorStatuses, $authorReviewOverrides)
+);
+$contentAuthorPermissions = sr_content_author_permissions(
+    $pdo,
+    $authorStatuses,
+    $authorReviewOverrides,
+    (int) $contentAuthorPagination['per_page'],
+    sr_admin_pagination_offset($contentAuthorPagination)
+);
 include SR_ROOT . '/modules/content/views/admin-content-authors.php';

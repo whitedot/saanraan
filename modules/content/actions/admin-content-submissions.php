@@ -83,5 +83,11 @@ foreach ($submissionStatusValues as $submissionStatusValue) {
     }
 }
 $submissionStatuses = array_values(array_unique($submissionStatuses));
-$adminSubmissions = sr_content_admin_submissions($pdo, $submissionStatuses);
+$contentSubmissionPagination = sr_admin_pagination_from_total($pdo, sr_content_admin_submission_count($pdo, $submissionStatuses));
+$adminSubmissions = sr_content_admin_submissions(
+    $pdo,
+    $submissionStatuses,
+    (int) $contentSubmissionPagination['per_page'],
+    sr_admin_pagination_offset($contentSubmissionPagination)
+);
 include SR_ROOT . '/modules/content/views/admin-content-submissions.php';

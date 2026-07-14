@@ -51,5 +51,15 @@ $applicationStatuses = array_values(array_unique($applicationStatuses));
 if ($applicationStatusInput === [] || $applicationStatusInput === '') {
     $applicationStatuses = [];
 }
-$contentAuthorApplications = sr_content_author_applications($pdo, $applicationStatuses, $applicationIdFilter);
+$contentAuthorApplicationPagination = sr_admin_pagination_from_total(
+    $pdo,
+    sr_content_author_application_count($pdo, $applicationStatuses, $applicationIdFilter)
+);
+$contentAuthorApplications = sr_content_author_applications(
+    $pdo,
+    $applicationStatuses,
+    $applicationIdFilter,
+    (int) $contentAuthorApplicationPagination['per_page'],
+    sr_admin_pagination_offset($contentAuthorApplicationPagination)
+);
 include SR_ROOT . '/modules/content/views/admin-content-author-applications.php';

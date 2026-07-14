@@ -22,6 +22,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">제출 목록</h2>
         </div>
     </div>
+    <?php echo sr_admin_pagination_summary_html($contentSubmissionPagination); ?>
     <div class="table-wrapper">
         <table class="table table-list">
             <caption class="sr-only">회원 제출 콘텐츠 목록</caption>
@@ -58,5 +59,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_pagination_html($contentSubmissionPagination, '회원 제출 콘텐츠 목록 페이지'); ?>
 </section>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

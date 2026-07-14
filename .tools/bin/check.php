@@ -1910,6 +1910,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-assets-transaction-contract.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-account-form-prg.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-content-member-submission-pagination.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-content-admin-workflow-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-asset-history-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-milestone-28-currency-policy.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-i18n-contract.php'));

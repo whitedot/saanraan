@@ -178,6 +178,8 @@ TOTP 활성화 직후 백업 코드가 한 번 표시되고, `/login/mfa`에서 
 /admin/member-group-rules의 규칙 저장, 그룹 규칙 평가, /admin/member-groups의 회원 규칙 평가도 성공 후 GET 화면으로 돌아와야 하며, 평가 실행 결과 토스트와 감사 로그가 새로고침으로 반복되지 않아야 한다.
 회원 제출본을 21건 이상 만든 로컬 더미 계정에서는 `/account/content`의 두 번째 페이지와 마지막 부분 페이지까지 이동할 수 있어야 한다. 두 번째 페이지에서 편집 가능한 제출본을 열고 임시저장·제출 또는 검증 실패 후 돌아와도 편집 대상과 가능한 현재 목록 페이지가 함께 유지되는지 확인한다.
 
+콘텐츠 등록자 신청, 작성자 승인, 회원 제출본을 각각 21건 이상 만든 로컬 fixture에서는 `/admin/content/author-applications`, `/admin/content/authors`, `/admin/content/submissions`가 전체 건수와 현재 표시 범위를 보여주고 마지막 부분 페이지까지 이동할 수 있어야 한다. 상태·검수 조건·신청 ID 필터를 적용한 count와 행 결과가 일치하고, 두 번째 페이지에서 승인·수정·검수 작업을 처리한 뒤 같은 필터와 페이지로 돌아오는지 확인한다.
+
 /admin/content/submissions, /admin/content/author-applications, /admin/content/authors, /admin/community/board-copy-jobs, /account/content/author-application의 처리 POST는 성공 후 GET 화면으로 돌아와야 한다. 검수/신청/작성자 승인/복사 작업 실행 결과는 한 번만 표시되고 새로고침으로 상태 변경, 알림 생성, 복사 묶음 실행이 반복되지 않아야 한다. `/admin/content/authors`의 작성자 승인 추가/수정은 목록 위 상시 폼이 아니라 승인 목록의 추가/수정 모달에서 처리되는지 확인한다. 작성자 승인 추가 모달의 회원 선택은 직접 숫자 ID 입력만 요구하지 않고 회원 검색 모달에서 선택한 회원 식별자를 저장할 수 있어야 한다.
 /admin/privacy-requests의 대응 기록 추가는 목록 위 상시 폼이 아니라 `대응 기록 추가` 모달에서 처리되는지 확인한다. 생성 모달은 계정 ID 또는 요청자 중 하나, 요청 유형, 요청 내용을 서버에서 검증해야 하며, 실패 후 GET 화면으로 돌아왔을 때 직전 입력값과 오류 요약을 유지한 채 모달을 다시 열어야 한다. JavaScript 비활성 환경에서는 noscript 대체 폼으로 같은 `intent=create_request` POST 흐름을 사용할 수 있어야 한다.
 퀴즈·설문 댓글을 각각 21건 이상 만든 로컬 fixture에서는 `/admin/quiz/comments`와 `/admin/surveys/comments`가 전체 건수와 현재 표시 범위를 보여주고 다음 페이지를 제공해야 한다. 검색어·상태·비밀 댓글 필터를 적용한 count와 행 결과가 일치하고, 두 번째 페이지에서 상태를 변경한 뒤 같은 필터와 페이지로 돌아오는지 확인한다.

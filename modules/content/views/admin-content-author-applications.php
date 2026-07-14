@@ -23,6 +23,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2 class="card-title">신청 목록</h2>
         </div>
     </div>
+    <?php echo sr_admin_pagination_summary_html($contentAuthorApplicationPagination); ?>
     <div class="table-wrapper">
         <table class="table table-list">
             <caption class="sr-only">콘텐츠 등록자 신청 목록</caption>
@@ -59,5 +60,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
+    <?php echo sr_admin_pagination_html($contentAuthorApplicationPagination, '콘텐츠 등록자 신청 목록 페이지'); ?>
 </section>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
