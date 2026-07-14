@@ -10,7 +10,7 @@ sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys/s
 $requestedSurveyId = max(0, (int) sr_get_string('survey_id', 20));
 $surveyId = $requestedSurveyId;
 $surveyAutoSelected = false;
-$surveyOptions = $pdo->query('SELECT id, survey_key, title FROM sr_survey_forms WHERE deleted_at IS NULL ORDER BY updated_at DESC, id DESC LIMIT 300')->fetchAll();
+$surveyOptions = sr_survey_admin_survey_options($pdo, $surveyId);
 $survey = null;
 if ($surveyId > 0) {
     $stmt = $pdo->prepare('SELECT * FROM sr_survey_forms WHERE id = :id AND deleted_at IS NULL LIMIT 1');

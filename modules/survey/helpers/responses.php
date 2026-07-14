@@ -125,7 +125,7 @@ function sr_survey_coupon_definition_is_available(PDO $pdo, int $definitionId): 
     return is_array($stmt->fetch());
 }
 
-function sr_survey_coupon_definitions(PDO $pdo): array
+function sr_survey_coupon_definitions(PDO $pdo, int $includeDefinitionId = 0): array
 {
     if (!sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
         return [];
@@ -138,7 +138,24 @@ function sr_survey_coupon_definitions(PDO $pdo): array
         return [];
     }
     $stmt = $pdo->query("SELECT id, coupon_key, title FROM sr_coupon_definitions WHERE status = 'active' ORDER BY title ASC, id ASC LIMIT 200");
-    return $stmt->fetchAll();
+    $definitions = $stmt->fetchAll();
+    if ($includeDefinitionId < 1) {
+        return $definitions;
+    }
+    foreach ($definitions as $definition) {
+        if ((int) ($definition['id'] ?? 0) === $includeDefinitionId) {
+            return $definitions;
+        }
+    }
+
+    $currentStmt = $pdo->prepare('SELECT id, coupon_key, title FROM sr_coupon_definitions WHERE id = :id LIMIT 1');
+    $currentStmt->execute(['id' => $includeDefinitionId]);
+    $current = $currentStmt->fetch();
+    if (is_array($current)) {
+        $definitions[] = $current;
+    }
+
+    return $definitions;
 }
 
 function sr_survey_selected_answers_from_post(array $questions): array

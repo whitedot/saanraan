@@ -20,8 +20,7 @@ if ($surveyRewardQuery !== ''
 }
 $surveyRewardPagination = sr_admin_pagination_from_total($pdo, sr_survey_reward_log_count($pdo, $surveyRewardFilters));
 $surveyRewardLogs = sr_survey_reward_logs($pdo, (int) $surveyRewardPagination['per_page'], sr_admin_pagination_offset($surveyRewardPagination), $surveyRewardFilters);
-$surveyRewardSurveyOptionsStmt = $pdo->query('SELECT id, survey_key, title FROM sr_survey_forms WHERE deleted_at IS NULL ORDER BY updated_at DESC, id DESC LIMIT 300');
-$surveyRewardSurveyOptions = $surveyRewardSurveyOptionsStmt ? $surveyRewardSurveyOptionsStmt->fetchAll() : [];
+$surveyRewardSurveyOptions = sr_survey_admin_survey_options($pdo, (int) ($surveyRewardFilters['survey_id'] ?? 0));
 $surveyRewardDetailFilterOpen = (int) ($surveyRewardFilters['survey_id'] ?? 0) > 0
     || (string) ($surveyRewardFilters['status'] ?? '') !== ''
     || (string) ($surveyRewardFilters['provider'] ?? '') !== '';

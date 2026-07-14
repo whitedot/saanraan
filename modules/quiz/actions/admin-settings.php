@@ -22,7 +22,6 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
-$couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo);
 $publicLayoutOptions = sr_quiz_layout_options($pdo);
 $publicThemeOptions = sr_quiz_theme_options();
 $reactionPresetOptions = $quizReactionAvailable && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
@@ -66,6 +65,7 @@ if (sr_request_method() === 'POST') {
     }
     sr_admin_redirect_with_result(sr_admin_action_result($errors, ''), $permissionPath);
 }
+$couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo, (int) ($settings['default_reward_coupon_definition_id'] ?? 0));
 
 $adminPageTitle = '퀴즈 환경설정';
 include SR_ROOT . '/modules/quiz/views/admin-settings.php';

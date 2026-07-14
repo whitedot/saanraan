@@ -14,7 +14,6 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
-$couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo);
 $memberGroups = sr_quiz_member_groups_for_admin($pdo);
 $reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
 
@@ -212,6 +211,7 @@ if ($mode === 'edit') {
 $values = is_array($sessionValues) && $sessionValues !== []
     ? $sessionValues
     : (is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values(sr_quiz_settings($pdo)));
+$couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo, (int) ($values['reward_coupon_definition_id'] ?? 0));
 
 $adminPageTitle = $mode === 'list' ? '퀴즈 관리' : ($mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성');
 $adminPageTitleUrl = sr_admin_page_title_reset_url($mode === 'list', '/admin/quiz');

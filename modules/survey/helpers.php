@@ -1406,6 +1406,37 @@ function sr_survey_by_id(PDO $pdo, int $surveyId): ?array
 
     return is_array($row) ? $row : null;
 }
+
+function sr_survey_admin_survey_options(PDO $pdo, int $includeSurveyId = 0, int $limit = 300): array
+{
+    $limit = max(1, min(1000, $limit));
+    $stmt = $pdo->query(
+        'SELECT id, survey_key, title
+         FROM sr_survey_forms
+         WHERE deleted_at IS NULL
+         ORDER BY updated_at DESC, id DESC
+         LIMIT ' . $limit
+    );
+    $options = $stmt !== false ? $stmt->fetchAll() : [];
+    if ($includeSurveyId < 1) {
+        return $options;
+    }
+    foreach ($options as $option) {
+        if ((int) ($option['id'] ?? 0) === $includeSurveyId) {
+            return $options;
+        }
+    }
+
+    $currentStmt = $pdo->prepare('SELECT id, survey_key, title FROM sr_survey_forms WHERE id = :id AND deleted_at IS NULL LIMIT 1');
+    $currentStmt->execute(['id' => $includeSurveyId]);
+    $current = $currentStmt->fetch();
+    if (is_array($current)) {
+        $options[] = $current;
+    }
+
+    return $options;
+}
+
 function sr_survey_questions_with_choices(PDO $pdo, int $surveyId): array
 {
     $stmt = $pdo->prepare('SELECT * FROM sr_survey_questions WHERE survey_id = :survey_id ORDER BY sort_order ASC, id ASC');

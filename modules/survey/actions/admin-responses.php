@@ -92,8 +92,7 @@ $stmt->bindValue(':offset', sr_admin_pagination_offset($pagination), PDO::PARAM_
 $stmt->execute();
 $responses = $stmt->fetchAll();
 
-$surveyStmt = $pdo->query('SELECT id, survey_key, title FROM sr_survey_forms WHERE deleted_at IS NULL ORDER BY updated_at DESC, id DESC LIMIT 300');
-$surveyOptions = $surveyStmt->fetchAll();
+$surveyOptions = sr_survey_admin_survey_options($pdo, $surveyId);
 $responseDetailFilterOpen = $surveyId > 0 || $qualityFilter !== '';
 $qualityFilterOptions = [];
 foreach (sr_survey_quality_statuses() as $status) {

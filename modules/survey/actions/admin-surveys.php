@@ -14,7 +14,6 @@ $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'view');
 
 $assetOptions = sr_survey_asset_options($pdo);
-$couponDefinitions = sr_survey_coupon_definitions($pdo);
 $memberGroups = sr_member_groups($pdo);
 $surveyMemberGroupsForAdmin = array_values(array_filter($memberGroups, static function (array $memberGroup): bool {
     return (string) ($memberGroup['status'] ?? '') === 'enabled';
@@ -100,6 +99,7 @@ if ($mode === 'copy' && is_array($editSurvey)) {
     $editSurvey['questionnaire_version'] = 1;
     $editSurvey['revision_locked'] = 0;
 }
+$couponDefinitions = sr_survey_coupon_definitions($pdo, is_array($editPolicy) ? (int) ($editPolicy['reward_code'] ?? 0) : 0);
 
 $adminPageTitle = $mode === 'list' ? '설문 관리' : ($mode === 'edit' ? '설문 수정' : ($mode === 'copy' ? '설문 복사' : '설문 생성'));
 $adminPageTitleUrl = sr_admin_page_title_reset_url($mode === 'list', '/admin/surveys');

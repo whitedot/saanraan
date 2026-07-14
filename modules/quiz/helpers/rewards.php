@@ -591,7 +591,7 @@ function sr_quiz_mark_reward_grant_failed(PDO $pdo, int $grantId, string $messag
     return is_array($row) ? $row : [];
 }
 
-function sr_quiz_reward_coupon_definitions(PDO $pdo, int $limit = 200): array
+function sr_quiz_reward_coupon_definitions(PDO $pdo, int $includeDefinitionId = 0, int $limit = 200): array
 {
     $limit = max(1, min(300, $limit));
     if (!sr_module_enabled($pdo, 'coupon') || !is_file(SR_ROOT . '/modules/coupon/helpers.php')) {
@@ -621,7 +621,29 @@ function sr_quiz_reward_coupon_definitions(PDO $pdo, int $limit = 200): array
         'now_until' => $now,
     ]);
 
-    return $stmt->fetchAll();
+    $definitions = $stmt->fetchAll();
+    if ($includeDefinitionId < 1) {
+        return $definitions;
+    }
+    foreach ($definitions as $definition) {
+        if ((int) ($definition['id'] ?? 0) === $includeDefinitionId) {
+            return $definitions;
+        }
+    }
+
+    $currentStmt = $pdo->prepare(
+        'SELECT id, coupon_key, title, target_type, target_id, max_uses_per_issue, valid_from, valid_until
+         FROM sr_coupon_definitions
+         WHERE id = :id
+         LIMIT 1'
+    );
+    $currentStmt->execute(['id' => $includeDefinitionId]);
+    $current = $currentStmt->fetch();
+    if (is_array($current)) {
+        $definitions[] = $current;
+    }
+
+    return $definitions;
 }
 
 function sr_quiz_reward_coupon_definition_is_available(PDO $pdo, int $definitionId): bool
