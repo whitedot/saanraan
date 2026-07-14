@@ -325,21 +325,6 @@ $communityFollowStatuses = is_array($account) && function_exists('sr_member_foll
 $post['published_comment_count'] = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody
     ? 0
     : (int) ($commentPage['total'] ?? 0);
-$attachments = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
-$communitySeriesContext = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
-$imageAttachments = [];
-$fileAttachments = [];
-foreach ($attachments as $attachment) {
-    if (sr_community_attachment_is_image($attachment)) {
-        $attachment['original_url'] = sr_community_attachment_public_url($attachment);
-        $attachment['thumbnail_url'] = is_array($postBoard)
-            ? sr_community_post_view_image_thumbnail_url($pdo, $attachment, $postBoard, $settings)
-            : $attachment['original_url'];
-        $imageAttachments[] = $attachment;
-    } else {
-        $fileAttachments[] = $attachment;
-    }
-}
 $canComment = !$paidReadConfirmationRequired && !$paidReadBlocked && $canViewPostBody && sr_community_account_can_comment_post($pdo, $post, is_array($account) ? $account : null);
 $commentUnavailableMessage = '';
 if (!$canComment && !is_array($account)) {
@@ -347,12 +332,6 @@ if (!$canComment && !is_array($account)) {
 } elseif (!$canComment) {
     $commentUnavailableMessage = sr_t('community::action.notice.comment_unavailable');
 }
-$isScrapped = !$paidReadConfirmationRequired && !$paidReadBlocked && is_array($account) && sr_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
-$isSeriesScrapped = !$paidReadConfirmationRequired
-    && !$paidReadBlocked
-    && is_array($account)
-    && is_array($communitySeriesContext)
-    && sr_community_account_has_series_scrap($pdo, (int) $account['id'], (int) $communitySeriesContext['id']);
 $postActionUnavailableMessage = is_array($account) ? '' : sr_t('community::action.notice.login_required_to_post_actions');
 $canReportPost = !$paidReadConfirmationRequired && !$paidReadBlocked && is_array($account) && (int) $post['author_account_id'] !== (int) $account['id'];
 $reportReasonKeys = sr_community_report_reason_keys();
@@ -407,4 +386,34 @@ $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'post');
 
 $communityThemeFallbackViewFile = $skinView;
+if ($communityCommentFragmentRequest) {
+    header('Content-Type: text/html; charset=UTF-8');
+    header('Cache-Control: no-store');
+    header('X-SR-Response: community-comments');
+    include sr_community_public_view_file($pdo, $settings, 'post.php', $skinView);
+    exit;
+}
+
+$attachments = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? [] : sr_community_post_attachments($pdo, (int) $post['id']);
+$communitySeriesContext = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody ? null : sr_community_series_for_post($pdo, (int) $post['id'], is_array($account) ? $account : null);
+$imageAttachments = [];
+$fileAttachments = [];
+foreach ($attachments as $attachment) {
+    if (sr_community_attachment_is_image($attachment)) {
+        $attachment['original_url'] = sr_community_attachment_public_url($attachment);
+        $attachment['thumbnail_url'] = is_array($postBoard)
+            ? sr_community_post_view_image_thumbnail_url($pdo, $attachment, $postBoard, $settings)
+            : $attachment['original_url'];
+        $imageAttachments[] = $attachment;
+    } else {
+        $fileAttachments[] = $attachment;
+    }
+}
+$isScrapped = !$paidReadConfirmationRequired && !$paidReadBlocked && is_array($account) && sr_community_account_has_scrap($pdo, (int) $account['id'], (int) $post['id']);
+$isSeriesScrapped = !$paidReadConfirmationRequired
+    && !$paidReadBlocked
+    && is_array($account)
+    && is_array($communitySeriesContext)
+    && sr_community_account_has_series_scrap($pdo, (int) $account['id'], (int) $communitySeriesContext['id']);
+
 include sr_community_public_view_file($pdo, $settings, 'post.php', $skinView);

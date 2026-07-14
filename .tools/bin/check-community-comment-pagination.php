@@ -130,6 +130,13 @@ sr_community_comment_pagination_assert(str_contains((string) $viewAction, 'sr_co
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, "\$post['published_comment_count']"), 'Post view action must expose the full published comment count.');
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, 'sr_community_board_comments_per_page('), 'Post view action must resolve the board-priority page size.');
 sr_community_comment_pagination_assert(str_contains((string) $viewAction, "sr_get_string('comment_fragment'"), 'Post view action must recognize asynchronous comment page requests.');
+sr_community_comment_pagination_assert(str_contains((string) $viewAction, "header('X-SR-Response: community-comments')"), 'Comment page requests must return an identifiable comments-only response.');
+$fragmentBranchPosition = strpos((string) $viewAction, 'if ($communityCommentFragmentRequest)');
+$attachmentLoadPosition = strpos((string) $viewAction, 'sr_community_post_attachments(');
+sr_community_comment_pagination_assert(
+    $fragmentBranchPosition !== false && $attachmentLoadPosition !== false && $fragmentBranchPosition < $attachmentLoadPosition,
+    'Comment fragment responses must finish before post attachment and series rendering data is loaded.'
+);
 sr_community_comment_pagination_assert(str_contains((string) $commentAction, 'sr_community_comment_page_for_comment('), 'Comment creation must redirect to the numeric page containing the new comment.');
 foreach ([
     'modules/community/skins/basic/view.php',
@@ -139,6 +146,7 @@ foreach ([
     $view = file_get_contents($root . '/' . $viewFile);
     sr_community_comment_pagination_assert(is_string($view) && str_contains($view, 'sr_community_comment_pagination_html('), $viewFile . ' must render numeric comment pagination.');
     sr_community_comment_pagination_assert(is_string($view) && str_contains($view, 'name="comment_page"'), $viewFile . ' must preserve the active numeric page on validation failure.');
+    sr_community_comment_pagination_assert(is_string($view) && str_contains($view, '$communityCommentFragmentResponse'), $viewFile . ' must suppress the post layout for a comments-only response.');
 }
 $moduleScript = file_get_contents($root . '/modules/community/assets/module.js');
 sr_community_comment_pagination_assert(is_string($moduleScript) && str_contains($moduleScript, "searchParams.set('comment_fragment', '1')"), 'Community module JavaScript must request comment pages without full navigation.');

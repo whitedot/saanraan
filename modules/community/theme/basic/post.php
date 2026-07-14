@@ -1,15 +1,8 @@
 <?php
 
-$pageTitle = (string) $post['title'];
-$seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
+$communityCommentFragmentResponse = !empty($communityCommentFragmentRequest);
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, is_array($postBoard ?? null) ? $postBoard : null, $communityLayoutSettings);
-if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
-    require_once SR_ROOT . '/modules/banner/helpers.php';
-}
-if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
-    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
-}
 if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
@@ -41,6 +34,16 @@ if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && functio
     }
 }
 $memberSettings = sr_member_settings($pdo);
+$config = isset($config) && is_array($config) ? $config : sr_runtime_config();
+if (!$communityCommentFragmentResponse) {
+    $pageTitle = (string) $post['title'];
+    $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
+    if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
+        require_once SR_ROOT . '/modules/banner/helpers.php';
+    }
+    if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
+        require_once SR_ROOT . '/modules/popup_layer/helpers.php';
+    }
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.post',
     'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), sr_enabled_module_asset_paths($pdo ?? null, [
@@ -429,7 +432,9 @@ unset($_SESSION['sr_member_follow_feedback']);
                 <?php echo sr_banner_render_public_banner($pdo, (int) ($post['banner_after_view_id'] ?? 0)); ?>
             <?php } ?>
         </article>
-
+        <?php } ?>
+        <?php } ?>
+        <?php if (!empty($canViewPostBody) && empty($paidReadConfirmationRequired) && empty($paidReadBlocked)) { ?>
         <section id="comments" class="community-comments-panel">
             <?php echo sr_render_output_slot($pdo, [
                 'module_key' => 'community',
@@ -747,8 +752,10 @@ unset($_SESSION['sr_member_follow_feedback']);
             ]); ?>
         </section>
         <?php } ?>
+<?php if (!$communityCommentFragmentResponse) { ?>
     <?php include SR_ROOT . '/modules/community/theme/basic/home-frame-end.php'; ?>
-<?php if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
-    <?php echo sr_reaction_public_script_html(); ?>
+    <?php if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
+        <?php echo sr_reaction_public_script_html(); ?>
+    <?php } ?>
+    <?php sr_public_layout_end(); ?>
 <?php } ?>
-<?php sr_public_layout_end(); ?>

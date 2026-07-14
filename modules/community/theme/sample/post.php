@@ -1,12 +1,14 @@
 <?php
 
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
+$communityCommentFragmentResponse = !empty($communityCommentFragmentRequest);
 $post = isset($post) && is_array($post) ? $post : [];
 $comments = isset($comments) && is_array($comments) ? $comments : [];
 $fileAttachments = isset($fileAttachments) && is_array($fileAttachments) ? $fileAttachments : [];
 $imageAttachments = isset($imageAttachments) && is_array($imageAttachments) ? $imageAttachments : [];
 $config = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberSettings = sr_member_settings($pdo);
+if (!$communityCommentFragmentResponse) {
 $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.post',
@@ -136,7 +138,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             ]); ?>
         </section>
     </article>
-
+<?php } ?>
     <?php if (!empty($canViewPostBody) && empty($paidReadConfirmationRequired) && empty($paidReadBlocked)) { ?>
         <section id="comments" class="example-community-panel example-community-comments">
             <h2>Comments <span class="community-comments-count"><?php echo sr_e(number_format((int) ($post['published_comment_count'] ?? 0))); ?></span></h2>
@@ -189,9 +191,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <?php } ?>
         </section>
     <?php } ?>
-</main>
+<?php if (!$communityCommentFragmentResponse) { ?>
+    </main>
 
-<?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
-    <?php echo sr_reaction_public_script_html(); ?>
+    <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
+        <?php echo sr_reaction_public_script_html(); ?>
+    <?php } ?>
+    <?php sr_public_layout_end(); ?>
 <?php } ?>
-<?php sr_public_layout_end(); ?>
