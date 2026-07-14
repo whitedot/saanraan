@@ -601,16 +601,17 @@ function sr_module_contract_function(PDO $pdo, string $moduleKey, string $contra
 function sr_site_settings(PDO $pdo): array
 {
     static $cache = [];
-    static $cacheToken = null;
+    static $cacheTokens = [];
 
+    $connectionKey = (string) spl_object_id($pdo);
     $currentToken = (int) ($GLOBALS['sr_site_settings_cache_token'] ?? 0);
-    if ($cacheToken !== $currentToken) {
-        $cache = [];
-        $cacheToken = $currentToken;
+    if (!isset($cacheTokens[$connectionKey]) || $cacheTokens[$connectionKey] !== $currentToken) {
+        unset($cache[$connectionKey]);
+        $cacheTokens[$connectionKey] = $currentToken;
     }
 
-    if (isset($cache['all'])) {
-        return $cache['all'];
+    if (isset($cache[$connectionKey])) {
+        return $cache[$connectionKey];
     }
 
     $stmt = $pdo->query('SELECT setting_key, setting_value, value_type FROM sr_site_settings ORDER BY setting_key ASC');
@@ -620,8 +621,8 @@ function sr_site_settings(PDO $pdo): array
         $settings[(string) $row['setting_key']] = sr_cast_setting_value($row['setting_value'], (string) $row['value_type']);
     }
 
-    $cache['all'] = $settings;
-    return $settings;
+    $cache[$connectionKey] = $settings;
+    return $cache[$connectionKey];
 }
 
 function sr_clear_site_settings_cache(): void
@@ -839,15 +840,17 @@ function sr_module_settings(PDO $pdo, string $moduleKey): array
         return [];
     }
 
+    $connectionKey = (string) spl_object_id($pdo);
+    $cacheKey = $connectionKey . '|' . $moduleKey;
     $currentToken = (int) ($GLOBALS['sr_module_settings_cache_token'] ?? 0)
         + (int) ($GLOBALS['sr_module_settings_cache_token_' . $moduleKey] ?? 0);
-    if (!isset($cacheTokens[$moduleKey]) || $cacheTokens[$moduleKey] !== $currentToken) {
-        unset($cache[$moduleKey]);
-        $cacheTokens[$moduleKey] = $currentToken;
+    if (!isset($cacheTokens[$cacheKey]) || $cacheTokens[$cacheKey] !== $currentToken) {
+        unset($cache[$cacheKey]);
+        $cacheTokens[$cacheKey] = $currentToken;
     }
 
-    if (isset($cache[$moduleKey])) {
-        return $cache[$moduleKey];
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
     }
 
     $stmt = $pdo->prepare(
@@ -864,8 +867,8 @@ function sr_module_settings(PDO $pdo, string $moduleKey): array
         $settings[(string) $row['setting_key']] = sr_cast_setting_value($row['setting_value'], (string) $row['value_type']);
     }
 
-    $cache[$moduleKey] = $settings;
-    return $settings;
+    $cache[$cacheKey] = $settings;
+    return $cache[$cacheKey];
 }
 
 function sr_module_setting(PDO $pdo, string $moduleKey, string $key, mixed $default = null): mixed

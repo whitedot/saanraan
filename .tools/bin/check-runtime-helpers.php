@@ -209,6 +209,40 @@ sr_runtime_helper_assert(
     sr_enabled_module_asset_paths(null, ['reaction' => '/modules/reaction/assets/module.css']) === [],
     'Enabled module asset helper should fail closed without a PDO.'
 );
+
+$settingsFixturePdos = [];
+foreach (['alpha', 'beta'] as $fixtureName) {
+    $settingsPdo = new PDO('sqlite::memory:');
+    $settingsPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $settingsPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $settingsPdo->exec('CREATE TABLE sr_site_settings (setting_key TEXT, setting_value TEXT, value_type TEXT)');
+    $settingsPdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY, module_key TEXT)');
+    $settingsPdo->exec('CREATE TABLE sr_module_settings (module_id INTEGER, setting_key TEXT, setting_value TEXT, value_type TEXT)');
+    $settingsPdo->prepare('INSERT INTO sr_site_settings (setting_key, setting_value, value_type) VALUES (:setting_key, :setting_value, :value_type)')->execute([
+        'setting_key' => 'site.name',
+        'setting_value' => $fixtureName,
+        'value_type' => 'string',
+    ]);
+    $settingsPdo->exec("INSERT INTO sr_modules (id, module_key) VALUES (1, 'member')");
+    $settingsPdo->prepare('INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type) VALUES (1, :setting_key, :setting_value, :value_type)')->execute([
+        'setting_key' => 'fixture.name',
+        'setting_value' => $fixtureName,
+        'value_type' => 'string',
+    ]);
+    $settingsFixturePdos[$fixtureName] = $settingsPdo;
+}
+sr_clear_site_settings_cache();
+sr_clear_module_settings_cache();
+sr_runtime_helper_assert(
+    sr_site_setting($settingsFixturePdos['alpha'], 'site.name') === 'alpha'
+        && sr_site_setting($settingsFixturePdos['beta'], 'site.name') === 'beta',
+    'Site setting request cache must remain scoped to its PDO connection.'
+);
+sr_runtime_helper_assert(
+    sr_module_setting($settingsFixturePdos['alpha'], 'member', 'fixture.name') === 'alpha'
+        && sr_module_setting($settingsFixturePdos['beta'], 'member', 'fixture.name') === 'beta',
+    'Module setting request cache must remain scoped to its PDO connection.'
+);
 sr_runtime_helper_assert(
     sr_mail_http_api_endpoint_is_allowed('https://93.184.216.34/mail'),
     'Public HTTPS mail API endpoint should be allowed.'
