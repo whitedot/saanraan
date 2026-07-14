@@ -210,6 +210,7 @@ function sr_member_privacy_request_list_preview(?string $value, int $maxLength =
 
 function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
 {
+    $sectionLimits = [];
     $stmt = $pdo->prepare(
         'SELECT id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at
          FROM sr_member_accounts
@@ -254,10 +255,10 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
          FROM sr_member_auth_logs
          WHERE account_id = :account_id
          ORDER BY id DESC
-         LIMIT 100'
+         LIMIT 101'
     );
     $stmt->execute(['account_id' => $accountId]);
-    $authLogs = $stmt->fetchAll();
+    $authLogs = sr_privacy_export_limit_rows($stmt->fetchAll(), 'auth_logs', $sectionLimits, 100);
 
     $sessions = [];
     if (sr_member_sessions_table_exists($pdo)) {
@@ -266,11 +267,12 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
              FROM sr_member_sessions
              WHERE account_id = :account_id
              ORDER BY id DESC
-             LIMIT 100'
+             LIMIT 101'
         );
         $stmt->execute(['account_id' => $accountId]);
         $sessions = $stmt->fetchAll();
     }
+    $sessions = sr_privacy_export_limit_rows($sessions, 'sessions', $sectionLimits, 100);
 
     return [
         'exported_at' => sr_now(),
@@ -283,6 +285,7 @@ function sr_member_privacy_export_data(PDO $pdo, int $accountId): array
         'consents' => $consents,
         'auth_logs' => $authLogs,
         'sessions' => $sessions,
+        '_limits' => $sectionLimits,
     ];
 }
 

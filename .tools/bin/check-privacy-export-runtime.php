@@ -72,13 +72,20 @@ function sr_privacy_export_runtime_check_member(): void
     $pdo->exec('CREATE TABLE sr_member_profiles (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, birth_date TEXT NULL, is_adult INTEGER NULL, avatar_path TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_member_consents (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, consent_key TEXT NOT NULL, consent_version TEXT NOT NULL, policy_document_key_snapshot TEXT NOT NULL, policy_version_key_snapshot TEXT NOT NULL, policy_document_version_id INTEGER NULL, consent_title_snapshot TEXT NOT NULL, consent_body_hash TEXT NOT NULL, consent_required INTEGER NOT NULL, consented INTEGER NOT NULL, created_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_member_auth_logs (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, event_type TEXT NOT NULL, result TEXT NOT NULL, ip_address TEXT NOT NULL, user_agent TEXT NULL, created_at TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_member_sessions (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, ip_address TEXT NOT NULL, user_agent TEXT NULL, expires_at TEXT NOT NULL, revoked_at TEXT NULL, created_at TEXT NOT NULL, last_seen_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_member_mfa_factors (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, factor_type TEXT NOT NULL, status TEXT NOT NULL, secret_ciphertext TEXT NOT NULL, secret_fingerprint TEXT NOT NULL, issuer TEXT NOT NULL, label TEXT NOT NULL, last_used_step INTEGER NULL, activated_at TEXT NULL, disabled_at TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_member_mfa_recovery_codes (id INTEGER PRIMARY KEY, account_id INTEGER NOT NULL, factor_id INTEGER NULL, code_hash TEXT NOT NULL, status TEXT NOT NULL, batch_uid TEXT NOT NULL, used_at TEXT NULL, revoked_at TEXT NULL, created_at TEXT NOT NULL)');
 
     $pdo->exec("INSERT INTO sr_member_accounts (id, email, display_name, locale, status, email_verified_at, last_login_at, created_at, updated_at) VALUES (7, 'member7@example.test', 'Member 7', 'ko', 'active', '', '', '', ''), (8, 'member8@example.test', 'Member 8', 'ko', 'active', '', '', '', '')");
     $pdo->exec("INSERT INTO sr_member_profiles (id, account_id, birth_date, is_adult, avatar_path) VALUES (1, 7, '1990-01-02', 1, ''), (2, 8, '1988-03-04', 0, '')");
     $pdo->exec("INSERT INTO sr_member_consents (id, account_id, consent_key, consent_version, policy_document_key_snapshot, policy_version_key_snapshot, policy_document_version_id, consent_title_snapshot, consent_body_hash, consent_required, consented, created_at) VALUES (1, 7, 'privacy', 'v1', 'privacy', 'v1', 1, 'Privacy', 'hash7', 1, 1, ''), (2, 8, 'privacy', 'v1', 'privacy', 'v1', 1, 'Privacy', 'hash8', 1, 1, '')");
-    $pdo->exec("INSERT INTO sr_member_auth_logs (id, account_id, event_type, result, ip_address, user_agent, created_at) VALUES (1, 7, 'login', 'success', '127.0.0.1', 'ua7', ''), (2, 8, 'login', 'success', '127.0.0.2', 'ua8', '')");
+    $authLogStmt = $pdo->prepare("INSERT INTO sr_member_auth_logs (id, account_id, event_type, result, ip_address, user_agent, created_at) VALUES (:id, 7, 'login', 'success', '127.0.0.1', :user_agent, '')");
+    $sessionStmt = $pdo->prepare("INSERT INTO sr_member_sessions (id, account_id, ip_address, user_agent, expires_at, revoked_at, created_at, last_seen_at) VALUES (:id, 7, '127.0.0.1', :user_agent, '2027-01-01 00:00:00', NULL, '', NULL)");
+    for ($rowNumber = 1; $rowNumber <= 101; $rowNumber++) {
+        $authLogStmt->execute(['id' => $rowNumber, 'user_agent' => 'ua7-' . (string) $rowNumber]);
+        $sessionStmt->execute(['id' => $rowNumber, 'user_agent' => 'session-ua7-' . (string) $rowNumber]);
+    }
+    $pdo->exec("INSERT INTO sr_member_auth_logs (id, account_id, event_type, result, ip_address, user_agent, created_at) VALUES (1000, 8, 'login', 'success', '127.0.0.2', 'ua8', '')");
     $pdo->exec("INSERT INTO sr_member_mfa_factors (id, account_id, factor_type, status, secret_ciphertext, secret_fingerprint, issuer, label, last_used_step, activated_at, disabled_at, created_at, updated_at) VALUES (1, 7, 'totp', 'active', 'cipher7', 'finger7', 'Site', 'member7', 10, '2026-06-14 00:00:00', NULL, '2026-06-14 00:00:00', '2026-06-14 00:00:00'), (2, 8, 'totp', 'active', 'cipher8', 'finger8', 'Site', 'member8', NULL, '2026-06-14 00:00:00', NULL, '2026-06-14 00:00:00', '2026-06-14 00:00:00')");
     $pdo->exec("INSERT INTO sr_member_mfa_recovery_codes (id, account_id, factor_id, code_hash, status, batch_uid, used_at, revoked_at, created_at) VALUES (1, 7, 1, 'hash7-unused', 'unused', 'batch7', NULL, NULL, '2026-06-14 00:00:00'), (2, 7, 1, 'hash7-used', 'used', 'batch7', '2026-06-14 00:01:00', NULL, '2026-06-14 00:00:00'), (3, 8, 2, 'hash8-unused', 'unused', 'batch8', NULL, NULL, '2026-06-14 00:00:00')");
 
@@ -87,7 +94,9 @@ function sr_privacy_export_runtime_check_member(): void
     sr_privacy_export_runtime_assert(($result['profile']['birth_date'] ?? '') === '1990-01-02', 'member export must include optional birth date profile data as age-related personal data.');
     sr_privacy_export_runtime_assert(($result['profile']['is_adult'] ?? '') === '1', 'member export must include optional adult flag profile data as age-related personal data.');
     sr_privacy_export_runtime_assert(count($result['consents'] ?? []) === 1 && ($result['consents'][0]['consent_body_hash'] ?? '') === 'hash7', 'member export must include target consent evidence only.');
-    sr_privacy_export_runtime_assert(count($result['auth_logs'] ?? []) === 1 && ($result['auth_logs'][0]['user_agent'] ?? '') === 'ua7', 'member export must include target auth logs only.');
+    sr_privacy_export_runtime_assert(count($result['auth_logs'] ?? []) === 100 && ($result['auth_logs'][0]['user_agent'] ?? '') === 'ua7-101', 'member export must return the bounded newest target auth logs only.');
+    sr_privacy_export_runtime_assert(count($result['sessions'] ?? []) === 100 && ($result['sessions'][0]['user_agent'] ?? '') === 'session-ua7-101', 'member export must return the bounded newest target sessions only.');
+    sr_privacy_export_runtime_assert(($result['_limits']['auth_logs']['has_more'] ?? false) === true && ($result['_limits']['sessions']['has_more'] ?? false) === true, 'member export must report auth log and session overflow instead of silently truncating them.');
     sr_privacy_export_runtime_assert(
         count($result['mfa']['factors'] ?? []) === 1
             && ($result['mfa']['factors'][0]['label'] ?? '') === 'member7'
