@@ -77,6 +77,7 @@ return [
     'service_domain' => [
         'main_page' => [
             'label' => '퀴즈·테스트',
+            'menu_label' => 'Quiz',
             'path' => '/quiz',
         ],
     ],

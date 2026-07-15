@@ -69,6 +69,7 @@ return [
     'service_domain' => [
         'main_page' => [
             'label' => '설문·여론조사',
+            'menu_label' => 'Survey',
             'path' => '/survey',
         ],
     ],

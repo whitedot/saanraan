@@ -56,6 +56,7 @@ return [
     'service_domain' => [
         'main_page' => [
             'label' => '커뮤니티',
+            'menu_label' => 'Community',
             'path' => '/community',
         ],
     ],

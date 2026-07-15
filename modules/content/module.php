@@ -84,6 +84,7 @@ return [
     'service_domain' => [
         'main_page' => [
             'label' => '콘텐츠',
+            'menu_label' => 'Contents',
             'path' => '/content',
         ],
     ],

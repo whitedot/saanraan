@@ -1047,7 +1047,7 @@ return [
 - 배열을 반환한다.
 - 각 항목은 `label`, `url`을 가진 배열이다.
 - `url`은 내부 상대 경로(`/board`) 또는 허용된 `http/https` URL이다.
-- 신규 설치에서 `site_menu`가 선택되면 설치 후 seed helper가 `service_domain.main_page`를 선언한 설치 모듈의 메인 페이지를 기본 `header` 메뉴에 추가한다. `menu-links.php` 후보 전체를 자동 등록하지 않으며, 로그인/회원가입 링크도 기본 header에 자동 삽입하지 않는다.
+- 신규 설치에서 `site_menu`가 선택되면 설치 후 seed helper가 `service_domain.main_page`를 선언한 설치 모듈의 메인 페이지를 기본 `header` 메뉴에 추가한다. 메뉴 항목 표시명은 모듈명이나 초기화면 후보 표시명과 분리된 `service_domain.main_page.menu_label`을 우선하고, 선언이 없을 때만 `label`로 대체한다. 번들 기본값은 `Home`, `Contents`, `Community`, `Quiz`, `Survey`다. `menu-links.php` 후보 전체를 자동 등록하지 않으며, 로그인/회원가입 링크도 기본 header에 자동 삽입하지 않는다.
 
 `output-slots.php`:
 
@@ -1525,12 +1525,13 @@ return [
 'service_domain' => [
     'main_page' => [
         'label' => '커뮤니티',
+        'menu_label' => 'Community',
         'path' => '/community',
     ],
 ],
 ```
 
-설치 화면은 이 값을 읽어 해당 모듈 카드에 `초기화면으로 설정` 체크를 제공하고, 선택값을 `site.home_path`에 저장한다. 값은 `/`로 시작하는 안전한 내부 경로여야 하며, 해당 모듈을 함께 설치하지 않으면 선택할 수 없다. 설치 후에는 관리자 설정의 `화면` 섹션에서 기본 홈페이지와 제한된 service domain 메인 후보 중 초기화면을 다시 선택할 수 있다. 현재 사이트 설정 후보와 신규 설치 상단 메뉴 seed는 기본 홈페이지 다음에 콘텐츠, 커뮤니티, 퀴즈·테스트, 설문·여론조사 순서로 표시한다. 후보가 비활성화되거나 숨김 상태가 되면 `/`는 public layout/theme이 제공하는 기본 홈페이지로 fallback한다. 기본 홈페이지 본문은 관리자 설정이 아니라 public layout/theme의 홈 템플릿을 직접 작성해 구성한다.
+설치 화면은 이 값을 읽어 해당 모듈 카드에 `초기화면으로 설정` 체크를 제공하고, 선택값을 `site.home_path`에 저장한다. 값은 `/`로 시작하는 안전한 내부 경로여야 하며, 해당 모듈을 함께 설치하지 않으면 선택할 수 없다. 설치 후에는 관리자 설정의 `화면` 섹션에서 기본 홈페이지와 제한된 service domain 메인 후보 중 초기화면을 다시 선택할 수 있다. 현재 사이트 설정 후보는 기본 홈페이지 다음에 콘텐츠, 커뮤니티, 퀴즈·테스트, 설문·여론조사 순서로 표시하고, 신규 설치 상단 메뉴는 같은 순서의 `Home`, `Contents`, `Community`, `Quiz`, `Survey` 표시명을 사용한다. 후보가 비활성화되거나 숨김 상태가 되면 `/`는 public layout/theme이 제공하는 기본 홈페이지로 fallback한다. 기본 홈페이지 본문은 관리자 설정이 아니라 public layout/theme의 홈 템플릿을 직접 작성해 구성한다.
 
 ## 16. Output Slots
 

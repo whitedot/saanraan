@@ -296,6 +296,7 @@ function sr_install_module_main_page_option(string $moduleKey): ?array
     return [
         'module_key' => $moduleKey,
         'label' => (string) ($mainPage['label'] ?? (string) ($metadata['name'] ?? $moduleKey)),
+        'menu_label' => (string) ($mainPage['menu_label'] ?? $mainPage['label'] ?? (string) ($metadata['name'] ?? $moduleKey)),
         'path' => $path,
     ];
 }

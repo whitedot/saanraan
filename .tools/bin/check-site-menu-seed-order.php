@@ -45,16 +45,19 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     $mainPage = is_array($serviceDomain['main_page'] ?? null) ? $serviceDomain['main_page'] : [];
     $options[$moduleKey] = [
         'label' => (string) ($mainPage['label'] ?? $moduleKey),
+        'menu_label' => (string) ($mainPage['menu_label'] ?? $mainPage['label'] ?? $moduleKey),
         'path' => (string) ($mainPage['path'] ?? ''),
     ];
 }
 
 $items = sr_site_menu_seed_default_header_menu_items($options, ['survey', 'quiz', 'community', 'content']);
 $labels = array_map('strval', array_column($items, 'label'));
-$expected = ['홈', '콘텐츠', '커뮤니티', '퀴즈·테스트', '설문·여론조사'];
+$expected = ['Home', 'Contents', 'Community', 'Quiz', 'Survey'];
 if ($labels !== $expected) {
-    sr_site_menu_check_error('Site menu seed order must follow service main order: ' . implode(' > ', $labels));
+    sr_site_menu_check_error('Site menu seed labels must use English menu metadata in service main order: ' . implode(' > ', $labels));
 }
+$mainPageLabels = array_values(array_map(static fn (array $option): string => (string) ($option['label'] ?? ''), $options));
+sr_site_menu_check_assert($mainPageLabels === ['콘텐츠', '커뮤니티', '퀴즈·테스트', '설문·여론조사'], 'English site menu seed labels must not change module main-page labels.');
 
 $pdo = new SrSiteMenuCheckPdo('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -184,6 +187,7 @@ foreach (array_merge([
 }
 sr_site_menu_check_assert(!is_file(SR_ROOT . '/modules/site_menu/updates/2026.06.002.sql'), 'Site menu legacy URL unique-index drop update must stay removed.');
 sr_site_menu_check_assert(str_contains($siteMenuInstallSql, 'sr_site_menu_draft_menus'), 'Site menu install schema must create draft menu tables.');
+sr_site_menu_check_assert(str_contains($siteMenuInstallSql, "VALUES ('header', 'Header Menu'"), 'Fresh site menu install must use the English header menu label.');
 sr_site_menu_check_assert(str_contains($siteMenuDraftUpdateSql, 'site_menu_draft_menus'), 'Site menu update must create draft menu tables for existing installations.');
 sr_site_menu_check_assert(str_contains($siteMenuAction, 'publish_site_menus'), 'Site menu admin action must publish draft menus explicitly.');
 sr_site_menu_check_assert(str_contains($siteMenuAction, 'DELETE FROM sr_site_menus'), 'Site menu publish action must replace public menu rows from drafts.');

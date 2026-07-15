@@ -117,7 +117,7 @@ function sr_site_menu_seed_default_header_menu_items(array $mainPageOptionsByMod
             continue;
         }
 
-        $label = sr_site_menu_clean_label((string) ($option['label'] ?? ''));
+        $label = sr_site_menu_clean_label((string) ($option['menu_label'] ?? $option['label'] ?? ''));
         $url = sr_site_menu_clean_url((string) ($option['path'] ?? ''));
         if ($label === '' || $url === '' || $url === '/') {
             continue;
@@ -152,7 +152,7 @@ function sr_site_menu_seed_default_header_menu_items(array $mainPageOptionsByMod
 
     $items = [
         [
-            'label' => '홈',
+            'label' => 'Home',
             'url' => '/',
             'sort_order' => 10,
         ],
@@ -175,7 +175,7 @@ function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsB
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_site_menus (menu_key, label, status, created_at, updated_at)
-         VALUES (\'header\', \'상단 메뉴\', \'enabled\', :created_at, :updated_at)
+         VALUES (\'header\', \'Header Menu\', \'enabled\', :created_at, :updated_at)
          ON DUPLICATE KEY UPDATE updated_at = updated_at'
     );
     $stmt->execute([
