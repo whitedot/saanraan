@@ -2680,13 +2680,66 @@ window.AdminShell = {
         reorderLists.forEach(list => {
             let draggedItem = null;
             let draggedLayout = null;
+            let draggedOriginalIndex = -1;
+            let dropGuide = null;
+            let dropInsertionIndex = null;
             let initialOrder = '';
 
             const listItems = () => Array.prototype.slice.call(list.querySelectorAll('[data-admin-reorder-item]')).filter(item => {
                 return item.closest('[data-admin-reorder-list]') === list;
             });
-            const clearDropState = () => {
+            const removeDropGuide = () => {
+                if (dropGuide) {
+                    dropGuide.remove();
+                    dropGuide = null;
+                }
+            };
+            const clearDropClasses = () => {
                 listItems().forEach(item => item.classList.remove('is-dragging', 'is-drop-before', 'is-drop-after'));
+            };
+            const clearDropState = () => {
+                clearDropClasses();
+                removeDropGuide();
+            };
+            const availableDropItems = () => listItems().filter(item => item !== draggedItem);
+            const dropInsertionIndexAt = clientY => {
+                const items = availableDropItems();
+                for (let index = 0; index < items.length; index += 1) {
+                    const rect = items[index].getBoundingClientRect();
+                    if (clientY < rect.top + rect.height / 2) {
+                        return index;
+                    }
+                }
+                return items.length;
+            };
+            const showDropGuide = insertionIndex => {
+                const items = availableDropItems();
+                const previousItem = items[insertionIndex - 1] || null;
+                const nextItem = items[insertionIndex] || null;
+                const referenceItem = nextItem || previousItem;
+                if (!referenceItem) {
+                    removeDropGuide();
+                    return;
+                }
+
+                if (!dropGuide) {
+                    dropGuide = document.createElement('span');
+                    dropGuide.className = 'admin-reorder-drop-guide';
+                    dropGuide.setAttribute('aria-hidden', 'true');
+                    document.body.appendChild(dropGuide);
+                }
+
+                const referenceRect = referenceItem.getBoundingClientRect();
+                let guideTop = nextItem ? referenceRect.top : referenceRect.bottom;
+                if (previousItem && nextItem) {
+                    const previousRect = previousItem.getBoundingClientRect();
+                    const nextRect = nextItem.getBoundingClientRect();
+                    guideTop = (previousRect.bottom + nextRect.top) / 2;
+                }
+
+                dropGuide.style.top = `${guideTop}px`;
+                dropGuide.style.left = `${referenceRect.left}px`;
+                dropGuide.style.width = `${referenceRect.width}px`;
             };
             const syncMoveButtons = () => {
                 const items = listItems();
@@ -2751,6 +2804,8 @@ window.AdminShell = {
                 }
                 const items = listItems();
                 draggedLayout = captureReorderLayout(items);
+                draggedOriginalIndex = items.indexOf(draggedItem);
+                dropInsertionIndex = null;
                 initialOrder = items.map(reorderItemKey).join('|');
                 draggedItem.classList.add('is-dragging');
                 if (event.dataTransfer) {
@@ -2763,17 +2818,15 @@ window.AdminShell = {
                 if (!draggedItem) {
                     return;
                 }
-                const target = event.target && event.target.closest
-                    ? event.target.closest('[data-admin-reorder-item]')
-                    : null;
-                if (!target || target === draggedItem || target.closest('[data-admin-reorder-list]') !== list) {
-                    return;
-                }
                 event.preventDefault();
-                clearDropState();
+                clearDropClasses();
                 draggedItem.classList.add('is-dragging');
-                const rect = target.getBoundingClientRect();
-                target.classList.add(event.clientY > rect.top + rect.height / 2 ? 'is-drop-after' : 'is-drop-before');
+                dropInsertionIndex = dropInsertionIndexAt(event.clientY);
+                if (dropInsertionIndex === draggedOriginalIndex) {
+                    removeDropGuide();
+                } else {
+                    showDropGuide(dropInsertionIndex);
+                }
                 if (event.dataTransfer) {
                     event.dataTransfer.dropEffect = 'move';
                 }
@@ -2783,20 +2836,17 @@ window.AdminShell = {
                 if (!draggedItem) {
                     return;
                 }
-                const target = event.target && event.target.closest
-                    ? event.target.closest('[data-admin-reorder-item]')
-                    : null;
-                if (!target || target === draggedItem || target.closest('[data-admin-reorder-list]') !== list) {
-                    return;
-                }
                 event.preventDefault();
-                const rect = target.getBoundingClientRect();
-                const insertAfter = event.clientY > rect.top + rect.height / 2;
-                list.insertBefore(draggedItem, insertAfter ? target.nextSibling : target);
                 const movedItem = draggedItem;
+                if (dropInsertionIndex !== null && dropInsertionIndex !== draggedOriginalIndex) {
+                    const items = availableDropItems();
+                    list.insertBefore(draggedItem, items[dropInsertionIndex] || null);
+                }
                 const moved = listItems().map(reorderItemKey).join('|') !== initialOrder;
                 clearDropState();
                 draggedItem = null;
+                draggedOriginalIndex = -1;
+                dropInsertionIndex = null;
                 initialOrder = '';
                 if (moved) {
                     dispatchReorder(movedItem);
@@ -2809,6 +2859,8 @@ window.AdminShell = {
                 clearDropState();
                 draggedItem = null;
                 draggedLayout = null;
+                draggedOriginalIndex = -1;
+                dropInsertionIndex = null;
                 initialOrder = '';
             });
 
