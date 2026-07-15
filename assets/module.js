@@ -53,6 +53,7 @@
         var particles = [];
         var animationFrame = 0;
         var animationStartedAt = 0;
+        var particleFillStartedAt = 0;
         var assemblyCompletedAt = 0;
         var resizeTimer = 0;
 
@@ -157,20 +158,33 @@
             });
 
             var imageData = sampleContext.getImageData(0, 0, sampleCanvas.width, sampleCanvas.height).data;
-            var points = [];
-            var x;
-            var y;
-            for (y = 0; y < sampleCanvas.height; y += sampleStep) {
-                for (x = 0; x < sampleCanvas.width; x += sampleStep) {
-                    if (imageData[(y * sampleCanvas.width + x) * 4 + 3] > 96) {
-                        points.push({x: x, y: y});
+            function pointsAtStep(step) {
+                var sampledPoints = [];
+                var x;
+                var y;
+                for (y = 0; y < sampleCanvas.height; y += step) {
+                    for (x = 0; x < sampleCanvas.width; x += step) {
+                        if (imageData[(y * sampleCanvas.width + x) * 4 + 3] > 96) {
+                            sampledPoints.push({x: x, y: y});
+                        }
                     }
                 }
+
+                return sampledPoints;
             }
 
-            shuffle(points);
-            var maximumParticles = width < 700 ? 1800 : 3200;
-            return points.length > maximumParticles ? points.slice(0, maximumParticles) : points;
+            var maximumParticles = width < 700 ? 2600 : 5200;
+            var points = pointsAtStep(sampleStep);
+            if (points.length > maximumParticles) {
+                sampleStep = Math.ceil(sampleStep * Math.sqrt(points.length / maximumParticles));
+                points = pointsAtStep(sampleStep);
+            }
+            while (points.length > maximumParticles) {
+                sampleStep += 1;
+                points = pointsAtStep(sampleStep);
+            }
+
+            return shuffle(points);
         }
 
         function scatteredPosition(targetX, targetY) {
@@ -206,13 +220,23 @@
 
         function createParticles() {
             var targets = sampledTitlePoints();
-            var maximumArrival = 0;
+            var foundationCount = Math.max(1, Math.round(targets.length * .58));
+            var foundationArrival = 0;
+            var fillArrival = 0;
 
-            particles = targets.map(function (target) {
-                var start = scatteredPosition(target.x, target.y);
-                var delay = Math.random() * 720;
-                var duration = 1450 + Math.random() * 850;
-                maximumArrival = Math.max(maximumArrival, delay + duration);
+            particles = targets.map(function (target, index) {
+                var isFoundation = index < foundationCount;
+                var start = isFoundation
+                    ? scatteredPosition(target.x, target.y)
+                    : {x: target.x, y: target.y};
+                var delay = isFoundation ? Math.random() * 420 : 0;
+                var duration = isFoundation
+                    ? 1050 + Math.random() * 600
+                    : 350 + Math.random() * 500;
+
+                if (isFoundation) {
+                    foundationArrival = Math.max(foundationArrival, delay + duration);
+                }
 
                 return {
                     startX: start.x,
@@ -221,30 +245,57 @@
                     targetY: target.y,
                     delay: delay,
                     duration: duration,
-                    size: .45 + Math.random() * .75,
+                    isFoundation: isFoundation,
+                    fillIndex: Math.max(0, index - foundationCount),
+                    size: .55 + Math.random() * .75,
                     twinkle: Math.random() * Math.PI * 2,
                 };
             });
 
-            assemblyCompletedAt = maximumArrival + 240;
+            particleFillStartedAt = foundationArrival + 100;
+            particles.forEach(function (particle) {
+                if (particle.isFoundation) {
+                    return;
+                }
+
+                var fillCount = Math.max(1, particles.length - foundationCount);
+                var fillPosition = particle.fillIndex / fillCount;
+                particle.delay = particleFillStartedAt + fillPosition * 650 + Math.random() * 90;
+                fillArrival = Math.max(fillArrival, particle.delay + particle.duration);
+            });
+            assemblyCompletedAt = Math.max(foundationArrival, fillArrival) + 180;
         }
 
         function easeOutQuart(value) {
             return 1 - Math.pow(1 - value, 4);
         }
 
+        function easeInOutCubic(value) {
+            return value < .5
+                ? 4 * value * value * value
+                : 1 - Math.pow(-2 * value + 2, 3) / 2;
+        }
+
         function drawParticle(particle, elapsed, channels) {
+            if (!particle.isFoundation && elapsed < particle.delay) {
+                return;
+            }
+
             var localProgress = Math.max(0, Math.min(1, (elapsed - particle.delay) / particle.duration));
             var progress = easeOutQuart(localProgress);
             var x = particle.startX + (particle.targetX - particle.startX) * progress;
             var y = particle.startY + (particle.targetY - particle.startY) * progress;
+            var drawSize = particle.size;
+            if (!particle.isFoundation) {
+                drawSize = particle.size * easeInOutCubic(localProgress);
+            }
             var twinkle = .72 + Math.sin(elapsed / 240 + particle.twinkle) * .18;
             var alpha = localProgress === 0 ? twinkle * .42 : twinkle * (.52 + localProgress * .4);
 
             context.globalAlpha = Math.max(.16, Math.min(.92, alpha));
             context.fillStyle = 'rgb(' + channels[0] + ', ' + channels[1] + ', ' + channels[2] + ')';
             context.beginPath();
-            context.arc(x, y, particle.size, 0, Math.PI * 2);
+            context.arc(x, y, drawSize, 0, Math.PI * 2);
             context.fill();
         }
 
@@ -272,7 +323,7 @@
             animationFrame = 0;
             window.setTimeout(function () {
                 context.clearRect(0, 0, width, height);
-            }, 950);
+            }, 1500);
         }
 
         function startAnimation() {
