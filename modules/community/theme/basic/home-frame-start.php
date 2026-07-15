@@ -1,7 +1,8 @@
 <?php
 $communityLayoutSettings = isset($communityLayoutSettings) && is_array($communityLayoutSettings) ? $communityLayoutSettings : (isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo));
 $communityFrameAccount = isset($account) && is_array($account) ? $account : null;
-$communityFrameChromeReady = isset($popularPosts, $popularPostReactionCounts, $latestComments, $recentSeries, $communitySeriesSupported, $homeExcerptAllowedByBoardId);
+$communityFrameSummaryEnabled = !isset($communityFrameSummaryEnabled) || $communityFrameSummaryEnabled !== false;
+$communityFrameChromeReady = !$communityFrameSummaryEnabled || isset($popularPosts, $popularPostReactionCounts, $latestComments, $recentSeries, $communitySeriesSupported, $homeExcerptAllowedByBoardId);
 if (!$communityFrameChromeReady) {
     $communityFrameChromeData = sr_community_home_chrome_data($pdo, $communityFrameAccount, $communityLayoutSettings, $site ?? null);
     $popularPosts = is_array($communityFrameChromeData['popularPosts'] ?? null) ? $communityFrameChromeData['popularPosts'] : [];
@@ -14,6 +15,10 @@ if (!$communityFrameChromeReady) {
         $latestPosts = is_array($communityFrameChromeData['latestPosts'] ?? null) ? $communityFrameChromeData['latestPosts'] : [];
     }
 }
+$popularPosts = isset($popularPosts) && is_array($popularPosts) ? $popularPosts : [];
+$latestComments = isset($latestComments) && is_array($latestComments) ? $latestComments : [];
+$recentSeries = isset($recentSeries) && is_array($recentSeries) ? $recentSeries : [];
+$communitySeriesSupported = !empty($communitySeriesSupported);
 $popularPostReactionCounts = isset($popularPostReactionCounts) && is_array($popularPostReactionCounts) ? $popularPostReactionCounts : [];
 $homeExcerptAllowedByBoardId = isset($homeExcerptAllowedByBoardId) && is_array($homeExcerptAllowedByBoardId) ? $homeExcerptAllowedByBoardId : [];
 if (function_exists('sr_community_home_filter_rows_by_board_ids')) {
@@ -28,7 +33,8 @@ $memberSettings = isset($memberSettings) && is_array($memberSettings) ? $memberS
 $communityMainLabel = isset($communityMainLabel) && is_string($communityMainLabel) && $communityMainLabel !== '' ? $communityMainLabel : '커뮤니티 본문';
 $communityFrameModifier = isset($communityFrameModifier) && is_string($communityFrameModifier) && preg_match('/\A[a-z0-9_-]+\z/', $communityFrameModifier) === 1 ? $communityFrameModifier : 'home';
 $communityMainClass = 'community-home-main community-frame-main community-frame-' . $communityFrameModifier;
+$communityHomeLayoutClass = 'community-home-layout' . ($communityFrameSummaryEnabled ? '' : ' community-home-layout-main-only');
 ?>
 <main class="community-screen">
-    <div class="community-home-layout">
+    <div class="<?php echo sr_e($communityHomeLayoutClass); ?>">
         <section class="<?php echo sr_e($communityMainClass); ?>" aria-label="<?php echo sr_e($communityMainLabel); ?>">

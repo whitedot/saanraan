@@ -214,6 +214,10 @@
     grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
 }
 
+.community-home-layout-main-only {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .community-home-aside-section {
     min-width: 0;
     width: 100%;

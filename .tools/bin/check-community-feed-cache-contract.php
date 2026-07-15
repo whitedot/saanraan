@@ -532,11 +532,22 @@ sr_check_community_feed_cache_contract_assert(
 );
 
 sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home-frame-start.php', [
+    '$communityFrameSummaryEnabled',
+    '$communityFrameChromeReady = !$communityFrameSummaryEnabled',
+    'community-home-layout-main-only',
     '$communityFrameHomeBoardIds = array_map(\'intval\', array_keys($homeExcerptAllowedByBoardId));',
     '$latestPosts = isset($latestPosts) && is_array($latestPosts) ? sr_community_home_filter_rows_by_board_ids($latestPosts, $communityFrameHomeBoardIds) : [];',
     '$popularPosts = isset($popularPosts) && is_array($popularPosts) ? sr_community_home_filter_rows_by_board_ids($popularPosts, $communityFrameHomeBoardIds) : [];',
     '$latestComments = isset($latestComments) && is_array($latestComments) ? sr_community_home_filter_rows_by_board_ids($latestComments, $communityFrameHomeBoardIds) : [];',
     '$recentSeries = isset($recentSeries) && is_array($recentSeries) ? sr_community_home_filter_rows_by_board_ids($recentSeries, $communityFrameHomeBoardIds) : [];',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/post.php', [
+    '$communityFrameSummaryEnabled = false;',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home-frame-end.php', [
+    'if (!empty($communityFrameSummaryEnabled))',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [
