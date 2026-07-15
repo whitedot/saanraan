@@ -787,6 +787,8 @@ sr_community_release_file_contains('modules/community/actions/post-notice.php', 
 ], 'Community post notice action');
 sr_community_release_file_contains('modules/community/theme/basic/post.php', [
     'btn btn-outline-default community-post-comments-jump',
+    'community-action-group community-action-group-leading',
+    'community-action-group community-action-group-trailing',
     'dropdown community-post-management-dropdown',
     'dropdown-menu community-post-management-menu',
     'btn btn-outline-default" data-community-copy-url',

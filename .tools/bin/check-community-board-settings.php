@@ -291,6 +291,10 @@ function sr_check_community_board_settings_runtime(): void
             'updated_at' => $now,
         ]);
     }
+    $pdo->exec("UPDATE sr_community_posts SET author_public_name_snapshot = '관리자' WHERE id = 1");
+    $pdo->exec("UPDATE sr_community_posts SET guest_author_name = '방문자' WHERE id = 2");
+    $pdo->exec("INSERT INTO sr_member_accounts (id, status) VALUES (7, 'withdrawn')");
+    $pdo->exec("UPDATE sr_community_posts SET author_account_id = 7, author_public_name_snapshot = '탈퇴 전 이름' WHERE id = 3");
     $commentStmt = $pdo->prepare('INSERT INTO sr_community_comments (id, post_id, status, created_at) VALUES (:id, :post_id, :status, :created_at)');
     foreach ([
         ['id' => 1, 'post_id' => 1, 'status' => 'published'],
@@ -349,6 +353,28 @@ function sr_check_community_board_settings_runtime(): void
     $viewSortedIds = array_map('intval', array_column(sr_community_public_posts($pdo, 10, 2, 0, '', 0, 'views'), 'id'));
     if ($viewSortedIds !== [2, 3]) {
         sr_check_community_board_settings_error('community views sort and limit runtime order failed.');
+    }
+    $titleSearchIds = array_map('intval', array_column(sr_community_board_posts($pdo, 10, 10, 0, 'alpha', 0, 'latest', 0, 'title'), 'id'));
+    if ($titleSearchIds !== [5]) {
+        sr_check_community_board_settings_error('community board title-only search scope failed.');
+    }
+    $bodySearchIds = array_map('intval', array_column(sr_community_board_posts($pdo, 10, 10, 0, 'alpha', 0, 'latest', 0, 'body'), 'id'));
+    if ($bodySearchIds !== [1]) {
+        sr_check_community_board_settings_error('community board body-only search scope failed.');
+    }
+    $combinedSearchIds = array_map('intval', array_column(sr_community_board_posts($pdo, 10, 10, 0, 'alpha', 0, 'latest', 0, 'invalid'), 'id'));
+    if ($combinedSearchIds !== [5, 1] || sr_community_board_post_count($pdo, 10, 'alpha', 0, 0, 'title_body') !== 2) {
+        sr_check_community_board_settings_error('community board combined search scope failed.');
+    }
+    if (sr_community_board_posts($pdo, 10, 10, 0, 'private', 0, 'latest', 0, 'body') !== []) {
+        sr_check_community_board_settings_error('community board search must not expose secret post bodies.');
+    }
+    $authorSearchIds = array_map('intval', array_column(sr_community_board_posts($pdo, 10, 10, 0, '관리자', 0, 'latest', 0, 'author'), 'id'));
+    if ($authorSearchIds !== [1] || sr_community_board_post_count($pdo, 10, '방문자', 0, 0, 'author') !== 1) {
+        sr_check_community_board_settings_error('community board public author name search scope failed.');
+    }
+    if (sr_community_board_posts($pdo, 10, 10, 0, '탈퇴 전 이름', 0, 'latest', 0, 'author') !== []) {
+        sr_check_community_board_settings_error('community board author search must not expose withdrawn account names.');
     }
     $identityBoard = [
         'id' => 10,
@@ -567,6 +593,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
 ], 'community board group default secret setting contract');
 sr_check_community_board_settings_contains('modules/community/helpers/posts.php', [
     'sr_community_board_list_sort_values',
+    'sr_community_board_search_field',
     'sr_community_board_list_per_page',
     'function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0, ?array $bodySearchBoardIds = null)',
     'function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = \'\', int $categoryId = 0, string $sort = \'latest\')',
@@ -694,6 +721,8 @@ sr_check_community_board_settings_contains('modules/community/actions/list.php',
     'sr_community_board_list_per_page',
     'sr_community_board_list_default_sort',
     'sr_community_board_list_excerpt_enabled',
+    'sr_community_board_search_field',
+    'search_field',
 ], 'community public list setting application');
 sr_check_community_board_settings_contains('modules/community/actions/write.php', ['sr_community_validate_post_body_length'], 'community post create length validation');
 sr_check_community_board_settings_contains('modules/community/actions/edit.php', [

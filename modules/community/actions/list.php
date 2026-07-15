@@ -41,6 +41,7 @@ $listExcerptEnabled = sr_community_board_list_excerpt_enabled($pdo, $board);
 $listExcerptLength = sr_community_board_list_excerpt_length($pdo, $board);
 $keywordValue = sr_get_string_without_truncation('q', 100);
 $keyword = is_string($keywordValue) ? trim($keywordValue) : '';
+$searchField = sr_community_board_search_field(sr_get_string('search_field', 20));
 $categoryEnabled = sr_community_board_category_enabled($pdo, (int) $board['id']);
 $categories = $categoryEnabled ? sr_community_categories($pdo, (int) $board['id'], true) : [];
 $categoryKey = $categoryEnabled ? sr_get_string('category', 60) : '';
@@ -60,12 +61,12 @@ $authorFilterAccountId = is_array($authorFilterAccount) && !in_array((string) ($
     : 0;
 $pageValue = sr_get_string('page', 20);
 $page = preg_match('/\A[1-9][0-9]*\z/', $pageValue) === 1 ? (int) $pageValue : 1;
-$postCount = $categoryInvalid ? 0 : sr_community_board_post_count($pdo, (int) $board['id'], $keyword, $selectedCategoryId, $authorFilterAccountId);
+$postCount = $categoryInvalid ? 0 : sr_community_board_post_count($pdo, (int) $board['id'], $keyword, $selectedCategoryId, $authorFilterAccountId, $searchField);
 $totalPages = max(1, (int) ceil($postCount / $postsPerPage));
 if ($page > $totalPages) {
     $page = $totalPages;
 }
-$posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId, $listDefaultSort, $authorFilterAccountId);
+$posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId, $listDefaultSort, $authorFilterAccountId, $searchField);
 $boardNotice = '';
 if (isset($_SESSION['sr_community_board_notice']) && is_string($_SESSION['sr_community_board_notice'])) {
     $boardNotice = $_SESSION['sr_community_board_notice'];

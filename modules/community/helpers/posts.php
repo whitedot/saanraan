@@ -284,21 +284,37 @@ function sr_community_board_list_sort_sql(string $sort, bool $noticeSupported = 
     return $noticePrefix . 'p.id DESC';
 }
 
-function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest', int $authorAccountId = 0): array
+function sr_community_board_search_field(string $field): string
+{
+    return in_array($field, ['title', 'body', 'author'], true) ? $field : 'title_body';
+}
+
+function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = '', int $categoryId = 0, string $sort = 'latest', int $authorAccountId = 0, string $searchField = 'title_body'): array
 {
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
     $keyword = trim($keyword);
+    $searchField = sr_community_board_search_field($searchField);
     $noticeSupported = sr_community_post_notice_supported($pdo);
     $orderSql = sr_community_board_list_sort_sql(sr_community_board_list_sort_key($sort), $noticeSupported);
     $categorySupported = sr_community_categories_supported($pdo);
     $where = "p.board_id = :board_id AND p.status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $secretBodyCondition = "p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '\\\\'";
-        $where .= " AND (p.title LIKE :title_keyword ESCAPE '\\\\' OR (" . $secretBodyCondition . '))';
-        $params['title_keyword'] = sr_community_like_pattern($keyword);
-        $params['body_keyword'] = sr_community_like_pattern($keyword);
+        $keywordConditions = [];
+        if ($searchField === 'author') {
+            $keywordConditions[] = "(((author.id IS NULL OR author.status NOT IN ('withdrawn', 'anonymized')) AND p.author_public_name_snapshot LIKE :author_snapshot_keyword ESCAPE '!') OR (COALESCE(p.author_account_id, 0) < 1 AND p.guest_author_name LIKE :guest_author_keyword ESCAPE '!'))";
+            $params['author_snapshot_keyword'] = sr_community_search_like_pattern($keyword);
+            $params['guest_author_keyword'] = sr_community_search_like_pattern($keyword);
+        } elseif ($searchField !== 'body') {
+            $keywordConditions[] = "p.title LIKE :title_keyword ESCAPE '!'";
+            $params['title_keyword'] = sr_community_search_like_pattern($keyword);
+        }
+        if ($searchField !== 'author' && $searchField !== 'title') {
+            $keywordConditions[] = "(p.is_secret = 0 AND p.body_text LIKE :body_keyword ESCAPE '!')";
+            $params['body_keyword'] = sr_community_search_like_pattern($keyword);
+        }
+        $where .= ' AND (' . implode(' OR ', $keywordConditions) . ')';
     }
     if ($categorySupported && $categoryId > 0) {
         $where .= ' AND p.category_id = :category_id';
@@ -447,21 +463,32 @@ function sr_community_post_body_format(PDO $pdo, array $post, ?array $settings =
     return sr_community_body_format_for_editor_key($pdo, sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea')));
 }
 
-function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0, int $authorAccountId = 0): int
+function sr_community_board_post_count(PDO $pdo, int $boardId, string $keyword = '', int $categoryId = 0, int $authorAccountId = 0, string $searchField = 'title_body'): int
 {
     if ($boardId < 1) {
         return 0;
     }
 
     $keyword = trim($keyword);
+    $searchField = sr_community_board_search_field($searchField);
     $categorySupported = sr_community_categories_supported($pdo);
     $where = "board_id = :board_id AND status = 'published'";
     $params = ['board_id' => $boardId];
     if ($keyword !== '') {
-        $secretBodyCondition = "is_secret = 0 AND body_text LIKE :body_keyword ESCAPE '\\\\'";
-        $where .= " AND (title LIKE :title_keyword ESCAPE '\\\\' OR (" . $secretBodyCondition . '))';
-        $params['title_keyword'] = sr_community_like_pattern($keyword);
-        $params['body_keyword'] = sr_community_like_pattern($keyword);
+        $keywordConditions = [];
+        if ($searchField === 'author') {
+            $keywordConditions[] = "((NOT EXISTS (SELECT 1 FROM sr_member_accounts search_author WHERE search_author.id = author_account_id AND search_author.status IN ('withdrawn', 'anonymized')) AND author_public_name_snapshot LIKE :author_snapshot_keyword ESCAPE '!') OR (COALESCE(author_account_id, 0) < 1 AND guest_author_name LIKE :guest_author_keyword ESCAPE '!'))";
+            $params['author_snapshot_keyword'] = sr_community_search_like_pattern($keyword);
+            $params['guest_author_keyword'] = sr_community_search_like_pattern($keyword);
+        } elseif ($searchField !== 'body') {
+            $keywordConditions[] = "title LIKE :title_keyword ESCAPE '!'";
+            $params['title_keyword'] = sr_community_search_like_pattern($keyword);
+        }
+        if ($searchField !== 'author' && $searchField !== 'title') {
+            $keywordConditions[] = "(is_secret = 0 AND body_text LIKE :body_keyword ESCAPE '!')";
+            $params['body_keyword'] = sr_community_search_like_pattern($keyword);
+        }
+        $where .= ' AND (' . implode(' OR ', $keywordConditions) . ')';
     }
     if ($categorySupported && $categoryId > 0) {
         $where .= ' AND category_id = :category_id';

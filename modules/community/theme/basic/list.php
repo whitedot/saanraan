@@ -1,9 +1,11 @@
 <?php
 
+$communityListSearchField = isset($searchField) ? sr_community_board_search_field((string) $searchField) : 'title_body';
+$communityListSearchQuery = $keyword !== '' ? '&search_field=' . rawurlencode($communityListSearchField) . '&q=' . rawurlencode($keyword) : '';
 $baseListPath = '/community/board?key=' . rawurlencode((string) $board['board_key'])
     . (isset($selectedCategory) && is_array($selectedCategory) ? '&category=' . rawurlencode((string) $selectedCategory['category_key']) : '')
     . (!empty($authorHash) && !empty($authorFilterAccountId) ? '&author=' . rawurlencode((string) $authorHash) : '')
-    . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : '');
+    . $communityListSearchQuery;
 $authorQuery = !empty($authorHash) && !empty($authorFilterAccountId) ? '&author=' . rawurlencode((string) $authorHash) : '';
 $categoryQuery = isset($selectedCategory) && is_array($selectedCategory) ? '&category=' . rawurlencode((string) $selectedCategory['category_key']) : '';
 $seo = sr_community_board_seo_meta($pdo, $board, [
@@ -70,25 +72,19 @@ $communityFrameModifier = 'list';
         <?php echo sr_public_feedback_toasts('member', (string) ($memberFollowFeedback['notice'] ?? ''), is_array($memberFollowFeedback['errors'] ?? null) ? $memberFollowFeedback['errors'] : []); ?>
 
         <?php if (!empty($authorFilterAccountId) && is_array($authorFilterAccount)) { ?>
-            <p>
-                <?php echo sr_e((string) ($authorFilterAccount['public_name'] ?? $authorFilterAccount['display_name'] ?? '회원')); ?>님의 게시글을 보고 있습니다.
+            <div class="alert alert-info community-board-author-filter-alert" role="status">
+                <span><?php echo sr_e((string) ($authorFilterAccount['public_name'] ?? $authorFilterAccount['display_name'] ?? '회원')); ?>님의 게시글을 보고 있습니다.</span>
                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">전체 보기</a>
-            </p>
-        <?php } ?>
-
-        <?php if ($canWriteBoard) { ?>
-            <p>
-                <a href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.1f1955dd')); ?></a>
-            </p>
+            </div>
         <?php } ?>
 
         <?php $communityListCategoryEnabled = !empty($categoryEnabled); ?>
         <?php if ($communityListCategoryEnabled && isset($categories) && is_array($categories) && $categories !== []) { ?>
             <nav aria-label="카테고리">
                 <p>
-                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . $authorQuery . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''))); ?>"><?php echo sr_e('전체'); ?></a>
+                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . $authorQuery . $communityListSearchQuery)); ?>"><?php echo sr_e('전체'); ?></a>
                     <?php foreach ($categories as $category) { ?>
-                        <?php $categoryUrl = '/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $category['category_key']) . $authorQuery . ($keyword !== '' ? '&q=' . rawurlencode($keyword) : ''); ?>
+                        <?php $categoryUrl = '/community/board?key=' . rawurlencode((string) $board['board_key']) . '&category=' . rawurlencode((string) $category['category_key']) . $authorQuery . $communityListSearchQuery; ?>
                         /
                         <a href="<?php echo sr_e(sr_url($categoryUrl)); ?>"<?php echo isset($selectedCategory) && is_array($selectedCategory) && (int) $selectedCategory['id'] === (int) $category['id'] ? ' aria-current="page"' : ''; ?>>
                             <?php echo sr_e((string) $category['title']); ?>
@@ -98,7 +94,8 @@ $communityFrameModifier = 'list';
             </nav>
         <?php } ?>
 
-        <form method="get" action="<?php echo sr_e(sr_url('/community/board')); ?>">
+        <div class="community-board-list-actions">
+        <form class="community-board-search" method="get" action="<?php echo sr_e(sr_url('/community/board')); ?>" role="search">
             <input type="hidden" name="key" value="<?php echo sr_e((string) $board['board_key']); ?>">
             <?php if ($categoryQuery !== '') { ?>
                 <input type="hidden" name="category" value="<?php echo sr_e((string) $selectedCategory['category_key']); ?>">
@@ -106,17 +103,28 @@ $communityFrameModifier = 'list';
             <?php if ($authorQuery !== '') { ?>
                 <input type="hidden" name="author" value="<?php echo sr_e((string) $authorHash); ?>">
             <?php } ?>
-            <p>
-                <label for="modules_community_list_q">
-                    <span><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></span>
-                    <input id="modules_community_list_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($keyword); ?>">
-                </label>
+            <label class="sr-only" for="modules_community_list_q"><?php echo sr_e('게시판 검색'); ?></label>
+            <label class="sr-only" for="modules_community_list_search_field"><?php echo sr_e('검색 조건'); ?></label>
+            <div class="community-board-search-controls">
+                <select id="modules_community_list_search_field" name="search_field" class="form-select">
+                    <option value="title_body"<?php echo $communityListSearchField === 'title_body' ? ' selected' : ''; ?>><?php echo sr_e('제목+내용'); ?></option>
+                    <option value="title"<?php echo $communityListSearchField === 'title' ? ' selected' : ''; ?>><?php echo sr_e('제목'); ?></option>
+                    <option value="body"<?php echo $communityListSearchField === 'body' ? ' selected' : ''; ?>><?php echo sr_e('내용'); ?></option>
+                    <option value="author"<?php echo $communityListSearchField === 'author' ? ' selected' : ''; ?>><?php echo sr_e('작성자'); ?></option>
+                </select>
+                <input id="modules_community_list_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($keyword); ?>" class="form-input" placeholder="<?php echo sr_e('검색어를 입력하세요'); ?>" autocomplete="off">
                 <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.search.4b8d541e')); ?></button>
                 <?php if ($keyword !== '') { ?>
-                    <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . $categoryQuery . $authorQuery)); ?>"><?php echo sr_e(sr_t('community::ui.text.893f3d94')); ?></a>
+                    <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']) . $categoryQuery . $authorQuery)); ?>"><?php echo sr_e(sr_t('community::ui.text.893f3d94')); ?></a>
                 <?php } ?>
-            </p>
+            </div>
         </form>
+        <?php if ($canWriteBoard) { ?>
+            <div class="community-action-group community-action-group-trailing">
+                <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.1f1955dd')); ?></a>
+            </div>
+        <?php } ?>
+        </div>
 
         <?php if (!empty($categoryInvalid)) { ?>
             <p>카테고리를 찾을 수 없거나 현재 사용할 수 없습니다.</p>
