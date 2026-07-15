@@ -120,7 +120,8 @@ $coreHelpers = file_get_contents($root . '/core/helpers.php');
 $frontController = file_get_contents($root . '/index.php');
 $communityAttachments = file_get_contents($root . '/modules/community/helpers/attachments.php');
 $communityPosts = file_get_contents($root . '/modules/community/helpers/posts.php');
-$communityListSkin = file_get_contents($root . '/modules/community/skins/basic/list.php');
+$communityPresentation = file_get_contents($root . '/modules/community/helpers/presentation.php');
+$communityHomeSummaryAside = file_get_contents($root . '/modules/community/theme/basic/home-summary-aside.php');
 $adminPaths = file_get_contents($root . '/modules/admin/paths.php');
 $adminNavigation = file_get_contents($root . '/modules/admin/helpers/navigation.php');
 $adminStorageCacheAction = file_get_contents($root . '/modules/admin/actions/storage-cache.php');
@@ -192,10 +193,12 @@ sr_storage_helper_assert(
     'Community board list query must include first image attachment fields and checksum metadata for thumbnail generation.'
 );
 sr_storage_helper_assert(
-    is_string($communityListSkin)
-        && strpos($communityListSkin, 'sr_community_post_list_thumbnail_url') !== false
-        && strpos($communityListSkin, 'loading="lazy"') !== false,
-    'Community basic list skin must consume the list thumbnail helper.'
+    is_string($communityPresentation)
+        && preg_match('/function sr_community_home_post_image_url\(.*?sr_community_post_list_thumbnail_url\(/s', $communityPresentation) === 1
+        && is_string($communityHomeSummaryAside)
+        && strpos($communityHomeSummaryAside, "\$post['home_image_url']") !== false
+        && strpos($communityHomeSummaryAside, 'loading="lazy"') !== false,
+    'Community home summaries must consume and lazily render the list thumbnail helper output.'
 );
 sr_storage_helper_assert(
     is_string($adminPaths)

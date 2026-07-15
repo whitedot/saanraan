@@ -1009,10 +1009,6 @@ function sr_installed_gate_status_assert_json(string $label, string $output): vo
     }
 
     foreach ([
-        'config_readable' => 'no',
-        'config_mode' => '0600',
-        'config_owner_group' => 'www-data:www-data',
-        'sr_is_installed' => 'no',
         'run_http_smoke' => 'no',
         'run_readonly' => 'no',
         'run_admin_readonly' => 'no',
@@ -1024,6 +1020,40 @@ function sr_installed_gate_status_assert_json(string $label, string $output): vo
     ] as $key => $expectedValue) {
         if (($metadata[$key] ?? null) !== $expectedValue) {
             sr_installed_gate_status_error('Installed gate status JSON metadata mismatch for ' . $label . ': ' . $key);
+        }
+    }
+
+    $configFile = (string) ($metadata['config_file'] ?? '');
+    $configReadable = (string) ($metadata['config_readable'] ?? '');
+    $configMode = (string) ($metadata['config_mode'] ?? '');
+    $configOwnerGroup = (string) ($metadata['config_owner_group'] ?? '');
+    $installedLock = (string) ($metadata['installed_lock'] ?? '');
+    $isInstalled = (string) ($metadata['sr_is_installed'] ?? '');
+    if (!in_array($configFile, ['present', 'missing'], true)) {
+        sr_installed_gate_status_error('Installed gate status JSON config_file metadata is invalid: ' . $label);
+    }
+    if (!in_array($configReadable, ['yes', 'no'], true)) {
+        sr_installed_gate_status_error('Installed gate status JSON config_readable metadata is invalid: ' . $label);
+    }
+    if (!in_array($installedLock, ['present', 'missing'], true)) {
+        sr_installed_gate_status_error('Installed gate status JSON installed_lock metadata is invalid: ' . $label);
+    }
+    if (!in_array($isInstalled, ['yes', 'no'], true)) {
+        sr_installed_gate_status_error('Installed gate status JSON sr_is_installed metadata is invalid: ' . $label);
+    }
+    if ($configFile === 'missing') {
+        if ($configReadable !== 'no' || $configMode !== '-' || $configOwnerGroup !== '-' || $isInstalled !== 'no') {
+            sr_installed_gate_status_error('Installed gate status JSON missing-config metadata is inconsistent: ' . $label);
+        }
+    } else {
+        if (preg_match('/\A(?:[0-7]{4}|unknown)\z/', $configMode) !== 1) {
+            sr_installed_gate_status_error('Installed gate status JSON config_mode metadata is invalid: ' . $label);
+        }
+        if ($configOwnerGroup === '' || $configOwnerGroup === '-') {
+            sr_installed_gate_status_error('Installed gate status JSON config_owner_group metadata is invalid: ' . $label);
+        }
+        if (($configReadable === 'no' || $installedLock === 'missing') && $isInstalled !== 'no') {
+            sr_installed_gate_status_error('Installed gate status JSON installed-state metadata is inconsistent: ' . $label);
         }
     }
 
@@ -1157,7 +1187,6 @@ foreach ([
 $markdownOutput = sr_installed_gate_status_exec([PHP_BINARY, '.tools/bin/release-installed-gate-status.php', '--markdown-table']);
 sr_installed_gate_status_assert_markdown_table('default markdown output', $markdownOutput);
 foreach ([
-    '| 새 설치 또는 업데이트 적용 | 환경 미준비 | current tree | config/config.php is not readable by current user |',
     '| /admin/assets/reconciliation | 미실행 | base URL missing | set SR_SMOKE_BASE_URL and use an administrator session to verify the read-only screen |',
     '| 기본 HTTP smoke | 미실행 | base URL missing | set SR_SMOKE_BASE_URL and run with --run-http-smoke to verify routes, security headers, and protected paths |',
     '| 회원 MFA smoke | 미실행 | base URL missing | set SR_SMOKE_BASE_URL for local/staging member-only MFA smoke; do not run against production |',
@@ -1994,6 +2023,7 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'asset_dedupe_expectation',
     'dedupe row count evidence',
     'incomplete',
+    'config/config.php missing',
     'config/config.php is not readable by current user',
     'sr_release_gate_status_pair_status',
     'sr_release_gate_status_base_url_requires_public_mutation_override',
