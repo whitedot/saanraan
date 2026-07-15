@@ -2,7 +2,8 @@
 $communityLayoutSettings = isset($communityLayoutSettings) && is_array($communityLayoutSettings) ? $communityLayoutSettings : (isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo));
 $communityFrameAccount = isset($account) && is_array($account) ? $account : null;
 $communityFrameSummaryEnabled = !isset($communityFrameSummaryEnabled) || $communityFrameSummaryEnabled !== false;
-$communityFrameChromeReady = !$communityFrameSummaryEnabled || isset($popularPosts, $popularPostReactionCounts, $latestComments, $recentSeries, $communitySeriesSupported, $homeExcerptAllowedByBoardId);
+$communityFrameSummaryDeferred = !empty($communityFrameSummaryDeferred);
+$communityFrameChromeReady = !$communityFrameSummaryEnabled || $communityFrameSummaryDeferred || isset($popularPosts, $popularPostReactionCounts, $latestComments, $recentSeries, $communitySeriesSupported, $homeExcerptAllowedByBoardId);
 if (!$communityFrameChromeReady) {
     $communityFrameChromeData = sr_community_home_chrome_data($pdo, $communityFrameAccount, $communityLayoutSettings, $site ?? null);
     $popularPosts = is_array($communityFrameChromeData['popularPosts'] ?? null) ? $communityFrameChromeData['popularPosts'] : [];

@@ -533,7 +533,8 @@ sr_check_community_feed_cache_contract_assert(
 
 sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home-frame-start.php', [
     '$communityFrameSummaryEnabled',
-    '$communityFrameChromeReady = !$communityFrameSummaryEnabled',
+    '$communityFrameSummaryDeferred',
+    '$communityFrameChromeReady = !$communityFrameSummaryEnabled || $communityFrameSummaryDeferred',
     'community-home-layout-main-only',
     '$communityFrameHomeBoardIds = array_map(\'intval\', array_keys($homeExcerptAllowedByBoardId));',
     '$latestPosts = isset($latestPosts) && is_array($latestPosts) ? sr_community_home_filter_rows_by_board_ids($latestPosts, $communityFrameHomeBoardIds) : [];',
@@ -543,11 +544,32 @@ sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/h
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/post.php', [
-    '$communityFrameSummaryEnabled = false;',
+    '$communityFrameSummaryDeferred = true;',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/skins/basic/view.php', [
+    '$communityFrameSummaryDeferred = true;',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home-frame-end.php', [
     'if (!empty($communityFrameSummaryEnabled))',
+    'home-summary-deferred.php',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/actions/summary.php', [
+    'sr_community_home_chrome_data(',
+    'home-summary-aside.php',
+    'sr_finish_response();',
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [
+    "'GET /community/summary' => 'actions/summary.php'",
+]);
+
+sr_check_community_feed_cache_contract_contains('modules/community/assets/module.js', [
+    'function initDeferredSummary()',
+    "document.querySelectorAll('[data-community-summary-deferred]')",
+    'summary.replaceWith(document.importNode(nextSummary, true));',
 ]);
 
 sr_check_community_feed_cache_contract_contains('modules/community/paths.php', [

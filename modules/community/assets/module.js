@@ -935,6 +935,51 @@
     document.documentElement.setAttribute('data-community-comment-shared-modals-ready', '1');
   }
 
+  function initDeferredSummary() {
+    Array.prototype.slice.call(document.querySelectorAll('[data-community-summary-deferred]')).forEach(function (summary) {
+      var endpoint = summary.getAttribute('data-community-summary-url') || '';
+      var fallbackUrl = summary.getAttribute('data-community-summary-fallback-url') || '';
+      var status = summary.querySelector('[data-community-summary-status]');
+      if (endpoint === '' || summary.getAttribute('data-community-summary-loading') === '1') {
+        return;
+      }
+
+      summary.setAttribute('data-community-summary-loading', '1');
+      fetch(endpoint, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }).then(function (response) {
+        if (!response.ok) {
+          throw new Error('community_summary_request_failed');
+        }
+        return response.text();
+      }).then(function (html) {
+        var parser = new DOMParser();
+        var documentFragment = parser.parseFromString(html, 'text/html');
+        var nextSummary = documentFragment.querySelector('.community-home-aside');
+        if (!nextSummary) {
+          throw new Error('community_summary_markup_missing');
+        }
+        summary.replaceWith(document.importNode(nextSummary, true));
+      }).catch(function () {
+        summary.removeAttribute('data-community-summary-loading');
+        if (status) {
+          status.textContent = '커뮤니티 요약을 불러오지 못했습니다.';
+          if (fallbackUrl !== '') {
+            var fallbackLink = document.createElement('a');
+            fallbackLink.href = fallbackUrl;
+            fallbackLink.textContent = '커뮤니티 요약 보기';
+            status.appendChild(document.createTextNode(' '));
+            status.appendChild(fallbackLink);
+          }
+        }
+      });
+    });
+  }
+
   function init() {
     initImageLayer();
     initToasts();
@@ -944,6 +989,7 @@
     initDraftAutosave();
     initCommentSharedModals();
     initCommentPagination();
+    initDeferredSummary();
   }
 
   if (document.readyState === 'loading') {

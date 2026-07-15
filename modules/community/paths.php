@@ -3,6 +3,7 @@
 return [
     'GET /community' => 'actions/home.php',
     'GET /community/search' => 'actions/search.php',
+    'GET /community/summary' => 'actions/summary.php',
     'GET /community/my' => 'actions/my.php',
     'GET /community/group' => 'actions/group.php',
     'GET /community/board' => 'actions/list.php',

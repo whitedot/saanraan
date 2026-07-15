@@ -61,6 +61,7 @@ $communityLayoutContext = sr_community_public_layout_context($communityLayoutSet
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;
 $communityFrameModifier = 'view';
+$communityFrameSummaryDeferred = true;
 $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_array($comments ?? null) ? count($comments) : 0));
 $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']));
 $memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_array($_SESSION['sr_member_follow_feedback'])
