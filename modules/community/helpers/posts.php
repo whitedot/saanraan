@@ -330,6 +330,35 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
         : 'NULL AS category_id, NULL AS category_key, NULL AS category_title, NULL AS category_status';
     $noticeSelectSql = $noticeSupported ? 'p.is_notice' : '0 AS is_notice';
     $categoryJoinSql = $categorySupported ? 'LEFT JOIN sr_community_categories cat ON cat.id = p.category_id' : '';
+    $pickedCommentCountSelectSql = sr_community_board_list_sort_key($sort) === 'comments'
+        ? ", (SELECT COUNT(*) FROM sr_community_comments picked_comment WHERE picked_comment.post_id = p.id AND picked_comment.status = 'published') AS published_comment_count"
+        : '';
+    $pickedStmt = $pdo->prepare(
+        'SELECT p.id' . $pickedCommentCountSelectSql . '
+         FROM sr_community_posts p
+         LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
+         WHERE ' . $where . '
+         ORDER BY ' . $orderSql . '
+         LIMIT :limit_value OFFSET :offset_value'
+    );
+    foreach ($params as $key => $value) {
+        $pickedStmt->bindValue($key, $value, in_array($key, ['board_id', 'category_id', 'author_account_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $pickedStmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
+    $pickedStmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
+    $pickedStmt->execute();
+    $pickedPostIds = array_values(array_filter(array_map(
+        static fn (array $row): int => (int) ($row['id'] ?? 0),
+        $pickedStmt->fetchAll()
+    ), static fn (int $postId): bool => $postId > 0));
+    if ($pickedPostIds === []) {
+        return [];
+    }
+
+    $pickedPlaceholders = [];
+    foreach ($pickedPostIds as $index => $pickedPostId) {
+        $pickedPlaceholders[] = ':picked_post_id_' . (string) $index;
+    }
     $stmt = $pdo->prepare(
         'SELECT p.id, p.board_id, ' . $categorySelectSql . ', p.author_account_id, p.author_public_name_snapshot' . sr_community_guest_author_select($pdo, 'sr_community_posts', 'p') . sr_community_post_extra_values_select($pdo, 'p') . ', author.status AS author_account_status, p.title, p.body_text, p.is_secret, ' . $noticeSelectSql . ', p.status, p.view_count, p.last_commented_at, p.created_at, p.updated_at,
                 (SELECT COUNT(*) FROM sr_community_comments c WHERE c.post_id = p.id AND c.status = \'published\') AS published_comment_count,
@@ -345,26 +374,36 @@ function sr_community_board_posts(PDO $pdo, int $boardId, int $limit = 20, int $
          FROM sr_community_posts p
          LEFT JOIN sr_member_accounts author ON author.id = p.author_account_id
          ' . $categoryJoinSql . '
-         LEFT JOIN (
-             SELECT post_id, MIN(id) AS attachment_id
-             FROM sr_community_attachments
-             WHERE status = \'active\'
-               AND mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
-             GROUP BY post_id
-         ) list_image_pick ON list_image_pick.post_id = p.id
-         LEFT JOIN sr_community_attachments list_image ON list_image.id = list_image_pick.attachment_id
-         WHERE ' . $where . '
-         ORDER BY ' . $orderSql . '
-         LIMIT :limit_value OFFSET :offset_value'
+         LEFT JOIN sr_community_attachments list_image ON list_image.id = (
+             SELECT MIN(att_img.id)
+             FROM sr_community_attachments att_img
+             WHERE att_img.post_id = p.id
+               AND att_img.status = \'active\'
+               AND att_img.mime_type IN (\'image/jpeg\', \'image/png\', \'image/gif\', \'image/webp\')
+         )
+         WHERE p.id IN (' . implode(', ', $pickedPlaceholders) . ')
+           AND p.status = \'published\''
     );
-    foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value, in_array($key, ['board_id', 'category_id', 'author_account_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    foreach ($pickedPostIds as $index => $pickedPostId) {
+        $stmt->bindValue('picked_post_id_' . (string) $index, $pickedPostId, PDO::PARAM_INT);
     }
-    $stmt->bindValue('limit_value', $limit, PDO::PARAM_INT);
-    $stmt->bindValue('offset_value', $offset, PDO::PARAM_INT);
     $stmt->execute();
+    $postsById = [];
+    foreach ($stmt->fetchAll() as $post) {
+        $postId = (int) ($post['id'] ?? 0);
+        if ($postId > 0) {
+            $postsById[$postId] = $post;
+        }
+    }
 
-    return $stmt->fetchAll();
+    $posts = [];
+    foreach ($pickedPostIds as $pickedPostId) {
+        if (isset($postsById[$pickedPostId])) {
+            $posts[] = $postsById[$pickedPostId];
+        }
+    }
+
+    return $posts;
 }
 
 function sr_community_effective_board_int_setting(PDO $pdo, array $board, string $settingKey, int $default, int $min, int $max): int

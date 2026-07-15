@@ -598,7 +598,14 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts.php'
     'function sr_community_search_posts(PDO $pdo, array $boardIds, string $keyword, int $limit = 20, int $offset = 0, ?array $bodySearchBoardIds = null)',
     'function sr_community_public_posts(PDO $pdo, int $boardId, int $limit = 20, int $offset = 0, string $keyword = \'\', int $categoryId = 0, string $sort = \'latest\')',
     'published_comment_count DESC, p.id DESC',
+    '$pickedPostIds',
+    'WHERE p.id IN (',
+    'SELECT MIN(att_img.id)',
 ], 'community board runtime setting helpers');
+$communityPostsHelper = sr_check_community_board_settings_content('modules/community/helpers/posts.php');
+if (str_contains($communityPostsHelper, ') list_image_pick ON list_image_pick.post_id = p.id')) {
+    sr_check_community_board_settings_error('community board list must not aggregate every attachment before limiting post ids.');
+}
 sr_check_community_board_settings_contains('modules/community/actions/search.php', [
     'intdiv(PHP_INT_MAX, $perPage)',
 ], 'community search page range');
