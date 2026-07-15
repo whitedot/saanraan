@@ -2226,7 +2226,17 @@ window.AdminShell = {
                         easing: 'cubic-bezier(.2, .8, .2, 1)',
                     });
                     const removeShadow = () => shadow.remove();
-                    shadowAnimation.addEventListener('finish', removeShadow, { once: true });
+                    shadowAnimation.addEventListener('finish', () => {
+                        const shadowFadeAnimation = shadow.animate([
+                            { opacity: 1 },
+                            { opacity: 0 },
+                        ], {
+                            duration: 120,
+                            easing: 'ease-out',
+                        });
+                        shadowFadeAnimation.addEventListener('finish', removeShadow, { once: true });
+                        shadowFadeAnimation.addEventListener('cancel', removeShadow, { once: true });
+                    }, { once: true });
                     shadowAnimation.addEventListener('cancel', removeShadow, { once: true });
                 }
 
@@ -2255,7 +2265,30 @@ window.AdminShell = {
                         }
                     };
                     movedCellAnimations.set(element, animation);
-                    animation.addEventListener('finish', clearAnimation, { once: true });
+                    if (moved) {
+                        animation.addEventListener('finish', () => {
+                            if (movedCellAnimations.get(element) !== animation) {
+                                return;
+                            }
+                            const fadeAnimation = element.animate([
+                                { opacity: .7 },
+                                { opacity: 1 },
+                            ], {
+                                duration: 120,
+                                easing: 'ease-out',
+                            });
+                            const clearFadeAnimation = () => {
+                                if (movedCellAnimations.get(element) === fadeAnimation) {
+                                    movedCellAnimations.delete(element);
+                                }
+                            };
+                            movedCellAnimations.set(element, fadeAnimation);
+                            fadeAnimation.addEventListener('finish', clearFadeAnimation, { once: true });
+                            fadeAnimation.addEventListener('cancel', clearFadeAnimation, { once: true });
+                        }, { once: true });
+                    } else {
+                        animation.addEventListener('finish', clearAnimation, { once: true });
+                    }
                     animation.addEventListener('cancel', clearAnimation, { once: true });
                 });
             });
