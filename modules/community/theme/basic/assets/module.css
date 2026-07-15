@@ -993,6 +993,19 @@
     margin: 0;
 }
 
+.community-post-management-menu form,
+.community-comment-management-menu form {
+    width: 100%;
+}
+
+:where(.community-post-management-menu, .community-comment-management-menu) button.dropdown-item {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+}
+
 .community-post-view-actions details {
     min-width: 0;
 }

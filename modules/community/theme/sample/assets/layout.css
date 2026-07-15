@@ -10,7 +10,7 @@
     --community-layout-module-font-size: var(--type-meta-size, 0.75rem);
     --community-layout-module-font-weight: 800;
     --community-layout-nav-font-size: var(--type-small-size, 0.875rem);
-    --community-layout-nav-font-weight: 500;
+    --community-layout-nav-font-weight: 600;
     --community-layout-page-gutter: clamp(16px, 2.5vw, 40px);
     background: var(--color-body-bg, #f6f7f9);
     color: var(--color-body-color, #20242a);

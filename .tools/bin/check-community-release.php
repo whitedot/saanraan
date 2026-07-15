@@ -785,6 +785,18 @@ sr_community_release_file_contains('modules/community/actions/post-notice.php', 
     "'community.post.notice_set'",
     "'community.post.notice_removed'",
 ], 'Community post notice action');
+sr_community_release_file_contains('modules/community/theme/basic/post.php', [
+    'btn btn-outline-default community-post-comments-jump',
+    'dropdown community-post-management-dropdown',
+    'dropdown-menu community-post-management-menu',
+    'btn btn-outline-default" data-community-copy-url',
+    'dropdown community-comment-management-dropdown',
+    'dropdown-menu community-comment-management-menu',
+    '$communityHasPostManagementActions = $communityCanWriteNotice || $communityCanHidePost;',
+    '$communityCommentHasModerationActions = $communityCommentCanHide;',
+    'btn btn-outline-danger',
+    "sr_ui_arrow_icon_html('down', 'dropdown-icon')",
+], 'Community post view action UI kit controls');
 sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
     'sr_community_can_delete_board($pdo, $boardId)',
     'delete_confirm_text',

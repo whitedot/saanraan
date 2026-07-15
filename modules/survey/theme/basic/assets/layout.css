@@ -9,7 +9,7 @@
     --survey-layout-module-font-size: var(--type-meta-size, 0.75rem);
     --survey-layout-module-font-weight: 800;
     --survey-layout-nav-font-size: var(--type-small-size, 0.875rem);
-    --survey-layout-nav-font-weight: 500;
+    --survey-layout-nav-font-weight: 600;
     background: var(--color-body-bg, #f6f7f9);
     color: var(--color-body-color, #20242a);
     display: flex;
