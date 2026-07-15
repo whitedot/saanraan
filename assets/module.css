@@ -76,12 +76,6 @@
     opacity: 1;
 }
 
-.public-home-editorial.is-public-home-particles-complete .public-home-particle-canvas {
-    opacity: 0;
-    transition-duration: 1.25s;
-    transition-timing-function: ease-in-out;
-}
-
 .public-home-tagline {
     color: var(--sr-muted-strong, var(--sr-text, var(--text-strong, #000)));
     font-size: clamp(.85rem, 1.2vw, 1.1rem);

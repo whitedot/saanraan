@@ -55,6 +55,7 @@
         var animationStartedAt = 0;
         var particleFillStartedAt = 0;
         var assemblyCompletedAt = 0;
+        var dispersalCompletedAt = 0;
         var resizeTimer = 0;
 
         root.classList.add('is-public-home-particles-ready');
@@ -223,16 +224,52 @@
             var foundationCount = Math.max(1, Math.round(targets.length * .58));
             var foundationArrival = 0;
             var fillArrival = 0;
+            var dispersalDuration = 0;
+            var titleCenterX = targets.reduce(function (total, target) {
+                return total + target.x;
+            }, 0) / Math.max(1, targets.length);
+            var titleCenterY = targets.reduce(function (total, target) {
+                return total + target.y;
+            }, 0) / Math.max(1, targets.length);
+
+            function exitPosition(target) {
+                var angle = Math.atan2(target.y - titleCenterY, target.x - titleCenterX);
+                if (Math.abs(target.x - titleCenterX) < 1 && Math.abs(target.y - titleCenterY) < 1) {
+                    angle = Math.random() * Math.PI * 2;
+                }
+                angle += (Math.random() - .5) * .72;
+
+                var directionX = Math.cos(angle);
+                var directionY = Math.sin(angle);
+                var distanceX = directionX > 0
+                    ? (width - target.x) / directionX
+                    : -target.x / directionX;
+                var distanceY = directionY > 0
+                    ? (height - target.y) / directionY
+                    : -target.y / directionY;
+                var boundaryDistance = Math.min(distanceX, distanceY);
+                var outsideDistance = boundaryDistance + 45 + Math.random() * 80;
+
+                return {
+                    x: target.x + directionX * outsideDistance,
+                    y: target.y + directionY * outsideDistance,
+                };
+            }
 
             particles = targets.map(function (target, index) {
                 var isFoundation = index < foundationCount;
                 var start = isFoundation
                     ? scatteredPosition(target.x, target.y)
                     : {x: target.x, y: target.y};
+                var exit = exitPosition(target);
                 var delay = isFoundation ? Math.random() * 420 : 0;
                 var duration = isFoundation
                     ? 1050 + Math.random() * 600
                     : 350 + Math.random() * 500;
+                var scatterDelay = Math.random() * 140;
+                var scatterDuration = 900 + Math.random() * 500;
+
+                dispersalDuration = Math.max(dispersalDuration, scatterDelay + scatterDuration);
 
                 if (isFoundation) {
                     foundationArrival = Math.max(foundationArrival, delay + duration);
@@ -243,8 +280,12 @@
                     startY: start.y,
                     targetX: target.x,
                     targetY: target.y,
+                    exitX: exit.x,
+                    exitY: exit.y,
                     delay: delay,
                     duration: duration,
+                    scatterDelay: scatterDelay,
+                    scatterDuration: scatterDuration,
                     isFoundation: isFoundation,
                     fillIndex: Math.max(0, index - foundationCount),
                     size: .55 + Math.random() * .75,
@@ -264,6 +305,7 @@
                 fillArrival = Math.max(fillArrival, particle.delay + particle.duration);
             });
             assemblyCompletedAt = Math.max(foundationArrival, fillArrival) + 180;
+            dispersalCompletedAt = assemblyCompletedAt + dispersalDuration;
         }
 
         function easeOutQuart(value) {
@@ -276,6 +318,10 @@
                 : 1 - Math.pow(-2 * value + 2, 3) / 2;
         }
 
+        function easeInCubic(value) {
+            return value * value * value;
+        }
+
         function drawParticle(particle, elapsed, channels) {
             if (!particle.isFoundation && elapsed < particle.delay) {
                 return;
@@ -285,6 +331,14 @@
             var progress = easeOutQuart(localProgress);
             var x = particle.startX + (particle.targetX - particle.startX) * progress;
             var y = particle.startY + (particle.targetY - particle.startY) * progress;
+            if (elapsed >= assemblyCompletedAt + particle.scatterDelay) {
+                var scatterProgress = Math.max(0, Math.min(1,
+                    (elapsed - assemblyCompletedAt - particle.scatterDelay) / particle.scatterDuration
+                ));
+                var scatterEasing = easeInCubic(scatterProgress);
+                x = particle.targetX + (particle.exitX - particle.targetX) * scatterEasing;
+                y = particle.targetY + (particle.exitY - particle.targetY) * scatterEasing;
+            }
             var drawSize = particle.size;
             if (!particle.isFoundation) {
                 drawSize = particle.size * easeInOutCubic(localProgress);
@@ -308,22 +362,23 @@
             var channels = colorChannels(window.getComputedStyle(title).color);
             var index;
 
+            if (elapsed >= assemblyCompletedAt) {
+                root.classList.add('is-public-home-particles-complete');
+            }
+
             context.clearRect(0, 0, width, height);
             for (index = 0; index < particles.length; index += 1) {
                 drawParticle(particles[index], elapsed, channels);
             }
             context.globalAlpha = 1;
 
-            if (elapsed < assemblyCompletedAt) {
+            if (elapsed < dispersalCompletedAt) {
                 animationFrame = window.requestAnimationFrame(animate);
                 return;
             }
 
-            root.classList.add('is-public-home-particles-complete');
             animationFrame = 0;
-            window.setTimeout(function () {
-                context.clearRect(0, 0, width, height);
-            }, 1500);
+            context.clearRect(0, 0, width, height);
         }
 
         function startAnimation() {
