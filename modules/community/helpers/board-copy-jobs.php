@@ -737,6 +737,12 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
          VALUES
             (:post_id, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, :status, :created_at, :updated_at)'
     );
+    $threadRootStmt = $pdo->prepare(
+        'UPDATE sr_community_comments
+         SET thread_root_id = :thread_root_id,
+             depth = 1
+         WHERE id = :id'
+    );
     $processed = 0;
     foreach ($maps as $map) {
         sr_community_board_copy_job_assert_lock($pdo, (int) $job['id'], $lockToken);
@@ -763,7 +769,12 @@ function sr_community_board_copy_job_copy_comments(PDO $pdo, array $job, int $li
             'updated_at' => (string) $comment['updated_at'],
         ];
         $insert->execute($params);
-        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], (int) $pdo->lastInsertId(), 'copied', '', '', '', (int) $job['id'], $lockToken);
+        $newCommentId = (int) $pdo->lastInsertId();
+        $threadRootStmt->execute([
+            'thread_root_id' => $newCommentId,
+            'id' => $newCommentId,
+        ]);
+        sr_community_board_copy_job_mark_map($pdo, (int) $map['id'], $newCommentId, 'copied', '', '', '', (int) $job['id'], $lockToken);
         $processed++;
     }
 

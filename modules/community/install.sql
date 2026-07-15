@@ -217,7 +217,7 @@ CREATE TABLE IF NOT EXISTS sr_community_comments (
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_sr_community_comments_post_status_id (post_id, status, id),
-    KEY idx_sr_community_comments_thread (post_id, status, thread_root_id, parent_comment_id, id),
+    KEY idx_sr_community_comments_thread (post_id, status, thread_root_id, depth, id),
     KEY idx_sr_community_comments_parent (parent_comment_id),
     KEY idx_sr_community_comments_author_id (author_account_id, id),
     KEY idx_sr_community_comments_guest_ip_id (guest_ip_hash, id)

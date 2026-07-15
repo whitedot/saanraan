@@ -169,6 +169,7 @@ sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($commun
 sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($communityAdminCss, '.admin-community-board-copy-job-actions{gap:') && !str_contains($communityAdminCss, '.admin-community-board-copy-job-actions{border-top:'), 'Board copy job sticky submit should not draw a top divider.');
 sr_board_copy_limit_assert(is_string($communityAdminCss) && str_contains($communityAdminCss, '.admin-community-board-copy-job-action-right{justify-content:flex-end;margin-left:auto}'), 'Board copy job primary step actions should align right.');
 sr_board_copy_limit_assert(is_string($copyJobsHelper) && str_contains($copyJobsHelper, 'ORDER BY CASE WHEN j.status IN'), 'Board copy job list should prioritize unfinished or failed jobs.');
+sr_board_copy_limit_assert(is_string($copyJobsHelper) && str_contains($copyJobsHelper, "SET thread_root_id = :thread_root_id") && str_contains($copyJobsHelper, "'thread_root_id' => \$newCommentId"), 'Copied comments must receive their own thread root id.');
 
 sr_board_copy_limit_assert(
     in_array('첨부파일을 복사하려면 게시글+댓글도 함께 선택하세요.', sr_community_board_copy_scope_errors(['copy_scope' => ['attachments']]), true),

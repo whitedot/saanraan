@@ -65,6 +65,7 @@ $pdo->exec(
         updated_at TEXT NOT NULL
     )'
 );
+$pdo->exec('CREATE INDEX idx_sr_community_comments_thread ON sr_community_comments (post_id, status, thread_root_id, depth, id)');
 $pdo->exec("INSERT INTO sr_member_accounts (id, status) VALUES (10, 'active')");
 $insert = $pdo->prepare(
     'INSERT INTO sr_community_comments
@@ -80,7 +81,7 @@ $rows = [
     [5, 4, 4, 2, 'published'],
     [6, null, 6, 1, 'published'],
     [7, null, 7, 1, 'hidden'],
-    [8, null, null, 1, 'published'],
+    [8, null, 8, 1, 'published'],
 ];
 foreach ($rows as [$id, $parentCommentId, $threadRootId, $depth, $status]) {
     $insert->execute([
@@ -96,6 +97,19 @@ foreach ($rows as [$id, $parentCommentId, $threadRootId, $depth, $status]) {
     ]);
 }
 
+$threadPlan = $pdo->query(
+    "EXPLAIN QUERY PLAN
+     SELECT id
+     FROM sr_community_comments
+     WHERE post_id = 1
+       AND status = 'published'
+     ORDER BY thread_root_id ASC, depth ASC, id ASC
+     LIMIT 20"
+)->fetchAll(PDO::FETCH_ASSOC);
+$threadPlanText = implode("\n", array_map(static fn (array $row): string => implode('|', array_map('strval', $row)), $threadPlan));
+sr_community_comment_pagination_assert(str_contains($threadPlanText, 'idx_sr_community_comments_thread'), 'Comment page query plan must use the thread ordering index.');
+sr_community_comment_pagination_assert(!str_contains($threadPlanText, 'USE TEMP B-TREE'), 'Comment page query plan must not use a temporary ordering tree.');
+
 $firstPage = sr_community_post_comment_page($pdo, 1, 1, 2);
 sr_community_comment_pagination_assert(sr_community_comment_pagination_ids($firstPage) === [1, 2], 'First comment page must return the first two threaded rows.');
 sr_community_comment_pagination_assert((int) ($firstPage['total_pages'] ?? 0) === 4, 'Comment pagination must expose the total page count.');
@@ -110,7 +124,7 @@ $thirdPage = sr_community_post_comment_page($pdo, 1, 3, 2);
 sr_community_comment_pagination_assert(sr_community_comment_pagination_ids($thirdPage) === [5, 6], 'Third comment page must preserve depth and id ordering.');
 
 $fourthPage = sr_community_post_comment_page($pdo, 1, 4, 2);
-sr_community_comment_pagination_assert(sr_community_comment_pagination_ids($fourthPage) === [8], 'Numeric pagination must retain legacy rows whose thread root is null.');
+sr_community_comment_pagination_assert(sr_community_comment_pagination_ids($fourthPage) === [8], 'Numeric pagination must retain the final normalized root comment.');
 sr_community_comment_pagination_assert(empty($fourthPage['has_next']) && !empty($fourthPage['has_previous']), 'Final comment page must expose only a previous page.');
 
 $overflowPage = sr_community_post_comment_page($pdo, 1, 999, 2);
@@ -127,7 +141,9 @@ sr_community_comment_pagination_assert(str_contains($paginationHtml, 'aria-curre
 $viewAction = file_get_contents($root . '/modules/community/actions/view.php');
 $commentAction = file_get_contents($root . '/modules/community/actions/comment.php');
 $moduleDefinition = file_get_contents($root . '/modules/community/module.php');
-foreach ([$viewAction, $commentAction, $moduleDefinition] as $contents) {
+$commentHelpers = file_get_contents($root . '/modules/community/helpers/posts-comments.php');
+$threadIndexUpdate = file_get_contents($root . '/modules/community/updates/2026.07.009.sql');
+foreach ([$viewAction, $commentAction, $moduleDefinition, $commentHelpers, $threadIndexUpdate] as $contents) {
     sr_community_comment_pagination_assert(is_string($contents), 'Community comment action source must be readable.');
 }
 sr_community_comment_pagination_assert(str_contains((string) $moduleDefinition, "'comments_per_page' => 20"), 'Community module settings must default to 20 comments per page.');
@@ -143,6 +159,10 @@ sr_community_comment_pagination_assert(
     'Comment fragment responses must finish before post attachment and series rendering data is loaded.'
 );
 sr_community_comment_pagination_assert(str_contains((string) $commentAction, 'sr_community_comment_page_for_comment('), 'Comment creation must redirect to the numeric page containing the new comment.');
+sr_community_comment_pagination_assert(str_contains((string) $commentHelpers, 'ORDER BY c.thread_root_id ASC, c.depth ASC, c.id ASC'), 'Comment page ordering must match the thread index columns.');
+sr_community_comment_pagination_assert(!str_contains((string) $commentHelpers, 'ORDER BY COALESCE(c.thread_root_id, c.id)'), 'Comment page ordering must not hide the indexed thread root behind an expression.');
+sr_community_comment_pagination_assert(str_contains((string) $threadIndexUpdate, 'WHERE c.thread_root_id IS NULL;'), 'Comment thread update must repair replies from their parent thread root.');
+sr_community_comment_pagination_assert(str_contains((string) $threadIndexUpdate, 'ADD KEY idx_sr_community_comments_thread (post_id, status, thread_root_id, depth, id)'), 'Comment thread update must install the ordering index.');
 foreach ([
     'modules/community/skins/basic/view.php',
     'modules/community/theme/basic/post.php',

@@ -315,7 +315,7 @@ $requiredIndexMarkers = [
     ],
     'modules/community/install.sql' => [
         'KEY idx_sr_community_posts_board_status_id (board_id, status, id)',
-        'KEY idx_sr_community_comments_thread (post_id, status, thread_root_id, parent_comment_id, id)',
+        'KEY idx_sr_community_comments_thread (post_id, status, thread_root_id, depth, id)',
         'KEY idx_sr_community_board_copy_jobs_status_stage_updated (status, stage, updated_at, id)',
         'UNIQUE KEY uq_sr_community_asset_logs_dedupe (dedupe_key)',
         'UNIQUE KEY uq_sr_comm_post_read_payments_dedupe (payment_dedupe_key)',

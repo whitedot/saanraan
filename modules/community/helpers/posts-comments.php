@@ -94,7 +94,7 @@ function sr_community_post_comment_page(PDO $pdo, int $postId, int $page = 1, in
          " . $nicknameJoin . "
          WHERE c.post_id = :post_id
            AND c.status = 'published'
-         ORDER BY COALESCE(c.thread_root_id, c.id) ASC, c.depth ASC, c.id ASC
+         ORDER BY c.thread_root_id ASC, c.depth ASC, c.id ASC
          LIMIT :limit_value OFFSET :offset_value"
     );
     $stmt->bindValue('post_id', $postId, PDO::PARAM_INT);
@@ -156,9 +156,9 @@ function sr_community_comment_page_for_comment(PDO $pdo, int $postId, int $comme
          WHERE post_id = :post_id
            AND status = 'published'
            AND (
-               COALESCE(thread_root_id, id) < :target_thread_root_lt
-               OR (COALESCE(thread_root_id, id) = :target_thread_root_depth AND depth < :target_depth_lt)
-               OR (COALESCE(thread_root_id, id) = :target_thread_root_id AND depth = :target_depth_id AND id <= :target_id)
+               thread_root_id < :target_thread_root_lt
+               OR (thread_root_id = :target_thread_root_depth AND depth < :target_depth_lt)
+               OR (thread_root_id = :target_thread_root_id AND depth = :target_depth_id AND id <= :target_id)
            )"
     );
     $stmt->bindValue('post_id', $postId, PDO::PARAM_INT);
