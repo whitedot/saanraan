@@ -59,41 +59,49 @@ $latestPostSections = isset($latestPostSections) && is_array($latestPostSections
                                     $latestBoardTitleId = $latestSectionTitleId . '_board_' . (string) (int) $latestBoardIndex;
                                     ?>
                                     <section class="card community-home-latest-board" aria-labelledby="<?php echo sr_e($latestBoardTitleId); ?>">
-                                        <div class="card-body community-home-latest-board-body">
-                                        <header class="community-home-latest-board-header">
+                                        <header class="card-header">
                                             <?php if (!$latestSectionGrouped) { ?>
-                                                <h2 id="<?php echo sr_e($latestBoardTitleId); ?>" class="community-home-latest-board-title">
+                                                <h2 id="<?php echo sr_e($latestBoardTitleId); ?>" class="card-title">
                                                     <a href="<?php echo sr_e($latestBoardUrl); ?>"><?php echo sr_e($latestBoardTitle !== '' ? $latestBoardTitle : $latestBoardKey); ?></a>
                                                 </h2>
                                             <?php } else { ?>
-                                                <h3 id="<?php echo sr_e($latestBoardTitleId); ?>" class="community-home-latest-board-title">
+                                                <h3 id="<?php echo sr_e($latestBoardTitleId); ?>" class="card-title">
                                                     <a href="<?php echo sr_e($latestBoardUrl); ?>"><?php echo sr_e($latestBoardTitle !== '' ? $latestBoardTitle : $latestBoardKey); ?></a>
                                                 </h3>
                                             <?php } ?>
                                             <a class="community-home-latest-more" href="<?php echo sr_e($latestBoardUrl); ?>">더 보기</a>
                                         </header>
 
-                                        <?php if ($latestBoardPosts === []) { ?>
-                                            <p class="community-home-latest-empty">새 글이 없습니다.</p>
-                                        <?php } else { ?>
-                                            <ul class="community-home-latest-list">
-                                                <?php foreach ($latestBoardPosts as $post) { ?>
-                                                    <?php
-                                                    $postTitle = trim((string) ($post['title'] ?? ''));
-                                                    $postUrl = sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0));
-                                                    ?>
-                                                    <li class="community-home-latest-item">
-                                                        <span class="community-home-latest-title-line">
-                                                            <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
-                                                                <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
-                                                            <?php } ?>
-                                                            <a class="community-home-latest-post-link" href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle !== '' ? $postTitle : '제목 없음'); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
-                                                        </span>
-                                                        <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
-                                                    </li>
-                                                <?php } ?>
-                                            </ul>
-                                        <?php } ?>
+                                        <div class="card-body">
+                                            <?php if ($latestBoardPosts === []) { ?>
+                                                <p class="community-home-latest-empty">새 글이 없습니다.</p>
+                                            <?php } else { ?>
+                                                <ul class="community-home-latest-list">
+                                                    <?php foreach ($latestBoardPosts as $post) { ?>
+                                                        <?php
+                                                        $postTitle = trim((string) ($post['title'] ?? ''));
+                                                        $postUrl = sr_url('/community/post?id=' . (string) (int) ($post['id'] ?? 0));
+                                                        $postAuthorLabel = sr_community_author_label_from_row($post, $config, false, $memberSettings, $pdo);
+                                                        $postCreatedAt = (string) ($post['created_at'] ?? '');
+                                                        ?>
+                                                        <li class="community-home-latest-item">
+                                                            <span class="community-home-summary-title-line">
+                                                                <?php if ((int) ($post['is_notice'] ?? 0) === 1) { ?>
+                                                                    <span class="badge badge-soft-info community-post-notice-label"><?php echo sr_e('공지'); ?></span>
+                                                                <?php } ?>
+                                                                <a class="community-post-title community-home-summary-title" href="<?php echo sr_e($postUrl); ?>"><?php echo sr_e($postTitle !== '' ? $postTitle : '제목 없음'); ?></a><?php echo sr_community_post_comment_count_html($post); ?>
+                                                            </span>
+                                                            <span class="community-home-summary-meta">
+                                                                <?php echo sr_e($postAuthorLabel); ?>
+                                                                <?php if ($postAuthorLabel !== '' && $postCreatedAt !== '') { ?>
+                                                                    <span aria-hidden="true">&middot;</span>
+                                                                <?php } ?>
+                                                                <?php echo sr_community_time_html($postCreatedAt); ?>
+                                                            </span>
+                                                        </li>
+                                                    <?php } ?>
+                                                </ul>
+                                            <?php } ?>
                                         </div>
                                     </section>
                                 <?php } ?>

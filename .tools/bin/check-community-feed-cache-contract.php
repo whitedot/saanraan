@@ -511,11 +511,15 @@ sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/h
     'community-home-latest-section-grouped',
     'sr_url(sr_community_board_group_path($latestGroupKey))',
     'card community-home-latest-board',
-    'card-body community-home-latest-board-body',
+    '<header class="card-header">',
+    'class="card-title"',
+    '<div class="card-body">',
     'community-home-latest-sections',
     'community-home-latest-group-title',
-    'community-home-latest-board-title',
     'community-home-latest-list',
+    'sr_community_author_label_from_row($post, $config, false, $memberSettings, $pdo)',
+    'community-post-title community-home-summary-title',
+    '<span class="community-home-summary-meta">',
 ]);
 
 $homeSummaryAsideSource = file_get_contents('modules/community/theme/basic/home-summary-aside.php');
