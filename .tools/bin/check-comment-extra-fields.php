@@ -19,8 +19,21 @@ if (!function_exists('sr_now')) {
         return '2026-07-15 12:00:00';
     }
 }
+if (!function_exists('sr_material_icon_html')) {
+    function sr_material_icon_html(string $icon): string
+    {
+        return '<span>' . sr_e($icon) . '</span>';
+    }
+}
+if (!function_exists('sr_admin_choice_label_html')) {
+    function sr_admin_choice_label_html(string $label): string
+    {
+        return sr_e($label);
+    }
+}
 
 require_once $root . '/core/helpers/comment-extra-fields.php';
+require_once $root . '/modules/admin/helpers/comment-extra-fields.php';
 
 $errors = [];
 
@@ -154,6 +167,10 @@ $editorScript = file_get_contents($root . '/modules/admin/assets/comment-extra-f
 $editorView = file_get_contents($root . '/modules/admin/helpers/comment-extra-fields.php');
 sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, 'show_privacy_purpose'), 'admin editor script must save collection-purpose visibility.');
 sr_check_comment_extra_fields_assert(is_string($editorView) && str_contains($editorView, '입력 항목 아래에 표시'), 'admin editor must expose collection-purpose visibility in plain language.');
+
+$editorHtml = sr_admin_comment_extra_fields_editor_html('content_item_comment_extra_fields_json', 'comment_extra_fields_json', []);
+sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'id="content-item-comment-extra-fields-json-section"'), 'admin editor section IDs must use the same hyphenated form as section navigation links.');
+sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'id="content-item-comment-extra-fields-json-modal"'), 'admin editor modal IDs must follow the normalized section ID.');
 
 unset($_POST['comment_extra_fields']);
 

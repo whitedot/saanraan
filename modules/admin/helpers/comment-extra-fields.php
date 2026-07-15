@@ -6,7 +6,10 @@ require_once SR_ROOT . '/core/helpers/comment-extra-fields.php';
 
 function sr_admin_comment_extra_fields_editor_html(string $id, string $name, mixed $value, string $title = '댓글 추가 입력 항목', string $help = '', string $footerHtml = ''): string
 {
-    $safeId = preg_replace('/[^a-z0-9_-]/', '-', strtolower($id)) ?? 'comment-extra-fields';
+    $safeId = trim((string) preg_replace('/[^a-z0-9]+/', '-', strtolower($id)), '-');
+    if ($safeId === '') {
+        $safeId = 'comment-extra-fields';
+    }
     $modalId = $safeId . '-modal';
     $json = sr_comment_extra_field_definitions_json($value);
     ob_start();
