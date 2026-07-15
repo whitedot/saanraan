@@ -171,7 +171,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="form-label">포함 컬럼</span>
             <div class="form-field">
                 <input type="hidden" name="export_columns_configured" value="1">
-                <div class="admin-member-export-column-list" data-member-export-column-list>
+                <div class="admin-member-export-column-list" data-member-export-column-list data-admin-reorder-list>
                     <?php foreach ($memberExportColumnRows as $memberExportColumnIndex => $memberExportColumnKey) { ?>
                         <?php
                         $memberExportColumnKey = (string) $memberExportColumnKey;
@@ -180,12 +180,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         }
                         $memberExportColumnLabel = (string) ($memberExportColumnDefinitions[$memberExportColumnKey]['label'] ?? $memberExportColumnKey);
                         ?>
-                        <div class="admin-member-export-column-row" data-member-export-column-row>
+                        <div class="admin-member-export-column-row" data-member-export-column-row data-admin-reorder-item>
                             <div class="admin-business-info-order">
-                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-member-export-column-move" aria-label="<?php echo sr_e($memberExportColumnLabel); ?> 컬럼 위로 이동" title="위로" data-member-export-column-move="up">
+                                <span class="admin-drag-handle" draggable="true" aria-label="드래그해서 순서 변경" title="드래그해서 순서 변경" data-admin-reorder-handle><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span>
+                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-member-export-column-move" aria-label="<?php echo sr_e($memberExportColumnLabel); ?> 컬럼 위로 이동" title="위로" data-member-export-column-move="up" data-admin-reorder-move="up">
                                     <?php echo sr_material_icon_html('arrow_upward'); ?>
                                 </button>
-                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-member-export-column-move" aria-label="<?php echo sr_e($memberExportColumnLabel); ?> 컬럼 아래로 이동" title="아래로" data-member-export-column-move="down">
+                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-member-export-column-move" aria-label="<?php echo sr_e($memberExportColumnLabel); ?> 컬럼 아래로 이동" title="아래로" data-member-export-column-move="down" data-admin-reorder-move="down">
                                     <?php echo sr_material_icon_html('arrow_downward'); ?>
                                 </button>
                             </div>
@@ -266,6 +267,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var columnKeys = Object.keys(columnDefinitions);
     var moveUpIcon = <?php echo sr_js_json_encode(sr_material_icon_html('arrow_upward')); ?>;
     var moveDownIcon = <?php echo sr_js_json_encode(sr_material_icon_html('arrow_downward')); ?>;
+    var dragIcon = <?php echo sr_js_json_encode(sr_material_icon_html('apps', 'admin-drag-handle-icon')); ?>;
     var deleteIcon = <?php echo sr_js_json_encode(sr_material_icon_html('delete')); ?>;
     var columnRowIndex = <?php echo (int) count($memberExportColumnRows); ?>;
     var selectedColumnValues = function () {
@@ -344,19 +346,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         columnRowIndex += 1;
         row.className = 'admin-member-export-column-row';
         row.setAttribute('data-member-export-column-row', '');
+        row.setAttribute('data-admin-reorder-item', '');
         order.className = 'admin-business-info-order';
+        var dragHandle = document.createElement('span');
+        dragHandle.className = 'admin-drag-handle';
+        dragHandle.draggable = true;
+        dragHandle.setAttribute('aria-label', '드래그해서 순서 변경');
+        dragHandle.setAttribute('title', '드래그해서 순서 변경');
+        dragHandle.setAttribute('data-admin-reorder-handle', '');
+        dragHandle.innerHTML = dragIcon;
         upButton.type = 'button';
         upButton.className = 'btn btn-icon-xs btn-soft-default admin-member-export-column-move';
         upButton.setAttribute('aria-label', label + ' 컬럼 위로 이동');
         upButton.setAttribute('title', '위로');
         upButton.setAttribute('data-member-export-column-move', 'up');
+        upButton.setAttribute('data-admin-reorder-move', 'up');
         upButton.innerHTML = moveUpIcon;
         downButton.type = 'button';
         downButton.className = 'btn btn-icon-xs btn-soft-default admin-member-export-column-move';
         downButton.setAttribute('aria-label', label + ' 컬럼 아래로 이동');
         downButton.setAttribute('title', '아래로');
         downButton.setAttribute('data-member-export-column-move', 'down');
+        downButton.setAttribute('data-admin-reorder-move', 'down');
         downButton.innerHTML = moveDownIcon;
+        order.appendChild(dragHandle);
         order.appendChild(upButton);
         order.appendChild(downButton);
         labelElement.className = 'sr-only';
@@ -380,10 +393,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         return;
     }
     columnList.addEventListener('click', function (event) {
-        var moveButton = event.target.closest('[data-member-export-column-move]');
         var removeButton = event.target.closest('[data-member-export-column-remove]');
         var row;
-        var direction;
         if (removeButton) {
             row = removeButton.closest('[data-member-export-column-row]');
             if (row) {
@@ -392,21 +403,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             }
             return;
         }
-        if (!moveButton) {
-            return;
-        }
-        row = moveButton.closest('[data-member-export-column-row]');
-        if (!row) {
-            return;
-        }
-        direction = moveButton.getAttribute('data-member-export-column-move');
-        if (direction === 'up' && row.previousElementSibling) {
-            columnList.insertBefore(row, row.previousElementSibling);
-        } else if (direction === 'down' && row.nextElementSibling) {
-            columnList.insertBefore(row.nextElementSibling, row);
-        }
-        syncColumnRows();
-        moveButton.focus();
     });
     columnList.addEventListener('change', function (event) {
         if (event.target && event.target.matches('[data-member-export-column-select]')) {

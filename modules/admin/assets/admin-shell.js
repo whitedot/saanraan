@@ -33,6 +33,7 @@ window.AdminShell = {
         const menuResetButton = document.querySelector('[data-admin-menu-reset-confirm]');
         const menuResetConfirmedInput = document.querySelector('[data-admin-menu-reset-confirmed]');
         const sortableRows = Array.prototype.slice.call(document.querySelectorAll('[data-admin-sortable-row]'));
+        const reorderLists = Array.prototype.slice.call(document.querySelectorAll('[data-admin-reorder-list]'));
         const layoutMenuLists = Array.prototype.slice.call(document.querySelectorAll('[data-admin-layout-menu-list]'));
         const memberRuleDefinitions = Array.prototype.slice.call(document.querySelectorAll('[data-member-rule-definition]'));
         const dateQuickButtons = Array.prototype.slice.call(document.querySelectorAll('[data-datetime-target]'));
@@ -2147,9 +2148,127 @@ window.AdminShell = {
             }
         });
 
+        const movedCellAnimations = new WeakMap();
+        let reorderKeySeed = 0;
+
+        const reorderItemKey = item => {
+            if (!item) {
+                return '';
+            }
+            if (item.dataset.adminReorderKey) {
+                return item.dataset.adminReorderKey;
+            }
+            if (item.dataset.sortKey) {
+                return `${item.dataset.sortScope || ''}|${item.dataset.sortKey}`;
+            }
+            reorderKeySeed += 1;
+            item.dataset.adminReorderKey = `admin-reorder-${reorderKeySeed}`;
+            return item.dataset.adminReorderKey;
+        };
+
+        const reorderAnimatedElements = item => item && item.cells
+            ? Array.prototype.slice.call(item.cells)
+            : (item ? [item] : []);
+
+        const captureReorderLayout = items => {
+            const positions = new Map();
+            Array.prototype.slice.call(items || []).forEach(item => {
+                reorderAnimatedElements(item).forEach(element => {
+                    const previousAnimation = movedCellAnimations.get(element);
+                    if (previousAnimation) {
+                        previousAnimation.cancel();
+                        movedCellAnimations.delete(element);
+                    }
+                });
+                positions.set(reorderItemKey(item), item.getBoundingClientRect().top);
+            });
+            return positions;
+        };
+
+        const animateReorderLayout = (items, positions, movedItems = []) => {
+            if (!positions
+                || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+                return;
+            }
+
+            const movedKeys = new Set(Array.prototype.slice.call(movedItems || []).map(reorderItemKey));
+            Array.prototype.slice.call(items || []).forEach(item => {
+                const key = reorderItemKey(item);
+                const startTop = positions.get(key);
+                if (startTop === undefined) {
+                    return;
+                }
+
+                const distance = startTop - item.getBoundingClientRect().top;
+                if (Math.abs(distance) < 1) {
+                    return;
+                }
+
+                const moved = movedKeys.has(key);
+                if (moved) {
+                    const rect = item.getBoundingClientRect();
+                    const shadow = document.createElement('span');
+                    shadow.className = 'admin-sort-move-shadow';
+                    shadow.setAttribute('aria-hidden', 'true');
+                    shadow.style.top = `${rect.top}px`;
+                    shadow.style.left = `${rect.left}px`;
+                    shadow.style.width = `${rect.width}px`;
+                    shadow.style.height = `${rect.height}px`;
+                    document.body.appendChild(shadow);
+
+                    const shadowOvershoot = distance > 0 ? -1.5 : 1.5;
+                    const shadowAnimation = shadow.animate([
+                        { transform: `translateY(${distance}px) scale(1.004)` },
+                        { offset: .82, transform: `translateY(${shadowOvershoot}px) scale(1.002)` },
+                        { transform: 'translateY(0) scale(1)' },
+                    ], {
+                        duration: 320,
+                        easing: 'cubic-bezier(.2, .8, .2, 1)',
+                    });
+                    const removeShadow = () => shadow.remove();
+                    shadowAnimation.addEventListener('finish', removeShadow, { once: true });
+                    shadowAnimation.addEventListener('cancel', removeShadow, { once: true });
+                }
+
+                reorderAnimatedElements(item).forEach(element => {
+                    if (typeof element.animate !== 'function') {
+                        return;
+                    }
+                    const overshoot = distance > 0 ? -1.5 : 1.5;
+                    const keyframes = moved
+                        ? [
+                            { transform: `translateY(${distance}px) scale(1.004)` },
+                            { offset: .82, transform: `translateY(${overshoot}px) scale(1.002)` },
+                            { transform: 'translateY(0) scale(1)' },
+                        ]
+                        : [
+                            { transform: `translateY(${distance}px)` },
+                            { transform: 'translateY(0)' },
+                        ];
+                    const animation = element.animate(keyframes, {
+                        duration: moved ? 320 : 260,
+                        easing: 'cubic-bezier(.2, .8, .2, 1)',
+                    });
+                    const clearAnimation = () => {
+                        if (movedCellAnimations.get(element) === animation) {
+                            movedCellAnimations.delete(element);
+                        }
+                    };
+                    movedCellAnimations.set(element, animation);
+                    animation.addEventListener('finish', clearAnimation, { once: true });
+                    animation.addEventListener('cancel', clearAnimation, { once: true });
+                });
+            });
+        };
+
+        this.captureReorderLayout = captureReorderLayout;
+        this.animateReorderLayout = animateReorderLayout;
+
         if (sortableRows.length > 0) {
             let draggedRow = null;
             let draggedRows = [];
+            let draggedOriginalReference = null;
+            let draggedStartPositions = null;
             let placeholderRow = null;
             let collapsedMenuRows = new Set();
 
@@ -2343,11 +2462,13 @@ window.AdminShell = {
 
                 const container = row.parentNode;
                 const block = sortableRowBlock(row);
+                const startPositions = captureReorderLayout(currentSortableRows());
                 const reference = direction === 'up' ? target : targetInsertionReference(target);
                 block.forEach(blockRow => {
                     container.insertBefore(blockRow, reference);
                 });
                 refreshSortableState(scope, parent);
+                animateReorderLayout(currentSortableRows(), startPositions, [row]);
             };
 
             const removePlaceholder = () => {
@@ -2414,6 +2535,7 @@ window.AdminShell = {
             const finishSortableDrag = row => {
                 draggedRows.forEach(blockRow => blockRow.classList.remove('is-dragging'));
 
+                const movedRow = draggedRow;
                 const movedScope = draggedRow ? draggedRow.dataset.sortScope || '' : row.dataset.sortScope || '';
                 const movedParent = draggedRow ? draggedRow.dataset.sortParent || '' : row.dataset.sortParent || '';
                 if (placeholderRow && placeholderRow.parentNode && draggedRow) {
@@ -2424,9 +2546,16 @@ window.AdminShell = {
                 }
 
                 removePlaceholder();
+                const rowWasMoved = movedRow && targetInsertionReference(movedRow) !== draggedOriginalReference;
+                const startPositions = draggedStartPositions;
                 draggedRow = null;
                 draggedRows = [];
+                draggedOriginalReference = null;
+                draggedStartPositions = null;
                 refreshSortableState(movedScope, movedParent);
+                if (rowWasMoved) {
+                    animateReorderLayout(currentSortableRows(), startPositions, [movedRow]);
+                }
             };
 
             sortableRows.forEach(row => {
@@ -2438,6 +2567,8 @@ window.AdminShell = {
                 handle.addEventListener('dragstart', event => {
                     draggedRow = row;
                     draggedRows = sortableRowBlock(row);
+                    draggedOriginalReference = targetInsertionReference(row);
+                    draggedStartPositions = captureReorderLayout(currentSortableRows());
                     draggedRows.forEach(blockRow => blockRow.classList.add('is-dragging'));
                     event.dataTransfer.effectAllowed = 'move';
                     event.dataTransfer.setData('text/plain', '');
@@ -2512,6 +2643,144 @@ window.AdminShell = {
             syncMenuCollapsedRows();
             refreshMoveButtons();
         }
+
+        reorderLists.forEach(list => {
+            let draggedItem = null;
+            let draggedLayout = null;
+            let initialOrder = '';
+
+            const listItems = () => Array.prototype.slice.call(list.querySelectorAll('[data-admin-reorder-item]')).filter(item => {
+                return item.closest('[data-admin-reorder-list]') === list;
+            });
+            const clearDropState = () => {
+                listItems().forEach(item => item.classList.remove('is-dragging', 'is-drop-before', 'is-drop-after'));
+            };
+            const syncMoveButtons = () => {
+                const items = listItems();
+                items.forEach((item, index) => {
+                    const up = item.querySelector('[data-admin-reorder-move="up"]');
+                    const down = item.querySelector('[data-admin-reorder-move="down"]');
+                    if (up) {
+                        up.disabled = index === 0;
+                    }
+                    if (down) {
+                        down.disabled = index === items.length - 1;
+                    }
+                });
+            };
+            const dispatchReorder = item => {
+                syncMoveButtons();
+                list.dispatchEvent(new CustomEvent('admin:reorder', {
+                    bubbles: true,
+                    detail: { item },
+                }));
+            };
+
+            list.addEventListener('click', event => {
+                const button = event.target && event.target.closest
+                    ? event.target.closest('[data-admin-reorder-move]')
+                    : null;
+                if (!button || !list.contains(button)) {
+                    return;
+                }
+
+                const item = button.closest('[data-admin-reorder-item]');
+                const items = listItems();
+                const index = items.indexOf(item);
+                const direction = button.getAttribute('data-admin-reorder-move') || '';
+                const target = direction === 'up' ? items[index - 1] : items[index + 1];
+                if (!item || !target) {
+                    return;
+                }
+
+                const layout = captureReorderLayout(items);
+                if (direction === 'up') {
+                    list.insertBefore(item, target);
+                } else {
+                    list.insertBefore(target, item);
+                }
+                dispatchReorder(item);
+                animateReorderLayout(listItems(), layout, [item]);
+                button.focus();
+            });
+
+            list.addEventListener('dragstart', event => {
+                const handle = event.target && event.target.closest
+                    ? event.target.closest('[data-admin-reorder-handle]')
+                    : null;
+                if (!handle || !list.contains(handle)) {
+                    return;
+                }
+
+                draggedItem = handle.closest('[data-admin-reorder-item]');
+                if (!draggedItem) {
+                    return;
+                }
+                const items = listItems();
+                draggedLayout = captureReorderLayout(items);
+                initialOrder = items.map(reorderItemKey).join('|');
+                draggedItem.classList.add('is-dragging');
+                if (event.dataTransfer) {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', reorderItemKey(draggedItem));
+                }
+            });
+
+            list.addEventListener('dragover', event => {
+                if (!draggedItem) {
+                    return;
+                }
+                const target = event.target && event.target.closest
+                    ? event.target.closest('[data-admin-reorder-item]')
+                    : null;
+                if (!target || target === draggedItem || target.closest('[data-admin-reorder-list]') !== list) {
+                    return;
+                }
+                event.preventDefault();
+                clearDropState();
+                draggedItem.classList.add('is-dragging');
+                const rect = target.getBoundingClientRect();
+                target.classList.add(event.clientY > rect.top + rect.height / 2 ? 'is-drop-after' : 'is-drop-before');
+                if (event.dataTransfer) {
+                    event.dataTransfer.dropEffect = 'move';
+                }
+            });
+
+            list.addEventListener('drop', event => {
+                if (!draggedItem) {
+                    return;
+                }
+                const target = event.target && event.target.closest
+                    ? event.target.closest('[data-admin-reorder-item]')
+                    : null;
+                if (!target || target === draggedItem || target.closest('[data-admin-reorder-list]') !== list) {
+                    return;
+                }
+                event.preventDefault();
+                const rect = target.getBoundingClientRect();
+                const insertAfter = event.clientY > rect.top + rect.height / 2;
+                list.insertBefore(draggedItem, insertAfter ? target.nextSibling : target);
+                const movedItem = draggedItem;
+                const moved = listItems().map(reorderItemKey).join('|') !== initialOrder;
+                clearDropState();
+                draggedItem = null;
+                initialOrder = '';
+                if (moved) {
+                    dispatchReorder(movedItem);
+                    animateReorderLayout(listItems(), draggedLayout, [movedItem]);
+                }
+                draggedLayout = null;
+            });
+
+            list.addEventListener('dragend', () => {
+                clearDropState();
+                draggedItem = null;
+                draggedLayout = null;
+                initialOrder = '';
+            });
+
+            syncMoveButtons();
+        });
 
         memberRuleDefinitions.forEach(memberRuleDefinition => {
             const root = memberRuleDefinition.closest('form') || document;

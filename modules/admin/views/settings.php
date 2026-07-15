@@ -327,7 +327,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('admin_settings_business_info_label_0', '입력 항목', $siteSettingsHelp['business_info']['id'], $siteSettingsHelpOpenLabel, false); ?>
             <div class="form-field">
-                <div class="admin-business-info-list" data-admin-business-info-list>
+                <div class="admin-business-info-list" data-admin-business-info-list data-admin-reorder-list>
                     <?php foreach ($businessInfoRows as $businessInfoIndex => $businessInfoRow) { ?>
                         <?php
                         $businessInfoKey = (string) ($businessInfoRow['key'] ?? '');
@@ -337,12 +337,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         $businessInfoLabelId = 'admin_settings_business_info_label_' . (string) $businessInfoIndex;
                         $businessInfoValueId = 'admin_settings_business_info_value_' . (string) $businessInfoIndex;
                         ?>
-                        <div class="admin-business-info-row" data-admin-business-info-row>
+                        <div class="admin-business-info-row" data-admin-business-info-row data-admin-reorder-item>
                             <div class="admin-business-info-order">
-                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 위로 이동" title="위로" data-admin-business-info-move="up">
+                                <span class="admin-drag-handle" draggable="true" aria-label="드래그해서 순서 변경" title="드래그해서 순서 변경" data-admin-reorder-handle><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span>
+                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 위로 이동" title="위로" data-admin-business-info-move="up" data-admin-reorder-move="up">
                                     <?php echo sr_material_icon_html('arrow_upward'); ?>
                                 </button>
-                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 아래로 이동" title="아래로" data-admin-business-info-move="down">
+                                <button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 아래로 이동" title="아래로" data-admin-business-info-move="down" data-admin-reorder-move="down">
                                     <?php echo sr_material_icon_html('arrow_downward'); ?>
                                 </button>
                             </div>
@@ -799,6 +800,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     var businessInfoAddIndex = 0;
     var businessInfoMoveUpIcon = '<?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('arrow_upward')); ?>';
     var businessInfoMoveDownIcon = '<?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('arrow_downward')); ?>';
+    var businessInfoDragIcon = '<?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('apps', 'admin-drag-handle-icon')); ?>';
     var businessInfoDeleteIcon = '<?php echo str_replace(["\n", "'"], ['', "\\'"], sr_material_icon_html('delete')); ?>';
     var syncBusinessInfoRows = function () {
         if (!businessInfoList) {
@@ -828,34 +830,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 return;
             }
 
-            var moveButton = event.target.closest('[data-admin-business-info-move]');
-            if (!moveButton) {
-                return;
-            }
-
-            var row = moveButton.closest('[data-admin-business-info-row]');
-            if (!row) {
-                return;
-            }
-
-            var direction = moveButton.getAttribute('data-admin-business-info-move');
-            if (direction === 'up' && row.previousElementSibling) {
-                businessInfoList.insertBefore(row, row.previousElementSibling);
-            } else if (direction === 'down' && row.nextElementSibling) {
-                businessInfoList.insertBefore(row.nextElementSibling, row);
-            }
-            syncBusinessInfoRows();
-            moveButton.focus();
         });
         businessInfoAddButton.addEventListener('click', function () {
             var index = businessInfoAddIndex++;
             var row = document.createElement('div');
             row.className = 'admin-business-info-row';
             row.setAttribute('data-admin-business-info-row', '');
+            row.setAttribute('data-admin-reorder-item', '');
             row.innerHTML = ''
                 + '<div class="admin-business-info-order">'
-                + '<button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 위로 이동" title="위로" data-admin-business-info-move="up">' + businessInfoMoveUpIcon + '</button>'
-                + '<button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 아래로 이동" title="아래로" data-admin-business-info-move="down">' + businessInfoMoveDownIcon + '</button>'
+                + '<span class="admin-drag-handle" draggable="true" aria-label="드래그해서 순서 변경" title="드래그해서 순서 변경" data-admin-reorder-handle>' + businessInfoDragIcon + '</span>'
+                + '<button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 위로 이동" title="위로" data-admin-business-info-move="up" data-admin-reorder-move="up">' + businessInfoMoveUpIcon + '</button>'
+                + '<button type="button" class="btn btn-icon-xs btn-soft-default admin-business-info-move" aria-label="사업자 정보 항목 아래로 이동" title="아래로" data-admin-business-info-move="down" data-admin-reorder-move="down">' + businessInfoMoveDownIcon + '</button>'
                 + '</div>'
                 + '<input type="hidden" name="business_info_key[]" value="">'
                 + '<label class="sr-only" for="admin_settings_business_info_custom_label_' + index + '">사업자 정보 항목명</label>'

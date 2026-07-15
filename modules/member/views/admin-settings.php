@@ -887,6 +887,17 @@ document.addEventListener('DOMContentLoaded', function () {
         memberProfileFixedFieldWrite(root, fixedFields || memberProfileFixedFieldParse(root));
     }
 
+    function memberProfileFieldAnimateOrder(root, layout, movedKey) {
+        if (!root || !layout || !window.AdminShell || typeof window.AdminShell.animateReorderLayout !== 'function') {
+            return;
+        }
+        var rows = Array.prototype.slice.call(root.querySelectorAll('[data-member-profile-field-row]'));
+        var movedRow = rows.find(function (row) {
+            return row.getAttribute('data-admin-reorder-key') === movedKey;
+        }) || null;
+        window.AdminShell.animateReorderLayout(rows, layout, movedRow ? [movedRow] : []);
+    }
+
     function memberProfileFieldOrderMove(root, fromIndex, toIndex) {
         var textarea = root ? root.querySelector('[data-member-profile-extra-fields-json]') : null;
         var definitions = memberProfileExtraFieldParse(textarea);
@@ -896,12 +907,17 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
         var moved = order.splice(fromIndex, 1)[0];
+        var movedKey = moved.kind + ':' + moved.key;
+        var layout = window.AdminShell && typeof window.AdminShell.captureReorderLayout === 'function'
+            ? window.AdminShell.captureReorderLayout(root.querySelectorAll('[data-member-profile-field-row]'))
+            : null;
         if (toIndex > fromIndex) {
             toIndex -= 1;
         }
         order.splice(toIndex, 0, moved);
         memberProfileExtraFieldWrite(root, definitions, order, fixedFields);
         memberProfileExtraFieldRender(root);
+        memberProfileFieldAnimateOrder(root, layout, movedKey);
         return true;
     }
 
@@ -949,6 +965,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var row = document.createElement('tr');
             row.setAttribute('data-member-profile-field-row', '1');
             row.setAttribute('data-member-profile-extra-field-index-value', String(index));
+            row.setAttribute('data-admin-reorder-key', item.kind + ':' + item.key);
 
             var orderCell = document.createElement('td');
             orderCell.className = 'member-profile-extra-field-order-cell';
@@ -1359,6 +1376,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             var orderItem = extraFieldOrder[extraFieldIndex];
+            var reorderLayout = null;
+            var reorderMovedKey = orderItem.kind + ':' + orderItem.key;
             if (extraFieldActionName === 'edit') {
                 var fieldForEdit = null;
                 if (orderItem.kind === 'fixed') {
@@ -1381,10 +1400,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             if (extraFieldActionName === 'up' && extraFieldIndex > 0) {
+                if (window.AdminShell && typeof window.AdminShell.captureReorderLayout === 'function') {
+                    reorderLayout = window.AdminShell.captureReorderLayout(extraFieldRoot.querySelectorAll('[data-member-profile-field-row]'));
+                }
                 var previous = extraFieldOrder[extraFieldIndex - 1];
                 extraFieldOrder[extraFieldIndex - 1] = extraFieldOrder[extraFieldIndex];
                 extraFieldOrder[extraFieldIndex] = previous;
             } else if (extraFieldActionName === 'down' && extraFieldIndex < extraFieldOrder.length - 1) {
+                if (window.AdminShell && typeof window.AdminShell.captureReorderLayout === 'function') {
+                    reorderLayout = window.AdminShell.captureReorderLayout(extraFieldRoot.querySelectorAll('[data-member-profile-field-row]'));
+                }
                 var next = extraFieldOrder[extraFieldIndex + 1];
                 extraFieldOrder[extraFieldIndex + 1] = extraFieldOrder[extraFieldIndex];
                 extraFieldOrder[extraFieldIndex] = next;
@@ -1396,6 +1421,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             memberProfileExtraFieldWrite(extraFieldRoot, extraFieldDefinitions, extraFieldOrder, extraFieldFixedFields);
             memberProfileExtraFieldRender(extraFieldRoot);
+            memberProfileFieldAnimateOrder(extraFieldRoot, reorderLayout, reorderMovedKey);
             return;
         }
 
