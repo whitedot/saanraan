@@ -120,6 +120,7 @@ function sr_community_board_group_setting_keys(): array
         'privacy_consent_require_comment',
         'privacy_consent_require_attachment_upload',
         'extra_fields_json',
+        'comment_extra_fields_json',
         'seo_title',
         'seo_description',
         'og_title',
@@ -233,6 +234,7 @@ function sr_community_board_group_default_settings(array $settings): array
         'privacy_consent_require_comment' => !empty($settings['privacy_consent_require_comment']) ? '1' : '0',
         'privacy_consent_require_attachment_upload' => !empty($settings['privacy_consent_require_attachment_upload']) ? '1' : '0',
         'extra_fields_json' => '[]',
+        'comment_extra_fields_json' => '[]',
         'reaction_enabled' => !empty($settings['reaction_enabled']) ? '1' : '0',
         'reaction_post_preset_key' => (string) ($settings['reaction_post_preset_key'] ?? ''),
         'reaction_comment_preset_key' => (string) ($settings['reaction_comment_preset_key'] ?? ''),
@@ -262,6 +264,7 @@ function sr_community_board_default_settings(array $settings, array $groupSettin
     $defaults['status'] = (string) ($settings['board_status'] ?? 'enabled');
     $defaults['skin_key'] = 'basic';
     $defaults['post_editor'] = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
+    $defaults['comment_extra_fields_json'] = sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]');
 
     $defaults['reaction_post_preset_key'] = '';
     $defaults['reaction_comment_preset_key'] = '';

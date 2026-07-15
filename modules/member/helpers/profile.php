@@ -302,16 +302,17 @@ function sr_member_profile_extra_field_definition_validation_errors(mixed $raw):
         $privacyPurpose = trim(sr_member_profile_extra_field_scalar_string($privacyPurposeRaw));
         $privacyPurposeLength = function_exists('mb_strlen') ? mb_strlen($privacyPurpose) : strlen($privacyPurpose);
         if (!is_scalar($privacyPurposeRaw)) {
-            $errors[] = $rowLabel . '의 개인정보 목적 형식이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 수집·이용 목적 형식이 올바르지 않습니다.';
         } elseif ($privacyPurposeLength > 255) {
-            $errors[] = $rowLabel . '의 개인정보 목적은 255자 이하로 입력해 주세요.';
+            $errors[] = $rowLabel . '의 수집·이용 목적은 255자 이하로 입력해 주세요.';
         }
 
         foreach (['export_policy' => ['include', 'exclude'], 'cleanup_policy' => ['anonymize', 'retain']] as $policyKey => $allowedValues) {
             $policyRaw = $item[$policyKey] ?? ($policyKey === 'export_policy' ? 'include' : 'anonymize');
             $policy = sr_member_profile_extra_field_scalar_string($policyRaw);
             if (!is_scalar($policyRaw) || !in_array($policy, $allowedValues, true)) {
-                $errors[] = $rowLabel . '의 ' . $policyKey . ' 값이 올바르지 않습니다.';
+                $policyLabel = $policyKey === 'export_policy' ? '내 정보 사본 포함 설정' : '계정 정리 시 처리 설정';
+                $errors[] = $rowLabel . '의 ' . $policyLabel . ' 값이 올바르지 않습니다.';
             }
         }
 

@@ -78,7 +78,9 @@ function sr_privacy_cleanup_runtime_check_quiz(): void
         'CREATE TABLE sr_quiz_comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             author_account_id INTEGER NULL,
-            author_public_name_snapshot TEXT NOT NULL
+            author_public_name_snapshot TEXT NOT NULL,
+            extra_values_json TEXT NULL,
+            updated_at TEXT NULL
         )'
     );
     $pdo->exec("INSERT INTO sr_quiz_attempts (account_id, user_agent_hash, ip_hash) VALUES (7, 'ua7', 'ip7'), (8, 'ua8', 'ip8')");
@@ -161,6 +163,7 @@ function sr_privacy_cleanup_runtime_check_survey(): void
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             author_account_id INTEGER NULL,
             author_public_name_snapshot TEXT NOT NULL,
+            extra_values_json TEXT NULL,
             updated_at TEXT NULL
         )'
     );
@@ -200,7 +203,9 @@ function sr_privacy_cleanup_runtime_check_content(): void
         'CREATE TABLE sr_content_comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             author_account_id INTEGER NULL,
-            author_public_name_snapshot TEXT NOT NULL
+            author_public_name_snapshot TEXT NOT NULL,
+            extra_values_json TEXT NULL,
+            updated_at TEXT NULL
         )'
     );
     $pdo->exec(
@@ -320,7 +325,7 @@ function sr_privacy_cleanup_runtime_check_content_optional_view_payment_table():
     }
 
     $pdo = sr_privacy_cleanup_runtime_pdo();
-    $pdo->exec('CREATE TABLE sr_content_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_content_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL, extra_values_json TEXT NULL, updated_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_content_file_download_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, coupon_dedupe_key TEXT NOT NULL DEFAULT \'\')');
     $pdo->exec('CREATE TABLE sr_content_access_entitlements (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, source_reference TEXT NOT NULL, anonymized_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_content_series (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL, updated_by INTEGER NULL)');
@@ -356,7 +361,7 @@ function sr_privacy_cleanup_runtime_check_community(): void
     );
     $pdo->exec('CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL, extra_values_json TEXT NOT NULL DEFAULT "[]", updated_at TEXT NOT NULL DEFAULT "")');
     $pdo->exec('CREATE TABLE sr_community_post_field_values (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL, cleanup_policy_snapshot TEXT NOT NULL, value_text TEXT NULL, value_json TEXT NULL, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_community_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL, extra_values_json TEXT NULL, updated_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_series (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL, updated_by INTEGER NULL, moderated_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
@@ -468,7 +473,7 @@ function sr_privacy_cleanup_runtime_check_community_optional_post_read_payment_t
     $pdo->exec('CREATE TABLE sr_community_level_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_access_entitlements (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NULL, source_reference TEXT NOT NULL, anonymized_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL, extra_values_json TEXT NOT NULL DEFAULT "[]", updated_at TEXT NOT NULL DEFAULT "")');
-    $pdo->exec('CREATE TABLE sr_community_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_community_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author_account_id INTEGER NULL, author_public_name_snapshot TEXT NOT NULL, extra_values_json TEXT NULL, updated_at TEXT NULL)');
     $pdo->exec('CREATE TABLE sr_community_series (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL, updated_by INTEGER NULL, moderated_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_items (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by INTEGER NULL)');
     $pdo->exec('CREATE TABLE sr_community_series_scraps (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL)');

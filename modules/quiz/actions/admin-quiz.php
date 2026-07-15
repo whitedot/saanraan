@@ -709,6 +709,7 @@ $quizSectionNavItems = [
     'quiz-section-result' => '채점/결과',
     'quiz-section-result-rules' => '결과 규칙',
     'quiz-section-access' => '공개/응시',
+    'quiz-item-comment-extra-fields-json-section' => '댓글 추가 입력',
     'quiz-section-questions' => '문제 목록',
     'quiz-section-reward' => '보상 정책',
     'quiz-section-links' => '연결 대상',
@@ -1073,6 +1074,14 @@ $quizSectionNavItems = [
             </div>
         </div>
     </section>
+
+    <?php echo sr_admin_comment_extra_fields_editor_html(
+        'quiz_item_comment_extra_fields_json',
+        'comment_extra_fields_json',
+        $values['comment_extra_fields_json'] ?? '[]',
+        '댓글 추가 입력 항목',
+        '이 퀴즈의 댓글과 답글 작성 시 받을 항목입니다.'
+    ); ?>
 
     <section id="quiz-section-questions" class="card admin-list-card admin-list-form" data-admin-section-anchor>
         <div class="card-header">

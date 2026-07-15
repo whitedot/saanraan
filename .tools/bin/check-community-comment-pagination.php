@@ -58,6 +58,7 @@ $pdo->exec(
         guest_author_name TEXT NOT NULL DEFAULT \'\',
         guest_password_hash TEXT NULL,
         body_text TEXT NOT NULL,
+        extra_values_json TEXT NULL,
         is_secret INTEGER NOT NULL DEFAULT 0,
         status TEXT NOT NULL,
         created_at TEXT NOT NULL,

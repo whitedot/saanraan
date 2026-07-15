@@ -48,6 +48,11 @@ if (is_array($board)) {
 $commentChargeConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_charge', 'every_action') : ['enabled' => false];
 $commentRewardConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_reward', 'once') : ['enabled' => false];
 $values = sr_community_comment_input_values();
+$commentExtraFieldDefinitions = is_array($board)
+    ? sr_comment_extra_field_definitions(sr_community_effective_board_setting($pdo, $board, 'comment_extra_fields_json', '[]'))
+    : [];
+$commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);
+$commentExtraFieldValues = (array) ($commentExtraFieldInput['values'] ?? []);
 $errors = [];
 if ($isGuestAuthor) {
     $values = array_merge($values, sr_community_guest_author_input_values());
@@ -64,6 +69,7 @@ if (!is_array($board) || !sr_community_effective_board_secret_comments_enabled($
     $values['is_secret'] = 0;
 }
 $errors = array_merge($errors, sr_community_validate_comment_input($values));
+$errors = array_merge($errors, (array) ($commentExtraFieldInput['errors'] ?? []));
 if (is_array($board)) {
     $errors = array_merge($errors, sr_community_validate_comment_body_length($pdo, $board, $values));
 }
@@ -98,6 +104,7 @@ if ($errors !== []) {
     $_SESSION['sr_community_comment_body'] = is_string($values['body_text']) ? $values['body_text'] : '';
     $_SESSION['sr_community_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
     $_SESSION['sr_community_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
+    $_SESSION['sr_community_comment_extra_field_values'] = $commentExtraFieldValues;
     if ($isGuestAuthor) {
         $_SESSION['sr_community_comment_guest_author_name'] = (string) ($values['guest_author_name'] ?? '');
     }
@@ -109,6 +116,7 @@ if ($errors !== []) {
 }
 
 $values['parent_comment'] = $parentComment;
+$values['extra_values_json'] = sr_comment_extra_field_snapshot_json($commentExtraFieldDefinitions, $commentExtraFieldValues);
 $authorAccountId = is_array($account) ? (int) $account['id'] : 0;
 $commentId = sr_community_create_comment($pdo, $postId, $authorAccountId, $values);
 $privacyConsentRecordCount = 0;

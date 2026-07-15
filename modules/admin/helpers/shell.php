@@ -543,6 +543,7 @@ function sr_admin_shell_script_tag(): string
 {
     return '<script src="' . sr_e(sr_admin_asset_url('/assets/common-ui.js')) . '" defer></script>' . PHP_EOL
         . '<script src="' . sr_e(sr_admin_asset_url('/modules/admin/assets/admin-shell.js')) . '" defer></script>' . PHP_EOL
+        . '<script src="' . sr_e(sr_admin_asset_url('/modules/admin/assets/comment-extra-fields.js')) . '" defer></script>' . PHP_EOL
         . '<script src="' . sr_e(sr_admin_asset_url('/modules/admin/assets/asset-adjust.js')) . '" defer></script>';
 }
 

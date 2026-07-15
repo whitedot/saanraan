@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+require_once dirname(__DIR__, 2) . '/core/helpers/comment-extra-fields.php';
 require_once dirname(__DIR__, 2) . '/core/helpers/upload.php';
 require_once SR_ROOT . '/core/helpers/url-embed.php';
 require_once SR_ROOT . '/modules/quiz/helpers/admin.php';
@@ -372,6 +373,7 @@ function sr_quiz_default_settings(): array
         'business_info_visible' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_extra_fields_json' => '[]',
         'public_list_limit' => 50,
     ];
 }
@@ -707,6 +709,7 @@ function sr_quiz_normalize_settings(array $settings): array
     $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
     $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
     $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
+    $normalized['comment_extra_fields_json'] = is_string($normalized['comment_extra_fields_json'] ?? null) ? (string) $normalized['comment_extra_fields_json'] : sr_comment_extra_field_definitions_json($normalized['comment_extra_fields_json'] ?? []);
     $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
 
     return $normalized;
@@ -758,6 +761,7 @@ function sr_quiz_settings_from_post(): array
         'business_info_visible' => ($_POST['business_info_visible'] ?? '') === '1',
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_preset_key', 80), 80),
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
+        'comment_extra_fields_json' => sr_post_string_without_truncation('comment_extra_fields_json', 20000),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
     $settings['theme_key'] = $themeKey;
@@ -773,6 +777,7 @@ function sr_quiz_settings_from_post(): array
 function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $assetOptions): array
 {
     $errors = [];
+    $errors = array_merge($errors, sr_comment_extra_field_definition_errors($settings['comment_extra_fields_json'] ?? '[]'));
     if (!isset(sr_quiz_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
         $errors[] = '퀴즈 공개 레이아웃 값이 올바르지 않습니다.';
     }
@@ -1007,10 +1012,11 @@ function sr_quiz_save_settings(PDO $pdo, array $settings): void
             updated_at = VALUES(updated_at)'
     );
     foreach ($settings as $key => $value) {
-        $valueType = $key === 'layout_extra_menu_keys_json' ? 'json' : (is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string'));
+        $valueType = in_array($key, ['layout_extra_menu_keys_json', 'comment_extra_fields_json'], true) ? 'json' : (is_bool($value) ? 'bool' : (is_int($value) ? 'int' : 'string'));
         $settingValue = $key === 'layout_extra_menu_keys_json'
             ? sr_quiz_layout_extra_menu_keys_json($value)
-            : (is_bool($value) ? ($value ? '1' : '0') : (string) $value);
+            : ($key === 'comment_extra_fields_json' ? sr_comment_extra_field_definitions_json($value)
+            : (is_bool($value) ? ($value ? '1' : '0') : (string) $value));
         $save->execute([
             'module_id' => (int) $module['id'],
             'setting_key' => (string) $key,

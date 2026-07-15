@@ -454,7 +454,7 @@ return static function (PDO $pdo, int $accountId): array {
     if (function_exists('sr_content_comments_table_exists') && sr_content_comments_table_exists($pdo)) {
         $commentStmt = $pdo->prepare(
             'SELECT c.id, c.content_id, c.parent_comment_id, c.thread_root_id, c.depth, p.slug, p.title, c.author_account_id,
-                    c.author_public_name_snapshot, c.body_text, c.is_secret, c.status, c.created_at, c.updated_at
+                    c.author_public_name_snapshot, c.body_text, c.extra_values_json, c.is_secret, c.status, c.created_at, c.updated_at
              FROM sr_content_comments c
              LEFT JOIN sr_content_items p ON p.id = c.content_id
              WHERE c.author_account_id = :account_id
@@ -463,6 +463,10 @@ return static function (PDO $pdo, int $accountId): array {
         );
         $commentStmt->execute(['account_id' => $accountId]);
         $comments = sr_privacy_export_limit_rows($commentStmt->fetchAll(), 'comments', $sectionLimits, 1000);
+        foreach ($comments as &$comment) {
+            $comment['extra_values_json'] = sr_comment_extra_field_export_json((string) ($comment['extra_values_json'] ?? ''));
+        }
+        unset($comment);
     }
 
     return [

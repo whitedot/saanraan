@@ -6,6 +6,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     if ($accountId < 1) {
         return ['cleaned' => false];
     }
+    require_once SR_ROOT . '/core/helpers/comment-extra-fields.php';
 
     $columnExists = static function (PDO $pdo, string $tableName, string $columnName): bool {
         static $exists = [];
@@ -73,6 +74,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $seriesScrapDeletedCount = 0;
     $authorSnapshotAnonymizedCount = 0;
     $postExtraValuesAnonymizedCount = 0;
+    $commentExtraValuesAnonymizedCount = sr_comment_extra_field_cleanup_account_snapshots($pdo, 'sr_community_comments', $accountId);
     $postFieldValuesAnonymizedCount = 0;
     $submissionConsentAnonymizedCount = 0;
     $attachmentDownloadLogAnonymizedCount = 0;
@@ -358,6 +360,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'community_access_entitlement_anonymized_count' => $entitlementCount,
         'community_author_snapshot_anonymized_count' => $authorSnapshotAnonymizedCount,
         'community_post_extra_values_anonymized_count' => $postExtraValuesAnonymizedCount,
+        'community_comment_extra_values_anonymized_count' => $commentExtraValuesAnonymizedCount,
         'community_post_field_values_anonymized_count' => $postFieldValuesAnonymizedCount,
         'community_post_draft_deleted_count' => $postDraftDeletedCount,
         'community_submission_consent_anonymized_count' => $submissionConsentAnonymizedCount,

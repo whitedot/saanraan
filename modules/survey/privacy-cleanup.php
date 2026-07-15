@@ -6,6 +6,7 @@ return static function (PDO $pdo, int $accountId): array {
     if ($accountId < 1) {
         return ['cleaned' => false];
     }
+    require_once SR_ROOT . '/core/helpers/comment-extra-fields.php';
 
     $stmt = $pdo->prepare(
         'UPDATE sr_survey_responses
@@ -32,6 +33,7 @@ return static function (PDO $pdo, int $accountId): array {
         'account_id' => $accountId,
         'updated_at' => sr_now(),
     ]);
+    $commentExtraValuesAnonymizedCount = sr_comment_extra_field_cleanup_account_snapshots($pdo, 'sr_survey_comments', $accountId);
     $commentCount = 0;
     try {
         $commentStmt = $pdo->prepare(
@@ -55,5 +57,6 @@ return static function (PDO $pdo, int $accountId): array {
         'survey_response_anonymized_count' => $responseCount,
         'survey_reward_grant_anonymized_count' => $grantStmt->rowCount(),
         'survey_comment_anonymized_count' => $commentCount,
+        'survey_comment_extra_values_anonymized_count' => $commentExtraValuesAnonymizedCount,
     ];
 };

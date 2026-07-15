@@ -254,9 +254,9 @@ function sr_content_create_comment(PDO $pdo, int $contentId, int $authorAccountI
     $threadRootId = is_array($parentComment) ? (int) (($parentComment['thread_root_id'] ?? 0) ?: ($parentComment['id'] ?? 0)) : null;
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_comments
-            (content_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
+            (content_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, extra_values_json, is_secret, status, created_at, updated_at)
          VALUES
-            (:content_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, :status, :created_at, :updated_at)'
+            (:content_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :extra_values_json, :is_secret, :status, :created_at, :updated_at)'
     );
     $params = [
         'content_id' => $contentId,
@@ -266,6 +266,7 @@ function sr_content_create_comment(PDO $pdo, int $contentId, int $authorAccountI
         'author_account_id' => $authorAccountId,
         'author_public_name_snapshot' => sr_content_comment_author_public_name_snapshot($pdo, $authorAccountId),
         'body_text' => trim((string) $values['body_text']),
+        'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
         'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
         'status' => 'published',
         'created_at' => $now,
@@ -397,6 +398,7 @@ function sr_content_delete_comment_redacted(PDO $pdo, int $commentId): void
     $stmt = $pdo->prepare(
         "UPDATE sr_content_comments
          SET body_text = :body_text,
+             extra_values_json = NULL,
              author_public_name_snapshot = '',
              status = 'deleted',
              updated_at = :updated_at

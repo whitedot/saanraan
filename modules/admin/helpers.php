@@ -21,5 +21,6 @@ require_once SR_ROOT . '/modules/admin/helpers/high-load.php';
 require_once SR_ROOT . '/modules/admin/helpers/asset-references.php';
 require_once SR_ROOT . '/modules/admin/helpers/asset-ledgers.php';
 require_once SR_ROOT . '/modules/admin/helpers/icons.php';
+require_once SR_ROOT . '/modules/admin/helpers/comment-extra-fields.php';
 require_once SR_ROOT . '/modules/admin/helpers/navigation.php';
 require_once SR_ROOT . '/modules/admin/helpers/shell.php';

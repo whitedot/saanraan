@@ -112,6 +112,9 @@ if (sr_request_method() === 'POST') {
         $plainTextAutoLinkNewTab = ($_POST['plain_text_auto_link_new_tab'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $commentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
+        $commentExtraFieldsInput = is_string($commentExtraFieldsInput) ? $commentExtraFieldsInput : '[]';
+        $commentExtraFieldsJson = sr_comment_extra_field_definitions_json($commentExtraFieldsInput);
         $thumbnailEnabled = ($_POST['thumbnail_enabled'] ?? '') === '1';
         $thumbnailCriterionInput = sr_post_string('thumbnail_criterion', 20);
         $thumbnailCriterion = sr_community_thumbnail_criterion($thumbnailCriterionInput);
@@ -309,6 +312,7 @@ if (sr_request_method() === 'POST') {
         if ($postBodyMinLength > 0 && $postBodyMaxLength > 0 && $postBodyMinLength > $postBodyMaxLength) {
             $errors[] = '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
         }
+        $errors = array_merge($errors, sr_comment_extra_field_definition_errors($commentExtraFieldsInput));
         if ($draftAutosaveIntervalSeconds === null) {
             $errors[] = '임시저장 간격은 30초 이상 600초 이하로 입력하세요.';
             $draftAutosaveIntervalSeconds = (int) ($settings['draft_autosave_interval_seconds'] ?? 60);
@@ -462,6 +466,7 @@ if (sr_request_method() === 'POST') {
                 ['plain_text_auto_link_new_tab', $plainTextAutoLinkNewTab ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
+                ['comment_extra_fields_json', $commentExtraFieldsJson, 'json'],
                 ['thumbnail_enabled', $thumbnailEnabled ? '1' : '0', 'bool'],
                 ['thumbnail_criterion', $thumbnailCriterion, 'string'],
                 ['thumbnail_min_width', (string) $thumbnailMinWidth, 'int'],

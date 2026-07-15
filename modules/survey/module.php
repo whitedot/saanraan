@@ -2,7 +2,7 @@
 
 return [
     'name' => '설문·여론조사',
-    'version' => '2026.07.002',
+    'version' => '2026.07.004',
     'type' => 'module',
     'description' => '설문 작성, 공개 응답 수집, 응답 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -38,6 +38,7 @@ return [
         'business_info_visible' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_extra_fields_json' => '[]',
         'public_list_limit' => 50,
     ],
     'contracts' => [

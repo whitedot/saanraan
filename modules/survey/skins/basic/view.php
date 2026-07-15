@@ -66,7 +66,9 @@ $surveyCommentErrors = (array) ($_SESSION['sr_survey_comment_errors'] ?? []);
 $surveyCommentBody = (string) ($_SESSION['sr_survey_comment_body'] ?? '');
 $surveyCommentIsSecret = !empty($_SESSION['sr_survey_comment_is_secret']);
 $surveyCommentParentId = isset($_SESSION['sr_survey_comment_parent_id']) ? (int) $_SESSION['sr_survey_comment_parent_id'] : 0;
-unset($_SESSION['sr_survey_comment_notice'], $_SESSION['sr_survey_comment_errors'], $_SESSION['sr_survey_comment_body'], $_SESSION['sr_survey_comment_is_secret'], $_SESSION['sr_survey_comment_parent_id']);
+$surveyCommentExtraFieldDefinitions = sr_comment_extra_field_definitions($survey['comment_extra_fields_json'] ?? '[]');
+$surveyCommentExtraFieldValues = isset($_SESSION['sr_survey_comment_extra_field_values']) && is_array($_SESSION['sr_survey_comment_extra_field_values']) ? $_SESSION['sr_survey_comment_extra_field_values'] : [];
+unset($_SESSION['sr_survey_comment_notice'], $_SESSION['sr_survey_comment_errors'], $_SESSION['sr_survey_comment_body'], $_SESSION['sr_survey_comment_is_secret'], $_SESSION['sr_survey_comment_parent_id'], $_SESSION['sr_survey_comment_extra_field_values']);
 $surveyCommentLoginUrl = '/login?next=' . rawurlencode('/survey/' . (string) ($survey['survey_key'] ?? '') . '?submitted=1#survey-comments');
 
 if (sr_request_method() === 'POST') {
@@ -414,6 +416,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                     </div>
                                     <?php if ($surveyCommentCanViewBody): ?>
                                         <p><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
+                                        <?php echo sr_comment_extra_fields_display_html((string) ($surveyComment['extra_values_json'] ?? '')); ?>
                                         <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
                                             <?php
                                             $surveyCommentReactionOptions = ['label' => '댓글 리액션'];
@@ -448,6 +451,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                                                 <p class="sr-survey-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
                                                                 <label class="sr-only" for="<?php echo sr_e($surveyCommentReplyId); ?>">답글 본문</label>
                                                                 <textarea id="<?php echo sr_e($surveyCommentReplyId); ?>" name="body_text" rows="3" cols="60" required data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId ? sr_e($surveyCommentBody) : ''; ?></textarea>
+                                                                <?php echo sr_comment_extra_fields_form_html($surveyCommentExtraFieldDefinitions, (int) ($surveyCommentParentId ?? 0) === $surveyCommentId ? $surveyCommentExtraFieldValues : [], 'comment_extra_fields', 'survey_comment_reply_' . (string) $surveyCommentId); ?>
                                                                 <?php if (!empty($surveySecretCommentsEnabled)): ?>
                                                                     <label class="sr-survey-comment-secret-toggle">
                                                                         <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($surveyCommentParentId ?? 0) === $surveyCommentId && $surveyCommentIsSecret ? ' checked' : ''; ?>>
@@ -518,6 +522,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                             <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($surveyCommentPage['page'] ?? 1)); ?>">
                             <label class="sr-only" for="survey_comment_body">댓글 본문</label>
                             <textarea id="survey_comment_body" name="body_text" rows="4" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($surveyCommentParentId ?? 0) < 1 ? sr_e($surveyCommentBody) : ''; ?></textarea>
+                            <?php echo sr_comment_extra_fields_form_html($surveyCommentExtraFieldDefinitions, (int) ($surveyCommentParentId ?? 0) < 1 ? $surveyCommentExtraFieldValues : [], 'comment_extra_fields', 'survey_comment'); ?>
                             <?php if (!empty($surveySecretCommentsEnabled)): ?>
                                 <label class="sr-survey-comment-secret-toggle">
                                     <input type="checkbox" name="is_secret" value="1"<?php echo $surveyCommentIsSecret ? ' checked' : ''; ?>>

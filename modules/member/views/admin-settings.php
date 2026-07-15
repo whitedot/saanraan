@@ -593,27 +593,30 @@ $memberSettingsSectionNavItems = [
                     </div>
                 </div>
                 <div class="form-row" data-member-profile-extra-field-extra-only>
-                    <label class="form-label" for="member_profile_extra_field_privacy_purpose">개인정보 목적</label>
+                    <label class="form-label" for="member_profile_extra_field_privacy_purpose">수집·이용 목적</label>
                     <div class="form-field">
                         <input id="member_profile_extra_field_privacy_purpose" type="text" maxlength="255" data-member-profile-extra-field-input="privacy_purpose" class="form-input form-control-full">
+                        <p class="form-help">이 정보를 왜 받는지 적습니다. 예: 회원 연락을 위한 휴대폰 번호 확인</p>
                     </div>
                 </div>
                 <div class="form-row" data-member-profile-extra-field-extra-only>
-                    <label class="form-label" for="member_profile_extra_field_export_policy">Export 정책</label>
+                    <label class="form-label" for="member_profile_extra_field_export_policy">내 정보 사본에 포함</label>
                     <div class="form-field">
                         <select id="member_profile_extra_field_export_policy" data-member-profile-extra-field-input="export_policy" class="form-select">
-                            <option value="include">포함</option>
-                            <option value="exclude">제외</option>
+                            <option value="include">포함함</option>
+                            <option value="exclude">포함하지 않음</option>
                         </select>
+                        <p class="form-help">회원이 자신의 개인정보 사본을 요청할 때 이 항목의 값을 함께 제공할지 정합니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-member-profile-extra-field-extra-only>
-                    <label class="form-label" for="member_profile_extra_field_cleanup_policy">Cleanup 정책</label>
+                    <label class="form-label" for="member_profile_extra_field_cleanup_policy">계정 정리 시 처리</label>
                     <div class="form-field">
                         <select id="member_profile_extra_field_cleanup_policy" data-member-profile-extra-field-input="cleanup_policy" class="form-select">
-                            <option value="anonymize">익명화</option>
-                            <option value="retain">보관</option>
+                            <option value="anonymize">개인정보 제거</option>
+                            <option value="retain">그대로 보관</option>
                         </select>
+                        <p class="form-help">회원 탈퇴 등으로 계정을 정리할 때 이 항목의 값을 지울지 정합니다.</p>
                     </div>
                 </div>
             </div>
@@ -708,8 +711,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function memberProfileExtraFieldPolicyLabel(field) {
-        var exportLabel = field.export_policy === 'exclude' ? 'Export 제외' : 'Export 포함';
-        var cleanupLabel = field.cleanup_policy === 'retain' ? '보관' : '익명화';
+        var exportLabel = field.export_policy === 'exclude' ? '사본에 포함하지 않음' : '사본에 포함';
+        var cleanupLabel = field.cleanup_policy === 'retain' ? '계정 정리 후에도 보관' : '계정 정리 시 제거';
         return exportLabel + ' / ' + cleanupLabel;
     }
 
@@ -1026,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(displayCell);
 
             var privacyCell = document.createElement('td');
-            privacyCell.textContent = item.kind === 'fixed' ? '기본 프로필 / Export 포함 / 익명화' : (field.privacy_purpose || '목적 없음') + ' / ' + memberProfileExtraFieldPolicyLabel(field);
+            privacyCell.textContent = item.kind === 'fixed' ? '기본 프로필 / 사본에 포함 / 계정 정리 시 제거' : (field.privacy_purpose || '수집·이용 목적 미입력') + ' / ' + memberProfileExtraFieldPolicyLabel(field);
             row.appendChild(privacyCell);
 
             var actionCell = document.createElement('td');

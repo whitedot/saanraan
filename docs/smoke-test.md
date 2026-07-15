@@ -41,6 +41,7 @@ SQL 파일 비어 있음 여부
 rich text sanitizer payload 회귀 점검
 문서 링크와 .tools/bin 명령 참조 존재 여부
 보상/설문 정합성 회귀 점검
+댓글 추가 입력 정의·신규 등록 폼 초기값 경계·항목별 독립 저장·수집 목적 표시 선택·필수값 검증·snapshot 저장·개인정보 사본/정리 점검
 ```
 
 현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`, URL 임베드 계약 구조·모듈별 외부/내부 gate·Markdown wrapper 밖 임베드 경계는 `.tools/bin/check-url-embed-contracts.php`가 확인하며 모두 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.

@@ -560,6 +560,13 @@ $quizSettingsSectionNavItems = [
         </div>
     </section>
 
+    <?php echo sr_admin_comment_extra_fields_editor_html(
+        'quiz_comment_extra_fields_json',
+        'comment_extra_fields_json',
+        $settings['comment_extra_fields_json'] ?? '[]',
+        '댓글 추가 입력 항목',
+        '새 퀴즈 등록 화면을 열 때 미리 채워지는 항목입니다. 기존 퀴즈에는 반영되지 않으며, 등록 화면에서 수정한 최종 값이 해당 퀴즈에 저장됩니다.'
+    ); ?>
     <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="btn btn-solid-light">퀴즈 목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>

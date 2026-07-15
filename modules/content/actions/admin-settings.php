@@ -63,6 +63,7 @@ if (sr_request_method() === 'POST') {
     $postedReactionEnabled = sr_post_string('reaction_enabled', 1) === '1';
     $postedReactionPresetInput = sr_post_string('reaction_preset_key', 80);
     $postedReactionCommentPresetInput = sr_post_string('reaction_comment_preset_key', 80);
+    $postedCommentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
     $postedThemeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
     $postedSettings = [
         'editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedEditorInput)),
@@ -72,6 +73,7 @@ if (sr_request_method() === 'POST') {
         'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
         'plain_text_auto_link_new_tab' => sr_post_string('plain_text_auto_link_new_tab', 1) === '1',
         'secret_comments_enabled' => sr_post_string('secret_comments_enabled', 1) === '1',
+        'comment_extra_fields_json' => sr_comment_extra_field_definitions_json(is_string($postedCommentExtraFieldsInput) ? $postedCommentExtraFieldsInput : '[]'),
         'once_history_policy' => sr_content_once_history_policy($postedOnceHistoryPolicyInput),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
         'theme_key' => $postedThemeKey,
@@ -93,6 +95,8 @@ if (sr_request_method() === 'POST') {
         'reaction_preset_key' => $contentReactionAvailable && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $postedReactionPresetInput) : '',
         'reaction_comment_preset_key' => $contentReactionAvailable && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $postedReactionCommentPresetInput) : '',
     ];
+
+    $errors = array_merge($errors, sr_comment_extra_field_definition_errors($postedCommentExtraFieldsInput));
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
         $errors[] = '본문 에디터 값이 올바르지 않습니다.';

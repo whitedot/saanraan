@@ -166,27 +166,27 @@ function sr_community_extra_field_definition_validation_errors(mixed $raw): arra
         $privacyPurpose = trim(sr_community_extra_field_scalar_string($privacyPurposeRaw));
         $privacyPurposeLength = function_exists('mb_strlen') ? mb_strlen($privacyPurpose) : strlen($privacyPurpose);
         if (!is_scalar($privacyPurposeRaw)) {
-            $errors[] = $rowLabel . '의 개인정보 목적 형식이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 수집·이용 목적 형식이 올바르지 않습니다.';
         } elseif ($privacyPurposeLength > 255) {
-            $errors[] = $rowLabel . '의 개인정보 목적은 255자 이하로 입력해 주세요.';
+            $errors[] = $rowLabel . '의 수집·이용 목적은 255자 이하로 입력해 주세요.';
         }
 
         $exportPolicyRaw = $item['export_policy'] ?? 'include';
         $exportPolicy = sr_community_extra_field_scalar_string($exportPolicyRaw);
         if (!is_scalar($exportPolicyRaw)) {
-            $errors[] = $rowLabel . '의 export 정책 형식이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 내 정보 사본 포함 설정 형식이 올바르지 않습니다.';
         }
         if (!in_array($exportPolicy, ['include', 'exclude'], true)) {
-            $errors[] = $rowLabel . '의 export 정책 값이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 내 정보 사본 포함 설정 값이 올바르지 않습니다.';
         }
 
         $cleanupPolicyRaw = $item['cleanup_policy'] ?? 'anonymize';
         $cleanupPolicy = sr_community_extra_field_scalar_string($cleanupPolicyRaw);
         if (!is_scalar($cleanupPolicyRaw)) {
-            $errors[] = $rowLabel . '의 cleanup 정책 형식이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 계정 정리 시 처리 설정 형식이 올바르지 않습니다.';
         }
         if (!in_array($cleanupPolicy, ['anonymize', 'retain'], true)) {
-            $errors[] = $rowLabel . '의 cleanup 정책 값이 올바르지 않습니다.';
+            $errors[] = $rowLabel . '의 계정 정리 시 처리 설정 값이 올바르지 않습니다.';
         }
 
         if ($type === 'select') {

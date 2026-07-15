@@ -6,6 +6,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     if ($accountId < 1) {
         return ['cleaned' => false];
     }
+    require_once SR_ROOT . '/core/helpers/comment-extra-fields.php';
 
     $attemptStmt = $pdo->prepare(
         'UPDATE sr_quiz_attempts
@@ -24,6 +25,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     );
     $grantStmt->execute(['account_id' => $accountId]);
 
+    $commentExtraValuesAnonymizedCount = sr_comment_extra_field_cleanup_account_snapshots($pdo, 'sr_quiz_comments', $accountId);
     $commentCount = 0;
     try {
         $commentStmt = $pdo->prepare(
@@ -45,5 +47,6 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'quiz_attempt_anonymized_count' => $attemptStmt->rowCount(),
         'quiz_reward_grant_anonymized_count' => $grantStmt->rowCount(),
         'quiz_comment_anonymized_count' => $commentCount,
+        'quiz_comment_extra_values_anonymized_count' => $commentExtraValuesAnonymizedCount,
     ];
 };

@@ -335,6 +335,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 </div>
                                 <?php if ($contentCommentCanViewBody) { ?>
                                     <p><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
+                                    <?php echo sr_comment_extra_fields_display_html((string) ($contentComment['extra_values_json'] ?? '')); ?>
                                     <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
                                         <?php
                                         $contentCommentReactionId = (string) (int) ($contentComment['id'] ?? 0);
@@ -370,6 +371,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                             <p class="content-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
                                                             <label for="<?php echo sr_e($contentCommentReplyId); ?>">답글</label>
                                                             <textarea id="<?php echo sr_e($contentCommentReplyId); ?>" name="body_text" rows="3" cols="60" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                                                            <?php echo sr_comment_extra_fields_form_html($contentCommentExtraFieldDefinitions, (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? $contentCommentExtraFieldValues : [], 'comment_extra_fields', 'content_comment_reply_' . (string) $contentComment['id']); ?>
                                                             <?php if (!empty($contentSecretCommentsEnabled)) { ?>
                                                                 <label class="content-comment-secret-toggle">
                                                                     <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] && !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
@@ -447,6 +449,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($contentCommentPage['page'] ?? 1)); ?>">
                         <label for="content_comment_body">댓글</label>
                         <textarea id="content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) < 1 ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                        <?php echo sr_comment_extra_fields_form_html($contentCommentExtraFieldDefinitions, (int) ($contentCommentParentId ?? 0) < 1 ? $contentCommentExtraFieldValues : [], 'comment_extra_fields', 'content_comment'); ?>
                         <?php if (!empty($contentSecretCommentsEnabled)) { ?>
                             <label class="content-comment-secret-toggle">
                                 <input type="checkbox" name="is_secret" value="1"<?php echo !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>

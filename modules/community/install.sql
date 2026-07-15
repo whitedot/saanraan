@@ -210,6 +210,7 @@ CREATE TABLE IF NOT EXISTS sr_community_comments (
     guest_ip_hash CHAR(64) NULL,
     guest_user_agent_hash CHAR(64) NULL,
     body_text TEXT NOT NULL,
+    extra_values_json LONGTEXT NULL,
     is_secret TINYINT(1) NOT NULL DEFAULT 0,
     status VARCHAR(30) NOT NULL DEFAULT 'published',
     created_at DATETIME NOT NULL,

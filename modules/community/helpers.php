@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/comment-extra-fields.php';
 require_once SR_ROOT . '/modules/community/helpers/post-body-settings.php';
 require_once SR_ROOT . '/modules/community/helpers/boards.php';
 require_once SR_ROOT . '/modules/community/helpers/body-files.php';

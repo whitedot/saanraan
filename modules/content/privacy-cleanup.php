@@ -6,6 +6,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     if ($accountId < 1) {
         return ['cleaned' => false];
     }
+    require_once SR_ROOT . '/core/helpers/comment-extra-fields.php';
 
     $columnExists = static function (PDO $pdo, string $tableName, string $columnName): bool {
         static $exists = [];
@@ -60,6 +61,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
     $fileDownloadLogAnonymizedCount = 0;
     $viewPaymentLogAnonymizedCount = 0;
     $authorSnapshotAnonymizedCount = 0;
+    $commentExtraValuesAnonymizedCount = sr_comment_extra_field_cleanup_account_snapshots($pdo, 'sr_content_comments', $accountId);
     if ($columnExists($pdo, 'sr_content_comments', 'author_public_name_snapshot')) {
         $stmt = $pdo->prepare(
             'UPDATE sr_content_comments
@@ -146,6 +148,7 @@ return static function (PDO $pdo, int $accountId, array $context = []): array {
         'event_type' => (string) ($context['event_type'] ?? ''),
         'content_access_entitlement_anonymized_count' => sr_content_anonymize_access_entitlements($pdo, $accountId),
         'content_author_snapshot_anonymized_count' => $authorSnapshotAnonymizedCount,
+        'content_comment_extra_values_anonymized_count' => $commentExtraValuesAnonymizedCount,
         'content_view_payment_log_anonymized_count' => $viewPaymentLogAnonymizedCount,
         'content_file_download_log_anonymized_count' => $fileDownloadLogAnonymizedCount,
         'content_author_application_anonymized_count' => $authorApplicationAnonymizedCount,

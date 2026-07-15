@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
+require_once dirname(__DIR__, 2) . '/core/helpers/comment-extra-fields.php';
 
 require_once SR_ROOT . '/modules/content/helpers/assets.php';
 require_once SR_ROOT . '/modules/content/helpers/cover-images.php';
@@ -109,6 +110,7 @@ function sr_content_default_settings(): array
         'plain_text_auto_link_urls' => false,
         'plain_text_auto_link_new_tab' => false,
         'secret_comments_enabled' => false,
+        'comment_extra_fields_json' => '[]',
         'once_history_policy' => 'all_access',
         'layout_key' => 'content.basic',
         'theme_key' => 'basic',
@@ -347,6 +349,7 @@ function sr_content_settings(PDO $pdo): array
     $settings['plain_text_auto_link_urls'] = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? false);
     $settings['plain_text_auto_link_new_tab'] = sr_content_bool_setting($settings['plain_text_auto_link_new_tab'] ?? false);
     $settings['secret_comments_enabled'] = sr_content_bool_setting($settings['secret_comments_enabled'] ?? false);
+    $settings['comment_extra_fields_json'] = sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]');
     $settings['once_history_policy'] = sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $settings['layout_key'] = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic'));
     if (!isset(sr_content_layout_options($pdo)[$settings['layout_key']])) {
@@ -587,6 +590,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['plain_text_auto_link_urls', !empty($settings['plain_text_auto_link_urls']) ? '1' : '0', 'bool'],
         ['plain_text_auto_link_new_tab', !empty($settings['plain_text_auto_link_new_tab']) ? '1' : '0', 'bool'],
         ['secret_comments_enabled', !empty($settings['secret_comments_enabled']) ? '1' : '0', 'bool'],
+        ['comment_extra_fields_json', sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]'), 'json'],
         ['once_history_policy', sr_content_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access')), 'string'],
         ['layout_key', sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? 'content.basic')), 'string'],
         ['theme_key', sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic')), 'string'],
@@ -795,6 +799,9 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
         'popup_layer_id' => (int) ($defaults['popup_layer_id'] ?? 0),
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_extra_fields_json' => $pdo instanceof PDO
+            ? sr_comment_extra_field_definitions_json(sr_content_settings($pdo)['comment_extra_fields_json'] ?? '[]')
+            : '[]',
         'seo_title' => '',
         'seo_description' => '',
     ];

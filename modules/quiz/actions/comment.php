@@ -22,10 +22,14 @@ if (!sr_quiz_account_has_result($pdo, $quizId, (int) ($account['id'] ?? 0))) {
 }
 
 $values = sr_quiz_comment_input_values();
+$commentExtraFieldDefinitions = sr_comment_extra_field_definitions($quiz['comment_extra_fields_json'] ?? '[]');
+$commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);
+$commentExtraFieldValues = (array) ($commentExtraFieldInput['values'] ?? []);
 if ((int) ($quiz['secret_comments_enabled'] ?? 0) !== 1) {
     $values['is_secret'] = 0;
 }
 $errors = sr_quiz_validate_comment_input($values);
+$errors = array_merge($errors, (array) ($commentExtraFieldInput['errors'] ?? []));
 $parentValidation = sr_quiz_validate_comment_parent($pdo, $quizId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
 $errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
@@ -38,10 +42,12 @@ if ($errors !== []) {
     $_SESSION['sr_quiz_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';
     $_SESSION['sr_quiz_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
     $_SESSION['sr_quiz_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
+    $_SESSION['sr_quiz_comment_extra_field_values'] = $commentExtraFieldValues;
     sr_redirect($redirectUrl);
 }
 
 $values['parent_comment'] = $parentComment;
+$values['extra_values_json'] = sr_comment_extra_field_snapshot_json($commentExtraFieldDefinitions, $commentExtraFieldValues);
 $commentId = sr_quiz_create_comment($pdo, $quizId, (int) $account['id'], $values);
 $mentionExcludeAccountIds = [(int) $account['id']];
 $mentionNotificationResult = (int) ($values['is_secret'] ?? 0) === 1

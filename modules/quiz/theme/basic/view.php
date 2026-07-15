@@ -88,7 +88,9 @@ $quizCommentErrors = (array) ($_SESSION['sr_quiz_comment_errors'] ?? []);
 $quizCommentBody = (string) ($_SESSION['sr_quiz_comment_body'] ?? '');
 $quizCommentIsSecret = !empty($_SESSION['sr_quiz_comment_is_secret']);
 $quizCommentParentId = isset($_SESSION['sr_quiz_comment_parent_id']) ? (int) $_SESSION['sr_quiz_comment_parent_id'] : 0;
-unset($_SESSION['sr_quiz_comment_notice'], $_SESSION['sr_quiz_comment_errors'], $_SESSION['sr_quiz_comment_body'], $_SESSION['sr_quiz_comment_is_secret'], $_SESSION['sr_quiz_comment_parent_id']);
+$quizCommentExtraFieldDefinitions = sr_comment_extra_field_definitions($quiz['comment_extra_fields_json'] ?? '[]');
+$quizCommentExtraFieldValues = isset($_SESSION['sr_quiz_comment_extra_field_values']) && is_array($_SESSION['sr_quiz_comment_extra_field_values']) ? $_SESSION['sr_quiz_comment_extra_field_values'] : [];
+unset($_SESSION['sr_quiz_comment_notice'], $_SESSION['sr_quiz_comment_errors'], $_SESSION['sr_quiz_comment_body'], $_SESSION['sr_quiz_comment_is_secret'], $_SESSION['sr_quiz_comment_parent_id'], $_SESSION['sr_quiz_comment_extra_field_values']);
 $quizCommentLoginUrl = '/login?next=' . rawurlencode($quizFormUrl . '?result=1#quiz-comments');
 
 if (sr_request_method() === 'POST' && !$canPreviewAsAdmin) {
@@ -400,6 +402,7 @@ if ($quizEmbedded) {
                                     </div>
                                     <?php if ($quizCommentCanViewBody): ?>
                                         <p><?php echo sr_member_mention_plain_text_html((string) ($quizComment['body_text'] ?? '')); ?></p>
+                                        <?php echo sr_comment_extra_fields_display_html((string) ($quizComment['extra_values_json'] ?? '')); ?>
                                         <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
                                             <?php
                                             $quizCommentReactionOptions = ['label' => '댓글 리액션'];
@@ -434,6 +437,7 @@ if ($quizEmbedded) {
                                                                 <p class="sr-quiz-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) ($quizComment['body_text'] ?? '')); ?></p>
                                                                 <label class="sr-only" for="<?php echo sr_e($quizCommentReplyId); ?>">답글 본문</label>
                                                                 <textarea id="<?php echo sr_e($quizCommentReplyId); ?>" name="body_text" rows="3" cols="60" required data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($quizCommentParentId ?? 0) === $quizCommentId ? sr_e($quizCommentBody) : ''; ?></textarea>
+                                                                <?php echo sr_comment_extra_fields_form_html($quizCommentExtraFieldDefinitions, (int) ($quizCommentParentId ?? 0) === $quizCommentId ? $quizCommentExtraFieldValues : [], 'comment_extra_fields', 'quiz_comment_reply_' . (string) $quizCommentId); ?>
                                                                 <?php if (!empty($quizSecretCommentsEnabled)): ?>
                                                                     <label class="sr-quiz-comment-secret-toggle">
                                                                         <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($quizCommentParentId ?? 0) === $quizCommentId && $quizCommentIsSecret ? ' checked' : ''; ?>>
@@ -504,6 +508,7 @@ if ($quizEmbedded) {
                             <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($quizCommentPage['page'] ?? 1)); ?>">
                             <label class="sr-only" for="quiz_comment_body">댓글 본문</label>
                             <textarea id="quiz_comment_body" name="body_text" rows="4" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($quizCommentParentId ?? 0) < 1 ? sr_e($quizCommentBody) : ''; ?></textarea>
+                            <?php echo sr_comment_extra_fields_form_html($quizCommentExtraFieldDefinitions, (int) ($quizCommentParentId ?? 0) < 1 ? $quizCommentExtraFieldValues : [], 'comment_extra_fields', 'quiz_comment'); ?>
                             <?php if (!empty($quizSecretCommentsEnabled)): ?>
                                 <label class="sr-quiz-comment-secret-toggle">
                                     <input type="checkbox" name="is_secret" value="1"<?php echo $quizCommentIsSecret ? ' checked' : ''; ?>>

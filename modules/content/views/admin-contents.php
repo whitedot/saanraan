@@ -552,6 +552,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'content-section-body' => '본문/이미지',
         'content-section-public' => '공개 설정',
         'content-section-reaction' => '리액션',
+        'content-item-comment-extra-fields-json-section' => '댓글 추가 입력',
         'content-section-seo' => 'SEO',
         'content-section-access-asset' => '유료 열람',
         'content-section-action-asset' => '완료 버튼',
@@ -745,6 +746,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
+        <?php echo sr_admin_comment_extra_fields_editor_html(
+            'content_item_comment_extra_fields_json',
+            'comment_extra_fields_json',
+            $values['comment_extra_fields_json'] ?? '[]',
+            '댓글 추가 입력 항목',
+            '이 콘텐츠의 댓글과 답글 작성 시 받을 항목입니다.'
+        ); ?>
         <section id="content-section-seo" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e('SEO 설정'); ?></h2>
             <div class="form-row">

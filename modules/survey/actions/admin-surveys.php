@@ -511,6 +511,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'survey-section-qa' => 'QA/버전',
         'survey-section-consent' => '참여 동의',
         'survey-section-reward' => '보상',
+        'survey-item-comment-extra-fields-json-section' => '댓글 추가 입력',
         'survey-section-questions' => '문항',
     ];
     ?>
@@ -987,6 +988,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
         </section>
+        <?php echo sr_admin_comment_extra_fields_editor_html(
+            'survey_item_comment_extra_fields_json',
+            'comment_extra_fields_json',
+            $values['comment_extra_fields_json'] ?? '[]',
+            '댓글 추가 입력 항목',
+            '이 설문의 댓글과 답글 작성 시 받을 항목입니다.'
+        ); ?>
         <section id="survey-section-questions" class="card admin-list-card admin-list-form admin-survey-question-list-card" data-admin-section-anchor>
             <div class="card-header">
                 <h2 class="card-title form-label-help"><?php echo $surveyHelpButtonHtml('문항 관리', $surveyHelp['questions']['id']); ?><span>문항</span></h2>

@@ -44,15 +44,15 @@
 | --- | --- | --- |
 | `sr_community_board_field_definitions` | 게시판별 추가 입력 정의 | `board_id`, `field_key`, `label`, `field_type`, `is_required`, `visibility`, `show_on_view`, `show_in_admin`, `sort_order`, `validation_json`, `privacy_purpose`, `export_policy`, `cleanup_policy`, `status`, `created_at`, `updated_at` |
 | `sr_community_post_field_values` | 게시글별 추가 입력값 | `post_id`, `field_key`, `label_snapshot`, `field_type_snapshot`, `visibility_snapshot`, `show_on_view_snapshot`, `show_in_admin_snapshot`, `privacy_purpose_snapshot`, `export_policy_snapshot`, `cleanup_policy_snapshot`, `value_text`, `value_json`, `created_at`, `updated_at` |
-| `sr_community_comment_field_values` | 댓글별 추가 입력값이 필요할 때의 별도 값 테이블 | `comment_id`, `field_key`, `value_text`, `value_json`, `created_at`, `updated_at` |
+| `sr_community_comments.extra_values_json` | 댓글별 추가 입력 정의·정책·값 snapshot | `key`, `label`, `type`, `value`, `privacy_purpose`, `export_policy`, `cleanup_policy` |
 
 `field_key`는 관리용 key이므로 소문자 영문, 숫자, `_`만 허용한다. 공개 slug처럼 hyphen을 허용하는 필드와 구분한다. 필수/조건부 필드는 UI 표시, 브라우저 속성, 서버 POST 검증을 모두 맞추며 서버 검증을 최종 기준으로 둔다. 필수 checkbox 항목은 서버에서도 체크된 값만 유효한 제출로 인정한다.
 
 필드 정의에는 공개 출력, 관리자 목록 표시, 검색/필터 포함, CSV/export 포함, 개인정보 처리 목적, 보관/cleanup 정책을 분리해 저장한다. 잘못된 key, 중복 key, 빈 라벨, 잘못된 유형/정책, 선택지 누락은 조용히 항목을 버리지 않고 게시판/게시판 그룹 저장 오류로 처리한다. 현재 커뮤니티 게시글 목록은 `show_in_admin` snapshot이 켜진 추가 입력값만 관리자 목록에 표시하고, 추가 입력 검색도 값 테이블의 `show_in_admin_snapshot=1` 값만 대상으로 한다. 제출값은 text/select 1000자, textarea 5000자를 넘거나 배열 payload이면 잘라 저장하지 않고 서버에서 거부한다. 개인정보 사본 제공은 `export_policy_snapshot=include` 값 테이블 행과 `export_policy=include` 게시글 snapshot만 포함하며, export 정책이 없던 legacy snapshot은 `include`로 간주한다. cleanup은 `cleanup_policy_snapshot`이 `retain`이 아닌 값 기준으로 처리해 빈 정책이 남은 legacy 값도 익명화한다. 게시글 `extra_values_json` snapshot에는 관리자 표시, export 정책, cleanup 정책을 함께 남기며, cleanup 정책이 없던 legacy snapshot은 `anonymize`로 간주한다.
 
-관리자 게시판 생성/수정 화면은 추가 입력 항목을 보조 목록과 추가/수정 모달로 편집하고, 최종 저장값은 기존 게시판 저장 form의 `extra_fields_json`에 반영한다. 모달의 적용은 화면 입력값만 바꾸며 실제 DB 반영은 게시판 저장 action에서 서버 정규화와 검증을 통과한 뒤 이루어진다. 게시판 그룹의 추가 입력 항목을 저장하면 그룹 값을 상속하는 게시판의 정의 테이블도 함께 동기화한다.
+관리자 게시판 생성/수정 화면은 추가 입력 항목을 회원 선택 프로필 항목과 같은 표형 목록과 추가/수정 모달로 편집한다. 순서는 드래그 앤 드롭 또는 위/아래 이동 버튼으로 바꾸고, 모달에서 필수로 지정한 항목은 목록의 공통 필수 표시 스타일로 구분한다. 내부 `field_key`는 충돌하지 않는 값으로 자동 생성하고 모달에는 노출하지 않는다. 최종 저장값은 기존 게시판 저장 form의 `extra_fields_json`에 반영한다. 모달의 적용은 화면 입력값만 바꾸며 실제 DB 반영은 게시판 저장 action에서 서버 정규화와 검증을 통과한 뒤 이루어진다. 게시판 그룹의 추가 입력 항목을 저장하면 그룹 값을 상속하는 게시판의 정의 테이블도 함께 동기화한다.
 
-댓글 추가 입력이 필요해지면 게시글 값 테이블을 재사용하지 않는다. 댓글과 게시글은 권한, 수정/삭제, 공개 범위, 개인정보 요청 맥락이 다르므로 별도 값 테이블을 우선한다. 여러 subject를 하나의 공용 value 테이블에 담는 방식은 인덱스, FK, cleanup 검증이 어려워지는 경우가 많으므로 반복 요구가 쌓인 뒤 검토한다.
+댓글 추가 입력은 게시글 값 테이블을 재사용하지 않는다. 댓글과 게시글은 권한, 삭제, 공개 범위, 개인정보 요청 맥락이 다르므로 댓글 행의 `extra_values_json` snapshot으로 분리한다. 커뮤니티·콘텐츠·퀴즈·설문 환경설정의 댓글 정의는 신규 등록 화면에만 초기값으로 채우고 기존 항목이나 공개 런타임에 직접 적용하지 않는다. 등록 저장 후에는 게시판·콘텐츠·퀴즈·설문별 정의를 독립 사용한다. snapshot에는 제출 시점의 라벨과 개인정보 정책, 수집 목적 표시 여부를 함께 남겨 이후 설정 변경과 무관하게 export/cleanup을 처리한다. 검색·통계 요구가 생기면 그때 모듈 소유 별도 값 테이블로 승격한다.
 
 ## 구현 수용 기준
 

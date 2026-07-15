@@ -92,13 +92,17 @@ return static function (PDO $pdo, int $accountId): array {
     $comments = [];
     try {
         $commentStmt = $pdo->prepare(
-            'SELECT id, quiz_id, parent_comment_id, thread_root_id, depth, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at, deleted_at
+            'SELECT id, quiz_id, parent_comment_id, thread_root_id, depth, author_public_name_snapshot, body_text, extra_values_json, is_secret, status, created_at, updated_at, deleted_at
              FROM sr_quiz_comments
              WHERE author_account_id = :account_id
              ORDER BY id ASC'
         );
         $commentStmt->execute(['account_id' => $accountId]);
         $comments = $commentStmt->fetchAll();
+        foreach ($comments as &$comment) {
+            $comment['extra_values_json'] = sr_comment_extra_field_export_json((string) ($comment['extra_values_json'] ?? ''));
+        }
+        unset($comment);
     } catch (Throwable $exception) {
         $comments = [];
     }

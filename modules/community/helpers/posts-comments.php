@@ -88,7 +88,7 @@ function sr_community_post_comment_page(PDO $pdo, int $postId, int $page = 1, in
     $nicknameSelect = $nicknameSupported ? ', author_nickname.nickname AS author_nickname' : ", '' AS author_nickname";
     $nicknameJoin = $nicknameSupported ? 'LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = c.author_account_id' : '';
     $stmt = $pdo->prepare(
-        "SELECT c.id, c.post_id, c.parent_comment_id, c.thread_root_id, c.depth, c.author_account_id, c.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ", author.display_name AS author_display_name, author.status AS author_account_status" . $nicknameSelect . ", c.body_text, c.is_secret, c.status, c.created_at, c.updated_at
+        "SELECT c.id, c.post_id, c.parent_comment_id, c.thread_root_id, c.depth, c.author_account_id, c.author_public_name_snapshot" . sr_community_guest_author_select($pdo, 'sr_community_comments', 'c') . ", author.display_name AS author_display_name, author.status AS author_account_status" . $nicknameSelect . ", c.body_text, c.extra_values_json, c.is_secret, c.status, c.created_at, c.updated_at
          FROM sr_community_comments c
          LEFT JOIN sr_member_accounts author ON author.id = c.author_account_id
          " . $nicknameJoin . "
@@ -517,6 +517,7 @@ function sr_community_redact_deleted_comment(PDO $pdo, int $commentId): void
         "UPDATE sr_community_comments
          SET status = 'deleted',
              body_text = :body_text,
+             extra_values_json = NULL,
              author_public_name_snapshot = '',
              guest_author_name = '',
              guest_password_hash = NULL,
@@ -687,9 +688,9 @@ function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId
     $threadRootId = is_array($parentComment) ? (int) (($parentComment['thread_root_id'] ?? 0) ?: ($parentComment['id'] ?? 0)) : null;
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_comments
-            (post_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, body_text, is_secret, status, created_at, updated_at)
+            (post_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, guest_author_name, guest_password_hash, guest_ip_hash, guest_user_agent_hash, body_text, extra_values_json, is_secret, status, created_at, updated_at)
          VALUES
-            (:post_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, :body_text, :is_secret, :status, :created_at, :updated_at)'
+            (:post_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :guest_author_name, :guest_password_hash, :guest_ip_hash, :guest_user_agent_hash, :body_text, :extra_values_json, :is_secret, :status, :created_at, :updated_at)'
     );
     $guestValues = sr_community_guest_author_values_for_storage($values);
     $params = [
@@ -706,6 +707,7 @@ function sr_community_create_comment(PDO $pdo, int $postId, int $authorAccountId
         'guest_ip_hash' => $authorAccountId > 0 ? null : $guestValues['guest_ip_hash'],
         'guest_user_agent_hash' => $authorAccountId > 0 ? null : $guestValues['guest_user_agent_hash'],
         'body_text' => trim((string) $values['body_text']),
+        'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
         'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
         'status' => 'published',
         'created_at' => $now,

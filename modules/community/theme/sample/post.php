@@ -154,6 +154,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                             <?php echo sr_community_time_html((string) ($comment['created_at'] ?? '')); ?>
                             <?php if ($commentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) ($comment['body_text'] ?? '')); ?></p>
+                                <?php echo sr_comment_extra_fields_display_html((string) ($comment['extra_values_json'] ?? '')); ?>
                             <?php } else { ?>
                                 <p>비밀 댓글입니다.</p>
                             <?php } ?>
@@ -171,6 +172,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
                     <label for="example_community_comment_body">댓글</label>
                     <textarea id="example_community_comment_body" name="body_text" rows="4" cols="80" required<?php echo is_array($account ?? null) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo (int) ($commentParentId ?? 0) < 1 ? sr_e((string) ($commentBody ?? '')) : ''; ?></textarea>
+                    <?php echo sr_comment_extra_fields_form_html($commentExtraFieldDefinitions, (int) ($commentParentId ?? 0) < 1 ? $commentExtraFieldValues : [], 'comment_extra_fields', 'example_community_comment'); ?>
                     <?php if (!is_array($account ?? null)) { ?>
                         <label for="example_community_comment_guest_name">작성자명</label>
                         <input id="example_community_comment_guest_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo sr_e((string) ($commentGuestAuthorName ?? '')); ?>" required>

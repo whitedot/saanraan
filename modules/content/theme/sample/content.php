@@ -170,6 +170,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             <strong><?php echo sr_e((string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원')); ?></strong>
                             <?php if ($contentCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) ($contentComment['body_text'] ?? '')); ?></p>
+                                <?php echo sr_comment_extra_fields_display_html((string) ($contentComment['extra_values_json'] ?? '')); ?>
                             <?php } else { ?>
                                 <p>비밀 댓글입니다.</p>
                             <?php } ?>
@@ -187,6 +188,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($contentCommentPage['page'] ?? 1)); ?>">
                     <label for="example_content_comment_body">댓글</label>
                     <textarea id="example_content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) < 1 ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                    <?php echo sr_comment_extra_fields_form_html($contentCommentExtraFieldDefinitions, (int) ($contentCommentParentId ?? 0) < 1 ? $contentCommentExtraFieldValues : [], 'comment_extra_fields', 'example_content_comment'); ?>
                     <button type="submit" class="btn btn-solid-light">댓글 등록</button>
                 </form>
             <?php } ?>

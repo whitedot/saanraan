@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.07.006',
+    'version' => '2026.07.008',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -116,6 +116,7 @@ return [
         'plain_text_auto_link_new_tab' => false,
         'secret_posts_enabled' => false,
         'secret_comments_enabled' => false,
+        'comment_extra_fields_json' => '[]',
         'post_body_min_length' => 0,
         'post_body_max_length' => 0,
         'privacy_consent_enabled' => false,

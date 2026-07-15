@@ -43,8 +43,8 @@
 | `payment_ledger` | 결제 record와 결제 구성 item 증빙 | account 연결, subject module/type/id, payable/settlement 금액, 쿠폰·자산·외부 결제·접근권 item snapshot을 보관한다. 사본 제공 대상이며 탈퇴/익명화 시 account 연결을 제거한다. |
 | `banner` | 배너 설정, 클릭 dedupe hash | `click_key_hash`는 account/session/IP/UA에서 파생될 수 있는 가명성 dedupe 데이터다. 기본 보관일은 180일이며 `/admin/retention`의 배너 클릭 hash 보관일로 정리한다. 배너 복사는 집계 클릭 수만 선택 복사할 수 있고 dedupe hash row는 새 배너로 복제하지 않는다. |
 | `ckeditor` | 에디터 asset, 업로드 adapter, sanitizer | 본문 개인정보는 소유 모듈에 귀속하고, 업로드/임시 파일 접근 정책은 소유 모듈 처리활동에 연결한다. |
-| `community` | 게시글, 댓글, 신고, 신고 자동 임시 조치, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 작성자/신고자/신고 대상/자동 조치 검토자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. 탈퇴/익명화 계정의 법정 보관기간 만료 유료 로그는 retention target에서 account 연결과 dedupe 원문을 제거한다. |
-| `content` | 콘텐츠, 댓글, 작가 신청, 유료 접근권, 다운로드/자산 로그 | 작성자와 신청자, 유료 접근권, 다운로드/자산 로그의 export_cleanup과 금액성 보존 경계를 구분한다. 탈퇴/익명화 계정의 법정 보관기간 만료 유료 로그는 retention target에서 account 연결과 dedupe 원문을 제거한다. |
+| `community` | 게시글, 댓글과 추가 입력 snapshot, 신고, 신고 자동 임시 조치, 스크랩, 시리즈, 접근권, 보상/자산 로그 | 게시글용/댓글용 추가 입력 정의를 분리하고 댓글 snapshot의 수집 목적, 사본 포함, 계정 정리 정책을 제출 시점 기준으로 보존한다. 작성자/신고자/신고 대상/자동 조치 검토자/접속 hash/동의 증적/금액성 로그를 표면별로 나누고 제3자 식별자 export 마스킹을 기록한다. 탈퇴/익명화 계정의 법정 보관기간 만료 유료 로그는 retention target에서 account 연결과 dedupe 원문을 제거한다. |
+| `content` | 콘텐츠, 댓글과 추가 입력 snapshot, 작가 신청, 유료 접근권, 다운로드/자산 로그 | 댓글 추가 입력 snapshot은 필드별 사본 포함·계정 정리 정책을 적용한다. 작성자와 신청자, 유료 접근권, 다운로드/자산 로그의 export_cleanup과 금액성 보존 경계를 구분한다. 탈퇴/익명화 계정의 법정 보관기간 만료 유료 로그는 retention target에서 account 연결과 dedupe 원문을 제거한다. |
 | `coupon` | 쿠폰 지급, 공개 발급, 사용, 환불 기록 | 권리성 증빙으로 보존하며 발급 campaign/source, 발급 시점 claim/가격/자산 reference 스냅샷, 사용 시점 가격/target 스냅샷, 환불 처리자와 메모, 만료 후 표시 최소화 기준을 기록한다. 탈퇴/익명화 계정의 법정 보관기간 만료 row는 retention target에서 account/actor 연결과 snapshot을 제거한다. |
 | `deposit` | 예치금 잔액/원장, 환불 신청 계좌 | 현금성 증빙과 처리자 접근 범위를 기록한다. 탈퇴/익명화 cleanup은 환불 신청의 은행명, 계좌번호, 예금주, 요청자/관리자 note를 비우고, 금액·상태·거래 연결·처리자는 증빙으로 유지한다. |
 | `logo_manager` | 로고 배치와 변경 작성자 | 설정 변경 책임 추적은 운영 보존으로 두되 감사 로그 대체 가능성을 검토한다. |
@@ -61,12 +61,12 @@
 | `policy_documents` | 약관/방침 버전, 동의 문서, 변경 안내메일 delivery | 정책 문서 version snapshot과 안내메일 delivery의 export/cleanup, 수신자 보존 기준을 기록한다. |
 | `popup_layer` | 팝업 설정과 닫기 쿠키 | 회원 귀속 DB 데이터는 없지만 브라우저 기능 쿠키 inventory에 포함한다. |
 | `privacy` | 개인정보 요청 기록, requester, admin note, handler, export 조정 | 관리자 메모 최소화, 민감정보 redaction, 처리 상태와 실제 조치의 정합성을 기록한다. |
-| `quiz` | 퀴즈, 시도, 답안 snapshot, 결과, 댓글, 보상 grant, IP/UA hash | 답안/결과 snapshot과 접속 hash, 보상 grant, 댓글 작성자 cleanup을 표면별로 기록한다. |
+| `quiz` | 퀴즈, 시도, 답안 snapshot, 결과, 댓글과 추가 입력 snapshot, 보상 grant, IP/UA hash | 답안/결과 snapshot과 접속 hash, 보상 grant, 댓글 작성자와 추가 입력값 cleanup을 표면별로 기록한다. |
 | `reaction` | 계정별 target reaction 원장과 알림 연결 | 리액션 원장 삭제 cleanup, target owner 알림 no-op 조건, target resolver 접근 정책을 기록한다. |
 | `reward` | 적립금 잔액/원장, 만료 소비 매핑, 출금 신청 | 금액성 증빙으로 원장과 출금 금액/상태/처리자 연결을 보존한다. 탈퇴/익명화 cleanup은 출금 은행명, 계좌번호, 예금주, 요청자/관리자 note를 빈 값으로 정리한다. |
 | `seo` | sitemap/robots/default meta 설정 | 현재 회원 귀속 개인정보 없음. 콘텐츠별 SEO 개인정보는 소유 모듈 책임이다. |
 | `site_menu` | 메뉴 구조와 링크 자산 | 현재 회원 귀속 개인정보 없음. 연결 대상 개인정보는 소유 모듈 책임이다. |
-| `survey` | 설문, 응답, 답변/metadata/consent snapshot, 댓글, 보상 grant, IP/UA hash | 응답 동의, 익명 허용, 답변 snapshot, 민감정보 입력 가능성, 보상 grant cleanup을 표면별로 기록한다. |
+| `survey` | 설문, 응답, 답변/metadata/consent snapshot, 댓글과 추가 입력 snapshot, 보상 grant, IP/UA hash | 응답 동의, 익명 허용, 답변 snapshot, 댓글 추가 입력값, 민감정보 입력 가능성, 보상 grant cleanup을 표면별로 기록한다. |
 
 ## 외부 처리자와 국외이전 후보
 
@@ -107,6 +107,7 @@
 | CAPTCHA provider script | 외부 script와 provider cookie 가능성 | 공개 제출/회원가입 자동등록방지 | 보안 목적 provider 표면이다. Turnstile, hCaptcha, reCAPTCHA를 활성화하면 외부 처리자와 국외이전 후보에 포함한다. 마케팅/분석 목적 script와 함께 쓰면 사전 동의 gate를 추가해야 한다. | `modules/antispam/helpers.php`, `modules/antispam_captcha_providers/antispam-providers.php` |
 | CAPTCHA remote IP | provider 검증 POST payload | provider의 위험도 판단 보조 | 기본값은 `verify_remote_ip_enabled = false`다. 켜면 개인정보 처리활동 기록과 개인정보 안내문에 remote IP 전달을 반영한다. | `modules/antispam/module.php`, `modules/antispam/views/admin-settings.php` |
 | 커뮤니티 제출 동의 | DB row, POST checkbox | 게시글/댓글/첨부 업로드 시 개인정보 수집 동의 증적 | 브라우저 저장소에 유지하지 않고 제출 시 `community_privacy_consent_accepted`를 서버에서 검증한다. | `modules/community/helpers/privacy-consents.php`, export/cleanup runtime |
+| 댓글 추가 입력 snapshot | 댓글 DB row의 `extra_values_json` | 커뮤니티·콘텐츠·퀴즈·설문 댓글 작성 시 운영자가 정한 추가 정보 수집 | 수집·이용 목적은 필드별 공개 표시 설정이 켜진 경우에만 입력란 아래에 표시한다. 목적 원문과 표시 여부는 제출 snapshot에 함께 보존한다. 개인정보 사본에는 필드별 포함 설정이 켜진 값만 제공하고, 탈퇴/익명화 시 보관 설정이 아닌 값은 비운다. 댓글 삭제 시 snapshot을 비우며 브라우저 저장소에는 유지하지 않는다. | `core/helpers/comment-extra-fields.php`, 각 모듈 `privacy-export.php`, `privacy-cleanup.php`, `.tools/bin/check-comment-extra-fields.php` |
 | 커뮤니티 첨부 다운로드 이력 | DB row | 첨부파일 무료/유료 다운로드 성공 이력, 유료 다운로드 차감 로그 대조, 쿠폰 사용 및 환불 정책 증빙 | 브라우저 저장소에 유지하지 않는다. 로그인 회원 다운로드는 `account_id`로 연결하고 탈퇴/익명화 시 이 연결을 제거한다. 쿠폰 redemption 링크와 환불 계약 version은 결제/환불 증빙으로 보존한다. | `modules/community/actions/attachment.php`, `modules/community/privacy-export.php`, `modules/community/privacy-cleanup.php` |
 | 커뮤니티 신고 자동 임시 조치 | DB row | 신고 임계치 도달로 게시글/댓글을 임시 숨김 처리한 운영 증빙 | 브라우저 저장소에 유지하지 않는다. `sr_community_report_auto_actions`는 대상 타입/ID, source report, 임계치와 집계 snapshot, 숨김 전후 상태, 검토자 계정 연결을 저장하며 신고자 목록을 중복 저장하지 않는다. 활성 row는 `active_target_uid` unique 기준으로 대상당 하나만 유지하고, 확정/해제/실패/건너뜀 같은 terminal 상태로 전이하면 활성 UID를 비운다. | `modules/community/helpers/reports.php`, `.tools/bin/check-community-report-auto-actions.php` |
 | 커뮤니티 계정 guard | DB row | 커뮤니티 전용 작성 보류/cooldown 같은 가역적 계정 guard의 운영 증빙과 현재 상태 | 브라우저 저장소에 유지하지 않는다. `sr_community_account_guard_events`와 `sr_community_account_guards`는 guard 대상 account, guard type/status, 만료 시각, reviewer, trigger fingerprint, snapshot을 저장한다. active current row는 `active_guard_uid` unique 기준으로 같은 계정/guard type당 하나만 유지하고 terminal 전이 시 UID를 비운다. reporter 목록, IP, UA 원문은 중복 저장하지 않는다. | `modules/community/helpers/account-guards.php`, `.tools/bin/check-community-account-guards.php` |

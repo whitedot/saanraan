@@ -256,7 +256,7 @@ $communityBoardIdentityVerificationAvailable = $communityBoardIdentityRestricted
 $communityBoardIdentityDisabledAttributes = $communityBoardIdentityVerificationAvailable ? '' : ' disabled aria-describedby="community-board-identity-unavailable"';
 $communityBoardSectionNavItems = [
     'community-board-section-basic' => '기본 정보',
-    'community-board-section-extra-fields' => '추가 입력 항목',
+    'community-board-section-extra-fields' => '게시글·댓글 추가 입력',
     'community-board-section-seo' => 'SEO/OG',
     'community-board-section-policy' => '접근/작성',
     'community-board-section-reaction' => '리액션',
@@ -539,18 +539,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         <section id="community-board-section-extra-fields" class="card admin-list-card admin-list-form" data-admin-section-anchor data-community-extra-fields-builder>
             <div class="card-header">
-                <h2 class="card-title">추가 입력 항목</h2>
+                <h2 class="card-title">게시글 추가 입력 항목</h2>
                 <div class="admin-row-actions">
                     <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-extra-field-modal" data-overlay="#community-extra-field-modal" data-community-extra-field-add>항목 추가</button>
                 </div>
             </div>
-            <p class="form-help">게시글 작성/수정 폼에서 받을 추가 항목을 관리합니다. 항목 추가, 수정, 정렬, 제거 후 게시판 저장을 눌러야 최종 반영됩니다.</p>
             <div class="table-wrapper" data-community-extra-field-table-wrap hidden>
                 <table class="table table-list" data-community-extra-field-table>
                     <caption class="sr-only">추가 입력 항목 목록</caption>
                     <thead>
                         <tr>
-                            <th>순서</th>
+                            <th class="community-extra-field-order-cell">순서</th>
                             <th>라벨</th>
                             <th>유형</th>
                             <th>표시</th>
@@ -558,9 +557,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <th class="text-end">작업</th>
                         </tr>
                     </thead>
-                    <tbody data-community-extra-field-list></tbody>
+                    <tbody data-community-extra-field-list data-admin-reorder-list></tbody>
                 </table>
             </div>
+            <p class="form-help">
+                게시글 작성/수정 폼에서 받을 추가 항목입니다. 항목을 추가하거나 수정하거나 순서를 바꾼 뒤 게시판 저장을 눌러야 최종 반영됩니다.<br>
+                필수로 바꾸기 전에는 기존 게시글에 값이 없어도 괜찮은지 확인하세요. 값이 없는 게시글은 다음 저장 때 입력이 필요할 수 있습니다.
+            </p>
             <p class="admin-empty-state" data-community-extra-field-empty hidden>추가 입력 항목이 없습니다.</p>
             <textarea id="community_admin_boards_extra_fields_json" name="extra_fields_json" hidden data-community-extra-fields-json><?php echo sr_e($boardField($formBoard, 'extra_fields_json', '[]')); ?></textarea>
             <div class="admin-setting-source-line admin-setting-source-line-end">
@@ -568,6 +571,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo $settingSourceRadioHtml('source_extra_fields_json', $boardSettingSource($formBoard, 'extra_fields_json')); ?>
             </div>
         </section>
+
+        <?php echo sr_admin_comment_extra_fields_editor_html(
+            'community_admin_boards_comment_extra_fields_json',
+            'comment_extra_fields_json',
+            $boardField($formBoard, 'comment_extra_fields_json', '[]'),
+            '댓글 추가 입력 항목',
+            '댓글과 답글 작성 시 받을 항목입니다. 수집·이용 목적은 각 입력란 아래에 표시됩니다.',
+            '<div class="admin-setting-source-line admin-setting-source-line-end"><span class="sr-only">댓글 추가 입력 항목 저장 범위</span>'
+                . $settingSourceRadioHtml('source_comment_extra_fields_json', $boardSettingSource($formBoard, 'comment_extra_fields_json'))
+                . '</div>'
+        ); ?>
 
         <section id="community-board-section-seo" class="card" data-admin-section-anchor>
             <h2>SEO/OG 메타</h2>
@@ -1338,17 +1352,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="modal-body">
                     <input type="hidden" value="" data-community-extra-field-index>
-                    <div class="form-row">
-                        <label class="form-label" for="community_extra_field_key">Key <span class="sr-required-label">(필수)</span></label>
-                        <div class="form-field">
-                            <input id="community_extra_field_key" type="text" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-community-extra-field-input="key" data-overlay-focus class="form-input">
-                            <p class="form-help">소문자, 숫자, _만 사용합니다.</p>
-                        </div>
-                    </div>
+                    <input id="community_extra_field_key" type="hidden" value="" data-community-extra-field-input="key">
                     <div class="form-row">
                         <label class="form-label" for="community_extra_field_label">라벨 <span class="sr-required-label">(필수)</span></label>
                         <div class="form-field">
-                            <input id="community_extra_field_label" type="text" maxlength="120" required data-community-extra-field-input="label" class="form-input form-control-full">
+                            <input id="community_extra_field_label" type="text" maxlength="120" required data-community-extra-field-input="label" data-overlay-focus class="form-input form-control-full">
                         </div>
                     </div>
                     <div class="form-row">
@@ -1374,7 +1382,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="form-field">
                             <label class="form-check form-label" for="community_extra_field_required">
                                 <input id="community_extra_field_required" type="checkbox" value="1" class="form-switch form-switch-light" data-community-extra-field-input="required">
-                                <?php echo sr_admin_choice_label_html('필수 입력'); ?>
+                                <span class="community-extra-field-required-choice"><?php echo sr_admin_choice_label_html('필수 입력'); ?></span>
                             </label>
                         </div>
                     </div>
@@ -1401,27 +1409,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="community_extra_field_privacy_purpose">개인정보 목적</label>
+                        <label class="form-label" for="community_extra_field_privacy_purpose">수집·이용 목적</label>
                         <div class="form-field">
                             <input id="community_extra_field_privacy_purpose" type="text" maxlength="255" data-community-extra-field-input="privacy_purpose" class="form-input form-control-full">
+                            <p class="form-help">이 정보를 왜 받는지 적습니다. 예: 문의 답변을 위한 연락처 확인</p>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="community_extra_field_export_policy">Export 정책</label>
+                        <label class="form-label" for="community_extra_field_export_policy">내 정보 사본에 포함</label>
                         <div class="form-field">
                             <select id="community_extra_field_export_policy" data-community-extra-field-input="export_policy" class="form-select">
-                                <option value="include">포함</option>
-                                <option value="exclude">제외</option>
+                                <option value="include">포함함</option>
+                                <option value="exclude">포함하지 않음</option>
                             </select>
+                            <p class="form-help">사용자가 자신의 개인정보 사본을 요청할 때 이 항목의 값을 함께 제공할지 정합니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="community_extra_field_cleanup_policy">Cleanup 정책</label>
+                        <label class="form-label" for="community_extra_field_cleanup_policy">계정 정리 시 처리</label>
                         <div class="form-field">
                             <select id="community_extra_field_cleanup_policy" data-community-extra-field-input="cleanup_policy" class="form-select">
-                                <option value="anonymize">익명화</option>
-                                <option value="retain">보관</option>
+                                <option value="anonymize">개인정보 제거</option>
+                                <option value="retain">그대로 보관</option>
                             </select>
+                            <p class="form-help">회원 탈퇴 등으로 작성자 계정을 정리할 때 이 항목의 값을 지울지 정합니다.</p>
                         </div>
                     </div>
                 </div>
@@ -1952,8 +1963,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     }
 
     function communityExtraFieldPolicyLabel(field) {
-        var exportLabel = field.export_policy === 'exclude' ? 'Export 제외' : 'Export 포함';
-        var cleanupLabel = field.cleanup_policy === 'retain' ? '보관' : '익명화';
+        var exportLabel = field.export_policy === 'exclude' ? '사본에 포함하지 않음' : '사본에 포함';
+        var cleanupLabel = field.cleanup_policy === 'retain' ? '계정 정리 후에도 보관' : '계정 정리 시 제거';
         return exportLabel + ' / ' + cleanupLabel;
     }
 
@@ -2013,11 +2024,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
         definitions.forEach(function (field, index) {
             var row = document.createElement('tr');
+            row.setAttribute('data-admin-reorder-item', '');
+            row.setAttribute('data-admin-reorder-key', field.key);
+            row.setAttribute('data-community-extra-field-key', field.key);
 
             var orderCell = document.createElement('td');
-            orderCell.className = 'admin-table-actions-cell';
+            orderCell.className = 'community-extra-field-order-cell';
             var orderGroup = document.createElement('div');
             orderGroup.className = 'admin-row-actions';
+            var dragHandle = document.createElement('span');
+            dragHandle.className = 'admin-drag-handle';
+            dragHandle.draggable = true;
+            dragHandle.setAttribute('aria-label', '드래그해서 순서 변경');
+            dragHandle.setAttribute('title', '드래그해서 순서 변경');
+            dragHandle.setAttribute('data-admin-reorder-handle', '');
+            dragHandle.innerHTML = '<span class="material-symbols-outlined admin-drag-handle-icon" aria-hidden="true">apps</span>';
+            orderGroup.appendChild(dragHandle);
             [
                 ['up', '위로', 'arrow_upward'],
                 ['down', '아래로', 'arrow_downward']
@@ -2027,16 +2049,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 button.className = 'btn btn-sm btn-icon btn-solid-light';
                 button.setAttribute('aria-label', action[1]);
                 button.setAttribute('title', action[1]);
-                button.setAttribute('data-community-extra-field-action', action[0]);
-                button.setAttribute('data-community-extra-field-index-value', String(index));
+                button.setAttribute('data-admin-reorder-move', action[0]);
                 button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + action[2] + '</span>';
+                button.disabled = (action[0] === 'up' && index === 0) || (action[0] === 'down' && index === definitions.length - 1);
                 orderGroup.appendChild(button);
             });
             orderCell.appendChild(orderGroup);
             row.appendChild(orderCell);
 
             var labelCell = document.createElement('td');
-            labelCell.textContent = field.label + (field.required ? ' (필수)' : '');
+            labelCell.textContent = field.label;
+            if (field.required) {
+                var requiredLabel = document.createElement('span');
+                requiredLabel.className = 'sr-required-label';
+                requiredLabel.textContent = '(필수)';
+                labelCell.appendChild(requiredLabel);
+            }
             row.appendChild(labelCell);
 
             var typeCell = document.createElement('td');
@@ -2056,7 +2084,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             row.appendChild(displayCell);
 
             var privacyCell = document.createElement('td');
-            privacyCell.textContent = (field.privacy_purpose || '목적 없음') + ' / ' + communityExtraFieldPolicyLabel(field);
+            privacyCell.textContent = (field.privacy_purpose || '수집·이용 목적 미입력') + ' / ' + communityExtraFieldPolicyLabel(field);
             row.appendChild(privacyCell);
 
             var actionCell = document.createElement('td');
@@ -2148,7 +2176,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var optionsInput = communityExtraFieldInput(modal, 'options');
         var indexInput = modal ? modal.querySelector('[data-community-extra-field-index]') : null;
         var index = indexInput && indexInput.value !== '' ? parseInt(indexInput.value, 10) : -1;
-        [keyInput, labelInput, typeInput, optionsInput].forEach(function (input) {
+        [labelInput, typeInput, optionsInput].forEach(function (input) {
             if (input && typeof input.setCustomValidity === 'function') {
                 input.setCustomValidity('');
             }
@@ -2161,8 +2189,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var duplicate = definitions.some(function (field, fieldIndex) {
             return field.key === keyInput.value && fieldIndex !== index;
         });
-        if (duplicate) {
-            keyInput.setCustomValidity('이미 사용 중인 Key입니다.');
+        if (!/^[a-z][a-z0-9_]{1,59}$/.test(keyInput.value) || duplicate) {
+            keyInput.value = communityExtraFieldRandomKey(definitions);
         }
         var type = communityExtraFieldAllowedType(typeInput.value);
         var options = optionsInput.value.split(/\r?\n/).map(function (value) {
@@ -2209,6 +2237,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         textarea.addEventListener('change', function () {
             communityExtraFieldRender(root);
         });
+        var list = root.querySelector('[data-community-extra-field-list]');
+        if (list) {
+            list.addEventListener('admin:reorder', function () {
+                var definitions = communityExtraFieldParse(textarea);
+                var definitionsByKey = {};
+                definitions.forEach(function (field) {
+                    definitionsByKey[field.key] = field;
+                });
+                var reorderedDefinitions = Array.prototype.slice.call(list.querySelectorAll('[data-community-extra-field-key]')).map(function (row) {
+                    return definitionsByKey[row.getAttribute('data-community-extra-field-key') || ''] || null;
+                }).filter(function (field) {
+                    return !!field;
+                });
+                if (reorderedDefinitions.length === definitions.length) {
+                    communityExtraFieldWrite(root, reorderedDefinitions);
+                }
+            });
+        }
         var type = communityExtraFieldInput(modal, 'type');
         if (type) {
             type.addEventListener('change', function () {
@@ -2628,16 +2674,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 communityExtraFieldSetModal(document.querySelector('[data-community-extra-field-modal]'), extraFieldDefinitions[extraFieldIndex], extraFieldIndex);
                 return;
             }
-            if (extraFieldActionName === 'up' && extraFieldIndex > 0) {
-                var previous = extraFieldDefinitions[extraFieldIndex - 1];
-                extraFieldDefinitions[extraFieldIndex - 1] = extraFieldDefinitions[extraFieldIndex];
-                extraFieldDefinitions[extraFieldIndex] = previous;
-            } else if (extraFieldActionName === 'down' && extraFieldIndex < extraFieldDefinitions.length - 1) {
-                var next = extraFieldDefinitions[extraFieldIndex + 1];
-                extraFieldDefinitions[extraFieldIndex + 1] = extraFieldDefinitions[extraFieldIndex];
-                extraFieldDefinitions[extraFieldIndex] = next;
-            } else if (extraFieldActionName === 'remove') {
+            if (extraFieldActionName === 'remove') {
                 extraFieldDefinitions.splice(extraFieldIndex, 1);
+            } else {
+                return;
             }
             communityExtraFieldWrite(extraFieldRoot, extraFieldDefinitions);
             communityExtraFieldRender(extraFieldRoot);

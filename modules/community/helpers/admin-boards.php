@@ -203,6 +203,9 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $extraFieldsInput = sr_post_string_without_truncation('extra_fields_json', 20000);
         $extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput);
         $extraFieldsJson = $extraFieldDefinitionErrors === [] && is_string($extraFieldsInput) ? sr_community_extra_field_definitions_json_from_input($extraFieldsInput) : null;
+        $commentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
+        $commentExtraFieldDefinitionErrors = sr_comment_extra_field_definition_errors($commentExtraFieldsInput);
+        $commentExtraFieldsJson = $commentExtraFieldDefinitionErrors === [] && is_string($commentExtraFieldsInput) ? sr_comment_extra_field_definitions_json($commentExtraFieldsInput) : '[]';
         $boardSeoValues = [
             'seo_title' => sr_community_seo_text(sr_post_string('seo_title', 160), 160),
             'seo_description' => sr_community_seo_text(sr_post_string('seo_description', 255), 255),
@@ -601,6 +604,9 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
             $errors = array_merge($errors, $extraFieldDefinitionErrors);
             $extraFieldsJson = '[]';
         }
+        if ($commentExtraFieldDefinitionErrors !== []) {
+            $errors = array_merge($errors, $commentExtraFieldDefinitionErrors);
+        }
 
         if ($errors === [] && $intent === 'create' && sr_community_board_by_key($pdo, $boardKey) !== null) {
             $errors[] = sr_t('community::action.admin.board_key_duplicate');
@@ -669,6 +675,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'privacy_consent_require_comment' => $privacyConsentRequireComment ? '1' : '0',
                 'privacy_consent_require_attachment_upload' => $privacyConsentRequireAttachmentUpload ? '1' : '0',
                 'extra_fields_json' => $extraFieldsJson,
+                'comment_extra_fields_json' => $commentExtraFieldsJson,
                 'level_post_score' => (string) $levelPostScore,
                 'level_comment_score' => (string) $levelCommentScore,
                 'image_uploads_enabled' => $imageUploadsEnabled ? '1' : '0',

@@ -59,7 +59,7 @@ return static function (PDO $pdo, int $accountId): array {
     try {
         $commentStmt = $pdo->prepare(
             'SELECT c.id, c.survey_id, c.parent_comment_id, c.thread_root_id, c.depth, s.survey_key, s.title, c.author_public_name_snapshot,
-                    c.body_text, c.is_secret, c.status, c.created_at, c.updated_at, c.deleted_at
+                    c.body_text, c.extra_values_json, c.is_secret, c.status, c.created_at, c.updated_at, c.deleted_at
              FROM sr_survey_comments c
              INNER JOIN sr_survey_forms s ON s.id = c.survey_id
              WHERE c.author_account_id = :account_id
@@ -67,6 +67,10 @@ return static function (PDO $pdo, int $accountId): array {
         );
         $commentStmt->execute(['account_id' => $accountId]);
         $comments = $commentStmt->fetchAll();
+        foreach ($comments as &$comment) {
+            $comment['extra_values_json'] = sr_comment_extra_field_export_json((string) ($comment['extra_values_json'] ?? ''));
+        }
+        unset($comment);
     } catch (Throwable $exception) {
         $comments = [];
     }

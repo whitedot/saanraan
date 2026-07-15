@@ -21,11 +21,16 @@ if (sr_content_asset_access_required($page)) {
     }
 }
 
+$contentSettings = sr_content_settings($pdo);
+$commentExtraFieldDefinitions = sr_comment_extra_field_definitions($page['comment_extra_fields_json'] ?? '[]');
+$commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);
+$commentExtraFieldValues = (array) ($commentExtraFieldInput['values'] ?? []);
 $values = sr_content_comment_input_values();
-if (empty(sr_content_settings($pdo)['secret_comments_enabled'])) {
+if (empty($contentSettings['secret_comments_enabled'])) {
     $values['is_secret'] = 0;
 }
 $errors = sr_content_validate_comment_input($values);
+$errors = array_merge($errors, (array) ($commentExtraFieldInput['errors'] ?? []));
 $parentValidation = sr_content_validate_comment_parent($pdo, $contentId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
 $errors = array_merge($errors, (array) ($parentValidation['errors'] ?? []));
@@ -37,10 +42,12 @@ if ($errors !== []) {
     $_SESSION['sr_content_comment_body'] = is_string($values['body_text'] ?? null) ? (string) $values['body_text'] : '';
     $_SESSION['sr_content_comment_is_secret'] = (int) ($values['is_secret'] ?? 0) === 1;
     $_SESSION['sr_content_comment_parent_id'] = (int) ($values['parent_comment_id'] ?? 0);
+    $_SESSION['sr_content_comment_extra_field_values'] = $commentExtraFieldValues;
     sr_redirect($commentBaseUrl . ($commentPage > 1 ? '?comment_page=' . rawurlencode((string) $commentPage) : '') . '#content-comments');
 }
 
 $values['parent_comment'] = $parentComment;
+$values['extra_values_json'] = sr_comment_extra_field_snapshot_json($commentExtraFieldDefinitions, $commentExtraFieldValues);
 $commentId = sr_content_create_comment($pdo, $contentId, (int) $account['id'], $values);
 $notificationExcludeAccountIds = [];
 if (is_array($parentComment) && (int) ($parentComment['author_account_id'] ?? 0) > 0) {

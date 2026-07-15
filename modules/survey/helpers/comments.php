@@ -205,9 +205,9 @@ function sr_survey_create_comment(PDO $pdo, int $surveyId, int $accountId, array
     $threadRootId = is_array($parentComment) ? (int) (($parentComment['thread_root_id'] ?? 0) ?: ($parentComment['id'] ?? 0)) : null;
     $stmt = $pdo->prepare(
         'INSERT INTO sr_survey_comments
-            (survey_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
+            (survey_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, extra_values_json, is_secret, status, created_at, updated_at)
          VALUES
-            (:survey_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, \'published\', :created_at, :updated_at)'
+            (:survey_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :extra_values_json, :is_secret, \'published\', :created_at, :updated_at)'
     );
     $params = [
         'survey_id' => $surveyId,
@@ -217,6 +217,7 @@ function sr_survey_create_comment(PDO $pdo, int $surveyId, int $accountId, array
         'author_account_id' => $accountId,
         'author_public_name_snapshot' => sr_survey_comment_author_public_name_snapshot($pdo, $accountId),
         'body_text' => (string) ($values['body_text'] ?? ''),
+        'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
         'is_secret' => (int) ($values['is_secret'] ?? 0),
         'created_at' => $now,
         'updated_at' => $now,
@@ -390,6 +391,7 @@ function sr_survey_delete_comment_redacted(PDO $pdo, int $commentId): void
         "UPDATE sr_survey_comments
          SET author_public_name_snapshot = '',
              body_text = :body_text,
+             extra_values_json = NULL,
              status = 'deleted',
              deleted_at = :deleted_at,
              updated_at = :updated_at

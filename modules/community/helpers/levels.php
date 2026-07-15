@@ -72,6 +72,7 @@ function sr_community_default_settings(): array
         'plain_text_auto_link_new_tab' => (bool) ($settings['plain_text_auto_link_new_tab'] ?? false),
         'secret_posts_enabled' => (bool) ($settings['secret_posts_enabled'] ?? false),
         'secret_comments_enabled' => (bool) ($settings['secret_comments_enabled'] ?? false),
+        'comment_extra_fields_json' => is_string($settings['comment_extra_fields_json'] ?? null) ? (string) $settings['comment_extra_fields_json'] : '[]',
         'privacy_consent_enabled' => (bool) ($settings['privacy_consent_enabled'] ?? false),
         'privacy_consent_document_key' => is_string($settings['privacy_consent_document_key'] ?? null) ? (string) $settings['privacy_consent_document_key'] : 'community_privacy_default',
         'privacy_consent_post_document_key' => is_string($settings['privacy_consent_post_document_key'] ?? null) ? (string) $settings['privacy_consent_post_document_key'] : '',
@@ -277,6 +278,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['plain_text_auto_link_new_tab'] = sr_community_bool_setting($settings['plain_text_auto_link_new_tab'] ?? false);
     $settings['secret_posts_enabled'] = sr_community_bool_setting($settings['secret_posts_enabled'] ?? false);
     $settings['secret_comments_enabled'] = sr_community_bool_setting($settings['secret_comments_enabled'] ?? false);
+    $settings['comment_extra_fields_json'] = sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]');
     $settings['privacy_consent_enabled'] = sr_community_bool_setting($settings['privacy_consent_enabled'] ?? false);
     $settings['privacy_consent_document_key'] = preg_match('/\A[a-z][a-z0-9_]{2,79}\z/', (string) ($settings['privacy_consent_document_key'] ?? 'community_privacy_default')) === 1
         ? (string) $settings['privacy_consent_document_key']

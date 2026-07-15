@@ -359,13 +359,19 @@ return static function (PDO $pdo, int $accountId): array {
 
     $stmt = $pdo->prepare(
         /* Legacy comment export allowlist: SELECT id, post_id, body_text, status, created_at, updated_at */
-        'SELECT id, post_id, parent_comment_id, thread_root_id, depth, body_text, is_secret, status, created_at, updated_at, author_public_name_snapshot
+        'SELECT id, post_id, parent_comment_id, thread_root_id, depth, body_text, extra_values_json, is_secret, status, created_at, updated_at, author_public_name_snapshot
          FROM sr_community_comments
          WHERE author_account_id = :account_id
          ORDER BY id ASC
          LIMIT 1001'
     );
     $empty['comments'] = sr_community_privacy_fetch_limited($stmt, ['account_id' => $accountId], 'comments', $sectionLimits);
+    foreach ($empty['comments'] as &$comment) {
+        if (is_array($comment)) {
+            $comment['extra_values_json'] = sr_comment_extra_field_export_json((string) ($comment['extra_values_json'] ?? ''));
+        }
+    }
+    unset($comment);
 
     if (function_exists('sr_community_post_drafts_table_exists') && sr_community_post_drafts_table_exists($pdo)) {
         $stmt = $pdo->prepare(

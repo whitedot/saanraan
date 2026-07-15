@@ -337,6 +337,13 @@ $surveySettingsHelp = [
         </div>
     </section>
 
+    <?php echo sr_admin_comment_extra_fields_editor_html(
+        'survey_comment_extra_fields_json',
+        'comment_extra_fields_json',
+        $settings['comment_extra_fields_json'] ?? '[]',
+        '댓글 추가 입력 항목',
+        '새 설문 등록 화면을 열 때 미리 채워지는 항목입니다. 기존 설문에는 반영되지 않으며, 등록 화면에서 수정한 최종 값이 해당 설문에 저장됩니다.'
+    ); ?>
     <div class="form-sticky-actions form-actions form-actions-split">
         <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">설문 목록</a>
         <button type="submit" class="btn btn-solid-primary">저장</button>

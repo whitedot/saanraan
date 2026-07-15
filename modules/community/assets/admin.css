@@ -23,6 +23,13 @@
 .admin-community-board-copy-job-summary-row{padding-block:calc(var(--spacing) * 2)}
 .admin-community-board-copy-job-table .admin-table-actions-cell{min-width:10rem;overflow:visible}
 .admin-community-board-copy-job-table .admin-row-actions{gap:calc(var(--spacing) * 1.5)}
+.admin-page-community-board-form [data-community-extra-field-table] .community-extra-field-order-cell{width:1%;min-width:5.75rem;text-align:center;white-space:nowrap}
+.admin-page-community-board-form [data-community-extra-field-table] td.community-extra-field-order-cell{padding-inline:calc(var(--spacing) * 1.5)}
+.admin-page-community-board-form [data-community-extra-field-table] th.community-extra-field-order-cell{padding-inline:calc(var(--spacing) * 2)}
+.admin-page-community-board-form [data-community-extra-field-table] .community-extra-field-order-cell:first-child{padding-left:calc(var(--spacing) * 2)}
+.admin-page-community-board-form [data-community-extra-field-table] .community-extra-field-order-cell .admin-row-actions{justify-content:center;gap:calc(var(--spacing) * 1)}
+.admin-page-community-board-form [data-community-extra-field-modal] .community-extra-field-required-choice{color:var(--sr-muted,var(--color-default-600));transition:color var(--default-transition-duration) var(--default-transition-timing-function)}
+.admin-page-community-board-form [data-community-extra-field-modal] #community_extra_field_required:checked+.community-extra-field-required-choice{color:var(--sr-primary,var(--color-primary));font-weight:var(--font-weight-semibold)}
 .admin-community-board-copy-info-text{color:var(--text-strong)}
 .admin-community-board-copy-info-text code{color:inherit}
 .admin-page-community-board-group-list .admin-community-board-group-search-grid{grid-template-columns:minmax(0,10rem) minmax(0,10rem) minmax(14rem,1fr) minmax(5rem,auto);align-items:end;justify-content:stretch;width:100%}

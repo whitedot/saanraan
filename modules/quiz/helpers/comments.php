@@ -202,9 +202,9 @@ function sr_quiz_create_comment(PDO $pdo, int $quizId, int $authorAccountId, arr
     $threadRootId = is_array($parentComment) ? (int) (($parentComment['thread_root_id'] ?? 0) ?: ($parentComment['id'] ?? 0)) : null;
     $stmt = $pdo->prepare(
         'INSERT INTO sr_quiz_comments
-            (quiz_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, is_secret, status, created_at, updated_at)
+            (quiz_id, parent_comment_id, thread_root_id, depth, author_account_id, author_public_name_snapshot, body_text, extra_values_json, is_secret, status, created_at, updated_at)
          VALUES
-            (:quiz_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :is_secret, :status, :created_at, :updated_at)'
+            (:quiz_id, :parent_comment_id, :thread_root_id, :depth, :author_account_id, :author_public_name_snapshot, :body_text, :extra_values_json, :is_secret, :status, :created_at, :updated_at)'
     );
     $params = [
         'quiz_id' => $quizId,
@@ -214,6 +214,7 @@ function sr_quiz_create_comment(PDO $pdo, int $quizId, int $authorAccountId, arr
         'author_account_id' => $authorAccountId,
         'author_public_name_snapshot' => sr_quiz_comment_author_public_name_snapshot($pdo, $authorAccountId),
         'body_text' => trim((string) $values['body_text']),
+        'extra_values_json' => (string) ($values['extra_values_json'] ?? '[]'),
         'is_secret' => (int) ($values['is_secret'] ?? 0) === 1 ? 1 : 0,
         'status' => 'published',
         'created_at' => $now,
@@ -364,6 +365,7 @@ function sr_quiz_delete_comment_redacted(PDO $pdo, int $commentId): void
         "UPDATE sr_quiz_comments
          SET author_public_name_snapshot = '',
              body_text = :body_text,
+             extra_values_json = NULL,
              status = 'deleted',
              deleted_at = :deleted_at,
              updated_at = :updated_at

@@ -63,7 +63,9 @@ $surveyCommentErrors = (array) ($_SESSION['sr_survey_comment_errors'] ?? []);
 $surveyCommentBody = (string) ($_SESSION['sr_survey_comment_body'] ?? '');
 $surveyCommentIsSecret = !empty($_SESSION['sr_survey_comment_is_secret']);
 $surveyCommentParentId = isset($_SESSION['sr_survey_comment_parent_id']) ? (int) $_SESSION['sr_survey_comment_parent_id'] : 0;
-unset($_SESSION['sr_survey_comment_notice'], $_SESSION['sr_survey_comment_errors'], $_SESSION['sr_survey_comment_body'], $_SESSION['sr_survey_comment_is_secret'], $_SESSION['sr_survey_comment_parent_id']);
+$surveyCommentExtraFieldDefinitions = sr_comment_extra_field_definitions($survey['comment_extra_fields_json'] ?? '[]');
+$surveyCommentExtraFieldValues = isset($_SESSION['sr_survey_comment_extra_field_values']) && is_array($_SESSION['sr_survey_comment_extra_field_values']) ? $_SESSION['sr_survey_comment_extra_field_values'] : [];
+unset($_SESSION['sr_survey_comment_notice'], $_SESSION['sr_survey_comment_errors'], $_SESSION['sr_survey_comment_body'], $_SESSION['sr_survey_comment_is_secret'], $_SESSION['sr_survey_comment_parent_id'], $_SESSION['sr_survey_comment_extra_field_values']);
 
 if (sr_request_method() === 'POST') {
     $isPreviewTestSubmit = $canPreviewAsAdmin && ($_POST['test_submit'] ?? '') === '1';
@@ -244,6 +246,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                             <strong><?php echo sr_e((string) ($surveyComment['author_public_name'] ?? '회원')); ?></strong>
                             <?php if (sr_survey_account_can_view_comment_body($surveyComment, is_array($currentAccount) ? $currentAccount : null, $pdo)) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) ($surveyComment['body_text'] ?? '')); ?></p>
+                                <?php echo sr_comment_extra_fields_display_html((string) ($surveyComment['extra_values_json'] ?? '')); ?>
                             <?php } else { ?>
                                 <p>비밀 댓글입니다.</p>
                             <?php } ?>
@@ -260,6 +263,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($surveyCommentPage['page'] ?? 1)); ?>">
                     <label for="example_survey_comment_body">댓글</label>
                     <textarea id="example_survey_comment_body" name="body_text" rows="4" required><?php echo $surveyCommentParentId < 1 ? sr_e($surveyCommentBody) : ''; ?></textarea>
+                    <?php echo sr_comment_extra_fields_form_html($surveyCommentExtraFieldDefinitions, $surveyCommentParentId < 1 ? $surveyCommentExtraFieldValues : [], 'comment_extra_fields', 'example_survey_comment'); ?>
                     <?php if ($surveySecretCommentsEnabled) { ?>
                         <label><input type="checkbox" name="is_secret" value="1"<?php echo $surveyCommentIsSecret ? ' checked' : ''; ?>> 비밀 댓글</label>
                     <?php } ?>

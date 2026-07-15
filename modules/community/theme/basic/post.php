@@ -491,6 +491,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                             </div>
                             <?php if ($communityCommentCanViewBody) { ?>
                                 <p><?php echo sr_member_mention_plain_text_html((string) $comment['body_text']); ?></p>
+                                <?php echo sr_comment_extra_fields_display_html((string) ($comment['extra_values_json'] ?? '')); ?>
                                 <?php if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget')) { ?>
                                     <?php
                                     $communityCommentReactionId = (string) (int) ($comment['id'] ?? 0);
@@ -539,6 +540,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                                     <textarea id="<?php echo sr_e($communityCommentReplyId); ?>" name="body_text" rows="3" cols="60" required class="form-textarea" data-overlay-focus<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId === (int) $comment['id'] ? sr_e($commentBody) : ''; ?></textarea>
                                                                 </label>
                                                             </p>
+                                                            <?php echo sr_comment_extra_fields_form_html($commentExtraFieldDefinitions, $commentParentId === (int) $comment['id'] ? $commentExtraFieldValues : [], 'comment_extra_fields', 'community_comment_reply_' . (string) $comment['id']); ?>
                                                             <?php if (!is_array($account)) { ?>
                                                                 <p>
                                                                     <label for="<?php echo sr_e($communityCommentReplyId . '_guest_name'); ?>">
@@ -656,6 +658,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                             <span>답글 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                                             <textarea id="community_comment_reply_body" name="body_text" rows="3" cols="60" required class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" data-community-comment-reply-body><?php echo $commentParentId > 0 ? sr_e($commentBody) : ''; ?></textarea>
                                         </label>
+                                        <?php echo sr_comment_extra_fields_form_html($commentExtraFieldDefinitions, $commentParentId > 0 ? $commentExtraFieldValues : [], 'comment_extra_fields', 'community_comment_reply'); ?>
                                     </p>
                                     <?php if (!empty($secretCommentsEnabled)) { ?>
                                         <label class="community-comment-secret-toggle">
@@ -756,6 +759,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                             <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80" required class="form-textarea"<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?>><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
                         </label>
                     </p>
+                    <?php echo sr_comment_extra_fields_form_html($commentExtraFieldDefinitions, $commentParentId < 1 ? $commentExtraFieldValues : [], 'comment_extra_fields', 'community_comment'); ?>
                     <?php if (!is_array($account)) { ?>
                         <p>
                             <label for="modules_community_view_guest_comment_name">

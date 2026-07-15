@@ -190,6 +190,7 @@ function sr_community_guest_runtime_schema(PDO $pdo): void
             guest_ip_hash TEXT NULL,
             guest_user_agent_hash TEXT NULL,
             body_text TEXT NOT NULL,
+            extra_values_json TEXT NULL,
             is_secret INTEGER NOT NULL DEFAULT 0,
             status TEXT NOT NULL DEFAULT "published",
             created_at TEXT NOT NULL,
