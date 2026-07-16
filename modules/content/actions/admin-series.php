@@ -78,13 +78,13 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_content_series_unavailable_message($pdo);
     }
     if ($intent === 'create' && !sr_content_series_key_is_valid((string) $values['series_key'])) {
-        $errors[] = '시리즈 Key가 올바르지 않습니다.';
+        $errors[] = '시리즈 식별값은 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     }
     if (!is_string($description)) {
         $errors[] = '시리즈 설명이 너무 깁니다.';
     }
     if ($sortOrder === null) {
-        $errors[] = '시리즈 정렬값이 올바르지 않습니다.';
+        $errors[] = '시리즈 표시 순서는 0 이상의 정수여야 합니다.';
     }
     if ((string) $values['title'] === '') {
         $errors[] = '시리즈 제목을 입력해 주세요.';
@@ -93,7 +93,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = '상태 또는 공개 범위가 올바르지 않습니다.';
     }
     if ($intent === 'create' && $errors === [] && sr_content_series_key_exists($pdo, (string) $values['series_key'])) {
-        $errors[] = '이미 같은 Key의 콘텐츠 시리즈가 있습니다.';
+        $errors[] = '이미 같은 식별값의 콘텐츠 시리즈가 있습니다.';
     }
     if ($errors === []) {
         if ($intent === 'create') {
@@ -105,7 +105,7 @@ if (sr_request_method() === 'POST') {
                 if ((string) $exception->getCode() !== '23000') {
                     throw $exception;
                 }
-                $errors[] = '이미 같은 Key의 콘텐츠 시리즈가 있습니다.';
+                $errors[] = '이미 같은 식별값의 콘텐츠 시리즈가 있습니다.';
             }
         } elseif ($intent === 'update') {
             $series = sr_content_series_by_id($pdo, $seriesId);

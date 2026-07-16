@@ -13,6 +13,21 @@ require_once $root . '/modules/content/helpers.php';
 
 $errors = [];
 
+$contentSeriesAdminView = (string) file_get_contents($root . '/modules/content/views/admin-series.php');
+sr_content_file_cleanup_assert(
+    str_contains($contentSeriesAdminView, '모든 콘텐츠의 회차 연결을 해제합니다.')
+        && str_contains($contentSeriesAdminView, '회차 연결은 자동으로 복원되지 않으므로'),
+    'content series status help must explain destructive archive/delete behavior and lack of automatic restore.'
+);
+sr_content_file_cleanup_assert(
+    str_contains($contentSeriesAdminView, '모든 회차 연결이 해제되며 상태를 되돌려도 자동 복원되지 않습니다.'),
+    'content series archive/delete actions must warn before removing episode links.'
+);
+sr_content_file_cleanup_assert(
+    str_contains($contentSeriesAdminView, '이 값은 시리즈 안의 회차 순서를 바꾸지 않습니다.'),
+    'content series sort help must distinguish series order from episode order.'
+);
+
 function sr_content_file_cleanup_error(string $message): void
 {
     global $errors;
