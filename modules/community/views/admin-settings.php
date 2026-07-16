@@ -171,6 +171,7 @@ $communitySettingsSectionNavItems = [
     'community-settings-section-reaction' => '리액션',
     'community-settings-section-thumbnail' => '썸네일',
     'community-settings-section-display' => '공개 화면',
+    'community-post-extra-fields-json-section' => '게시글 추가 입력',
     'community-comment-extra-fields-json-section' => '댓글 추가 입력',
 ];
 ?>
@@ -802,6 +803,14 @@ $communitySettingsSectionNavItems = [
         </div>
     </section>
 
+    <?php echo sr_community_admin_post_extra_fields_editor_html(
+        'community_post_extra_fields_json',
+        'extra_fields_json',
+        $settings['extra_fields_json'] ?? '[]',
+        '새 게시판 게시글 추가 입력 기본값',
+        '새 게시판 등록 화면을 열 때 미리 채워지는 항목입니다. 기존 게시판에는 반영되지 않으며, 등록 화면에서 수정한 최종 값이 해당 게시판에 저장됩니다.'
+    ); ?>
+
     <?php echo sr_admin_comment_extra_fields_editor_html(
         'community_comment_extra_fields_json',
         'comment_extra_fields_json',
@@ -809,6 +818,8 @@ $communitySettingsSectionNavItems = [
         '새 게시판 댓글 추가 입력 기본값',
         '새 게시판 등록 화면을 열 때 미리 채워지는 항목입니다. 기존 게시판에는 반영되지 않으며, 등록 화면에서 수정한 최종 값이 해당 게시판에 저장됩니다.'
     ); ?>
+
+    <script src="<?php echo sr_e(sr_admin_asset_url('/modules/community/assets/admin-post-extra-fields.js')); ?>" defer></script>
 
     <div class="form-sticky-actions form-actions form-actions-primary">
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.settings.save.59aa86cd')); ?></button>

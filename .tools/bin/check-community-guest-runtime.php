@@ -288,6 +288,17 @@ function sr_community_guest_runtime_check(): void
             'cleanup_policy' => 'anonymize',
         ],
     ]);
+    $extraFieldDefinitionsJson = json_encode($extraFieldDefinitions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
+    $settingsWithPostExtraDefaults = sr_community_normalize_settings(['extra_fields_json' => $extraFieldDefinitionsJson]);
+    $newBoardDefaults = sr_community_board_default_settings($settingsWithPostExtraDefaults);
+    sr_community_guest_runtime_assert(
+        sr_community_extra_field_definitions_from_json((string) ($settingsWithPostExtraDefaults['extra_fields_json'] ?? '[]')) === $extraFieldDefinitions,
+        'community settings must preserve the new-board post additional field defaults.'
+    );
+    sr_community_guest_runtime_assert(
+        sr_community_extra_field_definitions_from_json((string) ($newBoardDefaults['extra_fields_json'] ?? '[]')) === $extraFieldDefinitions,
+        'new community boards must receive the post additional field definitions from community settings.'
+    );
     $extraFieldValues = ['company' => '런타임 회사'];
     $extraFieldValuesJson = sr_community_extra_field_values_json($extraFieldDefinitions, $extraFieldValues);
     $extraFieldValuesSnapshot = json_decode($extraFieldValuesJson, true);

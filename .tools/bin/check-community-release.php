@@ -753,6 +753,41 @@ sr_community_release_file_contains('modules/community/helpers/admin-boards.php',
     '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
     '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
 ], 'Community admin board extra field definition validation');
+sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
+    "sr_post_string_without_truncation('extra_fields_json', 20000)",
+    'sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
+    "['extra_fields_json', \$extraFieldsJson, 'json']",
+], 'Community settings post extra field defaults');
+sr_community_release_file_contains('modules/community/views/admin-settings.php', [
+    "'community-post-extra-fields-json-section' => '게시글 추가 입력'",
+    'sr_community_admin_post_extra_fields_editor_html(',
+    "'새 게시판 게시글 추가 입력 기본값'",
+    "'/modules/community/assets/admin-post-extra-fields.js'",
+], 'Community settings post extra field editor');
+sr_community_release_file_contains('modules/community/helpers/admin-post-extra-fields.php', [
+    'data-community-admin-post-extra-fields-editor',
+    'class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0"',
+    'aria-hidden="true" inert',
+    'data-community-admin-post-extra-field-save',
+], 'Community settings post extra field editor markup');
+sr_community_release_file_contains('modules/community/assets/admin-post-extra-fields.js', [
+    "document.querySelectorAll('[data-community-admin-post-extra-fields-editor]')",
+    "textarea.dispatchEvent(new Event('change', { bubbles: true }))",
+    "list.addEventListener('admin:reorder'",
+    'function reportTemporaryValidity(control, message)',
+    "control.setCustomValidity('');",
+], 'Community settings post extra field editor behavior');
+sr_community_release_file_not_contains('modules/community/helpers/admin-post-extra-fields.php', [
+    'maxlength="120" required class="form-input',
+    '-type" required class="form-select',
+], 'Community settings closed post extra field modal validation');
+sr_community_release_file_not_contains('modules/community/assets/admin-post-extra-fields.js', [
+    'options.required =',
+], 'Community settings closed post extra field modal behavior');
+sr_community_release_file_contains('modules/community/helpers/boards.php', [
+    "\$settings['extra_fields_json']",
+    "\$defaults['extra_fields_json']",
+], 'Community new board post extra field defaults');
 sr_community_release_file_contains('modules/community/actions/edit.php', [
     'sr_community_account_can_edit_post($post, $account)',
     '$submittedPostId !== $postId',
@@ -1070,6 +1105,7 @@ sr_community_release_wrapper_action('modules/community/actions/admin-levels.php'
 ], "include SR_ROOT . '/modules/community/actions/admin-settings.php';", 'Community admin levels wrapper');
 
 $allowedCommunityScriptFiles = [
+    'modules/community/assets/admin-post-extra-fields.js',
     'modules/community/assets/layout.js',
     'modules/community/assets/module.js',
 ];

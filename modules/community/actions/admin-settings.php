@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+require_once SR_ROOT . '/modules/community/helpers/admin-post-extra-fields.php';
 $communityReactionAvailable = sr_module_enabled($pdo, 'reaction')
     && is_file(SR_ROOT . '/modules/reaction/helpers.php');
 if ($communityReactionAvailable) {
@@ -112,6 +113,9 @@ if (sr_request_method() === 'POST') {
         $plainTextAutoLinkNewTab = ($_POST['plain_text_auto_link_new_tab'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $extraFieldsInput = sr_post_string_without_truncation('extra_fields_json', 20000);
+        $extraFieldsInput = is_string($extraFieldsInput) ? $extraFieldsInput : '[]';
+        $extraFieldsJson = sr_community_extra_field_definitions_json_from_input($extraFieldsInput) ?? '[]';
         $commentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
         $commentExtraFieldsInput = is_string($commentExtraFieldsInput) ? $commentExtraFieldsInput : '[]';
         $commentExtraFieldsJson = sr_comment_extra_field_definitions_json($commentExtraFieldsInput);
@@ -313,6 +317,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.';
         }
         $errors = array_merge($errors, sr_comment_extra_field_definition_errors($commentExtraFieldsInput));
+        $errors = array_merge($errors, sr_community_extra_field_definitions_input_errors($extraFieldsInput));
         if ($draftAutosaveIntervalSeconds === null) {
             $errors[] = '임시저장 간격은 30초 이상 600초 이하로 입력하세요.';
             $draftAutosaveIntervalSeconds = (int) ($settings['draft_autosave_interval_seconds'] ?? 60);
@@ -466,6 +471,7 @@ if (sr_request_method() === 'POST') {
                 ['plain_text_auto_link_new_tab', $plainTextAutoLinkNewTab ? '1' : '0', 'bool'],
                 ['secret_posts_enabled', $secretPostsEnabled ? '1' : '0', 'bool'],
                 ['secret_comments_enabled', $secretCommentsEnabled ? '1' : '0', 'bool'],
+                ['extra_fields_json', $extraFieldsJson, 'json'],
                 ['comment_extra_fields_json', $commentExtraFieldsJson, 'json'],
                 ['thumbnail_enabled', $thumbnailEnabled ? '1' : '0', 'bool'],
                 ['thumbnail_criterion', $thumbnailCriterion, 'string'],

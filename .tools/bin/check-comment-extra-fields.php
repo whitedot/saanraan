@@ -171,6 +171,12 @@ sr_check_comment_extra_fields_assert(is_string($editorView) && str_contains($edi
 $editorHtml = sr_admin_comment_extra_fields_editor_html('content_item_comment_extra_fields_json', 'comment_extra_fields_json', []);
 sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'id="content-item-comment-extra-fields-json-section"'), 'admin editor section IDs must use the same hyphenated form as section navigation links.');
 sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'id="content-item-comment-extra-fields-json-modal"'), 'admin editor modal IDs must follow the normalized section ID.');
+sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0"'), 'admin editor modals must use the shared hidden overlay state.');
+sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'aria-hidden="true" inert data-overlay-stack="true"'), 'admin editor modals must expose the shared overlay accessibility contract.');
+sr_check_comment_extra_fields_assert(!str_contains($editorHtml, 'maxlength="120" required class="form-input'), 'closed editor modal inputs must not participate in the parent settings form native validation.');
+sr_check_comment_extra_fields_assert(!str_contains($editorHtml, '-field-type" required class="form-select'), 'closed editor modal selects must not participate in the parent settings form native validation.');
+sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, 'function reportTemporaryValidity(control, message)'), 'admin editor must scope required validation to the modal apply action.');
+sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, "control.setCustomValidity('');"), 'admin editor must clear modal custom validity after reporting it.');
 
 unset($_POST['comment_extra_fields']);
 

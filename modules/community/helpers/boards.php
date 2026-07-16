@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/community/helpers/post-body-settings.php';
 require_once SR_ROOT . '/modules/community/helpers/board-groups.php';
 require_once SR_ROOT . '/modules/community/helpers/board-cleanup.php';
+require_once SR_ROOT . '/modules/community/helpers/posts-extra-fields.php';
 
 function sr_community_board_key_is_valid(string $boardKey): bool
 {
@@ -264,6 +265,7 @@ function sr_community_board_default_settings(array $settings, array $groupSettin
     $defaults['status'] = (string) ($settings['board_status'] ?? 'enabled');
     $defaults['skin_key'] = 'basic';
     $defaults['post_editor'] = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
+    $defaults['extra_fields_json'] = sr_community_extra_field_definitions_json($settings['extra_fields_json'] ?? '[]');
     $defaults['comment_extra_fields_json'] = sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]');
 
     $defaults['reaction_post_preset_key'] = '';

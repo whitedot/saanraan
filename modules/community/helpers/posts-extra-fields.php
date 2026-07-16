@@ -273,6 +273,15 @@ function sr_community_extra_field_definitions_from_json(string $json): array
     return sr_community_normalize_extra_field_definitions($decoded);
 }
 
+function sr_community_extra_field_definitions_json(mixed $value): string
+{
+    $definitions = is_string($value)
+        ? sr_community_extra_field_definitions_from_json($value)
+        : sr_community_normalize_extra_field_definitions($value);
+
+    return json_encode($definitions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]';
+}
+
 function sr_community_extra_field_definitions_json_from_input(string $json): ?string
 {
     $json = trim($json);

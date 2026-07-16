@@ -17,6 +17,13 @@
     return root.querySelector('[data-admin-comment-extra-field-input="' + key + '"]');
   }
 
+  function reportTemporaryValidity(control, message) {
+    control.setCustomValidity(message);
+    var valid = control.reportValidity();
+    control.setCustomValidity('');
+    return valid;
+  }
+
   function randomKey(definitions) {
     var existing = {};
     definitions.forEach(function (field) { existing[String(field.key || '')] = true; });
@@ -125,6 +132,8 @@
     fieldInput(modal, 'required').checked = !!field.required;
     fieldInput(modal, 'show_privacy_purpose').checked = !Object.prototype.hasOwnProperty.call(field, 'show_privacy_purpose') || !!field.show_privacy_purpose;
     fieldInput(modal, 'options').value = Array.isArray(field.options) ? field.options.join('\n') : '';
+    fieldInput(modal, 'label').setCustomValidity('');
+    fieldInput(modal, 'options').setCustomValidity('');
     modal.querySelector('[data-admin-comment-extra-field-modal-title]').textContent = index >= 0 ? '댓글 입력 항목 수정' : '댓글 입력 항목 추가';
     modal.querySelector('[data-admin-comment-extra-field-options-row]').hidden = field.type !== 'select';
   }
@@ -153,10 +162,15 @@
           var label = fieldInput(modal, 'label');
           var type = fieldInput(modal, 'type');
           var options = fieldInput(modal, 'options');
-          label.setCustomValidity(label.value.trim() ? '' : '라벨을 입력해 주세요.');
           var optionValues = options.value.split(/\r?\n/).map(function (value) { return value.trim(); }).filter(Boolean);
-          options.setCustomValidity(type.value === 'select' && optionValues.length === 0 ? '선택지를 하나 이상 입력해 주세요.' : '');
-          if (!label.reportValidity() || !options.reportValidity()) return;
+          if (!label.value.trim()) {
+            reportTemporaryValidity(label, '라벨을 입력해 주세요.');
+            return;
+          }
+          if (type.value === 'select' && optionValues.length === 0) {
+            reportTemporaryValidity(options, '선택지를 하나 이상 입력해 주세요.');
+            return;
+          }
           var current = parse(root);
           var indexValue = modal.querySelector('[data-admin-comment-extra-field-index]').value;
           var field = {
