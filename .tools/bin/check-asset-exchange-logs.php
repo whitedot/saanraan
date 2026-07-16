@@ -152,7 +152,7 @@ if (
 }
 if (
     !is_string($adminExchangeView)
-    || strpos($adminExchangeView, '환산 기준') === false
+    || strpos($adminExchangeView, '교환 비율') === false
     || strpos($adminExchangeView, 'sticky-tabs anchor-tabs tab-nav-justified') === false
     || strpos($adminExchangeView, 'asset-exchange-section-values') !== false
     || strpos($adminExchangeView, 'data-admin-section-anchor') === false
@@ -168,13 +168,16 @@ if (
     || strpos($adminExchangeView, 'minControl.min = String(computedMinimumAmount);') === false
     || strpos($adminExchangeView, '최소 환전량이 계산 최소보다 작습니다.') === false
     || strpos($adminExchangeView, '최종 입금액이 0 이하입니다.') === false
-    || strpos($adminExchangeView, '최대 환전량을 비워두면 1회 최대 환전량을 제한하지 않습니다.') === false
-    || strpos($adminExchangeView, '소수 처리 방식 <span class="sr-required-label">(필수)</span>') === false
+    || strpos($adminExchangeView, '비워 두면 한 번에 차감할 수 있는 최대 수량을 제한하지 않습니다.') === false
+    || strpos($adminExchangeView, "'소수점 처리', \$assetExchangeHelp['rounding']['id']") === false
     || strpos($adminExchangeView, "sr_admin_radio_toggle_group_html(\$fieldPrefix . '_rounding_mode'") === false
     || strpos($adminExchangeView, '<select id="<?php echo sr_e($fieldPrefix); ?>_rounding_mode"') !== false
-    || strpos($adminExchangeView, '환산 비율로 계산한 입금액과 정률 수수료 계산 결과의 소수 처리 방식입니다.') === false
-    || strpos($adminExchangeView, '소수점 처리는 소수 처리 방식을 따릅니다.') === false
-    || strpos($adminExchangeView, '계산 결과의 소수점은 소수 처리 방식에 따라 처리합니다.') === false
+    || strpos($adminExchangeView, '교환 지급액과 비율 수수료의 소수점을 정수로 처리하는 방식입니다.') === false
+    || strpos($adminExchangeView, "'asset-exchange-help-rate'") === false
+    || strpos($adminExchangeView, "'asset-exchange-help-amount'") === false
+    || strpos($adminExchangeView, "'asset-exchange-help-fee'") === false
+    || strpos($adminExchangeView, '수수료는 교환 비율로 계산한 지급 예정액에서 차감하며') === false
+    || strpos($adminExchangeView, 'sr_admin_help_modal_html') === false
     || strpos($adminExchangeView, 'form-sticky-actions form-actions form-actions-primary form-actions-split') === false
     || strpos($adminExchangeView, 'data-asset-exchange-enable-all') === false
     || strpos($adminExchangeView, 'data-asset-exchange-disable-all') === false
@@ -189,8 +192,6 @@ if (
     || strpos($adminExchangeView, 'admin-asset-exchange-policy-rate-alert') !== false
     || strpos($adminExchangeView, '<span class="form-label">실행 상태</span>') !== false
     || strpos($adminExchangeView, '<span class="form-label">실행 단위</span>') !== false
-    || strpos($adminExchangeView, 'modal-overlay') !== false
-    || strpos($adminExchangeView, 'data-overlay') !== false
     || strpos($adminExchangeView, 'asset-exchange-relative-values-modal') !== false
     || strpos($adminExchangeView, 'sr_asset_exchange_relative_value_setting_keys()') !== false
     || strpos($adminExchangeView, '<select id="<?php echo sr_e($fieldPrefix); ?>_from_module_key"') !== false
@@ -217,7 +218,7 @@ if (
     || strpos($adminExchangeView, 'policy_default_rate_ratio') !== false
     || strpos($adminExchangeView, 'policy_default_status') !== false
     || strpos($adminExchangeView, '공통 환전 조건') !== false
-    || strpos($adminExchangeView, '환전 사용 여부') === false
+    || strpos($adminExchangeView, '포인트·금액 교환') === false
     || !is_string($assetExchangeModule)
     || strpos($assetExchangeModule, 'policy_default_rate_ratio') !== false
     || strpos($assetExchangeModule, 'policy_default_sort_order') !== false
