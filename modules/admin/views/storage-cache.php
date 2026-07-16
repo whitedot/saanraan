@@ -2,7 +2,7 @@
 
 $adminPageTitle = '썸네일 파일 캐시';
 $adminPageSubtitle = [
-    '공개 이미지에서 만든 작은 이미지 파일입니다.',
+    '공개 이미지를 화면에 필요한 크기와 자르기 방식으로 만든 작은 이미지 파일입니다.',
     '정리해도 원본 파일과 게시글은 삭제되지 않으며, 화면에서 다시 필요해지면 새로 생성됩니다.',
 ];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/storage-cache');
@@ -86,19 +86,19 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
 
 <section class="card admin-list-card admin-list-form">
     <div class="card-header">
-        <h2 class="card-title">Variant 분포</h2>
+        <h2 class="card-title">썸네일 종류별 파일 수</h2>
     </div>
     <div class="table-wrapper">
         <table class="table table-list">
             <thead>
                 <tr>
-                    <th>Variant key</th>
+                    <th>종류 식별값</th>
                     <th>파일 수</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($variantCounts === []) { ?>
-                    <tr><td colspan="2" class="admin-empty-state">조회된 variant가 없습니다.</td></tr>
+                    <tr><td colspan="2" class="admin-empty-state">조회된 썸네일 종류가 없습니다.</td></tr>
                 <?php } ?>
                 <?php foreach ($variantCounts as $variantKey => $count) { ?>
                     <tr>
@@ -126,7 +126,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
                     <th>수정 시각</th>
                     <th>모듈</th>
                     <th>경로</th>
-                    <th>Variant</th>
+                    <th>썸네일 종류</th>
                     <th>용량</th>
                     <th>확장자</th>
                 </tr>
