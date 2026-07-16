@@ -5,6 +5,35 @@ $adminPageSubtitle = '항목은 최대 3단계까지 구성할 수 있습니다.
 $adminContainerClass = 'admin-page-site-menu admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
+$siteMenuHelpOpenLabel = '도움말 보기';
+$siteMenuHelp = [
+    'menu' => [
+        'id' => 'site-menu-help-menu',
+        'title' => '메뉴 식별값과 사용 상태',
+        'body' => '<p>메뉴 식별값은 콘텐츠·커뮤니티 레이아웃 설정 등에서 표시할 메뉴 묶음을 찾는 기준입니다.</p>'
+            . '<p>식별값을 바꿔도 다른 설정에 저장된 선택값은 자동으로 바뀌지 않습니다. 공개 반영 후 이 메뉴를 사용하던 레이아웃 설정에서 다시 선택해 주세요.</p>'
+            . '<p>메뉴 묶음을 사용 중지하면 속한 항목을 포함한 전체 메뉴가 공개 화면에 표시되지 않습니다.</p>',
+    ],
+    'link' => [
+        'id' => 'site-menu-help-link',
+        'title' => '메뉴 항목 연결 방법',
+        'body' => '<p>서비스·대상 종류·연결 대상은 등록된 화면을 쉽게 찾는 선택 도구입니다. 연결 대상을 고르면 항목 이름과 연결 주소가 자동으로 채워지며, 필요하면 두 값을 직접 바꿔도 됩니다.</p>'
+            . '<p>사이트 안의 화면은 <code>/</code>로 시작하는 주소를, 외부 사이트는 <code>http://</code> 또는 <code>https://</code>로 시작하는 주소를 입력하세요. 주소를 비우면 누를 수 없는 텍스트 항목으로 표시됩니다.</p>',
+    ],
+    'structure' => [
+        'id' => 'site-menu-help-structure',
+        'title' => '상위 항목과 공개 상태',
+        'body' => '<p>메뉴는 최상위 항목부터 최대 3단계까지 구성할 수 있습니다. 상위 항목을 바꾸면 현재 항목의 하위 항목도 함께 이동하며, 이동 후 3단계를 넘을 수는 없습니다.</p>'
+            . '<p>항목을 사용 중지하면 그 항목과 안에 속한 하위 항목이 공개 메뉴에서 함께 숨겨집니다.</p>',
+    ],
+    'order' => [
+        'id' => 'site-menu-help-order',
+        'title' => '표시 순서와 공개 반영',
+        'body' => '<p>같은 상위 항목 안에서 표시 순서 숫자가 작을수록 먼저 나옵니다. 드래그하거나 이동 버튼을 누르면 목록의 숫자가 바뀍니다.</p>'
+            . '<p>항목 추가·수정 창에서 저장하면 그 항목의 표시 순서만 저장됩니다. 목록에서 바꾼 여러 항목의 순서는 <strong>초안 순서 저장</strong> 또는 <strong>공개 반영</strong>을 눌러야 저장됩니다. 공개 사이트에는 공개 반영을 누른 시점의 초안 전체가 적용됩니다.</p>',
+    ],
+];
+
 $siteMenuParentOptions = static function (int $menuId, int $selectedParentId = 0, int $excludeItemId = 0) use ($items, $itemDepths): void {
     ?>
     <option value="0"<?php echo $selectedParentId <= 0 ? ' selected' : ''; ?>><?php echo sr_e(sr_t('site_menu::ui.text.d8b14d7a')); ?></option>
@@ -161,7 +190,7 @@ $siteMenuModalCloseButton = static function (string $modalId): void {
     <?php
 };
 
-$siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuModalCloseButton): void {
+$siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuModalCloseButton): void {
     $editingMenu = is_array($menu);
     $menuKey = $editingMenu ? (string) ($menu['menu_key'] ?? '') : '';
     $label = $editingMenu ? (string) ($menu['label'] ?? '') : '';
@@ -179,19 +208,21 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     <input type="hidden" name="intent" value="save_menu">
                     <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e($menuKey) : ''; ?>">
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_menu_key"><?php echo sr_e(sr_t('site_menu::ui.menu.key.20cd5d6a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_menu_key', sr_t('site_menu::ui.menu.key.20cd5d6a'), $siteMenuHelp['menu']['id'], $siteMenuHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <input id="<?php echo sr_e($modalId); ?>_menu_key" type="text" name="menu_key" value="<?php echo sr_e($menuKey); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-validation-message="영문 소문자로 시작하고 소문자, 숫자, 밑줄만 입력해 주세요." data-admin-key-input data-overlay-focus>
+                            <p class="form-help">다른 설정에서 이 메뉴 묶음을 찾을 때 사용합니다. 영문 소문자로 시작하고 소문자, 숫자, 밑줄만 입력하세요.</p>
                         </div>
                     </div>
                     <div class="form-row">
                         <label class="form-label" for="<?php echo sr_e($modalId); ?>_label"><?php echo sr_e(sr_t('site_menu::ui.menu.name.0615c5f4')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
                         <div class="form-field">
                             <input id="<?php echo sr_e($modalId); ?>_label" type="text" name="label" value="<?php echo sr_e($label); ?>" class="form-input form-control-full" maxlength="120" required data-validation-message="메뉴 이름을 입력해 주세요.">
+                            <p class="form-help">관리 화면과 레이아웃 설정에서 메뉴 묶음을 구분하는 이름입니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_status', sr_t('site_menu::ui.status.e10195a1'), $siteMenuHelp['menu']['id'], $siteMenuHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required data-validation-message="상태를 선택해 주세요.">
                                 <?php foreach ($allowedStatuses as $status) { ?>
@@ -200,11 +231,12 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                                     </option>
                                 <?php } ?>
                             </select>
+                            <p class="form-help">사용 중지하면 이 메뉴 묶음 전체가 공개 화면에 표시되지 않습니다.</p>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">이 모달의 저장 버튼은 메뉴 초안만 저장합니다. 공개 사이트에는 공개 반영 후 적용됩니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
+                    <p class="form-help">여기서 저장하면 메뉴 초안만 바뀍니다. 공개 사이트에 적용하려면 목록에서 공개 반영을 눌러야 합니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
@@ -216,7 +248,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
     <?php
 };
 
-$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuIconOptions, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions): void {
+$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuIconOptions, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions): void {
     $editingItem = is_array($item);
     $itemId = $editingItem ? (int) ($item['id'] ?? 0) : 0;
     $itemMenuId = $editingItem ? (int) ($item['menu_id'] ?? $menuId) : $menuId;
@@ -242,11 +274,12 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
                     <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $itemMenuId); ?>">
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_module"><?php echo sr_e(sr_t('site_menu::ui.text.06aff97f')); ?></label>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_module', sr_t('site_menu::ui.text.06aff97f'), $siteMenuHelp['link']['id'], $siteMenuHelpOpenLabel); ?>
                         <div class="form-field">
                             <select id="<?php echo sr_e($modalId); ?>_module" class="form-select" data-site-menu-module-select data-overlay-focus>
                                 <?php $siteMenuModuleOptions($selectedModuleKey); ?>
                             </select>
+                            <p class="form-help">연결할 화면을 쉽게 찾기 위한 선택 도구입니다. 직접 주소를 입력하려면 직접 입력을 선택하세요.</p>
                         </div>
                     </div>
                     <div class="form-row">
@@ -266,11 +299,12 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_parent_id"><?php echo sr_e(sr_t('site_menu::ui.text.6ab1927c')); ?></label>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_parent_id', sr_t('site_menu::ui.text.6ab1927c'), $siteMenuHelp['structure']['id'], $siteMenuHelpOpenLabel); ?>
                         <div class="form-field">
                             <select id="<?php echo sr_e($modalId); ?>_parent_id" name="parent_id" class="form-select">
                                 <?php $siteMenuParentOptions($itemMenuId, $itemParentId, $itemId); ?>
                             </select>
+                            <p class="form-help">최상위 항목부터 최대 3단계까지 구성할 수 있습니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
@@ -280,10 +314,10 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_url">URL</label>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_url', '연결 주소(URL)', $siteMenuHelp['link']['id'], $siteMenuHelpOpenLabel); ?>
                         <div class="form-field">
                             <input id="<?php echo sr_e($modalId); ?>_url" type="text" name="url" value="<?php echo sr_e($url); ?>" class="form-input form-control-full" maxlength="255" data-validation-message="URL은 /로 시작하는 내부 URL 또는 http/https URL이어야 합니다." data-site-menu-url-input>
-                            <p class="form-help">비워 두면 공개 메뉴에서 링크를 만들지 않고 텍스트 항목으로 표시합니다.</p>
+                            <p class="form-help">비우면 누를 수 없는 텍스트 항목으로 표시됩니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
@@ -295,6 +329,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                     <option value="<?php echo sr_e((string) $optionIconName); ?>"<?php echo $iconName === (string) $optionIconName ? ' selected' : ''; ?>><?php echo sr_e((string) $optionIconName); ?></option>
                                 <?php } ?>
                             </select>
+                            <p class="form-help">공개 메뉴에서 항목 이름 앞에 표시할 아이콘입니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
@@ -307,10 +342,11 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                     </option>
                                 <?php } ?>
                             </select>
+                            <p class="form-help">현재 창에서 열지, 새 창에서 열지 선택합니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_status"><?php echo sr_e(sr_t('site_menu::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('site_menu::ui.required.1f227c67')); ?></span></label>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_status', sr_t('site_menu::ui.status.e10195a1'), $siteMenuHelp['structure']['id'], $siteMenuHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <select id="<?php echo sr_e($modalId); ?>_status" name="status" class="form-select" required data-validation-message="상태를 선택해 주세요.">
                                 <?php foreach ($allowedStatuses as $status) { ?>
@@ -319,17 +355,19 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                     </option>
                                 <?php } ?>
                             </select>
+                            <p class="form-help">사용 중지하면 이 항목과 하위 항목이 공개 메뉴에서 함께 숨겨집니다.</p>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($modalId); ?>_sort_order"><?php echo sr_e(sr_t('site_menu::ui.text.3788952d')); ?></label>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_sort_order', sr_t('site_menu::ui.text.3788952d'), $siteMenuHelp['order']['id'], $siteMenuHelpOpenLabel); ?>
                         <div class="form-field">
                             <input id="<?php echo sr_e($modalId); ?>_sort_order" type="number" name="sort_order" value="<?php echo sr_e((string) $sortOrder); ?>" class="form-input">
+                            <p class="form-help">같은 상위 항목 안에서 숫자가 작을수록 먼저 표시됩니다.</p>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">이 모달의 저장 버튼은 메뉴 항목 초안만 저장합니다. 공개 사이트에는 공개 반영 후 적용됩니다. 목록에서 작성 중인 정렬 값은 함께 저장되지 않습니다.</p>
+                    <p class="form-help">여기서 저장하면 이 항목의 초안만 바뀍니다. 목록에서 바꾼 다른 항목의 표시 순서는 함께 저장되지 않으며, 공개 사이트에 적용하려면 공개 반영을 눌러야 합니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
@@ -506,6 +544,10 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
         $siteMenuRenderItemModal('site_menu_add_child_' . $itemId, sr_t('site_menu::ui.text.56b2723f'), (int) $item['menu_id'], $itemId, null, (int) ($menuParentNextSortOrders[(int) $item['menu_id']][$itemId] ?? 100));
     }
     ?>
+<?php } ?>
+
+<?php foreach ($siteMenuHelp as $siteMenuHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $siteMenuHelpModal['id'], (string) $siteMenuHelpModal['title'], (string) $siteMenuHelpModal['body']); ?>
 <?php } ?>
 
 <script src="<?php echo sr_e(sr_admin_asset_url('/modules/site_menu/assets/admin.js')); ?>" defer></script>

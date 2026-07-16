@@ -170,6 +170,8 @@ sr_site_menu_check_assert(str_contains($commonUiJs, '(pointer: coarse)'), 'Commo
 sr_site_menu_check_assert(str_contains($commonUiJs, "event.key === 'Escape'"), 'Common UI script must close site menus on Escape.');
 
 $siteMenuAction = (string) file_get_contents(SR_ROOT . '/modules/site_menu/actions/admin-site-menus.php');
+$siteMenuAdminView = (string) file_get_contents(SR_ROOT . '/modules/site_menu/views/admin-site-menus.php');
+$siteMenuKo = (string) file_get_contents(SR_ROOT . '/modules/site_menu/lang/ko.php');
 $siteMenuInstallSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/install.sql');
 $siteMenuDraftUpdateSql = (string) file_get_contents(SR_ROOT . '/modules/site_menu/updates/2026.06.003.sql');
 sr_site_menu_check_assert(!str_contains($siteMenuAction, 'item_url_duplicate'), 'Site menu admin action must allow multiple items with the same URL.');
@@ -191,6 +193,10 @@ sr_site_menu_check_assert(str_contains($siteMenuInstallSql, "VALUES ('header', '
 sr_site_menu_check_assert(str_contains($siteMenuDraftUpdateSql, 'site_menu_draft_menus'), 'Site menu update must create draft menu tables for existing installations.');
 sr_site_menu_check_assert(str_contains($siteMenuAction, 'publish_site_menus'), 'Site menu admin action must publish draft menus explicitly.');
 sr_site_menu_check_assert(str_contains($siteMenuAction, 'DELETE FROM sr_site_menus'), 'Site menu publish action must replace public menu rows from drafts.');
+sr_site_menu_check_assert(str_contains($siteMenuAdminView, 'sr_admin_form_label_help_html($modalId . \'_menu_key\''), 'Site menu identifier field must expose detailed operator help.');
+sr_site_menu_check_assert(str_contains($siteMenuAdminView, '식별값을 바꿔도 다른 설정에 저장된 선택값은 자동으로 바뀌지 않습니다.'), 'Site menu identifier help must warn that dependent layout selections are not renamed automatically.');
+sr_site_menu_check_assert(str_contains($siteMenuAdminView, '초안 순서 저장') && str_contains($siteMenuAdminView, '공개 반영'), 'Site menu order help must distinguish draft order saving from publishing.');
+sr_site_menu_check_assert(str_contains($siteMenuKo, "'ui.menu.key.20cd5d6a' => '메뉴 식별값'"), 'Site menu operator copy must use an easy Korean label for the menu key.');
 
 if ($errors !== []) {
     fwrite(STDERR, "site menu checks failed:\n");
