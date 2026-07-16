@@ -39,6 +39,13 @@ $bannerSettingsHelp = [
     ],
 ];
 $bannerTargetServiceOptions = sr_banner_target_service_options($availableTargets, true);
+$bannerTargetModuleReferences = [];
+foreach ($availableTargets as $bannerAvailableTarget) {
+    $bannerTargetModuleKey = is_array($bannerAvailableTarget) ? (string) ($bannerAvailableTarget['module_key'] ?? '') : '';
+    if ($bannerTargetModuleKey !== '' && !in_array($bannerTargetModuleKey, ['banner', 'core'], true)) {
+        $bannerTargetModuleReferences[$bannerTargetModuleKey] = ['module_key' => $bannerTargetModuleKey];
+    }
+}
 $bannerDefaultTargetServiceKey = sr_banner_selected_target_service_key($bannerDefaultTargetOption);
 if ($bannerDefaultTargetServiceKey === '') {
     $bannerDefaultTargetServiceKey = sr_banner_public_target_option_value();
@@ -85,6 +92,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
                 <p class="form-help"><?php echo sr_e('새 배너가 처음 사용할 서비스입니다. 공용은 직접 선택용 배너입니다.'); ?></p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $bannerTargetModuleReferences); ?>
             </div>
         </div>
         <div class="form-row" data-admin-target-detail-row<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>>

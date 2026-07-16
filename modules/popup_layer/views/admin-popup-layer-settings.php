@@ -45,6 +45,20 @@ $popupLayerSettingsHelp = [
     ],
 ];
 $popupLayerTargetServiceOptions = sr_popup_layer_target_service_options($availableTargets, true);
+$popupLayerTargetModuleReferences = [];
+foreach ($availableTargets as $popupLayerAvailableTarget) {
+    $popupLayerTargetModuleKey = is_array($popupLayerAvailableTarget) ? (string) ($popupLayerAvailableTarget['module_key'] ?? '') : '';
+    if ($popupLayerTargetModuleKey !== '' && $popupLayerTargetModuleKey !== 'popup_layer') {
+        $popupLayerTargetModuleReferences[$popupLayerTargetModuleKey] = ['module_key' => $popupLayerTargetModuleKey];
+    }
+}
+$popupLayerEditorModuleReferences = [];
+foreach (sr_editor_contracts($pdo) as $popupLayerEditorContract) {
+    $popupLayerEditorModuleKey = is_array($popupLayerEditorContract) ? (string) ($popupLayerEditorContract['module_key'] ?? '') : '';
+    if ($popupLayerEditorModuleKey !== '' && $popupLayerEditorModuleKey !== 'popup_layer') {
+        $popupLayerEditorModuleReferences[$popupLayerEditorModuleKey] = ['module_key' => $popupLayerEditorModuleKey];
+    }
+}
 $popupLayerDefaultTargetServiceKey = sr_popup_layer_selected_target_service_key($popupLayerDefaultTargetOption);
 if ($popupLayerDefaultTargetServiceKey === '') {
     $popupLayerDefaultTargetServiceKey = sr_popup_layer_public_target_option_value();
@@ -99,6 +113,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
                 <p class="form-help"><?php echo sr_e('새 팝업레이어가 처음 사용할 서비스입니다. 공용은 직접 선택용 팝업레이어입니다.'); ?></p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $popupLayerTargetModuleReferences); ?>
             </div>
         </div>
         <div class="form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>>
@@ -134,6 +149,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('popup_layer_admin_popup_layer_settings_editor', 'popup_layer_editor', $popupLayerEditorOptions, $popupLayerEditorKey, true); ?>
                 <p class="form-help">팝업 등록/수정 화면의 본문 입력에만 적용됩니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $popupLayerEditorModuleReferences); ?>
             </div>
         </div>
     </section>

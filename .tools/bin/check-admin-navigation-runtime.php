@@ -405,6 +405,29 @@ sr_admin_navigation_runtime_assert(
     'Antispam target settings should render target contract module reference links.'
 );
 
+$outputTargetReferenceViews = [
+    'modules/banner/views/admin-banner-settings.php' => ['$bannerTargetModuleReferences', '$bannerTargetModuleKey'],
+    'modules/popup_layer/views/admin-popup-layer-settings.php' => ['$popupLayerTargetModuleReferences', '$popupLayerTargetModuleKey'],
+];
+foreach ($outputTargetReferenceViews as $viewPath => [$variableName, $moduleKeyVariable]) {
+    $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
+    sr_admin_navigation_runtime_assert(
+        is_string($viewSource)
+            && str_contains($viewSource, "['module_key' => " . $moduleKeyVariable . ']')
+            && str_contains($viewSource, 'sr_admin_module_reference_list_html($pdo, ' . $variableName . ')'),
+        $viewPath . ' should render output target module reference links'
+    );
+}
+$popupLayerSettingsSource = is_file('modules/popup_layer/views/admin-popup-layer-settings.php')
+    ? file_get_contents('modules/popup_layer/views/admin-popup-layer-settings.php')
+    : false;
+sr_admin_navigation_runtime_assert(
+    is_string($popupLayerSettingsSource)
+        && str_contains($popupLayerSettingsSource, 'foreach (sr_editor_contracts($pdo) as $popupLayerEditorContract)')
+        && str_contains($popupLayerSettingsSource, 'sr_admin_module_reference_list_html($pdo, $popupLayerEditorModuleReferences)'),
+    'Popup layer editor setting should render editor contract module reference links.'
+);
+
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
     is_string($communityAdminMenu)
