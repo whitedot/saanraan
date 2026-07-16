@@ -241,6 +241,17 @@ if ($pageAdminPage === 'form') {
         is_array($currentContentSeriesItem) ? (int) ($currentContentSeriesItem['series_id'] ?? 0) : 0
     );
     $downloadFiles = sr_content_all_active_download_files($pdo, 200, array_keys($linkedDownloadFileIds));
+
+    $adminFormDraftKey = 'content.item';
+    $adminFormDraftContext = $pageId > 0 ? 'edit:' . (string) $pageId : 'create';
+    $adminFormDraftBaseValues = is_array($editPage) ? $editPage : $values;
+    $adminFormDraftBaseValues['content_file_link_ids'] = array_keys($linkedDownloadFileIds);
+    $adminFormDraftBaseValues['series_item'] = is_array($currentContentSeriesItem) ? $currentContentSeriesItem : [];
+    $adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+    $adminFormDraft = sr_admin_form_draft_with_state(
+        sr_admin_form_draft_get($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext),
+        $adminFormDraftFingerprint
+    );
 } else {
     $filters = sr_content_admin_filters();
     if ((int) ($filters['content_group_id'] ?? 0) > 0 && !is_array(sr_content_group_by_id($pdo, (int) $filters['content_group_id']))) {

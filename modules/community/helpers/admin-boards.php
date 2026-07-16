@@ -65,6 +65,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
     $enabledMemberGroupKeys = is_array($context['enabled_member_group_keys'] ?? null) ? $context['enabled_member_group_keys'] : [];
     $assetModuleOptions = is_array($context['asset_module_options'] ?? null) ? $context['asset_module_options'] : [];
     $reactionPresetOptions = is_array($context['reaction_preset_options'] ?? null) ? $context['reaction_preset_options'] : [];
+    $afterSave = is_callable($context['after_save'] ?? null) ? $context['after_save'] : null;
     $reactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
     $privacyConsentPolicyDocumentsAvailable = sr_community_privacy_consent_policy_documents_available($pdo);
         $boardKey = strtolower(trim(sr_post_string('board_key', 60)));
@@ -769,6 +770,16 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 $assetSettingSources
             );
 
+            if ($afterSave !== null) {
+                try {
+                    $afterSave($boardId, true);
+                } catch (Throwable $exception) {
+                    if (function_exists('sr_log_exception')) {
+                        sr_log_exception($exception, 'community_board_admin_draft_cleanup_failed');
+                    }
+                }
+            }
+
             $notice = sr_t('community::action.admin.board_created');
             sr_admin_flash_result(sr_admin_action_result([], $notice));
             sr_redirect('/admin/community/boards');
@@ -953,6 +964,16 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                             'applied_setting_keys' => $appliedSettingKeys,
                         ],
                     ]);
+                }
+
+                if ($afterSave !== null) {
+                    try {
+                        $afterSave($boardId, false);
+                    } catch (Throwable $exception) {
+                        if (function_exists('sr_log_exception')) {
+                            sr_log_exception($exception, 'community_board_admin_draft_cleanup_failed');
+                        }
+                    }
                 }
 
                 $notice = sr_t('community::action.admin.board_updated');

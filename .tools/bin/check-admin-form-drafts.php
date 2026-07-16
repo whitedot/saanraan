@@ -9,6 +9,7 @@ chdir($root);
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/admin/helpers.php';
+require_once $root . '/modules/survey/helpers/admin-surveys.php';
 
 $errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
@@ -68,6 +69,12 @@ $applied = sr_admin_form_draft_apply_settings(
     ['enabled']
 );
 $assert($applied === ['enabled' => false, 'count' => 9, 'title' => '복원'], 'Settings overlay must restore types and unchecked booleans.');
+$appliedValues = sr_admin_form_draft_apply_values(
+    ['enabled' => 1, 'title' => '원본'],
+    ['title' => '입력 중', 'source_status' => 'group'],
+    ['enabled']
+);
+$assert($appliedValues === ['enabled' => 0, 'title' => '입력 중', 'source_status' => 'group'], 'Editor overlay must restore arbitrary scalar controls and unchecked booleans.');
 $parallelRows = sr_admin_form_draft_parallel_rows([
     'keys' => ['first', 'second'],
     'labels' => ['첫째'],
@@ -77,6 +84,20 @@ $assert($parallelRows === [
     ['area_key' => 'first', 'label' => '첫째', 'menu_key' => ''],
     ['area_key' => 'second', 'label' => '', 'menu_key' => 'menu_key'],
 ], 'Parallel draft rows must preserve incomplete repeated controls.');
+$surveyQuestions = sr_survey_admin_questions_from_draft_payload([
+    'question_key' => ['age', ''],
+    'question_type' => ['number', 'single_choice'],
+    'question_prompt' => ['나이를 입력하세요.', ''],
+    'question_analysis_note' => ['만 나이', ''],
+    'question_required' => ['0'],
+    'question_number_min' => ['0', ''],
+    'question_number_max' => ['120', ''],
+    'choice_labels' => ['', ''],
+]);
+$assert(count($surveyQuestions) === 1, 'Survey draft restoration must ignore the empty add modal row.');
+$assert((string) ($surveyQuestions[0]['question_key'] ?? '') === 'age', 'Survey draft restoration must preserve a question key.');
+$assert((int) ($surveyQuestions[0]['required'] ?? 0) === 1, 'Survey draft restoration must preserve indexed checkbox state.');
+$assert((string) ($surveyQuestions[0]['number_max'] ?? '') === '120', 'Survey draft restoration must preserve conditional question values.');
 
 sr_admin_form_draft_delete($pdo, 7, 'content.settings', 'default');
 $assert(sr_admin_form_draft_get($pdo, 7, 'content.settings', 'default') === null, 'Draft delete must remove only the target row.');
@@ -95,6 +116,10 @@ foreach ([
     'modules/member/views/admin-settings.php' => 'member-settings-form',
     'modules/quiz/views/admin-settings.php' => 'quiz-settings-form',
     'modules/survey/views/admin-settings.php' => 'survey-settings-form',
+    'modules/community/views/admin-boards.php' => 'community-board-form',
+    'modules/content/views/admin-contents.php' => 'content-item-form',
+    'modules/quiz/actions/admin-quiz.php' => 'quiz-item-form',
+    'modules/survey/actions/admin-surveys.php' => 'survey-item-form',
 ] as $relativePath => $formId) {
     $body = file_get_contents($root . '/' . $relativePath);
     $assert(is_string($body) && str_contains($body, 'id="' . $formId . '"'), $relativePath . ' must expose a stable draft form id.');
@@ -103,6 +128,18 @@ foreach ([
     $finalSavePosition = is_string($body) ? strpos($body, 'admin-form-final-save') : false;
     $draftSavePosition = is_string($body) ? strpos($body, 'value="save_draft"') : false;
     $assert(is_int($finalSavePosition) && is_int($draftSavePosition) && $finalSavePosition < $draftSavePosition, $relativePath . ' must keep final save as the first implicit submit action.');
+}
+
+foreach ([
+    'modules/community/actions/admin-boards.php' => 'community.board',
+    'modules/content/actions/admin-content-save.php' => 'content.item',
+    'modules/quiz/actions/admin-quiz.php' => 'quiz.item',
+    'modules/survey/actions/admin-surveys.php' => 'survey.item',
+] as $relativePath => $formKey) {
+    $body = file_get_contents($root . '/' . $relativePath);
+    $assert(is_string($body) && str_contains($body, "'" . $formKey . "'"), $relativePath . ' must use the expected editor draft key.');
+    $assert(is_string($body) && str_contains($body, 'sr_admin_form_draft_save('), $relativePath . ' must persist a manual editor draft.');
+    $assert(is_string($body) && str_contains($body, 'sr_admin_form_draft_delete('), $relativePath . ' must clear the editor draft after discard or final save.');
 }
 
 if ($errors !== []) {

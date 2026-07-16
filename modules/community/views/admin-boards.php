@@ -236,6 +236,56 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : array_merge($new
     'description' => '',
     'sort_order' => 0,
 ]);
+if (is_array($adminFormDraft ?? null) && is_array($adminFormDraft['payload'] ?? null)) {
+    $communityBoardDraftPayload = $adminFormDraft['payload'];
+    $communityBoardDraftBooleanKeys = [
+        'category_enabled',
+        'category_required',
+        'file_uploads_enabled',
+        'identity_verification_enabled',
+        'image_uploads_enabled',
+        'list_excerpt_enabled',
+        'paid_attachment_download_publisher_reward_enabled',
+        'privacy_consent_enabled',
+        'reaction_enabled',
+        'secret_comments_enabled',
+        'secret_posts_enabled',
+        'series_enabled',
+        'summary_feed_enabled',
+        'thumbnail_enabled',
+    ];
+    foreach (sr_community_module_asset_setting_prefixes() as $communityBoardDraftAssetPrefix) {
+        $communityBoardDraftBooleanKeys[] = $communityBoardDraftAssetPrefix . '_enabled';
+    }
+    $formBoard = sr_admin_form_draft_apply_values($formBoard, $communityBoardDraftPayload, $communityBoardDraftBooleanKeys);
+    foreach (['read_group_keys', 'write_group_keys', 'comment_group_keys'] as $communityBoardDraftGroupKey) {
+        if (is_array($communityBoardDraftPayload[$communityBoardDraftGroupKey] ?? null)) {
+            $formBoard[$communityBoardDraftGroupKey] = array_values(array_filter(
+                array_map('strval', $communityBoardDraftPayload[$communityBoardDraftGroupKey]),
+                static fn (string $groupKey): bool => trim($groupKey) !== ''
+            ));
+        }
+    }
+    if (is_array($communityBoardDraftPayload['identity_verification_required_actions'] ?? null)) {
+        $formBoard['identity_verification_required_actions'] = sr_community_identity_verification_actions_setting_value(
+            array_values($communityBoardDraftPayload['identity_verification_required_actions'])
+        );
+    }
+    foreach (sr_community_module_asset_setting_prefixes() as $communityBoardDraftAssetPrefix) {
+        $communityBoardDraftPolicySetIds = sr_community_asset_policy_set_ids_from_value($communityBoardDraftPayload[$communityBoardDraftAssetPrefix . '_policy_set_ids'] ?? []);
+        $formBoard[$communityBoardDraftAssetPrefix . '_group_policies_json'] = sr_community_asset_policy_set_selection_json_from_ids($communityBoardDraftPolicySetIds);
+        $formBoard[$communityBoardDraftAssetPrefix . '_policy_set_id'] = sr_community_asset_policy_set_first_id($communityBoardDraftPolicySetIds);
+        if (!sr_community_asset_prefix_uses_composite($communityBoardDraftAssetPrefix)) {
+            continue;
+        }
+        $communityBoardDraftAssetModules = sr_community_asset_module_keys_from_value($communityBoardDraftPayload[$communityBoardDraftAssetPrefix . '_asset_module'] ?? [], true);
+        $formBoard[$communityBoardDraftAssetPrefix . '_asset_module'] = sr_community_asset_module_value_from_keys($communityBoardDraftAssetModules, true);
+        $communityBoardDraftAmounts = is_array($communityBoardDraftPayload[$communityBoardDraftAssetPrefix . '_amounts'] ?? null)
+            ? $communityBoardDraftPayload[$communityBoardDraftAssetPrefix . '_amounts']
+            : [];
+        $formBoard[$communityBoardDraftAssetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map($communityBoardDraftAmounts);
+    }
+}
 $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     ? sr_admin_asset_settings_audit_url('community.board.asset_settings.updated', 'community_board', (string) (int) ($formBoard['id'] ?? 0))
     : '';
@@ -444,6 +494,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </section>
     <?php } ?>
 <?php } else { ?>
+    <?php echo sr_admin_form_draft_status_html($adminFormDraft ?? null, 'community-board-form', '파일 선택은 임시저장되지 않습니다. 필요한 파일은 최종 저장 전에 다시 선택하세요.'); ?>
     <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="게시판 설정 섹션">
         <?php $communityBoardSectionNavIndex = 0; ?>
         <?php foreach ($communityBoardSectionNavItems as $sectionId => $sectionLabel) { ?>
@@ -454,7 +505,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
     </nav>
 
-    <form method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
+    <form id="community-board-form" method="post" action="<?php echo sr_e(sr_url($communityBoardsPage === 'edit' ? '/admin/community/boards/update' : '/admin/community/boards/create')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
         <section id="community-board-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.e92ca332') : sr_t('community::ui.text.713b7a18')); ?></h2>
             <?php echo sr_csrf_field(); ?>
@@ -629,6 +680,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <?php echo $memberGroupAccessLabelHtml('community_admin_boards_read_group_keys', sr_t('community::ui.member.ecf858a4')); ?>
                 <div class="form-field">
+                    <input type="hidden" name="read_group_keys[]" value="">
                     <?php echo sr_admin_member_group_key_badge_select_html('community_admin_boards_read_group_keys', 'read_group_keys', is_array($formBoard['read_group_keys'] ?? null) ? $formBoard['read_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php echo $settingSourceRadioHtml('source_read_group_keys', $boardSettingSource($formBoard, 'read_group_keys')); ?>
                 </div>
@@ -682,6 +734,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <span class="form-label">본인확인 범위 <span class="sr-required-label" data-community-board-identity-required<?php echo $communityBoardIdentityEnabled ? '' : ' hidden'; ?>>(필수)</span></span>
                 <div class="form-field">
+                    <input type="hidden" name="identity_verification_required_actions[]" value="">
                     <?php $selectedIdentityActions = sr_community_identity_verification_required_actions_from_value($boardField($formBoard, 'identity_verification_required_actions', '[]')); ?>
                     <?php $identityActionOptions = sr_community_identity_verification_action_options(); ?>
                     <div class="filtering-toggle-group admin-checkbox-toggle-group admin-community-identity-action-group" role="group" aria-label="본인확인 범위">
@@ -717,6 +770,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <?php echo $memberGroupAccessLabelHtml('community_admin_boards_write_group_keys', sr_t('community::ui.member.e99a3ed2')); ?>
                 <div class="form-field">
+                    <input type="hidden" name="write_group_keys[]" value="">
                     <?php echo sr_admin_member_group_key_badge_select_html('community_admin_boards_write_group_keys', 'write_group_keys', is_array($formBoard['write_group_keys'] ?? null) ? $formBoard['write_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php echo $settingSourceRadioHtml('source_write_group_keys', $boardSettingSource($formBoard, 'write_group_keys')); ?>
                 </div>
@@ -742,6 +796,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <?php echo $memberGroupAccessLabelHtml('community_admin_boards_comment_group_keys', sr_t('community::ui.member.11859d69')); ?>
                 <div class="form-field">
+                    <input type="hidden" name="comment_group_keys[]" value="">
                     <?php echo sr_admin_member_group_key_badge_select_html('community_admin_boards_comment_group_keys', 'comment_group_keys', is_array($formBoard['comment_group_keys'] ?? null) ? $formBoard['comment_group_keys'] : [], $enabledMemberGroups); ?>
                     <?php echo $settingSourceRadioHtml('source_comment_group_keys', $boardSettingSource($formBoard, 'comment_group_keys')); ?>
                 </div>
@@ -1269,6 +1324,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="admin-asset-setting-scope admin-asset-setting-scope-inline">
                                 <?php echo $settingSourceRadioHtml('source_' . (string) $assetPrefix . '_policy_set_id', $boardSettingSource($formBoard, (string) $assetPrefix . '_policy_set_id')); ?>
                             </div>
+                            <input type="hidden" name="<?php echo sr_e((string) $assetPrefix); ?>_policy_set_ids[]" value="">
                             <?php echo sr_community_asset_policy_set_checkboxes_html('community_board_' . (string) $assetPrefix . '_policy_set_ids', (string) $assetPrefix . '_policy_set_ids', $assetPolicySets ?? [], sr_community_asset_policy_set_ids_with_legacy($boardField($formBoard, $assetPrefix . '_group_policies_json', ''), (int) $boardField($formBoard, $assetPrefix . '_policy_set_id', '0')), $usesCompositeAsset ? 'use' : 'grant', '#' . $assetSourceId, $pdo); ?>
                             <p class="form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹, 레벨, 대상 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 회원 그룹별 설정 화면에서 관리합니다.</p>
                         </div>
@@ -1334,14 +1390,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
+            <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.3537f0cc') : sr_t('community::ui.save')); ?></button>
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $formBoard['board_key']))); ?>" class="btn btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $formBoard['id']))); ?>" class="btn btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
                 <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>" aria-label="<?php echo sr_e('삭제'); ?>" title="<?php echo sr_e('삭제'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.3537f0cc') : sr_t('community::ui.save')); ?></button>
+            <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+            <?php if (is_array($adminFormDraft ?? null)) { ?>
+                <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+            <?php } ?>
         </div>
     </form>
+    <?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'community-board-form'); ?>
 
     <div id="community-extra-field-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-extra-field-modal-label" aria-hidden="true" inert data-community-extra-field-modal>
         <div class="modal-dialog modal-dialog-lg">

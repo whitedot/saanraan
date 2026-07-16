@@ -21,6 +21,33 @@ if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
     $intent = sr_post_string('intent', 40);
+    $adminFormAction = sr_post_string('admin_form_action', 30);
+    if ($intent === 'save' && in_array($adminFormAction, ['save_draft', 'discard_draft'], true)) {
+        sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'edit');
+        $adminFormDraftQuizId = (int) sr_post_string('quiz_id', 20);
+        $adminFormDraftKey = 'quiz.item';
+        $adminFormDraftContext = $adminFormDraftQuizId > 0 ? 'edit:' . (string) $adminFormDraftQuizId : 'create';
+        $adminFormDraftQuiz = $adminFormDraftQuizId > 0 ? sr_quiz_admin_quiz_by_id($pdo, $adminFormDraftQuizId) : null;
+        if ($adminFormDraftQuizId > 0 && !is_array($adminFormDraftQuiz)) {
+            sr_admin_redirect_with_result(sr_admin_action_result(['임시저장할 퀴즈를 찾을 수 없습니다.'], ''), '/admin/quiz');
+        }
+        $adminFormDraftBaseValues = is_array($adminFormDraftQuiz)
+            ? sr_quiz_admin_values_from_row($adminFormDraftQuiz)
+            : sr_quiz_default_admin_values(sr_quiz_settings($pdo));
+        $adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+        if ($adminFormAction === 'save_draft') {
+            try {
+                sr_admin_form_draft_save($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+                sr_admin_flash_result(sr_admin_action_result([], '퀴즈 입력 내용을 임시저장했습니다.'));
+            } catch (Throwable $exception) {
+                sr_admin_flash_result(sr_admin_action_result([$exception->getMessage()], ''));
+            }
+        } else {
+            sr_admin_form_draft_delete($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext);
+            sr_admin_flash_result(sr_admin_action_result([], '퀴즈 임시저장본을 삭제했습니다.'));
+        }
+        sr_redirect($adminFormDraftQuizId > 0 ? '/admin/quiz?mode=edit&id=' . (string) $adminFormDraftQuizId : '/admin/quiz?mode=new');
+    }
     if ($intent === 'save') {
         sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'edit');
         $values = sr_quiz_admin_values_from_post();
@@ -102,6 +129,9 @@ if (sr_request_method() === 'POST') {
                 'question_count' => count((array) ($values['questions'] ?? [])),
             ],
         ]);
+        $adminFormDraftKey = 'quiz.item';
+        $adminFormDraftContext = (int) ($values['id'] ?? 0) > 0 ? 'edit:' . (string) (int) $values['id'] : 'create';
+        sr_admin_form_draft_delete($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext);
         sr_admin_redirect_with_result(sr_admin_action_result([], '퀴즈를 저장했습니다.'), '/admin/quiz');
     } elseif ($intent === 'copy') {
         sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/quiz', 'edit');
@@ -208,9 +238,22 @@ if ($mode === 'edit') {
     }
 }
 
+$adminFormDraftKey = 'quiz.item';
+$adminFormDraftContext = is_array($editQuiz) ? 'edit:' . (string) (int) $editQuiz['id'] : 'create';
+$adminFormDraftBaseValues = is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values(sr_quiz_settings($pdo));
+$adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+$adminFormDraft = in_array($mode, ['new', 'edit'], true)
+    ? sr_admin_form_draft_with_state(
+        sr_admin_form_draft_get($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext),
+        $adminFormDraftFingerprint
+    )
+    : null;
+$adminFormDraftForDisplay = is_array($sessionValues) && $sessionValues !== [] ? null : $adminFormDraft;
 $values = is_array($sessionValues) && $sessionValues !== []
     ? $sessionValues
-    : (is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values(sr_quiz_settings($pdo)));
+    : (is_array($adminFormDraftForDisplay) && is_array($adminFormDraftForDisplay['payload'] ?? null)
+        ? sr_admin_form_draft_with_post($adminFormDraftForDisplay['payload'], static fn (): array => sr_quiz_admin_values_from_post())
+        : $adminFormDraftBaseValues);
 $quizGroups = sr_quiz_groups($pdo);
 $quizScopeRadioHtml = static function (string $settingKey, string $selected): string {
     $selected = sr_quiz_setting_scope($selected);
@@ -715,6 +758,7 @@ $quizHelp = [
 ];
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
+<?php echo sr_admin_form_draft_status_html($adminFormDraftForDisplay ?? null, 'quiz-item-form', '파일 선택은 임시저장되지 않습니다. 필요한 파일은 최종 저장 전에 다시 선택하세요.'); ?>
 
 <?php
 $quizSectionNavItems = [
@@ -737,7 +781,7 @@ $quizSectionNavItems = [
         <?php $quizSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
+<form id="quiz-item-form" method="post" action="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save">
     <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
@@ -1473,9 +1517,14 @@ $quizSectionNavItems = [
 
     <div class="form-sticky-actions form-actions form-actions-split">
         <a href="<?php echo sr_e(sr_url('/admin/quiz')); ?>" class="btn btn-solid-light">목록</a>
-        <button type="submit" class="btn btn-solid-primary">저장</button>
+        <button type="submit" class="btn btn-solid-primary admin-form-final-save">저장</button>
+        <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+        <?php if (is_array($adminFormDraftForDisplay ?? null)) { ?>
+            <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+        <?php } ?>
     </div>
 </form>
+<?php echo sr_admin_form_draft_restore_script($adminFormDraftForDisplay ?? null, 'quiz-item-form'); ?>
 <script>
 (function () {
     var policy = document.getElementById('quiz_attempt_limit_policy');

@@ -27,6 +27,31 @@ foreach ($memberGroups as $memberGroup) {
 }
 $errors = [];
 $notice = '';
+$surveyAdminDraftContext = static function (PDO $pdo, int $surveyId, string $requestedContext = ''): string {
+    if ($surveyId > 0) {
+        return 'edit:' . (string) $surveyId;
+    }
+    if (preg_match('/\Acopy:([1-9][0-9]*)\z/', $requestedContext, $matches) === 1
+        && is_array(sr_survey_by_id($pdo, (int) $matches[1]))) {
+        return 'copy:' . (string) (int) $matches[1];
+    }
+    return 'create';
+};
+$surveyAdminDraftBaseValues = static function (PDO $pdo, string $context): array {
+    if (preg_match('/\A(?:edit|copy):([1-9][0-9]*)\z/', $context, $matches) === 1) {
+        $surveyId = (int) $matches[1];
+        $survey = sr_survey_by_id($pdo, $surveyId);
+        if (is_array($survey)) {
+            return [
+                'survey' => $survey,
+                'questions' => sr_survey_questions_with_choices($pdo, $surveyId),
+                'reward_policy' => sr_survey_active_reward_policy($pdo, $surveyId) ?: [],
+                'setting_sources' => sr_survey_setting_sources($pdo, $surveyId),
+            ];
+        }
+    }
+    return ['settings' => sr_survey_settings($pdo)];
+};
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -76,14 +101,52 @@ if (sr_request_method() === 'POST') {
     }
 
     sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), '/admin/surveys', 'edit');
-    sr_survey_admin_handle_save_post($pdo, $account, $assetOptions, $enabledMemberGroupKeys);
+    $adminFormAction = sr_post_string('admin_form_action', 30);
+    $adminFormDraftKey = 'survey.item';
+    $adminFormDraftSurveyId = (int) sr_post_string('survey_id', 20);
+    $adminFormDraftContext = $surveyAdminDraftContext($pdo, $adminFormDraftSurveyId, sr_post_string('admin_form_draft_context', 190));
+    $adminFormDraftBaseValues = $surveyAdminDraftBaseValues($pdo, $adminFormDraftContext);
+    $adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+    if ($intent === 'save' && in_array($adminFormAction, ['save_draft', 'discard_draft'], true)) {
+        if ($adminFormDraftSurveyId > 0 && !is_array(sr_survey_by_id($pdo, $adminFormDraftSurveyId))) {
+            sr_admin_flash_result(sr_admin_action_result(['임시저장할 설문을 찾을 수 없습니다.'], ''));
+            sr_redirect('/admin/surveys');
+        }
+        if ($adminFormAction === 'save_draft') {
+            try {
+                sr_admin_form_draft_save($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+                sr_admin_flash_result(sr_admin_action_result([], '설문 입력 내용을 임시저장했습니다.'));
+            } catch (Throwable $exception) {
+                sr_admin_flash_result(sr_admin_action_result([$exception->getMessage()], ''));
+            }
+        } else {
+            sr_admin_form_draft_delete($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext);
+            sr_admin_flash_result(sr_admin_action_result([], '설문 임시저장본을 삭제했습니다.'));
+        }
+        $adminFormDraftRedirect = str_starts_with($adminFormDraftContext, 'edit:')
+            ? '/admin/surveys?mode=edit&id=' . rawurlencode(substr($adminFormDraftContext, 5))
+            : (str_starts_with($adminFormDraftContext, 'copy:')
+                ? '/admin/surveys?mode=copy&id=' . rawurlencode(substr($adminFormDraftContext, 5))
+                : '/admin/surveys?mode=new');
+        sr_redirect($adminFormDraftRedirect);
+    }
+    sr_survey_admin_handle_save_post(
+        $pdo,
+        $account,
+        $assetOptions,
+        $enabledMemberGroupKeys,
+        static function (int $savedSurveyId) use ($pdo, $account, $adminFormDraftKey, $adminFormDraftContext): void {
+            sr_admin_form_draft_delete($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext);
+        }
+    );
 }
 $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_admin_action_result($errors, $notice);
 $errors = array_merge($errors, (array) ($flashResult['errors'] ?? []));
 $notice = (string) ($flashResult['notice'] ?? $notice);
 $requestedMode = sr_get_string('mode', 20);
 $mode = in_array($requestedMode, ['edit', 'new', 'copy'], true) ? $requestedMode : 'list';
-$editSurvey = in_array($mode, ['edit', 'copy'], true) ? sr_survey_by_id($pdo, (int) sr_get_string('id', 20)) : null;
+$requestedSurveyId = (int) sr_get_string('id', 20);
+$editSurvey = in_array($mode, ['edit', 'copy'], true) ? sr_survey_by_id($pdo, $requestedSurveyId) : null;
 if (in_array($mode, ['edit', 'copy'], true) && !is_array($editSurvey)) {
     sr_render_error(404, '설문을 찾을 수 없습니다.');
 }
@@ -100,6 +163,16 @@ if ($mode === 'copy' && is_array($editSurvey)) {
     $editSurvey['revision_locked'] = 0;
 }
 $couponDefinitions = sr_survey_coupon_definitions($pdo, is_array($editPolicy) ? (int) ($editPolicy['reward_code'] ?? 0) : 0);
+$adminFormDraftKey = 'survey.item';
+$adminFormDraftContext = $surveyAdminDraftContext($pdo, $mode === 'edit' ? $requestedSurveyId : 0, $mode === 'copy' ? 'copy:' . (string) $requestedSurveyId : '');
+$adminFormDraftBaseValues = $surveyAdminDraftBaseValues($pdo, $adminFormDraftContext);
+$adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+$adminFormDraft = in_array($mode, ['edit', 'new', 'copy'], true)
+    ? sr_admin_form_draft_with_state(
+        sr_admin_form_draft_get($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext),
+        $adminFormDraftFingerprint
+    )
+    : null;
 
 $adminPageTitle = $mode === 'list' ? '설문 관리' : ($mode === 'edit' ? '설문 수정' : ($mode === 'copy' ? '설문 복사' : '설문 생성'));
 $adminPageTitleUrl = sr_admin_page_title_reset_url($mode === 'list', '/admin/surveys');
@@ -386,6 +459,30 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         $legacyKey = (string) ($legacySettingSourceKeys[$settingKey] ?? '');
         $values['source_' . $settingKey] = sr_survey_setting_scope((string) ($storedSettingSources[$settingKey] ?? ($legacyKey !== '' ? ($storedSettingSources[$legacyKey] ?? 'item') : 'item')));
     }
+    $surveyDraftPayload = [];
+    if (is_array($adminFormDraft) && is_array($adminFormDraft['payload'] ?? null)) {
+        $surveyDraftPayload = $adminFormDraft['payload'];
+        $values = sr_admin_form_draft_apply_values($values, $surveyDraftPayload, [
+            'anonymous_allowed',
+            'comments_enabled',
+            'consent_required',
+            'login_required',
+            'public_listed',
+            'revision_locked',
+            'reward_enabled',
+            'secret_comments_enabled',
+        ]);
+        $draftQuestions = sr_survey_admin_questions_from_draft_payload($surveyDraftPayload);
+        $editQuestions = $draftQuestions;
+        $editPolicy = array_merge(is_array($editPolicy) ? $editPolicy : [], [
+            'reward_provider' => (string) ($surveyDraftPayload['reward_provider'] ?? 'ledger_asset'),
+            'reward_module' => (string) ($surveyDraftPayload['reward_module'] ?? ''),
+            'reward_code' => (string) ($surveyDraftPayload['reward_coupon_definition_id'] ?? ''),
+            'reward_amount' => (string) ($surveyDraftPayload['reward_amount'] ?? '0'),
+            'dedupe_scope' => (string) ($surveyDraftPayload['reward_dedupe_scope'] ?? 'per_survey'),
+        ]);
+        $couponDefinitions = sr_survey_coupon_definitions($pdo, (int) ($editPolicy['reward_code'] ?? 0));
+    }
     $surveyScopeRadioHtml = static function (string $settingKey, string $selected): string {
         $selected = sr_survey_setting_scope($selected);
         $html = '<div class="admin-setting-source-options">';
@@ -396,8 +493,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
         return $html . '</div>';
     };
-    $selectedMemberGroupKeys = sr_survey_member_group_keys_from_json($values['member_group_keys_json'] ?? '[]');
-    if ($editQuestions === []) {
+    $selectedMemberGroupKeys = is_array($surveyDraftPayload['member_group_keys'] ?? null)
+        ? sr_survey_normalize_member_group_keys($surveyDraftPayload['member_group_keys'])
+        : sr_survey_member_group_keys_from_json($values['member_group_keys_json'] ?? '[]');
+    if ($editQuestions === [] && $surveyDraftPayload === []) {
         $editQuestions = [
             [
                 'question_key' => 'q1',
@@ -555,6 +654,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'survey-section-questions' => '문항',
     ];
     ?>
+    <?php echo sr_admin_form_draft_status_html($adminFormDraft ?? null, 'survey-item-form', '파일 선택은 임시저장되지 않습니다. 필요한 파일은 최종 저장 전에 다시 선택하세요.'); ?>
     <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="설문 설정 섹션">
         <?php $surveySectionNavIndex = 0; ?>
         <?php foreach ($surveySectionNavItems as $surveySectionId => $surveySectionLabel): ?>
@@ -564,10 +664,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php $surveySectionNavIndex++; ?>
         <?php endforeach; ?>
     </nav>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme" enctype="multipart/form-data">
+    <form id="survey-item-form" method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="admin-form admin-survey-form ui-form-theme" enctype="multipart/form-data">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="intent" value="save">
             <input type="hidden" name="survey_id" value="<?php echo sr_e((string) (int) ($values['id'] ?? 0)); ?>">
+            <input type="hidden" name="admin_form_draft_context" value="<?php echo sr_e($adminFormDraftContext); ?>">
         <section id="survey-section-basic" class="card admin-list-card admin-list-form" data-admin-section-anchor>
             <div class="card-header"><h2 class="card-title">기본 정보</h2></div>
             <div class="form-grid">
@@ -790,8 +891,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="form-row">
                     <div class="form-label form-label-help"><?php echo $surveyHelpButtonHtml('참여 대상 회원 그룹', $surveyHelp['member_groups']['id']); ?><span>참여 대상 회원 그룹</span></div>
-                    <div class="form-field">
-                        <?php echo sr_admin_member_group_key_badge_select_html('survey_member_group_keys', 'member_group_keys', $selectedMemberGroupKeys, $surveyMemberGroupsForAdmin); ?>
+                <div class="form-field">
+                    <input type="hidden" name="member_group_keys[]" value="">
+                    <?php echo sr_admin_member_group_key_badge_select_html('survey_member_group_keys', 'member_group_keys', $selectedMemberGroupKeys, $surveyMemberGroupsForAdmin); ?>
                         <p class="form-help">선택하면 해당 그룹에 속한 로그인 회원만 참여할 수 있습니다.</p>
                         <?php echo $surveyScopeRadioHtml('member_group_keys', (string) ($values['source_member_group_keys'] ?? 'item')); ?>
                     </div>
@@ -1253,9 +1355,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php endforeach; ?>
         <div class="form-sticky-actions form-actions form-actions-split">
             <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">목록</a>
-            <button type="submit" class="btn btn-solid-primary">저장</button>
+            <button type="submit" class="btn btn-solid-primary admin-form-final-save">저장</button>
+            <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+            <?php if (is_array($adminFormDraft ?? null)): ?>
+                <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+            <?php endif; ?>
         </div>
     </form>
+    <?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'survey-item-form'); ?>
     <?php if ((int) ($values['id'] ?? 0) > 0): ?>
         <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys')); ?>" class="card admin-survey-delete-form ui-form-theme">
             <?php echo sr_csrf_field(); ?>

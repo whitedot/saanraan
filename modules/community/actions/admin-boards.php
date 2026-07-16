@@ -469,6 +469,41 @@ if (sr_request_method() === 'POST') {
             sr_redirect('/admin/community/boards/edit?id=' . (string) $boardId);
         }
     } elseif (in_array($intent, ['create', 'update'], true)) {
+        $adminFormDraftKey = 'community.board';
+        $adminFormDraftBoardId = $intent === 'update' ? (int) sr_post_string('board_id', 20) : 0;
+        $adminFormDraftContext = $adminFormDraftBoardId > 0 ? 'edit:' . (string) $adminFormDraftBoardId : 'create';
+        $adminFormDraftBoard = $adminFormDraftBoardId > 0 ? sr_community_board_by_id($pdo, $adminFormDraftBoardId) : null;
+        if (in_array(sr_post_string('admin_form_action', 30), ['save_draft', 'discard_draft'], true)
+            && $adminFormDraftBoardId > 0
+            && !is_array($adminFormDraftBoard)) {
+            sr_admin_flash_result(sr_admin_action_result([sr_t('community::action.error.board_not_found')], ''));
+            sr_redirect('/admin/community/boards');
+        }
+        $adminFormDraftBaseValues = is_array($adminFormDraftBoard)
+            ? sr_community_admin_prepare_board_row($pdo, $adminFormDraftBoard, $settings, $publicDisplaySettingLabels)
+            : array_merge(sr_community_board_default_settings($settings), [
+                'board_group_id' => 0,
+                'board_key' => '',
+                'title' => '',
+                'description' => '',
+                'sort_order' => 0,
+            ]);
+        $adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+        $adminFormAction = sr_post_string('admin_form_action', 30);
+        if (in_array($adminFormAction, ['save_draft', 'discard_draft'], true)) {
+            if ($adminFormAction === 'save_draft') {
+                try {
+                    sr_admin_form_draft_save($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+                    sr_admin_flash_result(sr_admin_action_result([], '게시판 입력 내용을 임시저장했습니다.'));
+                } catch (Throwable $exception) {
+                    sr_admin_flash_result(sr_admin_action_result([$exception->getMessage()], ''));
+                }
+            } else {
+                sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
+                sr_admin_flash_result(sr_admin_action_result([], '게시판 임시저장본을 삭제했습니다.'));
+            }
+            sr_redirect($adminFormDraftBoardId > 0 ? '/admin/community/boards/edit?id=' . (string) $adminFormDraftBoardId : '/admin/community/boards/new');
+        }
         $saveResult = sr_community_admin_handle_board_save_post($pdo, $intent, $account, [
             'allowed_statuses' => $allowedStatuses,
             'allowed_read_policies' => $allowedReadPolicies,
@@ -486,6 +521,9 @@ if (sr_request_method() === 'POST') {
             'enabled_member_group_keys' => $enabledMemberGroupKeys,
             'asset_module_options' => $assetModuleOptions,
             'reaction_preset_options' => $reactionPresetOptions,
+            'after_save' => static function (int $savedBoardId, bool $created) use ($pdo, $account, $adminFormDraftKey, $adminFormDraftContext): void {
+                sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
+            },
         ]);
         $errors = is_array($saveResult['errors'] ?? null) ? $saveResult['errors'] : [];
         $notice = (string) ($saveResult['notice'] ?? '');
@@ -526,6 +564,26 @@ if ($communityBoardsPage === 'edit') {
     if (!is_array($editBoard)) {
         sr_render_error(404, sr_t('community::action.error.board_not_found'));
     }
+}
+
+$adminFormDraft = null;
+if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
+    $adminFormDraftKey = 'community.board';
+    $adminFormDraftContext = is_array($editBoard) ? 'edit:' . (string) (int) $editBoard['id'] : 'create';
+    $adminFormDraftBaseValues = is_array($editBoard)
+        ? $editBoard
+        : array_merge(sr_community_board_default_settings($settings), [
+            'board_group_id' => $newBoardGroupId,
+            'board_key' => '',
+            'title' => '',
+            'description' => '',
+            'sort_order' => 0,
+        ]);
+    $adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+    $adminFormDraft = sr_admin_form_draft_with_state(
+        sr_admin_form_draft_get($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext),
+        $adminFormDraftFingerprint
+    );
 }
 
 include SR_ROOT . '/modules/community/views/admin-boards.php';

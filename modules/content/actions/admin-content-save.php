@@ -22,6 +22,39 @@ sr_require_csrf();
 
 $pageId = (int) sr_post_string('content_id', 20);
 $existingContent = $pageId > 0 ? sr_content_by_id($pdo, $pageId) : null;
+$adminFormDraftKey = 'content.item';
+$adminFormDraftContext = $pageId > 0 ? 'edit:' . (string) $pageId : 'create';
+$adminFormDraftBaseValues = is_array($existingContent) ? $existingContent : sr_content_default_values($pdo, $site ?? null);
+if (is_array($existingContent)) {
+    $adminFormDraftBaseValues['setting_sources'] = sr_content_setting_sources($pdo, $pageId);
+    $adminFormDraftBaseValues['content_file_link_ids'] = array_keys(sr_content_linked_file_ids($pdo, $pageId));
+    $adminFormDraftSeriesItem = sr_content_active_series_item_for_content($pdo, $pageId);
+    $adminFormDraftBaseValues['series_item'] = is_array($adminFormDraftSeriesItem) ? $adminFormDraftSeriesItem : [];
+}
+$adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($adminFormDraftBaseValues);
+$adminFormAction = sr_post_string('admin_form_action', 30);
+if ($adminFormAction === 'save_draft') {
+    if ($pageId > 0 && !is_array($existingContent)) {
+        $_SESSION['sr_content_admin_errors'] = ['임시저장할 콘텐츠를 찾을 수 없습니다.'];
+        sr_redirect('/admin/content');
+    }
+    try {
+        sr_admin_form_draft_save($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+        $_SESSION['sr_content_admin_notice'] = '콘텐츠 입력 내용을 임시저장했습니다.';
+    } catch (Throwable $exception) {
+        $_SESSION['sr_content_admin_errors'] = [$exception->getMessage()];
+    }
+    sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new');
+}
+if ($adminFormAction === 'discard_draft') {
+    if ($pageId > 0 && !is_array($existingContent)) {
+        $_SESSION['sr_content_admin_errors'] = ['삭제할 콘텐츠 임시저장 대상을 찾을 수 없습니다.'];
+        sr_redirect('/admin/content');
+    }
+    sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
+    $_SESSION['sr_content_admin_notice'] = '콘텐츠 임시저장본을 삭제했습니다.';
+    sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $pageId : '/admin/content/new');
+}
 $beforeCoverImageUrl = is_array($existingContent) ? (string) ($existingContent['cover_image_url'] ?? '') : '';
 $values = sr_content_input_values($pdo);
 $coverImageUploadFile = $_FILES['cover_image_upload'] ?? null;
@@ -229,5 +262,6 @@ if ($pageId > 0) {
     ]);
 }
 
+sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
 $_SESSION['sr_content_admin_notice'] = $pageId > 0 ? '콘텐츠를 저장했습니다.' : '콘텐츠를 만들었습니다.';
 sr_redirect($pageId > 0 ? '/admin/content/edit?id=' . (string) $savedPageId : '/admin/content');

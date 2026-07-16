@@ -21,6 +21,27 @@ $contentAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content.as
 if ($values === []) {
     $values = $editing ? $editPage : sr_content_default_values($pdo, $site ?? null);
 }
+$adminFormDraftForDisplay = !$hasSubmittedValues ? ($adminFormDraft ?? null) : null;
+if (is_array($adminFormDraftForDisplay) && is_array($adminFormDraftForDisplay['payload'] ?? null)) {
+    $contentDraftPayload = $adminFormDraftForDisplay['payload'];
+    $values = sr_admin_form_draft_apply_values($values, $contentDraftPayload, [
+        'asset_access_enabled',
+        'asset_action_enabled',
+        'comments_enabled',
+        'secret_comments_enabled',
+        'reaction_enabled',
+        'public_listed',
+    ]);
+    if (is_array($contentDraftPayload['content_file_link_ids'] ?? null)) {
+        $values['content_file_link_ids'] = array_values($contentDraftPayload['content_file_link_ids']);
+        $linkedDownloadFileIds = [];
+        foreach ($values['content_file_link_ids'] as $submittedFileId) {
+            if ((int) $submittedFileId > 0) {
+                $linkedDownloadFileIds[(int) $submittedFileId] = true;
+            }
+        }
+    }
+}
 $contentCoverImageUrl = sr_content_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''));
 $contentSeriesOptions = isset($contentSeriesOptions) && is_array($contentSeriesOptions) ? $contentSeriesOptions : [];
 $currentContentSeriesItem = isset($currentContentSeriesItem) && is_array($currentContentSeriesItem) ? $currentContentSeriesItem : null;
@@ -546,6 +567,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
 <?php if ($pageAdminPage === 'form') { ?>
+    <?php echo sr_admin_form_draft_status_html($adminFormDraftForDisplay ?? null, 'content-item-form', '파일 선택은 임시저장되지 않습니다. 필요한 파일은 최종 저장 전에 다시 선택하세요.'); ?>
     <?php
     $contentSectionNavItems = [
         'content-section-basic' => '기본 정보',
@@ -569,7 +591,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php $contentSectionNavIndex++; ?>
         <?php } ?>
     </nav>
-    <form method="post" action="<?php echo sr_e(sr_url('/admin/content/save')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
+    <form id="content-item-form" method="post" action="<?php echo sr_e(sr_url('/admin/content/save')); ?>" class="admin-form ui-form-theme" enctype="multipart/form-data">
         <section id="content-section-basic" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')); ?></h2>
             <?php echo sr_csrf_field(); ?>
@@ -984,6 +1006,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="content_admin_contents_download_file_links_select">연결 파일</label>
                 <div class="form-field admin-policy-set-field">
                     <?php if ($downloadFiles !== []) { ?>
+                        <input type="hidden" name="content_file_link_ids[]" value="">
                         <?php echo sr_content_download_file_link_badge_select_html('content_admin_contents_download_file_links', 'content_file_link_ids', $downloadFiles, array_keys($linkedDownloadFileIds), $pdo); ?>
                         <p class="form-help">미리 등록한 사용 상태 파일만 연결할 수 있습니다. 파일 제목, 숨김, 다운로드 과금 정책은 파일 관리 화면에서 처리합니다.</p>
                     <?php } else { ?>
@@ -997,14 +1020,19 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
+            <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
             <?php if ($editing) { ?>
                 <a href="<?php echo sr_e($contentAdminViewUrl((string) $editPage['slug'], (string) ($editPage['status'] ?? ''))); ?>" class="btn btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e('사용자 화면 바로가기'); ?>" title="<?php echo sr_e('사용자 화면 바로가기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                 <button type="button" class="btn btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>" data-overlay="#content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                 <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentDeleteModalId); ?>" aria-label="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
+            <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+            <?php if (is_array($adminFormDraftForDisplay ?? null)) { ?>
+                <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+            <?php } ?>
         </div>
     </form>
+    <?php echo sr_admin_form_draft_restore_script($adminFormDraftForDisplay ?? null, 'content-item-form'); ?>
     <?php echo $editing ? $contentCopyModalHtml($editPage, '/admin/content/edit?id=' . rawurlencode((string) $editPage['id'])) : ''; ?>
     <?php echo $editing ? $contentDeleteModalHtml($editPage) : ''; ?>
     <script type="application/json" id="content-admin-editor-config"><?php echo sr_js_json_encode($contentEditorClientConfigs); ?></script>

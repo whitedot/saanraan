@@ -253,6 +253,24 @@ function sr_admin_form_draft_apply_settings(array $settings, array $payload, arr
     return $settings;
 }
 
+function sr_admin_form_draft_apply_values(array $values, array $payload, array $booleanKeys = []): array
+{
+    foreach ($booleanKeys as $key) {
+        $values[$key] = isset($payload[$key]) && (string) $payload[$key] === '1' ? 1 : 0;
+    }
+
+    foreach ($payload as $key => $value) {
+        if (!is_string($key) || is_array($value) || in_array($key, $booleanKeys, true)) {
+            continue;
+        }
+        if (is_string($value) || is_int($value) || is_float($value) || is_bool($value) || $value === null) {
+            $values[$key] = $value === null ? '' : (string) $value;
+        }
+    }
+
+    return $values;
+}
+
 function sr_admin_form_draft_parallel_rows(array $payload, array $fieldMap, int $maxRows = 100): array
 {
     $columns = [];
@@ -279,7 +297,7 @@ function sr_admin_form_draft_parallel_rows(array $payload, array $fieldMap, int 
     return $rows;
 }
 
-function sr_admin_form_draft_status_html(?array $draft, string $formId): string
+function sr_admin_form_draft_status_html(?array $draft, string $formId, string $additionalNotice = ''): string
 {
     if (!is_array($draft)) {
         return '';
@@ -294,6 +312,9 @@ function sr_admin_form_draft_status_html(?array $draft, string $formId): string
             <span>마지막 임시저장: <?php echo sr_admin_time_html($updatedAt, '저장 시각 확인 불가'); ?></span>
             <?php if (!empty($draft['is_stale'])) { ?>
                 <span>임시저장 뒤 원본이 변경되었습니다. 최종 저장 전에 현재 값을 다시 확인하세요.</span>
+            <?php } ?>
+            <?php if (trim($additionalNotice) !== '') { ?>
+                <span><?php echo sr_e($additionalNotice); ?></span>
             <?php } ?>
         </div>
     </div>

@@ -273,6 +273,62 @@ function sr_survey_admin_question_signature(array $questions): string
     return is_string($json) ? $json : '';
 }
 
+function sr_survey_admin_questions_from_draft_payload(array $payload): array
+{
+    $questionKeys = is_array($payload['question_key'] ?? null) ? array_values($payload['question_key']) : [];
+    $questionTypes = is_array($payload['question_type'] ?? null) ? array_values($payload['question_type']) : [];
+    $questionPrompts = is_array($payload['question_prompt'] ?? null) ? array_values($payload['question_prompt']) : [];
+    $questionAnalysisNotes = is_array($payload['question_analysis_note'] ?? null) ? array_values($payload['question_analysis_note']) : [];
+    $questionMinChoices = is_array($payload['question_min_choices'] ?? null) ? array_values($payload['question_min_choices']) : [];
+    $questionMaxChoices = is_array($payload['question_max_choices'] ?? null) ? array_values($payload['question_max_choices']) : [];
+    $questionScalePoints = is_array($payload['question_scale_points'] ?? null) ? array_values($payload['question_scale_points']) : [];
+    $questionScaleMinLabels = is_array($payload['question_scale_min_label'] ?? null) ? array_values($payload['question_scale_min_label']) : [];
+    $questionScaleMaxLabels = is_array($payload['question_scale_max_label'] ?? null) ? array_values($payload['question_scale_max_label']) : [];
+    $questionNumberUnits = is_array($payload['question_number_unit'] ?? null) ? array_values($payload['question_number_unit']) : [];
+    $questionNumberMins = is_array($payload['question_number_min'] ?? null) ? array_values($payload['question_number_min']) : [];
+    $questionNumberMaxes = is_array($payload['question_number_max'] ?? null) ? array_values($payload['question_number_max']) : [];
+    $questionNonresponsePolicies = is_array($payload['question_nonresponse_policy'] ?? null) ? array_values($payload['question_nonresponse_policy']) : [];
+    $choiceLabels = is_array($payload['choice_labels'] ?? null) ? array_values($payload['choice_labels']) : [];
+    $requiredIndexes = is_array($payload['question_required'] ?? null) ? array_map('strval', $payload['question_required']) : [];
+    $decimalIndexes = is_array($payload['question_allow_decimal'] ?? null) ? array_map('strval', $payload['question_allow_decimal']) : [];
+    $otherIndexes = is_array($payload['question_allow_other'] ?? null) ? array_map('strval', $payload['question_allow_other']) : [];
+    $questions = [];
+
+    foreach (array_slice($questionKeys, 0, 200) as $index => $questionKey) {
+        $prompt = (string) ($questionPrompts[$index] ?? '');
+        if (trim((string) $questionKey) === '' && trim($prompt) === '') {
+            continue;
+        }
+        $choices = [];
+        foreach (preg_split('/\r\n|\r|\n/', (string) ($choiceLabels[$index] ?? '')) ?: [] as $choiceLabel) {
+            if (trim((string) $choiceLabel) !== '') {
+                $choices[] = ['label' => (string) $choiceLabel];
+            }
+        }
+        $questions[] = [
+            'question_key' => (string) $questionKey,
+            'question_type' => (string) ($questionTypes[$index] ?? 'single_choice'),
+            'prompt' => $prompt,
+            'analysis_note' => (string) ($questionAnalysisNotes[$index] ?? ''),
+            'required' => in_array((string) $index, $requiredIndexes, true) ? 1 : 0,
+            'min_choices' => trim((string) ($questionMinChoices[$index] ?? '')) === '' ? null : (string) $questionMinChoices[$index],
+            'max_choices' => trim((string) ($questionMaxChoices[$index] ?? '')) === '' ? null : (string) $questionMaxChoices[$index],
+            'scale_points' => trim((string) ($questionScalePoints[$index] ?? '')) === '' ? null : (string) $questionScalePoints[$index],
+            'scale_min_label' => (string) ($questionScaleMinLabels[$index] ?? ''),
+            'scale_max_label' => (string) ($questionScaleMaxLabels[$index] ?? ''),
+            'number_unit' => (string) ($questionNumberUnits[$index] ?? ''),
+            'number_min' => trim((string) ($questionNumberMins[$index] ?? '')) === '' ? null : (string) $questionNumberMins[$index],
+            'number_max' => trim((string) ($questionNumberMaxes[$index] ?? '')) === '' ? null : (string) $questionNumberMaxes[$index],
+            'allow_decimal' => in_array((string) $index, $decimalIndexes, true) ? 1 : 0,
+            'allow_other' => in_array((string) $index, $otherIndexes, true) ? 1 : 0,
+            'nonresponse_policy' => (string) ($questionNonresponsePolicies[$index] ?? 'none'),
+            'choices' => $choices,
+        ];
+    }
+
+    return $questions;
+}
+
 function sr_survey_admin_number_signature_value(mixed $value): ?string
 {
     if ($value === null || trim((string) $value) === '') {
@@ -313,7 +369,7 @@ function sr_survey_replace_reward_policy(PDO $pdo, int $surveyId, bool $enabled,
     ]);
 }
 
-function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $assetOptions, array $enabledMemberGroupKeys): void
+function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $assetOptions, array $enabledMemberGroupKeys, ?callable $afterSave = null): void
 {
     $errors = [];
     $surveyId = (int) sr_post_string('survey_id', 20);
@@ -759,6 +815,15 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
                 sr_storage_delete((string) ($uploadedCoverImage['driver'] ?? 'local'), (string) ($uploadedCoverImage['key'] ?? ''));
             }
             throw $exception;
+        }
+        if ($afterSave !== null) {
+            try {
+                $afterSave($surveyId);
+            } catch (Throwable $exception) {
+                if (function_exists('sr_log_exception')) {
+                    sr_log_exception($exception, 'survey_admin_draft_cleanup_failed');
+                }
+            }
         }
         sr_admin_flash_result(sr_admin_action_result([], '설문을 저장했습니다.'));
         sr_redirect('/admin/surveys?mode=edit&id=' . (string) $surveyId);
