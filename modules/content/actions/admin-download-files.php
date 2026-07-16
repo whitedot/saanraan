@@ -295,6 +295,8 @@ $downloadFilePagination = sr_admin_pagination_from_total($pdo, sr_content_admin_
 $downloadFiles = sr_content_admin_download_files($pdo, $filters, (int) $downloadFilePagination['per_page'], sr_admin_pagination_offset($downloadFilePagination), $downloadFileSort);
 
 $adminPageTitle = $showForm ? (is_array($editingFile) ? '다운로드 파일 수정' : '다운로드 파일 추가') : '다운로드 파일 관리';
-$adminPageSubtitle = '';
+$adminPageSubtitle = $showForm
+    ? '콘텐츠에 연결할 파일의 공개 상태와 다운로드 금액을 설정합니다.'
+    : '콘텐츠에서 내려받을 수 있는 파일과 공개·과금 상태를 관리합니다.';
 
 include SR_ROOT . '/modules/content/views/admin-download-files.php';

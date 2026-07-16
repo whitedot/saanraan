@@ -15,6 +15,35 @@ $formValues = $values !== [] ? $values : ($editing ? $editingFile : [
 $selectedAssetModules = sr_content_asset_module_keys_from_value($formValues['asset_module'] ?? '');
 $adminContainerClass = 'admin-content-download-files admin-ui-scope';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(!$showForm, '/admin/content/files');
+$contentDownloadFileHelpOpenLabel = '도움말 보기';
+$contentDownloadFileHelp = [
+    'upload' => [
+        'id' => 'content-download-file-upload-help',
+        'title' => '파일 등록 도움말',
+        'body' => '<p>등록할 수 있는 파일 형식은 PDF, TXT, CSV, ZIP, DOC·DOCX, XLS·XLSX, PPT·PPTX, HWP, JPG·JPEG, PNG, WEBP이며 파일 하나의 최대 크기는 ' . sr_e(sr_content_format_bytes(sr_content_file_upload_max_bytes())) . '입니다.</p>'
+            . '<p>파일 확장자와 실제 파일 형식을 함께 검사합니다. 저장에 실패하면 보안을 위해 선택한 파일이 유지되지 않으므로 파일을 다시 선택해야 합니다.</p>'
+            . '<p>등록한 파일의 실제 내용은 수정 화면에서 교체할 수 없습니다. 다른 파일로 바꾸려면 새 파일을 등록한 뒤 콘텐츠의 파일 연결을 변경하세요.</p>',
+    ],
+    'status' => [
+        'id' => 'content-download-file-status-help',
+        'title' => '다운로드 파일 상태 도움말',
+        'body' => '<p>‘숨김’은 파일을 삭제하지 않고 공개 다운로드 링크와 콘텐츠 편집 화면의 연결 후보에서 제외합니다. 이미 연결된 콘텐츠에서도 다운로드 링크가 보이지 않습니다.</p>'
+            . '<p>상태를 다시 ‘사용’으로 바꾸면 기존 콘텐츠 연결이 남아 있는 곳에 다시 표시됩니다. 이전 다운로드 내역과 최초 1회 결제 기록도 유지됩니다.</p>',
+    ],
+    'payment' => [
+        'id' => 'content-download-file-payment-help',
+        'title' => '유료 다운로드 도움말',
+        'body' => '<p>유료 다운로드를 사용하려면 차감할 포인트·금액 항목을 하나 이상 선택하고 각 항목에 1 이상의 금액을 입력해야 합니다. 사이트에서 여러 항목 결제를 허용한 경우에는 여러 항목을 선택할 수 있으며, 한 번의 다운로드에서 선택한 항목을 모두 차감합니다. 하나라도 사용할 수 없으면 다운로드가 진행되지 않습니다.</p>'
+            . '<p>‘최초 1회’는 회원과 파일을 기준으로 처음 한 번만 차감하고 이후 같은 파일 다운로드에는 다시 차감하지 않습니다. ‘매 다운로드’는 내려받을 때마다 확인 후 차감합니다.</p>'
+            . '<p>유료 다운로드를 끄면 저장된 차감 설정은 남지만 새 다운로드에는 적용되지 않습니다.</p>',
+    ],
+    'group_policy' => [
+        'id' => 'content-download-file-group-policy-help',
+        'title' => '회원 그룹별 금액 적용 도움말',
+        'body' => '<p>회원 그룹에 따라 기본 차감 금액을 다르게 적용할 규칙 묶음을 선택합니다. 일치하는 규칙이 없으면 위에서 입력한 기본 금액을 사용합니다.</p>'
+            . '<p>여러 규칙 묶음을 선택하면 사용 중인 규칙을 함께 평가합니다. 선택한 포인트·금액 항목과 맞지 않는 규칙 묶음은 저장할 수 없으며, 중지·보관된 규칙 묶음은 새 다운로드 금액 계산에서 제외됩니다.</p>',
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -28,10 +57,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <h2>기본 정보</h2>
             <?php if (!$editing) { ?>
                 <div class="form-row">
-                    <label class="form-label" for="content_download_file_upload">파일 <span class="sr-required-label">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('content_download_file_upload', '파일', $contentDownloadFileHelp['upload']['id'], $contentDownloadFileHelpOpenLabel, true); ?>
                     <div class="form-field">
-                        <input id="content_download_file_upload" type="file" name="download_file_upload" class="form-input">
-                        <p class="form-help"><?php echo sr_e(sr_t('content::ui.pdf.cf7633ac')); ?> <?php echo sr_e(sr_content_format_bytes(sr_content_file_upload_max_bytes())); ?></p>
+                        <input id="content_download_file_upload" type="file" name="download_file_upload" class="form-input" required>
+                        <p class="form-help"><?php echo sr_e(sr_t('content::ui.pdf.cf7633ac')); ?> <?php echo sr_e(sr_content_format_bytes(sr_content_file_upload_max_bytes())); ?>. 저장에 실패하면 파일을 다시 선택해야 합니다.</p>
                     </div>
                 </div>
             <?php } else { ?>
@@ -51,7 +80,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="content_download_file_status">상태</label>
+                <?php echo sr_admin_form_label_help_html('content_download_file_status', '상태', $contentDownloadFileHelp['status']['id'], $contentDownloadFileHelpOpenLabel); ?>
                 <div class="form-field">
                     <select id="content_download_file_status" name="status" class="form-select">
                         <option value="active"<?php echo (string) ($formValues['status'] ?? 'active') === 'active' ? ' selected' : ''; ?>>사용</option>
@@ -65,13 +94,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section class="card">
             <h2>다운로드 과금</h2>
             <div class="form-row">
-                <span class="form-label">유료 다운로드 사용</span>
+                <div class="form-label form-label-help">
+                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="유료 다운로드 사용 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDownloadFileHelp['payment']['id']); ?>" data-overlay="#<?php echo sr_e($contentDownloadFileHelp['payment']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    <span>유료 다운로드 사용</span>
+                </div>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('content_download_file_asset_download_enabled', 'new_content_file_asset_download_enabled', '1', (int) ($formValues['asset_download_enabled'] ?? 0) === 1, '사용'); ?>
+                    <small class="form-help">사용하면 회원이 다운로드하기 전에 설정한 포인트·금액을 차감합니다.</small>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="content_download_file_asset_charge_policy">과금 방식</label>
+                <?php echo sr_admin_form_label_help_html('content_download_file_asset_charge_policy', '차감 시점', $contentDownloadFileHelp['payment']['id'], $contentDownloadFileHelpOpenLabel); ?>
                 <div class="form-field">
                     <select id="content_download_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select">
                         <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
@@ -80,21 +113,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
+                    <small class="form-help">최초 1회는 같은 회원의 재다운로드에 다시 차감하지 않고, 매 다운로드는 내려받을 때마다 차감합니다.</small>
                 </div>
             </div>
             <div class="form-row">
-                <span class="form-label">유료 다운로드 자산 설정</span>
+                <div class="form-label form-label-help">
+                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="차감 항목과 금액 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDownloadFileHelp['payment']['id']); ?>" data-overlay="#<?php echo sr_e($contentDownloadFileHelp['payment']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    <span>차감 항목과 금액</span>
+                </div>
                 <div class="form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_download_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
                         <?php echo sr_content_asset_grouped_amount_inputs_html('content_download_file_asset_amounts_grouped', 'new_content_file_asset_module', 'new_content_file_asset_download_amounts', $assetModuleOptions, $selectedAssetModules, $formValues['asset_download_amounts_json'] ?? '', (int) ($formValues['asset_download_amount'] ?? 0), '차감 금액', sr_t('content::ui.text.3e195cdd')); ?>
                     </div>
                     <input type="hidden" name="new_content_file_asset_download_amount" value="<?php echo sr_e((string) (int) ($formValues['asset_download_amount'] ?? 0)); ?>">
+                    <small class="form-help">선택한 포인트·금액 항목마다 차감할 금액을 입력하세요.</small>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="content_download_file_asset_download_policy_set_ids">회원 그룹별 적용</label>
+                <?php echo sr_admin_form_label_help_html('content_download_file_asset_download_policy_set_ids', '회원 그룹별 금액 적용', $contentDownloadFileHelp['group_policy']['id'], $contentDownloadFileHelpOpenLabel); ?>
                 <div class="form-field admin-policy-set-field">
                     <?php echo sr_content_asset_policy_set_checkboxes_html('content_download_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($formValues['asset_download_group_policies_json'] ?? '', (int) ($formValues['asset_download_policy_set_id'] ?? 0)), 'neutral', '', '#content_download_file_asset_amounts_grouped', $pdo); ?>
+                    <small class="form-help">선택한 회원 그룹 규칙에 맞는 회원에게만 조정된 금액을 적용합니다.</small>
                 </div>
             </div>
         </section>
@@ -313,6 +352,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         syncBulkState();
     })();
     </script>
+<?php } ?>
+
+<?php foreach ($contentDownloadFileHelp as $contentDownloadFileHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $contentDownloadFileHelpModal['id'], (string) $contentDownloadFileHelpModal['title'], (string) $contentDownloadFileHelpModal['body']); ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

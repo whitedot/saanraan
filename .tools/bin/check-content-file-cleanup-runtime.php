@@ -28,6 +28,23 @@ sr_content_file_cleanup_assert(
     'content series sort help must distinguish series order from episode order.'
 );
 
+$contentDownloadFileAdminView = (string) file_get_contents($root . '/modules/content/views/admin-download-files.php');
+sr_content_file_cleanup_assert(
+    str_contains($contentDownloadFileAdminView, '등록한 파일의 실제 내용은 수정 화면에서 교체할 수 없습니다.')
+        && str_contains($contentDownloadFileAdminView, '저장에 실패하면 보안을 위해 선택한 파일이 유지되지 않으므로'),
+    'content download file upload help must explain replacement and failed-save reselection behavior.'
+);
+sr_content_file_cleanup_assert(
+    str_contains($contentDownloadFileAdminView, '한 번의 다운로드에서 선택한 항목을 모두 차감합니다.')
+        && str_contains($contentDownloadFileAdminView, '최초 1회')
+        && str_contains($contentDownloadFileAdminView, '매 다운로드'),
+    'content download payment help must explain multi-asset and charge timing behavior.'
+);
+sr_content_file_cleanup_assert(
+    str_contains($contentDownloadFileAdminView, '중지·보관된 규칙 묶음은 새 다운로드 금액 계산에서 제외됩니다.'),
+    'content download group policy help must explain inactive policy behavior.'
+);
+
 function sr_content_file_cleanup_error(string $message): void
 {
     global $errors;
