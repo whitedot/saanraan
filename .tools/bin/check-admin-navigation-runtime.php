@@ -197,6 +197,17 @@ sr_admin_navigation_runtime_assert(
     ($notificationMenuPaths[0] ?? '') === '/admin/notifications/settings',
     'Admin navigation runtime fixture must place notification settings first in the notification submenu.'
 );
+$menuReferenceIndex = sr_admin_module_menu_reference_index($pdo);
+$communitySettingsReference = $menuReferenceIndex['community']['/admin/community/settings'] ?? [];
+sr_admin_navigation_runtime_assert(
+    (string) ($communitySettingsReference['label'] ?? '') === (string) ($moduleGroups['community']['label'] ?? '') . ' > ' . (string) ($allItems['/admin/community/settings']['label'] ?? ''),
+    'Admin module menu reference index must derive submenu depth labels from the admin menu contract.'
+);
+$seoReference = $menuReferenceIndex['seo']['/admin/seo'] ?? [];
+sr_admin_navigation_runtime_assert(
+    (string) ($seoReference['label'] ?? '') === (string) ($moduleGroups['seo']['label'] ?? ''),
+    'Admin module menu reference index must use only the module label when the sidebar has no submenu.'
+);
 
 $pdoWithoutNotification = sr_admin_navigation_runtime_pdo();
 $pdoWithoutNotification->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'notification'");

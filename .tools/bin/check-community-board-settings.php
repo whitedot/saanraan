@@ -744,11 +744,39 @@ sr_check_community_board_settings_contains('modules/community/views/admin-settin
     '게시판 목록·읽기·쓰기 화면에서 인기글 위에 표시할 기본 메뉴 범위를 정합니다.',
     'if ($communityBoardSidebarSiteMenuAvailable)',
     'sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable)',
+    '$communitySettingsModuleReferenceListHtml($communitySiteMenuModuleReferences)',
     'data-community-board-sidebar-menu-type',
     'data-community-board-sidebar-site-menu',
     'siteMenu.disabled = !enabled',
     'siteMenu.required = enabled',
 ], 'community global board sidebar menu fields');
+sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
+    '$communitySettingsModuleReferenceListHtml = static function',
+    'class="form-help form-help-info form-help-reference-list"',
+    "sr_material_icon_html('extension', 'form-help-reference-icon')",
+    'class="form-help-reference-label"',
+    "target=\"_blank\" rel=\"noopener noreferrer\"",
+    '$communitySettingsModuleAdminReferenceIndex = sr_admin_module_menu_reference_index($pdo)',
+    '$communitySettingsModuleAdminReference($providerModuleKey, $referencePath)',
+    '$communitySettingsModuleReferenceListHtml($communityLayoutModuleReferences)',
+    '$communitySettingsModuleReferenceListHtml($communitySiteMenuModuleReferences)',
+    '$communitySettingsModuleReferenceListHtml($communityEditorModuleReferences)',
+    '$communitySettingsModuleReferenceListHtml($communityToolbarModuleReferences)',
+    '$communitySettingsModuleReferenceListHtml($communityInternalEmbedModuleReferences)',
+    "sr_enabled_module_contract_files(\$pdo, 'url-embed-targets.php', ['community'])",
+], 'community public display module references');
+sr_check_community_board_settings_contains('modules/admin/assets/common.css', [
+    '.form-help-reference-list',
+    'gap:calc(var(--spacing) * 3) calc(var(--spacing) * 4)',
+    '.form-help-reference-list a{',
+    'text-decoration-line:none!important',
+    '.form-help-reference-list .form-help-reference-label',
+    '@media (max-width:767px){.form-help-reference-list{width:100%}',
+    '.form-help-reference-list>li{flex:0 0 100%;width:100%}',
+], 'admin responsive module reference help');
+sr_check_community_board_settings_contains('modules/admin/assets/admin.css', [
+    '.admin-form .form-field .form-help.form-help-reference-list{display:flex;margin-top:calc(var(--spacing) * 4)}',
+], 'admin module reference help spacing');
 sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
     'name="board_sidebar_menu_type"',
     'name="board_sidebar_site_menu_key"',

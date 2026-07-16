@@ -457,6 +457,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--text-muted);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
 .admin-form .form-field .form-help.form-help-info{color:var(--color-info)!important}
 .admin-form .form-field .form-help.form-help-warning{color:var(--color-warning)!important}
+.admin-form .form-field .form-help.form-help-reference-list{display:flex;margin-top:calc(var(--spacing) * 4)}
 .admin-form .form-field .form-help.form-help-info a,
 .admin-form .form-field .form-help.form-help-warning a{color:inherit;text-decoration-line:underline;text-decoration-thickness:.08em;text-underline-offset:.16em}
 .admin-form .form-field .form-help.form-help-info a:hover,.admin-form .form-field .form-help.form-help-info a:focus,

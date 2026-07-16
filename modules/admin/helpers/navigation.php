@@ -264,6 +264,41 @@ function sr_admin_module_menu_groups(PDO $pdo): array
     return $groups;
 }
 
+function sr_admin_module_menu_reference_index(PDO $pdo): array
+{
+    $references = [];
+
+    foreach (sr_admin_module_menu_groups($pdo) as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        $moduleKey = trim((string) ($group['module_key'] ?? ''));
+        $moduleLabel = trim((string) ($group['label'] ?? ''));
+        $items = array_values(array_filter((array) ($group['items'] ?? []), 'is_array'));
+        if ($moduleKey === '' || $moduleLabel === '' || $items === []) {
+            continue;
+        }
+
+        $hasSubmenu = count($items) > 1;
+        foreach ($items as $item) {
+            $itemLabel = trim((string) ($item['label'] ?? ''));
+            $path = trim((string) ($item['path'] ?? ''));
+            if ($itemLabel === '' || $path === '') {
+                continue;
+            }
+
+            $references[$moduleKey][$path] = [
+                'module_key' => $moduleKey,
+                'label' => $hasSubmenu ? $moduleLabel . ' > ' . $itemLabel : $moduleLabel,
+                'path' => $path,
+            ];
+        }
+    }
+
+    return $references;
+}
+
 function sr_admin_apply_dynamic_module_menu_labels(PDO $pdo, string $moduleKey, array $menu): array
 {
     $assetMenus = [
