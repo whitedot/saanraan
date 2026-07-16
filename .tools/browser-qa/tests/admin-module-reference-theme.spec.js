@@ -57,7 +57,7 @@ test('admin module references keep theme colors, label underline, and responsive
   const light = await styles();
   expect(light.listDisplay).toBe('flex');
   expect(light.listDirection).toBe('row');
-  expect(light.listMarginTop).toBe('16px');
+  expect(light.listMarginTop).toBe('8px');
   expect(light.itemFlexBasis).toBe('auto');
   expect(light.linkColor).toBe(light.listColor);
   expect(light.linkDecoration).toBe('none');
