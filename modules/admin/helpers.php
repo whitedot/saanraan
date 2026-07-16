@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/admin/helpers/input.php';
 require_once SR_ROOT . '/modules/admin/helpers/forms.php';
+require_once SR_ROOT . '/modules/admin/helpers/form-drafts.php';
 require_once SR_ROOT . '/modules/admin/helpers/roles.php';
 require_once SR_ROOT . '/modules/admin/helpers/action-results.php';
 require_once SR_ROOT . '/modules/admin/helpers/pagination.php';

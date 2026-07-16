@@ -14,6 +14,13 @@ $surveySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($s
     <?php
 };
 $surveyLayoutExtraMenuItems = function_exists('sr_survey_layout_extra_menu_items_from_settings') ? sr_survey_layout_extra_menu_items_from_settings($settings) : [];
+if (is_array($adminFormDraft ?? null)) {
+    $surveyLayoutExtraMenuItems = sr_admin_form_draft_parallel_rows((array) $adminFormDraft['payload'], [
+        'area_key' => 'layout_extra_menu_area_keys',
+        'label' => 'layout_extra_menu_labels',
+        'menu_key' => 'layout_extra_menu_keys',
+    ]);
+}
 $surveyIdentityViewAvailable = isset($surveyIdentityViewAvailable)
     ? (bool) $surveyIdentityViewAvailable
     : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'survey.view'));
@@ -168,8 +175,9 @@ $surveySettingsSectionNavItems = [
         <?php $surveySettingsSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/settings')); ?>" class="admin-form ui-form-theme">
+<form id="survey-settings-form" method="post" action="<?php echo sr_e(sr_url('/admin/surveys/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
+    <?php echo sr_admin_form_draft_status_html($adminFormDraft ?? null, 'survey-settings-form'); ?>
 
     <section id="survey-settings-section-display" class="card" data-admin-section-anchor>
         <div class="card-header">
@@ -388,9 +396,16 @@ $surveySettingsSectionNavItems = [
     ); ?>
     <div class="form-sticky-actions form-actions form-actions-split">
         <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">설문 목록</a>
-        <button type="submit" class="btn btn-solid-primary">저장</button>
+        <div class="admin-form-secondary-actions admin-form-draft-actions">
+            <button type="submit" class="btn btn-solid-primary admin-form-final-save">저장</button>
+            <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+            <?php if (is_array($adminFormDraft ?? null)) { ?>
+                <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+            <?php } ?>
+        </div>
     </div>
 </form>
+<?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'survey-settings-form'); ?>
 
 <?php foreach ($surveySettingsHelp as $helpModal): ?>
     <?php echo sr_admin_help_modal_html((string) $helpModal['id'], (string) $helpModal['title'], (string) $helpModal['body_html']); ?>

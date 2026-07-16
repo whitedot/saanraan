@@ -213,7 +213,7 @@ foreach ([
 }
 
 $expected = [
-    'admin' => ['status' => 'operational_retained', 'export' => false, 'cleanup' => false],
+    'admin' => ['status' => 'export_retained', 'export' => true, 'cleanup' => true],
     'antispam' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'antispam_captcha_providers' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'asset_exchange' => ['status' => 'export_retained', 'export' => true, 'cleanup' => false],
@@ -252,7 +252,7 @@ if ($bundledModuleCount !== count($expected)) {
     sr_privacy_matrix_error('privacy contract matrix expected module count does not match bundled module count: expected=' . count($expected) . ' actual=' . $bundledModuleCount);
 }
 
-$operationalRetainedModules = ['admin', 'logo_manager'];
+$operationalRetainedModules = ['logo_manager'];
 
 foreach ($expected as $moduleKey => $policy) {
     if ($matrix !== '' && strpos($matrix, '| `' . $moduleKey . '` | `' . $policy['status'] . '` |') === false) {

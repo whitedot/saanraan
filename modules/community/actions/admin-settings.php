@@ -30,6 +30,10 @@ $notice = (string) $flashResult['notice'];
 $settings = sr_community_settings($pdo);
 $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySettingsPage : 'settings';
 $communitySettingsPermissionPath = $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings';
+$adminFormDraftKey = 'community.settings';
+$adminFormDraftContext = 'default';
+$adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($settings);
+$adminFormDraft = null;
 sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'view');
 $canViewCommunityThumbnailFileCache = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/storage-cache', 'view');
 $communityLayoutOptions = sr_community_layout_options($pdo);
@@ -66,6 +70,21 @@ foreach ($memberGroups as $memberGroup) {
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], $communitySettingsPermissionPath, 'edit');
+
+    $adminFormAction = sr_post_string('admin_form_action', 30);
+    if ($communitySettingsPage === 'settings' && $adminFormAction === 'save_draft') {
+        try {
+            sr_admin_form_draft_save($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+            sr_admin_redirect_with_result(sr_admin_action_result([], '커뮤니티 환경설정 입력값을 임시저장했습니다.'), '/admin/community/settings');
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'community_settings_draft_save_failed');
+            sr_admin_redirect_with_result(sr_admin_action_result(['임시저장 중 오류가 발생했습니다.'], ''), '/admin/community/settings');
+        }
+    }
+    if ($communitySettingsPage === 'settings' && $adminFormAction === 'discard_draft') {
+        sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
+        sr_admin_redirect_with_result(sr_admin_action_result([], '커뮤니티 환경설정 임시저장본을 삭제했습니다.'), '/admin/community/settings');
+    }
 
     $intent = sr_post_string('intent', 40);
 
@@ -637,6 +656,7 @@ if (sr_request_method() === 'POST') {
                 $notice = $createdLevelCount > 0
                     ? sr_t('community::action.admin.settings_saved_levels_created', ['count' => (string) $createdLevelCount])
                     : sr_t('community::action.admin.settings_saved');
+                sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -955,6 +975,48 @@ if (sr_request_method() === 'POST') {
 
     $levels = sr_community_levels($pdo, $settings);
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), $communitySettingsPage === 'levels' ? '/admin/community/levels' : '/admin/community/settings');
+}
+
+if ($communitySettingsPage === 'settings') {
+    $adminFormDraft = sr_admin_form_draft_with_state(
+        sr_admin_form_draft_get($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext),
+        $adminFormDraftFingerprint
+    );
+    if (is_array($adminFormDraft)) {
+        $communityDraftBooleanKeys = [
+            'level_enabled', 'level_auto_recalculate', 'identity_restricted_board_required',
+            'report_auto_action_enabled', 'account_guard_publication_hold_enabled', 'account_guard_confirmed_hold_enabled',
+            'external_embed_enabled', 'internal_embed_enabled', 'business_info_visible', 'plain_text_auto_link_urls',
+            'plain_text_auto_link_new_tab', 'secret_posts_enabled', 'secret_comments_enabled', 'thumbnail_enabled',
+            'privacy_consent_enabled', 'reaction_enabled', 'series_enabled', 'draft_autosave_enabled',
+            'post_reward_reversal_enabled', 'comment_reward_reversal_enabled',
+            'paid_attachment_download_publisher_reward_enabled', 'multi_asset_payment_enabled',
+        ];
+        foreach (sr_community_module_asset_setting_prefixes() as $communityDraftAssetPrefix) {
+            $communityDraftBooleanKeys[] = $communityDraftAssetPrefix . '_enabled';
+        }
+        $communityDraftPayload = (array) $adminFormDraft['payload'];
+        $settings = sr_admin_form_draft_apply_settings($settings, $communityDraftPayload, $communityDraftBooleanKeys);
+        $settings['layout_extra_menu_keys_json'] = sr_community_layout_extra_menu_items_from_pair_values(
+            $communityDraftPayload['layout_extra_menu_area_keys'] ?? [],
+            $communityDraftPayload['layout_extra_menu_labels'] ?? [],
+            $communityDraftPayload['layout_extra_menu_keys'] ?? []
+        );
+        foreach (sr_community_module_asset_setting_prefixes() as $communityDraftAssetPrefix) {
+            $communityDraftPolicySetIds = sr_community_asset_policy_set_ids_from_value($communityDraftPayload[$communityDraftAssetPrefix . '_policy_set_ids'] ?? []);
+            $settings[$communityDraftAssetPrefix . '_group_policies_json'] = sr_community_asset_policy_set_selection_json_from_ids($communityDraftPolicySetIds);
+            $settings[$communityDraftAssetPrefix . '_policy_set_id'] = sr_community_asset_policy_set_first_id($communityDraftPolicySetIds);
+            if (!sr_community_asset_prefix_uses_composite($communityDraftAssetPrefix)) {
+                continue;
+            }
+            $communityDraftAssetModules = sr_community_asset_module_keys_from_value($communityDraftPayload[$communityDraftAssetPrefix . '_asset_module'] ?? [], true);
+            $settings[$communityDraftAssetPrefix . '_asset_module'] = sr_community_asset_module_value_from_keys($communityDraftAssetModules, true);
+            $communityDraftAmounts = isset($communityDraftPayload[$communityDraftAssetPrefix . '_amounts']) && is_array($communityDraftPayload[$communityDraftAssetPrefix . '_amounts'])
+                ? $communityDraftPayload[$communityDraftAssetPrefix . '_amounts']
+                : [];
+            $settings[$communityDraftAssetPrefix . '_amounts_json'] = sr_community_asset_amounts_json_from_map($communityDraftAmounts);
+        }
+    }
 }
 
 $settings['layout_key'] = sr_community_layout_key($settings, $site ?? null, $pdo);

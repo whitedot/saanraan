@@ -127,6 +127,7 @@ foreach ([
     '.tools/browser-qa/tests/milestone-15-browser-smoke.spec.js',
     '.tools/browser-qa/tests/milestone-15-deep-browser.spec.js',
     '.tools/browser-qa/tests/ckeditor-browser-smoke.spec.js',
+    '.tools/browser-qa/tests/admin-form-draft-theme.spec.js',
 ] as $jsFile) {
     sr_browser_qa_node_check($jsFile);
 }

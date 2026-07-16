@@ -17,7 +17,7 @@
 
 | 분류 | 모듈 | 상태 | 현재 증거 | 1.0 전 보강 기준 |
 | --- | --- | --- | --- | --- |
-| 시스템 | `admin` | `stable-candidate` | `check-admin-action-security.php`, `check-admin-navigation-runtime.php`, `check-admin-form-validation.php`, 관리자 action 보안 정적 점검, 관리자 메뉴/route runtime fixture, 관리자 폼 opt-in validation marker 점검, HTTP smoke 기준 | 브라우저 수동 점검 기록 |
+| 시스템 | `admin` | `stable-candidate` | `check-admin-action-security.php`, `check-admin-navigation-runtime.php`, `check-admin-form-validation.php`, `check-admin-form-drafts.php`, 관리자 action 보안 정적 점검, 관리자 메뉴/route runtime fixture, 관리자 폼 opt-in validation marker와 수동 임시저장 격리·복원·개인정보 정리 점검, HTTP smoke 기준 | 브라우저 수동 점검 기록 |
 | 시스템 | `antispam` | `beta` | `check-antispam-runtime.php`, 강화 산술 challenge runtime fixture, 정답 HMAC 세션 저장과 재사용 방지 fixture, honeypot/min submit marker, provider action/hostname 검증 fixture, `provider_unavailable` 한정 fallback fixture, 활성 `antispam-providers.php` provider 계약과 `antispam-targets.php` 적용 대상 계약 로딩 fixture, 회원가입과 비회원 커뮤니티 글/댓글 적용 marker, secret masking 점검 | 로컬/staging 설치 DB에서 회원가입, 비회원 게시글, 비회원 댓글 산술 challenge mutation smoke와 실제 provider staging key 또는 provider mock endpoint 기반 브라우저 수동 smoke |
 | 시스템 | `asset_ledger` | `stable-candidate` | 숨김 기반 모듈 정책 문서, 자산 모듈 lifecycle 점검, `check-asset-reconciliation.php`와 read-only 관리자 reconciliation 화면 | `release-installed-gate-status.php --run-readonly` 설치 DB reconciliation 실행 기록과 함께 확인 |
 | 시스템 | `payment_ledger` | `stable-candidate` | 숨김 기반 모듈 정책 문서, 결제 대상 계약, `check-payment-ledger-runtime.php`, 콘텐츠/커뮤니티 쿠폰+자산 복합 결제 payment record fixture | 설치 DB 콘텐츠/커뮤니티 결제 mutation smoke와 결제 record/item 확인 |

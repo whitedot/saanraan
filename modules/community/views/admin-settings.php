@@ -39,6 +39,13 @@ $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use 
     <?php
 };
 $communityLayoutExtraMenuItems = function_exists('sr_community_layout_extra_menu_items_from_settings') ? sr_community_layout_extra_menu_items_from_settings($settings) : [];
+if (is_array($adminFormDraft ?? null)) {
+    $communityLayoutExtraMenuItems = sr_admin_form_draft_parallel_rows((array) $adminFormDraft['payload'], [
+        'area_key' => 'layout_extra_menu_area_keys',
+        'label' => 'layout_extra_menu_labels',
+        'menu_key' => 'layout_extra_menu_keys',
+    ]);
+}
 $communityLayoutExtraMenuRows = static function (array $menuItems, bool $template = false) use ($communitySiteMenuSelectOptions): void {
     foreach ($template ? [['area_key' => '', 'label' => '', 'menu_key' => '']] : $menuItems as $menuItem) {
         $areaKey = is_array($menuItem) ? (string) ($menuItem['area_key'] ?? '') : '';
@@ -184,9 +191,10 @@ $communitySettingsSectionNavItems = [
         <?php $communitySettingsSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form ui-form-theme" data-community-settings-form>
+<form id="community-settings-form" method="post" action="<?php echo sr_e(sr_url('/admin/community/settings')); ?>" class="admin-form ui-form-theme" data-community-settings-form>
     <?php echo sr_csrf_field(); ?>
     <input type="hidden" name="intent" value="save_settings">
+    <?php echo sr_admin_form_draft_status_html($adminFormDraft ?? null, 'community-settings-form'); ?>
     <input type="hidden" name="level_max_change_confirmed" value="0" data-community-settings-level-max-confirmed>
     <input type="hidden" name="level_max_change_confirm_text" value="" data-community-settings-level-max-confirm-text>
 
@@ -822,9 +830,14 @@ $communitySettingsSectionNavItems = [
     <script src="<?php echo sr_e(sr_admin_asset_url('/modules/community/assets/admin-post-extra-fields.js')); ?>" defer></script>
 
     <div class="form-sticky-actions form-actions form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.settings.save.59aa86cd')); ?></button>
+        <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e(sr_t('community::ui.settings.save.59aa86cd')); ?></button>
+        <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>설정 임시저장</button>
+        <?php if (is_array($adminFormDraft ?? null)) { ?>
+            <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+        <?php } ?>
     </div>
 </form>
+<?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'community-settings-form'); ?>
 
 <button type="button" class="btn btn-solid-light" hidden data-overlay="#community-settings-level-max-confirm-modal" data-community-settings-level-max-open><?php echo sr_e(sr_t('community::ui.level_max_value')); ?></button>
 <div id="community-settings-level-max-confirm-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-settings-level-max-confirm-modal-label" aria-hidden="true" inert>

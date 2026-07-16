@@ -19,7 +19,7 @@
 
 | 모듈 | 상태 | `privacy-export.php` | `privacy-cleanup.php` | 근거 |
 | --- | --- | --- | --- | --- |
-| `admin` | `operational_retained` | 없음 | 없음 | 관리자 권한과 감사성 운영 데이터는 회원 계정과 연결될 수 있으나, 현재는 관리자 운영 보존 데이터로 분류한다. 감사 로그는 본인 사본 제공 기본 범위에서 제외하고 보존/조사 권한과 redaction 기준으로 관리한다. |
+| `admin` | `export_retained` | 제공 | 제공 | 관리자 수동 임시저장 payload는 해당 관리자의 사본 제공 대상이며 계정 정리 시 삭제한다. 관리자 권한과 감사 로그는 운영 보존 데이터로 유지하고 본인 사본 제공 기본 범위에서 제외하며, 보존/조사 권한과 redaction 기준으로 관리한다. |
 | `antispam` | `no_member_personal_data` | 없음 | 없음 | 자동등록방지 설정, 산술 challenge 세션, 외부 provider 검증 요청만 다루며 현재 설치 SQL 또는 update SQL 기준 회원 귀속 개인정보를 저장하지 않는다. |
 | `antispam_captcha_providers` | `no_member_personal_data` | 없음 | 없음 | Turnstile, hCaptcha, reCAPTCHA provider 계약만 제공하며 설정 저장과 검증 정책은 `antispam` 모듈이 소유한다. |
 | `asset_exchange` | `export_retained` | 제공 | 없음 | 회원별 환전 이력과 실행자 메타데이터는 금액성 증빙으로 사본 제공 대상이며 보관 대상이다. |

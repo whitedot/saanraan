@@ -2,7 +2,7 @@
 
 return [
     'name' => '관리자',
-    'version' => '2026.07.001',
+    'version' => '2026.07.002',
     'type' => 'module',
     'description' => '관리자 대시보드 모듈입니다.',
     'admin' => [
@@ -22,6 +22,8 @@ return [
     'contracts' => [
         'provides' => [
             'paths.php',
+            'privacy-export.php',
+            'privacy-cleanup.php',
         ],
         'consumes' => [
             'admin-menu.php',

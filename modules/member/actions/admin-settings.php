@@ -14,6 +14,10 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_member_settings($pdo);
+$adminFormDraftKey = 'member.settings';
+$adminFormDraftContext = 'default';
+$adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($settings);
+$adminFormDraft = null;
 $integerSettingKeys = sr_member_integer_setting_keys();
 $memberMfaProviderDefinitions = sr_member_mfa_provider_definitions($pdo);
 $memberIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
@@ -34,6 +38,21 @@ $memberIdentityAccountSecurityAvailable = $memberIdentityVerificationModuleAvail
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/member-settings', 'edit');
+
+    $adminFormAction = sr_post_string('admin_form_action', 30);
+    if ($adminFormAction === 'save_draft') {
+        try {
+            sr_admin_form_draft_save($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+            sr_admin_redirect_with_result(sr_admin_action_result([], '회원 환경설정 입력값을 임시저장했습니다.'), '/admin/member-settings');
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'member_settings_draft_save_failed');
+            sr_admin_redirect_with_result(sr_admin_action_result(['임시저장 중 오류가 발생했습니다.'], ''), '/admin/member-settings');
+        }
+    }
+    if ($adminFormAction === 'discard_draft') {
+        sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
+        sr_admin_redirect_with_result(sr_admin_action_result([], '회원 환경설정 임시저장본을 삭제했습니다.'), '/admin/member-settings');
+    }
 
     $previousProfileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($settings);
     $previousProfileExtraFieldKeys = [];
@@ -291,10 +310,32 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
 
-    $notice = sr_t('member::action.admin_settings.saved');
+        sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
+        $notice = sr_t('member::action.admin_settings.saved');
     }
 
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/member-settings');
+}
+$adminFormDraft = sr_admin_form_draft_with_state(
+    sr_admin_form_draft_get($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext),
+    $adminFormDraftFingerprint
+);
+if (is_array($adminFormDraft)) {
+    $memberDraftBooleanKeys = [
+        'allow_registration', 'email_verification_enabled', 'identity_withdrawal_required',
+        'identity_account_security_required', 'nickname_enabled',
+    ];
+    foreach (sr_member_profile_field_definitions() as $memberDraftProfileDefinition) {
+        $memberDraftBooleanKeys[] = (string) $memberDraftProfileDefinition['enabled_key'];
+        $memberDraftBooleanKeys[] = (string) $memberDraftProfileDefinition['required_key'];
+    }
+    $memberDraftPayload = (array) $adminFormDraft['payload'];
+    $settings = sr_admin_form_draft_apply_settings($settings, $memberDraftPayload, $memberDraftBooleanKeys);
+    $settings['mfa_login_providers_json'] = sr_member_mfa_provider_keys_json(
+        isset($memberDraftPayload['mfa_login_providers']) && is_array($memberDraftPayload['mfa_login_providers'])
+            ? $memberDraftPayload['mfa_login_providers']
+            : []
+    );
 }
 
 include SR_ROOT . '/modules/member/views/admin-settings.php';

@@ -60,6 +60,13 @@ $contentIdentityAuthorApplicationAdultInputAttributes = $contentIdentityAuthorAp
     ? ''
     : ' disabled aria-describedby="content-settings-author-identity-adult-unavailable"';
 $contentLayoutExtraMenuItems = function_exists('sr_content_layout_extra_menu_items_from_settings') ? sr_content_layout_extra_menu_items_from_settings($settings) : [];
+if (is_array($adminFormDraft ?? null)) {
+    $contentLayoutExtraMenuItems = sr_admin_form_draft_parallel_rows((array) $adminFormDraft['payload'], [
+        'area_key' => 'layout_extra_menu_area_keys',
+        'label' => 'layout_extra_menu_labels',
+        'menu_key' => 'layout_extra_menu_keys',
+    ]);
+}
 $contentLayoutExtraMenuRows = static function (array $menuItems, bool $template = false) use ($contentSiteMenuSelectOptions): void {
     foreach ($template ? [['area_key' => '', 'menu_key' => '']] : $menuItems as $menuItem) {
         $areaKey = is_array($menuItem) ? (string) ($menuItem['area_key'] ?? '') : '';
@@ -102,8 +109,9 @@ $contentSettingsSectionNavItems = [
         <?php $contentSettingsSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/content/settings')); ?>" class="admin-form ui-form-theme">
+<form id="content-settings-form" method="post" action="<?php echo sr_e(sr_url('/admin/content/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
+    <?php echo sr_admin_form_draft_status_html($adminFormDraft ?? null, 'content-settings-form'); ?>
     <section id="content-settings-section-writing" class="card" data-admin-section-anchor>
         <h2>작성 기본값</h2>
         <div class="form-row">
@@ -386,9 +394,14 @@ $contentSettingsSectionNavItems = [
         '새 콘텐츠 등록 화면을 열 때 미리 채워지는 항목입니다. 기존 콘텐츠에는 반영되지 않으며, 등록 화면에서 수정한 최종 값이 해당 콘텐츠에 저장됩니다.'
     ); ?>
     <div class="form-sticky-actions form-actions form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary">저장</button>
+        <button type="submit" class="btn btn-solid-primary admin-form-final-save">저장</button>
+        <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+        <?php if (is_array($adminFormDraft ?? null)) { ?>
+            <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+        <?php } ?>
     </div>
 </form>
+<?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'content-settings-form'); ?>
 
 <?php echo sr_admin_help_modal_html($contentOnceHistoryPolicyHelpId, '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpBody); ?>
 

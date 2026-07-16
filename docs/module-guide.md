@@ -1480,7 +1480,7 @@ return [
 
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
-| `admin` | `paths.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
+| `admin` | `paths.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
 | `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php` | `notification-events.php`, `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |

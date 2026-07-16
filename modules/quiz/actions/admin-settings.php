@@ -37,10 +37,29 @@ if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_men
     $siteMenuOptions = sr_site_menu_options($pdo);
 }
 $settings = sr_quiz_settings($pdo);
+$adminFormDraftKey = 'quiz.settings';
+$adminFormDraftContext = 'default';
+$adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($settings);
+$adminFormDraft = null;
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
     sr_admin_require_permission($pdo, (int) ($account['id'] ?? 0), $permissionPath, 'edit');
+
+    $adminFormAction = sr_post_string('admin_form_action', 30);
+    if ($adminFormAction === 'save_draft') {
+        try {
+            sr_admin_form_draft_save($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+            sr_admin_redirect_with_result(sr_admin_action_result([], '퀴즈 환경설정 입력값을 임시저장했습니다.'), $permissionPath);
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'quiz_settings_draft_save_failed');
+            sr_admin_redirect_with_result(sr_admin_action_result(['임시저장 중 오류가 발생했습니다.'], ''), $permissionPath);
+        }
+    }
+    if ($adminFormAction === 'discard_draft') {
+        sr_admin_form_draft_delete($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext);
+        sr_admin_redirect_with_result(sr_admin_action_result([], '퀴즈 환경설정 임시저장본을 삭제했습니다.'), $permissionPath);
+    }
 
     $settings = sr_quiz_settings_from_post();
     $errors = sr_quiz_settings_validation_errors($pdo, $settings, $assetOptions);
@@ -57,6 +76,7 @@ if (sr_request_method() === 'POST') {
                 'message' => 'Quiz settings updated.',
                 'metadata' => $settings,
             ]);
+            sr_admin_form_draft_delete($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext);
             sr_admin_redirect_with_result(sr_admin_action_result([], '퀴즈 환경설정을 저장했습니다.'), $permissionPath);
         } catch (Throwable $exception) {
             sr_log_exception($exception, 'quiz_settings_save_failed');
@@ -64,6 +84,15 @@ if (sr_request_method() === 'POST') {
         }
     }
     sr_admin_redirect_with_result(sr_admin_action_result($errors, ''), $permissionPath);
+}
+$adminFormDraft = sr_admin_form_draft_with_state(
+    sr_admin_form_draft_get($pdo, (int) ($account['id'] ?? 0), $adminFormDraftKey, $adminFormDraftContext),
+    $adminFormDraftFingerprint
+);
+if (is_array($adminFormDraft)) {
+    $settings = sr_admin_form_draft_with_post((array) $adminFormDraft['payload'], static function (): array {
+        return sr_quiz_settings_from_post();
+    });
 }
 $couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo, (int) ($settings['default_reward_coupon_definition_id'] ?? 0));
 

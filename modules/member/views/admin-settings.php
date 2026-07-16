@@ -170,8 +170,9 @@ $memberSettingsSectionNavItems = [
         <?php $memberSettingsSectionNavIndex++; ?>
     <?php } ?>
 </nav>
-<form method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
+<form id="member-settings-form" method="post" action="<?php echo sr_e(sr_url('/admin/member-settings')); ?>" class="admin-form ui-form-theme" data-sr-validate-form>
     <?php echo sr_csrf_field(); ?>
+    <?php echo sr_admin_form_draft_status_html($adminFormDraft ?? null, 'member-settings-form'); ?>
 
     <section id="member-settings-section-registration" class="card" data-admin-section-anchor>
         <h2><?php echo sr_e(sr_t('member::ui.text.564c3c84')); ?></h2>
@@ -508,9 +509,14 @@ $memberSettingsSectionNavItems = [
     </section>
 
     <div class="form-sticky-actions form-actions form-actions-primary">
-        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>
+        <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e(sr_t('member::ui.save.5fb92622')); ?></button>
+        <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+        <?php if (is_array($adminFormDraft ?? null)) { ?>
+            <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+        <?php } ?>
     </div>
 </form>
+<?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'member-settings-form'); ?>
 
 <div id="member-profile-extra-field-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="member-profile-extra-field-modal-label" aria-hidden="true" inert data-member-profile-extra-field-modal>
     <div class="modal-dialog modal-dialog-lg">

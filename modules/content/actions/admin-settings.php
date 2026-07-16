@@ -37,6 +37,10 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_content_settings($pdo);
+$adminFormDraftKey = 'content.settings';
+$adminFormDraftContext = 'default';
+$adminFormDraftFingerprint = sr_admin_form_draft_fingerprint($settings);
+$adminFormDraft = null;
 $assetModuleOptions = sr_content_asset_module_options($pdo);
 $editorOptions = sr_editor_options($pdo);
 $toolbarPresetOptions = sr_content_toolbar_preset_options();
@@ -52,6 +56,21 @@ if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_men
 if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings', 'edit');
     sr_require_csrf();
+
+    $adminFormAction = sr_post_string('admin_form_action', 30);
+    if ($adminFormAction === 'save_draft') {
+        try {
+            sr_admin_form_draft_save($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext, $_POST, $adminFormDraftFingerprint);
+            sr_admin_redirect_with_result(sr_admin_action_result([], '콘텐츠 환경설정 입력값을 임시저장했습니다.'), '/admin/content/settings');
+        } catch (Throwable $exception) {
+            sr_log_exception($exception, 'content_settings_draft_save_failed');
+            sr_admin_redirect_with_result(sr_admin_action_result(['임시저장 중 오류가 발생했습니다.'], ''), '/admin/content/settings');
+        }
+    }
+    if ($adminFormAction === 'discard_draft') {
+        sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
+        sr_admin_redirect_with_result(sr_admin_action_result([], '콘텐츠 환경설정 임시저장본을 삭제했습니다.'), '/admin/content/settings');
+    }
 
     $postedEditorInput = sr_post_string('editor', 30);
     $postedToolbarPresetInput = sr_post_string('editor_toolbar_preset', 80);
@@ -182,12 +201,33 @@ if (sr_request_method() === 'POST') {
             ],
         ]);
 
+        sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);
         $notice = '콘텐츠 환경설정을 저장했습니다.';
     } else {
         $settings = array_merge($settings, $postedSettings);
     }
 
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/content/settings');
+}
+$adminFormDraft = sr_admin_form_draft_with_state(
+    sr_admin_form_draft_get($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext),
+    $adminFormDraftFingerprint
+);
+if (is_array($adminFormDraft)) {
+    $contentDraftBooleanKeys = [
+        'external_embed_enabled', 'internal_embed_enabled', 'plain_text_auto_link_urls', 'plain_text_auto_link_new_tab',
+        'secret_comments_enabled', 'business_info_visible', 'series_enabled', 'member_submission_enabled',
+        'identity_content_view_required', 'identity_content_view_adult_required', 'identity_author_application_required',
+        'identity_author_application_adult_required', 'member_submission_default_review_required',
+        'member_submission_author_reward_enabled', 'multi_asset_payment_enabled', 'reaction_enabled',
+    ];
+    $settings = sr_admin_form_draft_apply_settings($settings, (array) $adminFormDraft['payload'], $contentDraftBooleanKeys);
+    $contentDraftPayload = (array) $adminFormDraft['payload'];
+    $settings['layout_extra_menu_keys_json'] = sr_content_layout_extra_menu_items_from_pair_values(
+        $contentDraftPayload['layout_extra_menu_area_keys'] ?? [],
+        $contentDraftPayload['layout_extra_menu_labels'] ?? [],
+        $contentDraftPayload['layout_extra_menu_keys'] ?? []
+    );
 }
 
 include SR_ROOT . '/modules/content/views/admin-settings.php';
