@@ -92,7 +92,16 @@ function sr_survey_delete_group(PDO $pdo, int $groupId): bool
     }
     $pdo->beginTransaction();
     try {
-        $pdo->prepare('UPDATE sr_survey_forms SET survey_group_id = NULL, updated_at = :updated_at WHERE survey_group_id = :group_id')->execute(['updated_at' => sr_now(), 'group_id' => $groupId]);
+        $now = sr_now();
+        if (sr_survey_setting_sources_table_exists($pdo)) {
+            $pdo->prepare(
+                "UPDATE sr_survey_setting_sources
+                 SET source = 'item', updated_at = :updated_at
+                 WHERE source = 'group'
+                   AND survey_id IN (SELECT id FROM sr_survey_forms WHERE survey_group_id = :group_id)"
+            )->execute(['updated_at' => $now, 'group_id' => $groupId]);
+        }
+        $pdo->prepare('UPDATE sr_survey_forms SET survey_group_id = NULL, updated_at = :updated_at WHERE survey_group_id = :group_id')->execute(['updated_at' => $now, 'group_id' => $groupId]);
         $pdo->prepare('DELETE FROM sr_survey_groups WHERE id = :id')->execute(['id' => $groupId]);
         $pdo->commit();
     } catch (Throwable $exception) {

@@ -116,7 +116,7 @@ function sr_public_call_order_check_output_slot_assets(): void
     if (!str_contains($popupContract, "'assets_function'") || !str_contains($popupContract, "'scripts' => ['/modules/popup_layer/assets/saanraan-popup-layer.js']")) {
         sr_public_call_order_error('Popup layer output slot contract must conditionally declare its public script asset.');
     }
-    if (!str_contains($popupContract, 'sr_popup_layer_render($pdo, $context, false)')) {
+    if (!str_contains($popupContract, 'sr_popup_layer_render_output_slot_cached($pdo, $context, false)')) {
         sr_public_call_order_error('Popup layer output slot renderer must not append late script tags in slot HTML.');
     }
 }

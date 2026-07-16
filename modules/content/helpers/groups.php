@@ -720,8 +720,17 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
     try {
         $deletedSettings = sr_content_count($pdo, 'sr_content_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
         $detachedContents = (int) ($check['references']['contents'] ?? 0);
+        $now = sr_now();
+        if (sr_content_setting_sources_table_exists($pdo)) {
+            $pdo->prepare(
+                "UPDATE sr_content_setting_sources
+                 SET source = 'content', updated_at = :updated_at
+                 WHERE source = 'group'
+                   AND content_id IN (SELECT id FROM sr_content_items WHERE content_group_id = :group_id)"
+            )->execute(['updated_at' => $now, 'group_id' => $groupId]);
+        }
         $pdo->prepare('UPDATE sr_content_items SET content_group_id = NULL, updated_at = :updated_at WHERE content_group_id = :group_id')->execute([
-            'updated_at' => sr_now(),
+            'updated_at' => $now,
             'group_id' => $groupId,
         ]);
         $pdo->prepare('DELETE FROM sr_content_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);

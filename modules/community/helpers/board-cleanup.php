@@ -408,8 +408,15 @@ function sr_community_delete_board_group(PDO $pdo, int $groupId): array
     try {
         $deletedSettings = sr_community_count($pdo, 'sr_community_board_group_settings', 'group_id = :group_id', ['group_id' => $groupId]);
         $detachedBoards = (int) ($check['references']['boards'] ?? 0);
+        $now = sr_now();
+        $pdo->prepare(
+            "UPDATE sr_community_board_setting_sources
+             SET source = 'board', updated_at = :updated_at
+             WHERE source = 'group'
+               AND board_id IN (SELECT id FROM sr_community_boards WHERE board_group_id = :group_id)"
+        )->execute(['updated_at' => $now, 'group_id' => $groupId]);
         $pdo->prepare('UPDATE sr_community_boards SET board_group_id = NULL, updated_at = :updated_at WHERE board_group_id = :group_id')->execute([
-            'updated_at' => sr_now(),
+            'updated_at' => $now,
             'group_id' => $groupId,
         ]);
         $pdo->prepare('DELETE FROM sr_community_board_group_settings WHERE group_id = :group_id')->execute(['group_id' => $groupId]);
@@ -417,6 +424,9 @@ function sr_community_delete_board_group(PDO $pdo, int $groupId): array
         $pdo->commit();
         if (function_exists('sr_community_enabled_boards_file_cache_mark_stale')) {
             sr_community_enabled_boards_file_cache_mark_stale();
+        }
+        if (function_exists('sr_community_clear_board_settings_runtime_cache')) {
+            sr_community_clear_board_settings_runtime_cache();
         }
     } catch (Throwable $exception) {
         if ($pdo->inTransaction()) {

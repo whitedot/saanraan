@@ -872,6 +872,25 @@ function sr_popup_layer_render(PDO $pdo, array $context, bool $includeScript = t
     return $html;
 }
 
+function sr_popup_layer_render_output_slot_cached(PDO $pdo, array $context, bool $includeScript = true): string
+{
+    static $cache = [];
+
+    $cacheKey = implode("\0", [
+        (string) spl_object_id($pdo),
+        (string) ($context['module_key'] ?? ''),
+        (string) ($context['point_key'] ?? ''),
+        (string) ($context['slot_key'] ?? sr_popup_layer_default_slot_key()),
+        (string) ($context['subject_id'] ?? ''),
+        $includeScript ? '1' : '0',
+    ]);
+    if (!array_key_exists($cacheKey, $cache)) {
+        $cache[$cacheKey] = sr_popup_layer_render($pdo, $context, $includeScript);
+    }
+
+    return $cache[$cacheKey];
+}
+
 function sr_popup_layer_prepare_render_popup(PDO $pdo, array $popup): array
 {
     $campaignKey = (string) ($popup['coupon_claim_campaign_key'] ?? '');

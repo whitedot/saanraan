@@ -6,7 +6,7 @@ require_once SR_ROOT . '/modules/popup_layer/helpers.php';
 
 return [
     'assets_function' => static function (PDO $pdo, array $context): array {
-        return sr_popup_layer_render($pdo, $context, false) === ''
+        return sr_popup_layer_render_output_slot_cached($pdo, $context, false) === ''
             ? []
             : [
                 'stylesheets' => ['/modules/popup_layer/assets/module.css'],
@@ -14,6 +14,6 @@ return [
             ];
     },
     'renderer' => static function (PDO $pdo, array $context): string {
-        return sr_popup_layer_render($pdo, $context, false);
+        return sr_popup_layer_render_output_slot_cached($pdo, $context, false);
     },
 ];

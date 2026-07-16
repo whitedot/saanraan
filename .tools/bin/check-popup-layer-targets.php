@@ -263,6 +263,23 @@ function sr_banner_check_runtime_fixture(): array
     if (!in_array('/modules/banner/assets/module.css', $visibleBannerAssets['stylesheets'] ?? [], true)) {
         $errors[] = 'banner output slot contract should declare CSS when the current slot renders a banner.';
     }
+    $bannerRenderer = $bannerContract['renderer'] ?? null;
+    $contractBannerHtml = is_callable($bannerRenderer)
+        ? $bannerRenderer($pdo, [
+            'module_key' => 'content',
+            'point_key' => 'content.view',
+            'slot_key' => 'before_content',
+            'subject_id' => 'content-1',
+        ])
+        : '';
+    if ($contractBannerHtml === '' || $contractBannerHtml !== sr_banner_render_output_slot_cached($pdo, [
+        'module_key' => 'content',
+        'point_key' => 'content.view',
+        'slot_key' => 'before_content',
+        'subject_id' => 'content-1',
+    ])) {
+        $errors[] = 'banner output slot asset lookup and renderer should share the same request-local rendered result.';
+    }
     $emptyBannerAssets = is_callable($bannerAssetsFunction)
         ? $bannerAssetsFunction($pdo, [
             'module_key' => 'content',
@@ -604,6 +621,23 @@ function sr_popup_layer_check_runtime_fixture(): array
         || !in_array('/modules/popup_layer/assets/saanraan-popup-layer.js', $visiblePopupAssets['scripts'] ?? [], true)
     ) {
         $errors[] = 'popup layer output slot contract should declare CSS and JS when the current slot renders a popup.';
+    }
+    $popupRenderer = $popupContract['renderer'] ?? null;
+    $contractPopupHtml = is_callable($popupRenderer)
+        ? $popupRenderer($pdo, [
+            'module_key' => 'content',
+            'point_key' => 'content.view',
+            'slot_key' => 'before_content',
+            'subject_id' => 'content-1',
+        ])
+        : '';
+    if ($contractPopupHtml === '' || $contractPopupHtml !== sr_popup_layer_render_output_slot_cached($pdo, [
+        'module_key' => 'content',
+        'point_key' => 'content.view',
+        'slot_key' => 'before_content',
+        'subject_id' => 'content-1',
+    ], false)) {
+        $errors[] = 'popup layer output slot asset lookup and renderer should share the same request-local rendered result.';
     }
     $emptyPopupAssets = is_callable($popupAssetsFunction)
         ? $popupAssetsFunction($pdo, [

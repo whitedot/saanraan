@@ -1199,3 +1199,21 @@ function sr_banner_render_slot(PDO $pdo, array $context): string
 
     return $html;
 }
+
+function sr_banner_render_output_slot_cached(PDO $pdo, array $context): string
+{
+    static $cache = [];
+
+    $cacheKey = implode("\0", [
+        (string) spl_object_id($pdo),
+        (string) ($context['module_key'] ?? ''),
+        (string) ($context['point_key'] ?? ''),
+        (string) ($context['slot_key'] ?? ''),
+        (string) ($context['subject_id'] ?? ''),
+    ]);
+    if (!array_key_exists($cacheKey, $cache)) {
+        $cache[$cacheKey] = sr_banner_render_slot($pdo, $context);
+    }
+
+    return $cache[$cacheKey];
+}

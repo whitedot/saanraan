@@ -107,7 +107,16 @@ function sr_quiz_delete_group(PDO $pdo, int $groupId): bool
     }
     $pdo->beginTransaction();
     try {
-        $pdo->prepare('UPDATE sr_quiz_sets SET quiz_group_id = NULL, updated_at = :updated_at WHERE quiz_group_id = :group_id')->execute(['updated_at' => sr_now(), 'group_id' => $groupId]);
+        $now = sr_now();
+        if (sr_quiz_setting_sources_table_exists($pdo)) {
+            $pdo->prepare(
+                "UPDATE sr_quiz_setting_sources
+                 SET source = 'item', updated_at = :updated_at
+                 WHERE source = 'group'
+                   AND quiz_id IN (SELECT id FROM sr_quiz_sets WHERE quiz_group_id = :group_id)"
+            )->execute(['updated_at' => $now, 'group_id' => $groupId]);
+        }
+        $pdo->prepare('UPDATE sr_quiz_sets SET quiz_group_id = NULL, updated_at = :updated_at WHERE quiz_group_id = :group_id')->execute(['updated_at' => $now, 'group_id' => $groupId]);
         $pdo->prepare('DELETE FROM sr_quiz_groups WHERE id = :id')->execute(['id' => $groupId]);
         $pdo->commit();
     } catch (Throwable $exception) {
