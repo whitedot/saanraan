@@ -282,7 +282,8 @@ if (!is_string($adminProvidersAction) || !is_string($adminProvidersView)) {
     $errors[] = 'identity verification admin provider settings files must be readable.';
 } elseif (!str_contains($adminProvidersAction, "'use_birth_date' => (\$_POST['use_birth_date'] ?? '') === '1'")
     || !str_contains($adminProvidersView, 'name="use_birth_date"')
-    || !str_contains($adminProvidersView, '성인확인 정책은 이 설정이 켜져 있을 때만 저장할 수 있습니다')
+    || !str_contains($adminProvidersView, '성인확인이 필요한 정책은 이 설정을 켰을 때만 저장할 수 있습니다')
+    || !str_contains($adminProvidersView, 'sr_admin_help_modal_html')
 ) {
     $errors[] = 'identity verification settings must expose birth date opt-in for registration and adult policies.';
 }
