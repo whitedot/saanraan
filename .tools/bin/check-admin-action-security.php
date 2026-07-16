@@ -564,6 +564,16 @@ if (is_string($adminModulesView) && (
     $errors[] = 'Admin modules view must keep module zip upload hidden behind owner permission, ZipArchive availability, and temporary source-write allowance.';
 }
 if (is_string($adminModulesView) && (
+    strpos($adminModulesView, 'admin-module-install-status-help') === false
+    || strpos($adminModulesView, 'DB 테이블과 설치 기록은 만들지만') === false
+    || strpos($adminModulesView, 'DB 테이블과 모듈 설정·운영 데이터는 삭제하지 않습니다.') === false
+    || strpos($adminModulesView, '이 백업은 모듈 파일만 포함하며 DB나 업로드 파일 저장소를 백업하지 않습니다.') === false
+    || strpos($adminModulesView, '이미 적용한 DB 변경을 이전 구조로 되돌리지 않고') === false
+    || strpos($adminModulesView, '모듈 식별값') === false
+)) {
+    $errors[] = 'Admin modules view must explain install status, disable behavior, upload key, file-only backup, and downgrade limits.';
+}
+if (is_string($adminModulesView) && (
     strpos($adminModulesView, "\$moduleSyncOwnerPasswordId = 'modules_admin_modules_owner_password_' . \$moduleKey") === false
     || strpos($adminModulesView, '<label for="<?php echo sr_e($moduleSyncOwnerPasswordId); ?>">') === false
     || strpos($adminModulesView, '<input id="<?php echo sr_e($moduleSyncOwnerPasswordId); ?>" type="password" name="owner_password"') === false

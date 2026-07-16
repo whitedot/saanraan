@@ -109,6 +109,39 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
 
     return '<span class="badge ' . $badgeClass . '">' . sr_e($classification) . '</span>';
 };
+$moduleManagementHelpOpenLabel = '도움말 보기';
+$moduleManagementHelp = [
+    'install_status' => [
+        'id' => 'admin-module-install-status-help',
+        'title' => '모듈 설치 후 상태 도움말',
+        'body' => '<p>‘사용’으로 설치하면 설치 완료 후 모듈의 공개·관리 화면과 요청 처리를 바로 활성화합니다. 필요한 환경설정이나 외부 연동이 준비되지 않았다면 설치 후 관리 화면에서 설정을 확인하세요.</p>'
+            . '<p>‘사용 중지’로 설치하면 DB 테이블과 설치 기록은 만들지만 모듈의 요청 처리는 활성화하지 않습니다. 설정을 먼저 확인해야 하는 모듈은 이 상태로 설치한 뒤 준비가 끝나면 사용 상태로 바꾸세요.</p>',
+    ],
+    'status' => [
+        'id' => 'admin-module-status-help',
+        'title' => '모듈 상태 도움말',
+        'body' => '<p>모듈을 ‘사용 중지’로 바꾸면 해당 모듈의 공개 화면, 관리 화면, 요청 처리와 주기 작업이 즉시 제한될 수 있습니다. DB 테이블과 모듈 설정·운영 데이터는 삭제하지 않습니다.</p>'
+            . '<p>다른 사용 중인 모듈이 의존하거나 사이트 운영에 필수인 모듈은 사용 중지할 수 없습니다. 다시 ‘사용’으로 바꾸면 기존 데이터와 설정을 그대로 사용합니다.</p>',
+    ],
+    'upload_key' => [
+        'id' => 'admin-module-upload-key-help',
+        'title' => '업로드 모듈 식별값 도움말',
+        'body' => '<p>zip 안에 모듈 폴더가 하나만 있다면 비워 두어도 폴더 이름에서 식별값을 자동으로 확인합니다.</p>'
+            . '<p>값을 입력하면 zip 안에 해당 식별값과 일치하는 모듈 하나만 있어야 합니다. 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용하세요.</p>',
+    ],
+    'replace' => [
+        'id' => 'admin-module-upload-replace-help',
+        'title' => '기존 모듈 파일 교체 도움말',
+        'body' => '<p>같은 식별값의 모듈 폴더가 이미 있을 때만 필요한 확인입니다. 켜면 기존 모듈 폴더를 로컬 작업 디렉터리에 백업한 뒤 새 파일로 교체합니다.</p>'
+            . '<p>이 백업은 모듈 파일만 포함하며 DB나 업로드 파일 저장소를 백업하지 않습니다. 교체가 성공한 뒤 문제가 발생하면 자동으로 이전 파일을 되돌리지 않으므로, 운영 백업을 별도로 확인하세요.</p>',
+    ],
+    'downgrade' => [
+        'id' => 'admin-module-upload-downgrade-help',
+        'title' => '낮은 모듈 버전 파일 반영 도움말',
+        'body' => '<p>업로드한 모듈의 코드 버전이 현재 설치 버전보다 낮을 때 파일 반영을 허용합니다.</p>'
+            . '<p>이 선택은 이미 적용한 DB 변경을 이전 구조로 되돌리지 않고, 낮은 버전이 현재 DB·다른 모듈과 호환되는지도 확인하지 않습니다. 호환성을 별도로 검증했고 복구 방법을 준비한 경우에만 사용하세요.</p>',
+    ],
+];
 ?>
 
 <nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="모듈 플러그인 관리 섹션">
@@ -140,7 +173,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
             <thead>
                 <tr>
                     <th class="admin-module-name-column"<?php echo sr_admin_sort_aria('name', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('이름', 'name', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
-                    <th<?php echo sr_admin_sort_aria('module_key', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('Key', 'module_key', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
+                    <th<?php echo sr_admin_sort_aria('module_key', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('식별값', 'module_key', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('version', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('버전', 'version', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('lifecycle', $installableSection['sort']); ?>><?php echo sr_admin_sort_header_html('수명주기', 'lifecycle', $installableSection['sort'], $moduleTableSortOptions, $moduleTableDefaultSort, (string) $installableSection['sort_param'], (string) $installableSection['dir_param']); ?></th>
@@ -277,7 +310,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                                         </div>
                                     </div>
                                     <div class="form-row">
-                                        <label class="form-label" for="<?php echo sr_e($moduleInstallModalId); ?>-status"><?php echo sr_e(sr_t('admin::ui.status.e19e9f32')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                        <?php echo sr_admin_form_label_help_html($moduleInstallModalId . '-status', sr_t('admin::ui.status.e19e9f32'), $moduleManagementHelp['install_status']['id'], $moduleManagementHelpOpenLabel, true); ?>
                                         <div class="form-field">
                                             <select id="<?php echo sr_e($moduleInstallModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
                                                 <?php foreach ($allowedInstallStatuses as $status) { ?>
@@ -320,7 +353,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
             <thead>
                 <tr>
                     <th class="admin-module-name-column"<?php echo sr_admin_sort_aria('name', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('이름', 'name', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
-                    <th<?php echo sr_admin_sort_aria('module_key', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('Key', 'module_key', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
+                    <th<?php echo sr_admin_sort_aria('module_key', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('식별값', 'module_key', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('version', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('설치 버전', 'version', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
                     <th<?php echo sr_admin_sort_aria('code_version', $installedSection['sort']); ?>><?php echo sr_admin_sort_header_html('파일 버전', 'code_version', $installedSection['sort'], $installedModuleTableSortOptions, $installedModuleTableDefaultSort, (string) $installedSection['sort_param'], (string) $installedSection['dir_param']); ?></th>
@@ -566,7 +599,7 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                                     </div>
                                 </div>
                                 <div class="form-row">
-                                    <label class="form-label" for="<?php echo sr_e($moduleStatusModalId); ?>-status"><?php echo sr_e(sr_t('admin::ui.status.098d4cea')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('admin::ui.required.1f227c67')); ?></span></label>
+                                    <?php echo sr_admin_form_label_help_html($moduleStatusModalId . '-status', sr_t('admin::ui.status.098d4cea'), $moduleManagementHelp['status']['id'], $moduleManagementHelpOpenLabel, true); ?>
                                     <div class="form-field">
                                         <select id="<?php echo sr_e($moduleStatusModalId); ?>-status" name="status" class="form-select" data-overlay-focus>
                                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -663,14 +696,18 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                             </div>
                         </div>
                         <div class="form-row">
-                            <label class="form-label" for="admin_modules_upload_module_key"><?php echo sr_e(sr_t('admin::ui.key.d2f54e12')); ?></label>
+                            <?php echo sr_admin_form_label_help_html('admin_modules_upload_module_key', '모듈 식별값', $moduleManagementHelp['upload_key']['id'], $moduleManagementHelpOpenLabel); ?>
                             <div class="form-field">
                                 <input id="admin_modules_upload_module_key" type="text" name="upload_module_key" maxlength="40" pattern="[a-z][a-z0-9_]{1,39}" inputmode="latin" autocapitalize="none" spellcheck="false" class="form-input" data-admin-key-input>
+                                <p class="form-help">zip 안에 모듈이 하나만 있다면 비워 두어도 됩니다.</p>
                             </div>
                         </div>
                         <div class="form-grid">
                             <div class="form-row">
-                                <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.7313e7a0')); ?></span>
+                                <div class="form-label form-label-help">
+                                    <button type="button" class="admin-label-help-button" aria-label="<?php echo sr_e($moduleManagementHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleManagementHelp['replace']['id']); ?>" data-overlay="#<?php echo sr_e($moduleManagementHelp['replace']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                                    <span>기존 모듈 파일 교체</span>
+                                </div>
                                 <div class="form-field">
                                     <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                                         <span class="filtering-toggle-item">
@@ -681,7 +718,10 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
                                 </div>
                             </div>
                             <div class="form-row">
-                                <span class="form-label"><?php echo sr_e(sr_t('admin::ui.text.ab7807a7')); ?></span>
+                                <div class="form-label form-label-help">
+                                    <button type="button" class="admin-label-help-button" aria-label="<?php echo sr_e($moduleManagementHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($moduleManagementHelp['downgrade']['id']); ?>" data-overlay="#<?php echo sr_e($moduleManagementHelp['downgrade']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                                    <span>낮은 버전 파일 반영 허용</span>
+                                </div>
                                 <div class="form-field">
                                     <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
                                         <span class="filtering-toggle-item">
@@ -709,5 +749,9 @@ $moduleManagementClassificationBadgeHtml = static function (array $module, array
         </div>
     </div>
 </div>
+
+<?php foreach ($moduleManagementHelp as $moduleManagementHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $moduleManagementHelpModal['id'], (string) $moduleManagementHelpModal['title'], (string) $moduleManagementHelpModal['body']); ?>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
