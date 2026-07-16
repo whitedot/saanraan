@@ -15,6 +15,7 @@ $assetExchangeIdentityAvailable = isset($assetExchangeIdentityAvailable)
 $assetExchangeIdentityVerificationInputAttributes = $assetExchangeIdentityAvailable
     ? ''
     : ' disabled aria-describedby="asset-exchange-settings-identity-unavailable"';
+$assetExchangeIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $policySlots = isset($policySlots) && is_array($policySlots) ? $policySlots : [];
 $assetExchangePostedPolicies = isset($assetExchangePostedPolicies) && is_array($assetExchangePostedPolicies) ? $assetExchangePostedPolicies : [];
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
@@ -217,6 +218,7 @@ foreach ($policySlots as $assetExchangeNavSlot) {
             <div class="form-field">
                 <?php echo sr_admin_switch_html('asset_exchange_settings_identity_exchange_required', 'identity_exchange_required', '1', $assetExchangeIdentityAvailable && (string) ($settings['identity_exchange_required'] ?? '0') === '1', '사용', '', $assetExchangeIdentityVerificationInputAttributes); ?>
                 <p class="form-help">사용하면 회원이 교환을 실행할 때마다 본인확인을 요구합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $assetExchangeIdentityModuleReferences); ?>
                 <?php if (!$assetExchangeIdentityAvailable) { ?>
                     <p id="asset-exchange-settings-identity-unavailable" class="form-help form-help-warning">
                         <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 자산 환전 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.

@@ -141,6 +141,7 @@ $memberIdentityWithdrawalInputAttributes = $memberIdentityWithdrawalAvailable
 $memberIdentityAccountSecurityInputAttributes = $memberIdentityAccountSecurityAvailable
     ? ''
     : ' disabled aria-describedby="member-settings-identity-unavailable"';
+$memberIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $memberRuntimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberRuntimeSessionLifetimeSeconds = (int) ($memberRuntimeConfig['session']['lifetime_seconds'] ?? 86400);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -194,6 +195,7 @@ $memberSettingsSectionNavItems = [
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('modules_member_admin_settings_identity_registration_mode', 'identity_registration_mode', sr_member_identity_registration_mode_options(), $memberIdentityRegistrationAvailable ? (string) ($settings['identity_registration_mode'] ?? 'disabled') : 'disabled', true, $memberIdentityRegistrationInputAttributes); ?>
                     <small class="form-help">필수는 가입 전 본인확인을 완료해야 가입할 수 있고, 선택은 가입 화면에 본인확인 버튼만 표시합니다.</small>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberIdentityModuleReferences); ?>
                     <?php if ($memberIdentityUnavailable) { ?>
                         <p id="member-settings-identity-unavailable" class="form-help form-help-warning">
                             <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
@@ -205,6 +207,8 @@ $memberSettingsSectionNavItems = [
                 <label class="form-label" for="modules_member_admin_settings_identity_withdrawal_required"><?php echo sr_e('회원탈퇴 본인확인'); ?></label>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_withdrawal_required', 'identity_withdrawal_required', '1', $memberIdentityWithdrawalAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $memberIdentityWithdrawalInputAttributes); ?>
+                    <small class="form-help">회원탈퇴를 제출하기 전에 본인확인을 요구합니다.</small>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberIdentityModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -212,6 +216,7 @@ $memberSettingsSectionNavItems = [
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_account_security_required', 'identity_account_security_required', '1', $memberIdentityAccountSecurityAvailable && !empty($settings['identity_account_security_required']), '사용', '', $memberIdentityAccountSecurityInputAttributes); ?>
                     <small class="form-help">비밀번호 변경, 2차 인증 설정/해제 같은 보안 작업을 실행할 때마다 본인확인을 요구합니다.</small>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberIdentityModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">

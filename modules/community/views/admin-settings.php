@@ -31,6 +31,8 @@ foreach ($communityLayoutOptions as $communityLayoutOption) {
 $communitySiteMenuModuleReferences = $communityBoardSidebarSiteMenuAvailable
     ? [['module_key' => 'site_menu', 'path' => $communitySettingsModuleAdminPaths['site_menu']]]
     : [];
+$communityIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
+$communityReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
 $communityEditorModuleReferences = [];
 foreach (sr_editor_contracts($pdo) as $communityEditorContract) {
     $editorModuleKey = is_array($communityEditorContract) ? (string) ($communityEditorContract['module_key'] ?? '') : '';
@@ -402,6 +404,7 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_identity_restricted_board_required', 'identity_restricted_board_required', '1', $communityIdentityRestrictedBoardAvailable && !empty($settings['identity_restricted_board_required']), '사용', '', $communityIdentityVerificationInputAttributes); ?>
                 <p class="form-help">읽기 정책이 회원/그룹이거나 읽기 레벨/그룹 제한이 있는 게시판은 본인확인을 마친 회원만 볼 수 있게 합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityIdentityModuleReferences); ?>
                 <?php if (!$communityIdentityRestrictedBoardAvailable) { ?>
                     <p id="community-settings-identity-unavailable" class="form-help form-help-warning">
                         <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 제한 게시판 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
@@ -737,6 +740,7 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_reaction_enabled', 'reaction_enabled', '1', $communityReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $communityReactionInputAttributes); ?>
                 <p class="form-help">꺼져 있으면 커뮤니티 게시글과 댓글의 리액션 위젯을 표시하지 않고, 게시판 목록에도 반응 수를 표시하지 않습니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityReactionModuleReferences); ?>
                 <?php if (!$communityReactionAvailable) { ?>
                     <p id="community-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
                 <?php } ?>
@@ -750,6 +754,8 @@ $communitySettingsSectionNavItems = [
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_post_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                     <?php } ?>
                 </select>
+                <p class="form-help">게시판 그룹과 게시판에서 따로 정하지 않았을 때 게시글에 사용하는 반응 버튼 구성입니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityReactionModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -761,6 +767,7 @@ $communitySettingsSectionNavItems = [
                     <?php } ?>
                 </select>
                 <p class="form-help">게시판 그룹과 게시판에서 따로 정하지 않았을 때 사용하는 반응 버튼 구성입니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityReactionModuleReferences); ?>
             </div>
         </div>
     </section>

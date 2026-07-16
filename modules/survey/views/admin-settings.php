@@ -12,6 +12,8 @@ foreach ($surveyLayoutOptions as $surveyLayoutOption) {
 $surveySiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
     ? [['module_key' => 'site_menu']]
     : [];
+$surveyIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
+$surveyReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
 $surveySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $surveySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($surveySiteMenuOptions): void {
     ?>
@@ -336,6 +338,7 @@ $surveySettingsSectionNavItems = [
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('survey_settings_identity_view_required', 'identity_view_required', '1', $surveyIdentityViewAvailable && !empty($settings['identity_view_required']), '사용', '', $surveyIdentityViewInputAttributes); ?>
                     <p class="form-help">사용하면 설문 상세와 응답 전에 본인확인을 요구합니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveyIdentityModuleReferences); ?>
                     <?php if ($surveyIdentityUnavailable) { ?>
                         <p id="survey-settings-identity-unavailable" class="form-help form-help-warning">
                             <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
@@ -352,6 +355,7 @@ $surveySettingsSectionNavItems = [
                     <?php } else { ?>
                         <p id="survey-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 설문 성인 참여 목적 제공자를 설정하세요.</p>
                     <?php } ?>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveyIdentityModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -383,6 +387,7 @@ $surveySettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">개별 설문에서 값을 비워두면 이 값을 사용합니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveyReactionModuleReferences); ?>
                     <?php if (!$surveyReactionAvailable) { ?>
                         <p id="survey-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</p>
                     <?php } ?>
@@ -397,6 +402,7 @@ $surveySettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">설문 댓글 리액션에 적용할 기본 프리셋입니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveyReactionModuleReferences); ?>
                 </div>
             </div>
         </div>

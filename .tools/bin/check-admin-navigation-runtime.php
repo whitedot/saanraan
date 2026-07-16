@@ -272,6 +272,42 @@ foreach ($publicSettingsReferenceViews as $moduleKey => $viewPath) {
     );
 }
 
+$identityReferenceViews = [
+    'modules/content/views/admin-settings.php' => ['$contentIdentityModuleReferences', 4],
+    'modules/community/views/admin-settings.php' => ['$communityIdentityModuleReferences', 1],
+    'modules/quiz/views/admin-settings.php' => ['$quizIdentityModuleReferences', 2],
+    'modules/survey/views/admin-settings.php' => ['$surveyIdentityModuleReferences', 2],
+    'modules/member/views/admin-settings.php' => ['$memberIdentityModuleReferences', 3],
+    'modules/reward/views/admin-settings.php' => ['$rewardIdentityModuleReferences', 1],
+    'modules/deposit/views/admin-settings.php' => ['$depositIdentityModuleReferences', 1],
+    'modules/asset_exchange/views/admin-asset-exchange.php' => ['$assetExchangeIdentityModuleReferences', 1],
+];
+foreach ($identityReferenceViews as $viewPath => [$variableName, $minimumCallCount]) {
+    $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
+    sr_admin_navigation_runtime_assert(
+        is_string($viewSource)
+            && str_contains($viewSource, $variableName . " = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']]")
+            && substr_count($viewSource, 'sr_admin_module_reference_list_html($pdo, ' . $variableName . ')') >= $minimumCallCount,
+        $viewPath . ' must show the identity verification module reference below every dependent setting.'
+    );
+}
+
+$reactionReferenceViews = [
+    'modules/content/views/admin-settings.php' => ['$contentReactionModuleReferences', 3],
+    'modules/community/views/admin-settings.php' => ['$communityReactionModuleReferences', 3],
+    'modules/quiz/views/admin-settings.php' => ['$quizReactionModuleReferences', 2],
+    'modules/survey/views/admin-settings.php' => ['$surveyReactionModuleReferences', 2],
+];
+foreach ($reactionReferenceViews as $viewPath => [$variableName, $minimumCallCount]) {
+    $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
+    sr_admin_navigation_runtime_assert(
+        is_string($viewSource)
+            && str_contains($viewSource, $variableName . " = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']]")
+            && substr_count($viewSource, 'sr_admin_module_reference_list_html($pdo, ' . $variableName . ')') >= $minimumCallCount,
+        $viewPath . ' must show the reaction preset module reference below every dependent setting.'
+    );
+}
+
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
     is_string($communityAdminMenu)
