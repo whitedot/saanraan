@@ -14,7 +14,8 @@ if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_
 if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
-if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+$communityBoardSidebarSiteMenuAvailable = sr_community_board_sidebar_site_menu_available($pdo);
+if ($communityBoardSidebarSiteMenuAvailable) {
     require_once SR_ROOT . '/modules/site_menu/helpers.php';
 }
 
@@ -525,6 +526,7 @@ if (sr_request_method() === 'POST') {
             'enabled_member_group_keys' => $enabledMemberGroupKeys,
             'asset_module_options' => $assetModuleOptions,
             'reaction_preset_options' => $reactionPresetOptions,
+            'site_menu_available' => $communityBoardSidebarSiteMenuAvailable,
             'site_menu_options' => $siteMenuOptions,
             'after_save' => static function (int $savedBoardId, bool $created) use ($pdo, $account, $adminFormDraftKey, $adminFormDraftContext): void {
                 sr_admin_form_draft_delete($pdo, (int) $account['id'], $adminFormDraftKey, $adminFormDraftContext);

@@ -82,6 +82,10 @@ $memberSearchUrl = sr_url('/admin/community/boards/member-search');
 $assetModuleChoiceOptions = [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $communityBoardSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$communityBoardSidebarSiteMenuAvailable = isset($communityBoardSidebarSiteMenuAvailable)
+    ? (bool) $communityBoardSidebarSiteMenuAvailable
+    : sr_community_board_sidebar_site_menu_available($pdo);
+$communityBoardSidebarMenuTypeOptions = sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable);
 $communityBoardSidebarSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($communityBoardSiteMenuOptions): void {
     ?>
     <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>선택 안 함</option>
@@ -589,27 +593,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $settingSourceRadioHtml('source_skin_key', $boardSettingSource($formBoard, 'skin_key')); ?>
                 </div>
             </div>
+            <?php
+            $communityBoardSidebarMenuTypeValue = sr_community_board_sidebar_menu_type($boardField($formBoard, 'board_sidebar_menu_type', (string) ($settings['board_sidebar_menu_type'] ?? 'all_boards')));
+            if (!isset($communityBoardSidebarMenuTypeOptions[$communityBoardSidebarMenuTypeValue])) {
+                $communityBoardSidebarMenuTypeValue = 'none';
+            }
+            ?>
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_board_sidebar_menu_type">게시판 사이드 메뉴</label>
                 <div class="form-field">
-                    <select id="community_admin_boards_board_sidebar_menu_type" name="board_sidebar_menu_type" class="form-select" required>
-                        <?php foreach (sr_community_board_sidebar_menu_type_options() as $menuType => $menuTypeLabel) { ?>
-                            <option value="<?php echo sr_e((string) $menuType); ?>"<?php echo $boardField($formBoard, 'board_sidebar_menu_type', (string) ($settings['board_sidebar_menu_type'] ?? 'all_boards')) === (string) $menuType ? ' selected' : ''; ?>><?php echo sr_e((string) $menuTypeLabel); ?></option>
+                    <select id="community_admin_boards_board_sidebar_menu_type" name="board_sidebar_menu_type" class="form-select" required data-community-board-sidebar-menu-type>
+                        <?php foreach ($communityBoardSidebarMenuTypeOptions as $menuType => $menuTypeLabel) { ?>
+                            <option value="<?php echo sr_e((string) $menuType); ?>"<?php echo $communityBoardSidebarMenuTypeValue === (string) $menuType ? ' selected' : ''; ?>><?php echo sr_e((string) $menuTypeLabel); ?></option>
                         <?php } ?>
                     </select>
                     <?php echo $settingSourceRadioHtml('source_board_sidebar_menu_type', $boardSettingSource($formBoard, 'board_sidebar_menu_type')); ?>
                     <p class="form-help">이 게시판의 목록·읽기·쓰기 화면에서 인기글 위에 표시할 메뉴를 정합니다.</p>
                 </div>
             </div>
+            <?php if ($communityBoardSidebarSiteMenuAvailable) { ?>
             <div class="form-row">
-                <label class="form-label" for="community_admin_boards_board_sidebar_site_menu_key">사이드 사이트 메뉴</label>
+                <label class="form-label" for="community_admin_boards_board_sidebar_site_menu_key">표시할 사이트 메뉴 <span class="sr-required-label"<?php echo $communityBoardSidebarMenuTypeValue === 'site_menu' ? '' : ' hidden'; ?> data-community-board-sidebar-site-menu-required>(필수)</span></label>
                 <div class="form-field">
-                    <select id="community_admin_boards_board_sidebar_site_menu_key" name="board_sidebar_site_menu_key" class="form-select">
+                    <select id="community_admin_boards_board_sidebar_site_menu_key" name="board_sidebar_site_menu_key" class="form-select"<?php echo $communityBoardSidebarMenuTypeValue === 'site_menu' ? ' required' : ' disabled'; ?> data-community-board-sidebar-site-menu>
                         <?php $communityBoardSidebarSiteMenuSelectOptions($boardField($formBoard, 'board_sidebar_site_menu_key', (string) ($settings['board_sidebar_site_menu_key'] ?? ''))); ?>
                     </select>
                     <p class="form-help">게시판 사이드 메뉴에서 사이트 메뉴의 특정값을 선택한 경우에만 사용하며, 위 설정과 같은 범위로 저장됩니다.</p>
                 </div>
             </div>
+            <?php } ?>
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_post_editor">게시글 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
@@ -2852,6 +2864,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <script>
 (function () {
+    function syncCommunityBoardSidebarSiteMenu(root) {
+        var scope = root || document;
+        var type = scope.querySelector('[data-community-board-sidebar-menu-type]');
+        var siteMenu = scope.querySelector('[data-community-board-sidebar-site-menu]');
+        var requiredLabel = scope.querySelector('[data-community-board-sidebar-site-menu-required]');
+        if (!type || !siteMenu) {
+            return;
+        }
+
+        var enabled = type.value === 'site_menu';
+        siteMenu.disabled = !enabled;
+        siteMenu.required = enabled;
+        if (requiredLabel) {
+            requiredLabel.hidden = !enabled;
+        }
+        if (!enabled && typeof siteMenu.setCustomValidity === 'function') {
+            siteMenu.setCustomValidity('');
+        }
+    }
+
     function formatThumbnailBytes(value) {
         var bytes = Number(value || 0);
         if (!Number.isFinite(bytes) || bytes < 0) {
@@ -2907,6 +2939,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     }
 
     document.addEventListener('change', function (event) {
+        if (event.target && event.target.matches('[data-community-board-sidebar-menu-type]')) {
+            syncCommunityBoardSidebarSiteMenu(event.target.closest('form'));
+            return;
+        }
         if (!event.target || event.target.name !== 'thumbnail_criterion') {
             return;
         }
@@ -2921,9 +2957,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
+            syncCommunityBoardSidebarSiteMenu(document);
             syncCommunityThumbnailCriterion(document);
         });
     } else {
+        syncCommunityBoardSidebarSiteMenu(document);
         syncCommunityThumbnailCriterion(document);
     }
 })();

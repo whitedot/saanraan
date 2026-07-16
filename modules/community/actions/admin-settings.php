@@ -46,8 +46,9 @@ $privacyConsentDocumentOptions = sr_community_privacy_consent_policy_document_op
 foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
     $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)] ?? ''));
 }
+$communityBoardSidebarSiteMenuAvailable = sr_community_board_sidebar_site_menu_available($pdo);
 $siteMenuOptions = [];
-if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+if ($communityBoardSidebarSiteMenuAvailable) {
     require_once SR_ROOT . '/modules/site_menu/helpers.php';
     $siteMenuOptions = sr_site_menu_options($pdo);
 }
@@ -315,10 +316,9 @@ if (sr_request_method() === 'POST') {
                 break;
             }
         }
-        if ($boardSidebarMenuTypeInput !== $boardSidebarMenuType || !array_key_exists($boardSidebarMenuType, sr_community_board_sidebar_menu_type_options())) {
+        if ($boardSidebarMenuTypeInput !== $boardSidebarMenuType || !array_key_exists($boardSidebarMenuType, sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable))) {
             $errors[] = '게시판 사이드 메뉴 유형이 올바르지 않습니다.';
-        }
-        if ($boardSidebarMenuType === 'site_menu' && ($boardSidebarSiteMenuKey === '' || !isset($siteMenuOptions[$boardSidebarSiteMenuKey]))) {
+        } elseif ($boardSidebarMenuType === 'site_menu' && ($boardSidebarSiteMenuKey === '' || !isset($siteMenuOptions[$boardSidebarSiteMenuKey]))) {
             $errors[] = '게시판 사이드에 표시할 사이트 메뉴를 선택하세요.';
         }
         if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {

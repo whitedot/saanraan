@@ -729,27 +729,44 @@ sr_check_community_board_settings_contains('modules/community/views/admin-boards
 sr_check_community_board_settings_contains('modules/community/actions/admin-settings.php', [
     "['board_sidebar_menu_type', \$boardSidebarMenuType, 'string']",
     "['board_sidebar_site_menu_key', \$boardSidebarSiteMenuKey, 'string']",
+    'sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable)',
     '게시판 사이드에 표시할 사이트 메뉴를 선택하세요.',
 ], 'community global board sidebar menu save');
 sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', [
     "'board_sidebar_menu_type' => \$boardSidebarMenuType",
     "'board_sidebar_site_menu_key' => \$boardSidebarSiteMenuKey",
     "\$settingSources['board_sidebar_site_menu_key'] = (string) (\$settingSources['board_sidebar_menu_type'] ?? 'board')",
+    'sr_community_board_sidebar_menu_type_options($siteMenuAvailable)',
 ], 'community board sidebar menu save');
 sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
     'name="board_sidebar_menu_type"',
     'name="board_sidebar_site_menu_key"',
     '게시판 목록·읽기·쓰기 화면에서 인기글 위에 표시할 기본 메뉴 범위를 정합니다.',
+    'if ($communityBoardSidebarSiteMenuAvailable)',
+    'sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable)',
+    'data-community-board-sidebar-menu-type',
+    'data-community-board-sidebar-site-menu',
+    'siteMenu.disabled = !enabled',
+    'siteMenu.required = enabled',
 ], 'community global board sidebar menu fields');
 sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
     'name="board_sidebar_menu_type"',
     'name="board_sidebar_site_menu_key"',
     "source_board_sidebar_menu_type",
+    'if ($communityBoardSidebarSiteMenuAvailable)',
+    'sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable)',
+    'data-community-board-sidebar-menu-type',
+    'data-community-board-sidebar-site-menu',
+    'siteMenu.disabled = !enabled',
+    'siteMenu.required = enabled',
 ], 'community board sidebar menu fields');
 sr_check_community_board_settings_contains('modules/community/theme/basic/home-frame-start.php', [
     'sr_community_board_sidebar_menu_context',
 ], 'community board sidebar menu public context');
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
+    "'none' => '선택 안 함'",
+    'function sr_community_board_sidebar_site_menu_available',
+    "sr_module_enabled(\$pdo, 'site_menu')",
     "'title' => \$menuTitle",
     ": '커뮤니티'",
     ": '그룹 없음'",
@@ -813,8 +830,11 @@ if (sr_community_body_plain_length('<p>안녕<br>하세요</p>', 'html') !== 6) 
 if (sr_community_body_excerpt('abcdef', 'plain', 3) !== 'abc...') {
     sr_check_community_board_settings_error('community body excerpt truncation failed.');
 }
-if (sr_community_board_sidebar_menu_type('same_group') !== 'same_group'
+if (sr_community_board_sidebar_menu_type('none') !== 'none'
+    || sr_community_board_sidebar_menu_type('same_group') !== 'same_group'
     || sr_community_board_sidebar_menu_type('invalid') !== 'all_boards'
+    || isset(sr_community_board_sidebar_menu_type_options(false)['site_menu'])
+    || !isset(sr_community_board_sidebar_menu_type_options(true)['site_menu'])
     || sr_community_board_sidebar_site_menu_key('Header_Menu') !== 'header_menu'
     || sr_community_board_sidebar_site_menu_key('../header') !== ''
 ) {

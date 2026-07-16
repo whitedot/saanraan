@@ -345,13 +345,19 @@ function sr_community_board_setting_source_values(): array
     return ['board', 'group', 'all'];
 }
 
-function sr_community_board_sidebar_menu_type_options(): array
+function sr_community_board_sidebar_menu_type_options(bool $siteMenuAvailable = true): array
 {
-    return [
+    $options = [
+        'none' => '선택 안 함',
         'all_boards' => '전체 게시판',
         'same_group' => '같은 그룹 게시판',
-        'site_menu' => '사이트 메뉴의 특정값',
     ];
+
+    if ($siteMenuAvailable) {
+        $options['site_menu'] = '사이트 메뉴의 특정값';
+    }
+
+    return $options;
 }
 
 function sr_community_board_sidebar_menu_type(string $value): string
@@ -364,6 +370,12 @@ function sr_community_board_sidebar_site_menu_key(string $value): string
 {
     $value = strtolower(trim($value));
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_community_board_sidebar_site_menu_available(PDO $pdo): bool
+{
+    return sr_module_enabled($pdo, 'site_menu')
+        && is_file(SR_ROOT . '/modules/site_menu/helpers.php');
 }
 
 function sr_community_normalize_board_setting_source(string $source): string
@@ -1561,8 +1573,12 @@ function sr_community_board_sidebar_menu_context(PDO $pdo, array $board, ?array 
         (string) ($settings['board_sidebar_site_menu_key'] ?? '')
     ));
 
+    if ($menuType === 'none') {
+        return ['type' => $menuType, 'title' => '', 'html' => ''];
+    }
+
     if ($menuType === 'site_menu') {
-        if ($siteMenuKey === '' || !sr_module_enabled($pdo, 'site_menu') || !is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+        if ($siteMenuKey === '' || !sr_community_board_sidebar_site_menu_available($pdo)) {
             return ['type' => $menuType, 'title' => '', 'html' => ''];
         }
         require_once SR_ROOT . '/modules/site_menu/helpers.php';

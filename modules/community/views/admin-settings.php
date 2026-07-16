@@ -4,6 +4,14 @@ $communitySettingsPage = isset($communitySettingsPage) ? (string) $communitySett
 $adminPageTitle = $communitySettingsPage === 'levels' ? sr_t('community::ui.community.c1f4d427') : sr_t('community::ui.community.settings.af4e5ebd');
 $communityPostBodyLengthMax = sr_community_post_body_setting_max_length();
 $communitySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$communityBoardSidebarSiteMenuAvailable = isset($communityBoardSidebarSiteMenuAvailable)
+    ? (bool) $communityBoardSidebarSiteMenuAvailable
+    : sr_community_board_sidebar_site_menu_available($pdo);
+$communityBoardSidebarMenuTypeOptions = sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable);
+$communityBoardSidebarMenuTypeValue = sr_community_board_sidebar_menu_type((string) ($settings['board_sidebar_menu_type'] ?? 'all_boards'));
+if (!isset($communityBoardSidebarMenuTypeOptions[$communityBoardSidebarMenuTypeValue])) {
+    $communityBoardSidebarMenuTypeValue = 'none';
+}
 $communityIdentityRestrictedBoardAvailable = isset($communityIdentityRestrictedBoardAvailable)
     ? (bool) $communityIdentityRestrictedBoardAvailable
     : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'community.restricted_board'));
@@ -797,23 +805,25 @@ $communitySettingsSectionNavItems = [
         <div class="form-row">
             <label class="form-label" for="community_admin_settings_board_sidebar_menu_type">게시판 사이드 메뉴</label>
             <div class="form-field">
-                <select id="community_admin_settings_board_sidebar_menu_type" name="board_sidebar_menu_type" class="form-select" required>
-                    <?php foreach (sr_community_board_sidebar_menu_type_options() as $menuType => $menuTypeLabel) { ?>
-                        <option value="<?php echo sr_e((string) $menuType); ?>"<?php echo (string) ($settings['board_sidebar_menu_type'] ?? 'all_boards') === (string) $menuType ? ' selected' : ''; ?>><?php echo sr_e((string) $menuTypeLabel); ?></option>
+                <select id="community_admin_settings_board_sidebar_menu_type" name="board_sidebar_menu_type" class="form-select" required data-community-board-sidebar-menu-type>
+                    <?php foreach ($communityBoardSidebarMenuTypeOptions as $menuType => $menuTypeLabel) { ?>
+                        <option value="<?php echo sr_e((string) $menuType); ?>"<?php echo $communityBoardSidebarMenuTypeValue === (string) $menuType ? ' selected' : ''; ?>><?php echo sr_e((string) $menuTypeLabel); ?></option>
                     <?php } ?>
                 </select>
                 <p class="form-help">게시판 목록·읽기·쓰기 화면에서 인기글 위에 표시할 기본 메뉴 범위를 정합니다. 게시판 관리에서 개별값으로 바꿀 수 있습니다.</p>
             </div>
         </div>
+        <?php if ($communityBoardSidebarSiteMenuAvailable) { ?>
         <div class="form-row">
-            <label class="form-label" for="community_admin_settings_board_sidebar_site_menu_key">사이드 사이트 메뉴</label>
+            <label class="form-label" for="community_admin_settings_board_sidebar_site_menu_key">표시할 사이트 메뉴 <span class="sr-required-label"<?php echo $communityBoardSidebarMenuTypeValue === 'site_menu' ? '' : ' hidden'; ?> data-community-board-sidebar-site-menu-required>(필수)</span></label>
             <div class="form-field">
-                <select id="community_admin_settings_board_sidebar_site_menu_key" name="board_sidebar_site_menu_key" class="form-select">
+                <select id="community_admin_settings_board_sidebar_site_menu_key" name="board_sidebar_site_menu_key" class="form-select"<?php echo $communityBoardSidebarMenuTypeValue === 'site_menu' ? ' required' : ' disabled'; ?> data-community-board-sidebar-site-menu>
                     <?php $communityBoardSidebarSiteMenuSelectOptions((string) ($settings['board_sidebar_site_menu_key'] ?? '')); ?>
                 </select>
                 <p class="form-help">게시판 사이드 메뉴에서 사이트 메뉴의 특정값을 선택한 경우에만 사용합니다.</p>
             </div>
         </div>
+        <?php } ?>
         <div class="form-row">
             <span class="form-label">추가 메뉴</span>
             <div class="form-field">
@@ -1586,6 +1596,26 @@ $communitySettingsSectionNavItems = [
 
 <script>
 (function () {
+    function syncCommunityBoardSidebarSiteMenu(root) {
+        var scope = root || document;
+        var type = scope.querySelector('[data-community-board-sidebar-menu-type]');
+        var siteMenu = scope.querySelector('[data-community-board-sidebar-site-menu]');
+        var requiredLabel = scope.querySelector('[data-community-board-sidebar-site-menu-required]');
+        if (!type || !siteMenu) {
+            return;
+        }
+
+        var enabled = type.value === 'site_menu';
+        siteMenu.disabled = !enabled;
+        siteMenu.required = enabled;
+        if (requiredLabel) {
+            requiredLabel.hidden = !enabled;
+        }
+        if (!enabled && typeof siteMenu.setCustomValidity === 'function') {
+            siteMenu.setCustomValidity('');
+        }
+    }
+
     function formatThumbnailBytes(value) {
         var bytes = Number(value || 0);
         if (!Number.isFinite(bytes) || bytes < 0) {
@@ -1641,6 +1671,10 @@ $communitySettingsSectionNavItems = [
     }
 
     document.addEventListener('change', function (event) {
+        if (event.target && event.target.matches('[data-community-board-sidebar-menu-type]')) {
+            syncCommunityBoardSidebarSiteMenu(event.target.closest('form'));
+            return;
+        }
         if (!event.target || event.target.name !== 'thumbnail_criterion') {
             return;
         }
@@ -1655,9 +1689,11 @@ $communitySettingsSectionNavItems = [
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
+            syncCommunityBoardSidebarSiteMenu(document);
             syncCommunityThumbnailCriterion(document);
         });
     } else {
+        syncCommunityBoardSidebarSiteMenu(document);
         syncCommunityThumbnailCriterion(document);
     }
 })();

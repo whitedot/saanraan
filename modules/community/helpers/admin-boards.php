@@ -65,6 +65,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
     $enabledMemberGroupKeys = is_array($context['enabled_member_group_keys'] ?? null) ? $context['enabled_member_group_keys'] : [];
     $assetModuleOptions = is_array($context['asset_module_options'] ?? null) ? $context['asset_module_options'] : [];
     $reactionPresetOptions = is_array($context['reaction_preset_options'] ?? null) ? $context['reaction_preset_options'] : [];
+    $siteMenuAvailable = !empty($context['site_menu_available']);
     $siteMenuOptions = is_array($context['site_menu_options'] ?? null) ? $context['site_menu_options'] : [];
     $afterSave = is_callable($context['after_save'] ?? null) ? $context['after_save'] : null;
     $reactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
@@ -325,10 +326,9 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
             $errors[] = sr_t('community::action.admin.description_too_long');
             $description = '';
         }
-        if ($boardSidebarMenuTypeInput !== $boardSidebarMenuType || !array_key_exists($boardSidebarMenuType, sr_community_board_sidebar_menu_type_options())) {
+        if ($boardSidebarMenuTypeInput !== $boardSidebarMenuType || !array_key_exists($boardSidebarMenuType, sr_community_board_sidebar_menu_type_options($siteMenuAvailable))) {
             $errors[] = '게시판 사이드 메뉴 유형이 올바르지 않습니다.';
-        }
-        if ($boardSidebarMenuType === 'site_menu' && ($boardSidebarSiteMenuKey === '' || !isset($siteMenuOptions[$boardSidebarSiteMenuKey]))) {
+        } elseif ($boardSidebarMenuType === 'site_menu' && ($boardSidebarSiteMenuKey === '' || !isset($siteMenuOptions[$boardSidebarSiteMenuKey]))) {
             $errors[] = '게시판 사이드에 표시할 사이트 메뉴를 선택하세요.';
         }
 
