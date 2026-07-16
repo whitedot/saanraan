@@ -322,6 +322,19 @@ foreach ($policyDocumentReferenceViews as $viewPath => [$variableName, $minimumC
     );
 }
 
+$contentSettingsSource = is_file('modules/content/views/admin-settings.php')
+    ? file_get_contents('modules/content/views/admin-settings.php')
+    : false;
+sr_admin_navigation_runtime_assert(
+    is_string($contentSettingsSource)
+        && str_contains($contentSettingsSource, 'foreach (sr_editor_contracts($pdo) as $contentEditorContract)')
+        && str_contains($contentSettingsSource, "sr_enabled_module_contract_files(\$pdo, 'url-embed-targets.php', ['content'])")
+        && str_contains($contentSettingsSource, 'sr_admin_module_reference_list_html($pdo, $contentEditorModuleReferences)')
+        && str_contains($contentSettingsSource, 'sr_admin_module_reference_list_html($pdo, $contentToolbarModuleReferences)')
+        && str_contains($contentSettingsSource, 'sr_admin_module_reference_list_html($pdo, $contentInternalEmbedModuleReferences)'),
+    'Content writing settings must show active editor, toolbar, and URL embed provider references.'
+);
+
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
     is_string($communityAdminMenu)

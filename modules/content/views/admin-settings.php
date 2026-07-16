@@ -102,6 +102,30 @@ $contentSiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
     : [];
 $contentIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $contentReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
+$contentEditorModuleReferences = [];
+foreach (sr_editor_contracts($pdo) as $contentEditorContract) {
+    $editorModuleKey = is_array($contentEditorContract) ? (string) ($contentEditorContract['module_key'] ?? '') : '';
+    if ($editorModuleKey !== '') {
+        $contentEditorModuleReferences[$editorModuleKey] = ['module_key' => $editorModuleKey];
+    }
+}
+$contentToolbarModuleReferences = isset($contentEditorModuleReferences['ckeditor'])
+    ? [$contentEditorModuleReferences['ckeditor']]
+    : [];
+$contentInternalEmbedModuleReferences = [];
+$contentInternalEmbedAdminPaths = [
+    'community' => '/admin/community/boards',
+    'coupon' => '/admin/coupons/campaigns',
+    'quiz' => '/admin/quiz',
+    'survey' => '/admin/surveys',
+];
+foreach (array_keys(sr_enabled_module_contract_files($pdo, 'url-embed-targets.php', ['content'])) as $embedModuleKey) {
+    $embedAdminPath = (string) ($contentInternalEmbedAdminPaths[(string) $embedModuleKey] ?? '');
+    $contentInternalEmbedModuleReferences[(string) $embedModuleKey] = [
+        'module_key' => (string) $embedModuleKey,
+        'path' => $embedAdminPath,
+    ];
+}
 $assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $contentReactionAvailable = isset($contentReactionAvailable)
@@ -193,6 +217,8 @@ $contentSettingsSectionNavItems = [
             <label class="form-label" for="content_admin_settings_editor">에디터 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_editor', 'editor', $editorOptions, (string) ($settings['editor'] ?? 'textarea'), true); ?>
+                <p class="form-help">새 콘텐츠의 본문을 작성할 기본 입력 방식을 정합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentEditorModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -206,6 +232,7 @@ $contentSettingsSectionNavItems = [
                     <?php } ?>
                 </select>
                 <p class="form-help">CKEditor를 사용할 때 콘텐츠 본문 입력 화면에 적용할 툴바입니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentToolbarModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -220,6 +247,7 @@ $contentSettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_internal_embed_enabled', 'internal_embed_enabled', '1', !empty($settings['internal_embed_enabled']), '사용'); ?>
                 <p class="form-help">사이트 안의 콘텐츠 주소를 본문에서 미리보기 형태로 표시합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentInternalEmbedModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
