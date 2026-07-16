@@ -44,7 +44,7 @@ if (sr_request_method() === 'POST') {
                 'profile_hash' => sr_markdown_editor_profile_hash($pdo),
             ],
         ]);
-        $notice = 'Markdown Editor 설정을 저장했습니다.';
+        $notice = 'Markdown 편집기 설정을 저장했습니다.';
     }
 
     $resultData = $errors !== [] ? ['settings' => $postedSettings] : [];

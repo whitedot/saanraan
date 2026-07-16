@@ -199,7 +199,7 @@ function sr_markdown_editor_token_options(): array
         '--md-text' => '본문',
         '--md-muted' => '보조',
         '--md-border' => '경계선',
-        '--md-surface-muted' => '보조 표면',
+        '--md-surface-muted' => '보조 배경',
         '--md-info' => '정보',
         '--md-success' => '성공',
         '--md-warning' => '주의',
@@ -288,7 +288,7 @@ function sr_markdown_editor_style_choice_options(): array
         'unordered_list_style' => ['disc' => '채운 원', 'circle' => '빈 원', 'square' => '사각형', 'none' => '없음'],
         'ordered_list_style' => ['decimal' => '숫자', 'lower-alpha' => '소문자 알파벳', 'upper-alpha' => '대문자 알파벳', 'lower-roman' => '소문자 로마자', 'upper-roman' => '대문자 로마자', 'none' => '없음'],
         'quote_border_style' => ['solid' => '실선', 'dashed' => '파선', 'dotted' => '점선', 'double' => '이중선'],
-        'table_width' => ['max-content' => '내용에 맞춤', '100%' => '컨테이너 채움'],
+        'table_width' => ['max-content' => '내용에 맞춤', '100%' => '사용할 수 있는 너비 채움'],
     ];
 
     foreach (array_keys(sr_markdown_editor_box_target_definitions()) as $target) {
@@ -903,28 +903,28 @@ function sr_markdown_editor_stylesheet_validation_errors(string $css): array
     $errors = [];
     $css = trim($css);
     if ($css === '') {
-        return ['스타일시트 내용을 입력해 주세요.'];
+        return ['CSS 내용을 입력해 주세요.'];
     }
     if (strlen($css) > 100000) {
-        return ['스타일시트는 100,000바이트 이하로 입력해 주세요.'];
+        return ['CSS 내용은 100,000바이트 이하로 입력해 주세요.'];
     }
     if (preg_match('//u', $css) !== 1) {
-        return ['스타일시트는 올바른 UTF-8 문자열이어야 합니다.'];
+        return ['CSS를 올바른 문자 형식(UTF-8)으로 입력해 주세요.'];
     }
 
     $withoutComments = preg_replace('/\/\*.*?\*\//s', '', $css);
     if (!is_string($withoutComments)) {
-        return ['스타일시트를 확인할 수 없습니다.'];
+        return ['CSS 내용을 확인할 수 없습니다.'];
     }
     if (preg_match('/<\/style/i', $css) === 1
         || preg_match('/@|url\s*\(|expression\s*\(|javascript\s*:|behavior\s*:|-moz-binding/i', $withoutComments) === 1) {
-        $errors[] = '스타일시트에서는 at-rule, 외부 URL, 실행형 CSS 표현을 사용할 수 없습니다.';
+        $errors[] = 'CSS에서는 @로 시작하는 규칙, 외부 파일 주소, 스크립트처럼 실행될 수 있는 표현을 사용할 수 없습니다.';
     }
     if (substr_count($withoutComments, '{') !== substr_count($withoutComments, '}')) {
-        $errors[] = '스타일시트의 중괄호 짝이 맞지 않습니다.';
+        $errors[] = 'CSS의 중괄호({ }) 짝이 맞지 않습니다.';
     }
     if (!str_contains($withoutComments, '.markdown-editor-body')) {
-        $errors[] = '스타일시트에는 .markdown-editor-body 범위가 필요합니다.';
+        $errors[] = 'CSS 적용 대상은 .markdown-editor-body로 시작해야 합니다.';
     }
 
     if ($errors === []) {
@@ -932,7 +932,7 @@ function sr_markdown_editor_stylesheet_validation_errors(string $css): array
         foreach ((array) ($matches[1] ?? []) as $selectorList) {
             foreach (sr_markdown_editor_split_selector_list(trim((string) $selectorList)) as $selector) {
                 if (preg_match('/\A\.markdown-editor-body(?:\b|[:.#\[\s>*+~])/', $selector) !== 1) {
-                    $errors[] = '모든 selector는 .markdown-editor-body 범위 안에 있어야 합니다: ' . $selector;
+                    $errors[] = '모든 CSS 적용 대상은 .markdown-editor-body로 시작해 Markdown 본문 안에만 적용되어야 합니다: ' . $selector;
                     break 2;
                 }
             }
@@ -974,13 +974,13 @@ function sr_markdown_editor_validate_settings(array $settings): array
 {
     $errors = [];
     if (!empty($settings['raw_html_enabled'])) {
-        $errors[] = 'v1에서는 raw HTML 허용을 켤 수 없습니다.';
+        $errors[] = 'Markdown 원문에서 HTML 태그를 직접 쓰는 기능은 사용할 수 없습니다.';
     }
     if (!in_array((string) ($settings['style_source_mode'] ?? ''), ['default', 'custom'], true)) {
         $errors[] = '스타일 적용 방식을 확인해 주세요.';
     }
     if (array_key_exists('_stylesheet_input_valid', $settings) && empty($settings['_stylesheet_input_valid'])) {
-        $errors[] = '스타일시트는 100,000바이트 이하의 문자열로 입력해 주세요.';
+        $errors[] = 'CSS 내용은 100,000바이트 이하로 입력해 주세요.';
     } else {
         $errors = array_merge($errors, sr_markdown_editor_stylesheet_validation_errors((string) ($settings['stylesheet_css'] ?? '')));
     }
@@ -994,7 +994,7 @@ function sr_markdown_editor_save_settings(PDO $pdo, array $settings): void
     $stmt->execute();
     $module = $stmt->fetch();
     if (!is_array($module)) {
-        throw new RuntimeException('Markdown Editor 플러그인이 등록되어 있지 않습니다.');
+        throw new RuntimeException('Markdown 편집기 모듈이 등록되어 있지 않습니다.');
     }
 
     $rows = [

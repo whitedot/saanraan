@@ -182,8 +182,8 @@
         form.dataset.markdownStyleSourceMode = normalized;
         if (styleSourceHelp) {
             styleSourceHelp.textContent = normalized === 'default'
-                ? '원본을 출력 중입니다. 속성을 바꾸면 변경값으로 전환됩니다.'
-                : '변경한 스타일시트를 출력 중입니다.';
+                ? '기본 스타일을 미리보는 중입니다. 속성을 바꾸면 변경 스타일로 전환됩니다.'
+                : '변경 스타일을 미리보는 중입니다.';
         }
         if (refreshPreview) {
             scheduleServerPreview(90);
