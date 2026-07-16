@@ -2,15 +2,15 @@
 
 $communityBoardGroupsPage = isset($communityBoardGroupsPage) ? (string) $communityBoardGroupsPage : 'list';
 $adminPageTitle = '커뮤니티 게시판 그룹 관리';
-$adminPageSubtitle = '';
+$adminPageSubtitle = '게시판을 주제별로 묶어 공개 그룹 화면과 메뉴 후보를 관리합니다.';
 $adminContainerClass = 'admin-page-community-board-group-list admin-ui-scope';
 if ($communityBoardGroupsPage === 'new') {
     $adminPageTitle = sr_t('community::ui.text.08aafae8');
-    $adminPageSubtitle = '';
+    $adminPageSubtitle = '새 게시판 그룹의 공개 이름과 공통 운영 설정을 정합니다.';
     $adminContainerClass = 'admin-page-community-board-group-form admin-ui-scope';
 } elseif ($communityBoardGroupsPage === 'edit') {
     $adminPageTitle = sr_t('community::ui.edit.669f4ac3');
-    $adminPageSubtitle = '';
+    $adminPageSubtitle = '게시판 그룹의 공개 정보와 연결 게시판에 적용할 공통 설정을 수정합니다.';
     $adminContainerClass = 'admin-page-community-board-group-form admin-ui-scope';
 }
 $boardGroupListFilters = isset($boardGroupListFilters) && is_array($boardGroupListFilters) ? $boardGroupListFilters : ['status' => [], 'field' => 'all', 'q' => ''];
@@ -165,10 +165,18 @@ $communityBoardGroupHelpBodyHtml = static function (array $keys): string {
     return $html;
 };
 $communityBoardGroupHelp = [
+    'group_key' => [
+        'id' => 'community_board_group_help_group_key',
+        'title' => '게시판 그룹 식별값 도움말',
+        'body' => '<p>식별값은 공개 그룹 주소의 <code>?key=식별값</code> 부분과 사이트 메뉴 후보를 구분하는 데 사용합니다.</p>'
+            . '<p>영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 입력할 수 있습니다. 그룹을 만든 뒤에는 연결 주소가 바뀌지 않도록 수정할 수 없습니다.</p>',
+    ],
     'status' => [
         'id' => 'community_board_group_help_status',
-        'title' => sr_t('community::help.status.title'),
-        'body' => $communityBoardGroupHelpBodyHtml(['community::help.status.body.1', 'community::help.status.body.2', 'community::help.status.body.3']),
+        'title' => '게시판 그룹 상태 도움말',
+        'body' => '<p>‘사용’은 그룹 공개 화면을 열고 공개 목록과 사이트 메뉴 후보에서 게시판을 이 그룹으로 묶어 보여 줍니다.</p>'
+            . '<p>‘사용안함’과 ‘보관’은 그룹 공개 화면과 그룹 묶음 표시에서 제외하지만 연결된 게시판을 자동으로 중지하거나 삭제하지 않습니다. 각 게시판은 자체 상태와 접근 권한에 따라 직접 주소에서 계속 열릴 수 있습니다.</p>'
+            . '<p>‘보관’은 더 이상 운영하지 않는 그룹을 관리자 목록에 기록으로 남길 때 사용합니다.</p>',
     ],
     'policy' => [
         'id' => 'community_board_group_help_policy',
@@ -207,8 +215,9 @@ $communityBoardGroupHelp = [
     ],
     'sort_order' => [
         'id' => 'community_board_group_help_sort_order',
-        'title' => sr_t('community::help.sort_order.title'),
-        'body' => $communityBoardGroupHelpBodyHtml(['community::help.sort_order.body.1', 'community::help.sort_order.body.2']),
+        'title' => '게시판 그룹 표시 순서 도움말',
+        'body' => '<p>숫자가 작은 그룹부터 관리자 목록, 공개 커뮤니티의 그룹 묶음, 기본 메뉴 후보에 먼저 표시됩니다.</p>'
+            . '<p>이 값은 그룹 안의 게시판 순서를 바꾸지 않습니다. 게시판 순서는 각 게시판의 표시 순서에서 정합니다.</p>',
     ],
 ];
 $selectedBoardGroup = is_array($editBoardGroup ?? null) ? $editBoardGroup : [];
@@ -253,7 +262,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="filtering-field admin-community-board-group-filter-field">
                         <label for="community_admin_board_groups_field" class="filtering-label">검색조건</label>
                         <select id="community_admin_board_groups_field" name="field" class="form-select filtering-input">
-                            <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => sr_t('community::ui.key.1057ecca'), 'title' => sr_t('community::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
+                            <?php foreach (['all' => sr_t('community::ui.all.a4b69faf'), 'key' => '식별값', 'title' => sr_t('community::ui.name.253d1510')] as $fieldValue => $fieldLabel) { ?>
                                 <option value="<?php echo sr_e($fieldValue); ?>"<?php echo (string) ($boardGroupListFilters['field'] ?? 'all') === $fieldValue ? ' selected' : ''; ?>>
                                     <?php echo sr_e($fieldLabel); ?>
                                 </option>
@@ -262,7 +271,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                     <div class="filtering-field-fill filtering-field admin-community-board-group-filter-keyword">
                         <label for="community_admin_board_groups_q" class="filtering-label"><?php echo sr_e(sr_t('community::ui.search.bda397fc')); ?></label>
-                        <input id="community_admin_board_groups_q" type="text" name="q" value="<?php echo sr_e((string) ($boardGroupListFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="<?php echo sr_e(sr_t('community::ui.key.name.7852e80c')); ?>">
+                        <input id="community_admin_board_groups_q" type="text" name="q" value="<?php echo sr_e((string) ($boardGroupListFilters['q'] ?? '')); ?>" class="form-input filtering-input" maxlength="120" placeholder="식별값 또는 이름">
                     </div>
                 </div>
                 <div id="community_admin_board_groups_detail_filters" class="filtering-body" data-filtering-body<?php echo $boardGroupDetailFilterOpen ? '' : ' hidden'; ?>>
@@ -296,7 +305,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <caption class="sr-only"><?php echo sr_e(sr_t('community::ui.community.list.339c91e7')); ?></caption>
             <thead>
                 <tr>
-                    <th<?php echo sr_admin_sort_aria('group_key', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.key.1057ecca'), 'group_key', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
+                    <th<?php echo sr_admin_sort_aria('group_key', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html('식별값', 'group_key', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.name.253d1510'), 'title', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.status.e10195a1'), 'status', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
                     <th<?php echo sr_admin_sort_aria('board_count', $boardGroupSort); ?>><?php echo sr_admin_sort_header_html(sr_t('community::ui.text.d6d92d73'), 'board_count', $boardGroupSort, sr_community_admin_board_group_sort_options(), sr_community_admin_board_group_default_sort()); ?></th>
@@ -335,7 +344,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="delete_group">
                                     <input type="hidden" name="group_id" value="<?php echo sr_e((string) $boardGroup['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 그룹 삭제" title="게시판 그룹 삭제" onclick="return confirm('이 게시판 그룹을 삭제할까요? 연결 게시판은 삭제하지 않고 그룹 연결만 해제합니다. 외부 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 그룹 삭제" title="게시판 그룹 삭제" onclick="return confirm('이 게시판 그룹을 삭제할까요? 연결 게시판은 삭제하지 않고 그룹 연결만 해제합니다. 사이트 메뉴에서 사용 중이면 삭제할 수 없습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
                                 </form>
                             </div>
                         </td>
@@ -349,7 +358,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></span>
         <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 게시판 그룹 삭제</span>
     </div>
-    <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
+    <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled', 'archived'], 'content_status'), [
+        'enabled' => '그룹 공개 화면과 공개 목록·메뉴 후보에서 게시판을 이 그룹으로 묶어 표시합니다.',
+        'disabled' => '그룹 공개 화면과 그룹 묶음 표시를 중지하며 연결 게시판의 자체 상태는 바꾸지 않습니다.',
+        'archived' => '그룹 공개 화면에서 제외하고 더 이상 운영하지 않는 그룹을 기록으로 남깁니다.',
+    ]); ?>
 </section>
     <?php echo sr_admin_pagination_html($boardGroupPagination, '게시판 그룹 목록 페이지'); ?>
 <?php } else { ?>
@@ -361,16 +374,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $formBoardGroup['id']); ?>">
                 <div class="form-row">
-                    <span class="form-label"><?php echo sr_e(sr_t('community::ui.key.1057ecca')); ?></span>
+                    <div class="form-label form-label-help">
+                        <?php echo $communityBoardGroupHelpButtonHtml('식별값', $communityBoardGroupHelp['group_key']['id']); ?>
+                        <span>식별값</span>
+                    </div>
                     <div class="form-field">
                         <code><?php echo sr_e((string) $formBoardGroup['group_key']); ?></code>
                     </div>
                 </div>
             <?php } else { ?>
                 <div class="form-row">
-                    <label class="form-label" for="community_admin_board_groups_group_key"><?php echo sr_e(sr_t('community::ui.key.1057ecca')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('community_admin_board_groups_group_key', '식별값', $communityBoardGroupHelp['group_key']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <input id="community_admin_board_groups_group_key" type="text" name="group_key" maxlength="60" value="<?php echo sr_e($groupField($formBoardGroup, 'group_key')); ?>" class="form-input" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#community_admin_board_groups_title" data-admin-key-suggest-fallback="board_group">
+                        <small class="form-help">영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 입력하세요. 만든 뒤에는 바꿀 수 없습니다.</small>
                     </div>
                 </div>
             <?php } ?>
@@ -378,12 +395,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="community_admin_board_groups_title"><?php echo sr_e(sr_t('community::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
                     <input id="community_admin_board_groups_title" type="text" name="title" maxlength="120" value="<?php echo sr_e($groupField($formBoardGroup, 'title')); ?>" class="form-input form-control-full" required>
+                    <small class="form-help">그룹 공개 화면과 사이트 메뉴 후보에 표시되는 이름입니다.</small>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="community_admin_board_groups_description"><?php echo sr_e(sr_t('community::ui.text.8c3f651d')); ?></label>
                 <div class="form-field">
                     <textarea id="community_admin_board_groups_description" name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e($groupField($formBoardGroup, 'description')); ?></textarea>
+                    <small class="form-help">그룹 공개 화면의 제목 아래와 검색·공유용 설명에 표시됩니다.</small>
                 </div>
             </div>
             <div class="form-row">
@@ -394,12 +413,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                 <option value="<?php echo sr_e($status); ?>"<?php echo $status === $groupField($formBoardGroup, 'status', 'enabled') ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'content_status')); ?></option>
                                             <?php } ?>
                                         </select>
+                    <small class="form-help">사용안함·보관은 그룹 화면만 닫으며 연결 게시판의 자체 상태는 바꾸지 않습니다.</small>
                 </div>
             </div>
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('community_admin_board_groups_sort_order', sr_t('community::ui.text.7d2dc215'), $communityBoardGroupHelp['sort_order']['id'], $communityBoardGroupHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <input id="community_admin_board_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e($groupField($formBoardGroup, 'sort_order', '0')); ?>" required class="form-input">
+                    <small class="form-help">숫자가 작을수록 그룹 목록과 메뉴 후보에서 먼저 표시됩니다. 게시판 순서에는 영향을 주지 않습니다.</small>
                 </div>
             </div>
         </section>
@@ -430,9 +451,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="hidden" name="intent" value="delete_group">
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($formBoardGroup['id'] ?? 0)); ?>">
                         <p class="form-help">
-                            게시판 그룹을 삭제하면 그룹 정보가 삭제되고,
-                            연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건은 삭제하지 않고 그룹 연결만 해제됩니다.
-                            외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardGroupDeleteCheck['external_references'] ?? null) ? $boardGroupDeleteCheck['external_references'] : []))); ?>건.
+                            게시판 그룹과 그룹 공통 설정을 삭제합니다.
+                            연결 게시판 <?php echo sr_e((string) (int) ($boardGroupDeleteCheck['references']['boards'] ?? 0)); ?>건은 남겨 두고 그룹 연결만 해제하며, 이후 각 게시판의 자체 설정을 사용합니다.
+                            사이트 메뉴에서 이 그룹을 사용 중인 곳이 <?php echo sr_e((string) array_sum(array_map('intval', is_array($boardGroupDeleteCheck['external_references'] ?? null) ? $boardGroupDeleteCheck['external_references'] : []))); ?>건 있으면 삭제할 수 없습니다.
                             현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
                         </p>
                     </div>

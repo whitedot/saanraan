@@ -29,6 +29,20 @@ if (!str_contains($contentGroupAdminView, '해당 콘텐츠의 댓글') || !str_
     $errors[] = 'Content group delete help must explain retained content data and blocking references.';
 }
 
+$communityBoardGroupAdminView = (string) file_get_contents($root . '/modules/community/views/admin-board-groups.php');
+if (!str_contains($communityBoardGroupAdminView, '연결된 게시판을 자동으로 중지하거나 삭제하지 않습니다.')) {
+    $errors[] = 'Community board group status help must distinguish group visibility from board status.';
+}
+if (!str_contains($communityBoardGroupAdminView, '이 값은 그룹 안의 게시판 순서를 바꾸지 않습니다.')) {
+    $errors[] = 'Community board group sort help must distinguish group order from board order.';
+}
+if (!str_contains($communityBoardGroupAdminView, "['enabled', 'disabled', 'archived']")) {
+    $errors[] = 'Community board group status descriptions must include archived.';
+}
+if (!str_contains($communityBoardGroupAdminView, '이후 각 게시판의 자체 설정을 사용합니다.') || !str_contains($communityBoardGroupAdminView, '사이트 메뉴에서 이 그룹을 사용 중인 곳이')) {
+    $errors[] = 'Community board group delete help must explain board fallback and menu references.';
+}
+
 function sr_group_delete_detach_error(string $message): void
 {
     global $errors;
