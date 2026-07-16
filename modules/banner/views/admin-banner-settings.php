@@ -76,7 +76,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_target_service_key', '기본 서비스', $bannerSettingsHelp['default_target_option']['id'], $bannerHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('banner_admin_banner_settings_default_target_service_key', '기본 사용 서비스', $bannerSettingsHelp['default_target_option']['id'], $bannerHelpOpenLabel, true); ?>
             <div class="form-field">
                 <input type="hidden" name="banner_default_target_option" value="<?php echo sr_e($bannerDefaultTargetOption); ?>" data-admin-target-option>
                 <select id="banner_admin_banner_settings_default_target_service_key" name="banner_default_target_service_key" class="form-select" required data-admin-target-service>
@@ -88,7 +88,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row" data-admin-target-detail-row<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>>
-            <label class="form-label" for="banner_admin_banner_settings_default_target_detail_option"><?php echo sr_e('기본 상세'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
+            <label class="form-label" for="banner_admin_banner_settings_default_target_detail_option"><?php echo sr_e('기본 노출 위치'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
             <div class="form-field">
                 <select id="banner_admin_banner_settings_default_target_detail_option" name="banner_default_target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_banner_is_public_target_option($bannerDefaultTargetOption) ? ' disabled' : ' required'; ?>>
                     <?php foreach ($availableTargets as $target) { ?>
