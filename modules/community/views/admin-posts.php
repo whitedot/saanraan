@@ -36,6 +36,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$communityHideHelp = [
+    'id' => 'community-hide-status-help',
+    'title' => '게시글·댓글 숨김 처리 도움말',
+    'body' => '<p>숨김 처리하면 선택한 게시글이나 댓글을 공개 화면에서 즉시 숨깁니다. 내용을 삭제하지는 않으며, 나중에 상태를 ‘공개’로 바꾸면 다시 표시할 수 있습니다.</p>'
+        . '<p>숨김 기간은 운영자가 다시 확인할 예정일을 기록하는 값입니다. 기간이 지나도 자동으로 공개 상태로 돌아가지 않으므로, 게시글·댓글 관리 화면에서 직접 공개 처리해야 합니다. ‘영구’는 다시 확인할 예정일을 두지 않는다는 뜻이며 삭제를 의미하지 않습니다.</p>'
+        . '<p>게시글을 숨기면 연결된 첨부파일도 함께 숨기고, 게시글 작성 보상 회수 설정이 켜져 있으면 이미 지급한 보상을 회수할 수 있습니다. 나중에 공개 상태로 돌려도 회수한 보상은 자동으로 다시 지급되지 않습니다.</p>'
+        . '<p>숨김 사유와 운영 메모는 운영 기록으로만 저장하며 일반 회원에게는 표시하지 않습니다.</p>',
+];
+?>
+
 <?php if ($communityPostsPage !== 'comments') { ?>
 <div class="admin-local-nav-wrap">
     <div class="admin-summary-stats">
@@ -408,7 +419,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="admin-summary-meta">선택한 항목을 공개 화면에서 숨기고, 지정한 기간과 사유를 운영 기록으로 남깁니다.</p>
                 <p class="admin-form-static" data-community-hide-target-label></p>
                 <div class="form-row">
-                    <span class="form-label">숨김 기간</span>
+                    <div class="form-label form-label-help">
+                        <button type="button" class="admin-label-help-button" aria-label="숨김 처리 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityHideHelp['id']); ?>" data-overlay="#<?php echo sr_e($communityHideHelp['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                        <span>숨김 기간</span>
+                    </div>
                     <div class="form-field">
                         <?php echo sr_admin_radio_toggle_group_html('community_hidden_duration', 'hidden_duration', [
                             '7' => '7일',
@@ -417,6 +431,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             '90' => '90일',
                             'permanent' => '영구',
                         ], '30', true); ?>
+                        <p class="form-help">다시 확인할 예정 기간입니다. 기간이 지나도 자동으로 공개되지 않습니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
@@ -429,12 +444,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="policy">정책 위반</option>
                             <option value="other">기타</option>
                         </select>
+                        <p class="form-help">운영 기록을 분류하는 값으로, 일반 회원에게는 표시하지 않습니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="community_hidden_note">운영 메모</label>
                     <div class="form-field">
                         <textarea id="community_hidden_note" name="hidden_note" class="form-textarea" rows="3" maxlength="1000"></textarea>
+                        <p class="form-help">조치 근거나 후속 확인 내용을 남기는 내부 메모입니다.</p>
                     </div>
                 </div>
             </div>
@@ -445,6 +462,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </div>
 </div>
+
+<?php echo sr_admin_help_modal_html($communityHideHelp['id'], $communityHideHelp['title'], $communityHideHelp['body']); ?>
 
 <script>
 (function () {

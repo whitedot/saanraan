@@ -1071,6 +1071,12 @@ sr_community_release_file_contains('modules/community/views/admin-posts.php', [
     "postSearchFieldOptions['extra'] = '추가 입력'",
     'sr_community_extra_fields_admin_summary_html(sr_community_extra_field_values_from_json',
 ], 'Community admin post extra field list display');
+sr_community_release_file_contains('modules/community/views/admin-posts.php', [
+    '기간이 지나도 자동으로 공개 상태로 돌아가지 않으므로',
+    '‘영구’는 다시 확인할 예정일을 두지 않는다는 뜻이며 삭제를 의미하지 않습니다.',
+    '나중에 공개 상태로 돌려도 회수한 보상은 자동으로 다시 지급되지 않습니다.',
+    '운영 기록을 분류하는 값으로, 일반 회원에게는 표시하지 않습니다.',
+], 'Community hidden status operator guidance');
 sr_community_release_file_contains('modules/community/helpers/posts.php', [
     'ev.show_in_admin_snapshot = 1',
     'ev.value_text LIKE :extra_values_keyword',
