@@ -95,9 +95,17 @@
       row.setAttribute('data-community-admin-post-extra-field-key', field.key);
 
       var order = document.createElement('td');
+      order.className = 'admin-extra-field-order-cell';
       var orderActions = document.createElement('div');
       orderActions.className = 'admin-row-actions';
-      orderActions.innerHTML = '<span class="admin-drag-handle" draggable="true" data-admin-reorder-handle title="드래그해서 순서 변경" aria-label="드래그해서 순서 변경"><span class="material-symbols-outlined admin-drag-handle-icon" aria-hidden="true">apps</span></span>';
+      var drag = document.createElement('span');
+      drag.className = 'admin-drag-handle';
+      drag.draggable = true;
+      drag.setAttribute('data-admin-reorder-handle', '');
+      drag.title = '드래그해서 순서 변경';
+      drag.setAttribute('aria-label', '드래그해서 순서 변경');
+      drag.innerHTML = '<span class="material-symbols-outlined admin-drag-handle-icon" aria-hidden="true">apps</span>';
+      orderActions.appendChild(drag);
       [['up', '위로', 'arrow_upward'], ['down', '아래로', 'arrow_downward']].forEach(function (action) {
         var button = document.createElement('button');
         button.type = 'button';
@@ -140,11 +148,31 @@
       row.appendChild(privacy);
 
       var actions = document.createElement('td');
-      actions.className = 'text-end';
+      actions.className = 'admin-table-actions-cell';
+      var actionGroup = document.createElement('div');
+      actionGroup.className = 'admin-row-actions';
       var modal = root.querySelector('[data-community-admin-post-extra-field-modal]');
       var modalSelector = modal && modal.id ? '#' + modal.id : '';
-      actions.innerHTML = '<button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" data-overlay="' + modalSelector + '" data-community-admin-post-extra-field-edit="' + index + '">수정</button> '
-        + '<button type="button" class="btn btn-sm btn-outline-danger" data-community-admin-post-extra-field-remove="' + index + '">제거</button>';
+      var editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'btn btn-sm btn-icon btn-solid-light';
+      editButton.setAttribute('aria-label', '수정');
+      editButton.title = '수정';
+      editButton.setAttribute('aria-haspopup', 'dialog');
+      editButton.setAttribute('aria-expanded', 'false');
+      editButton.setAttribute('data-overlay', modalSelector);
+      editButton.setAttribute('data-community-admin-post-extra-field-edit', String(index));
+      editButton.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">edit</span>';
+      actionGroup.appendChild(editButton);
+      var removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn btn-sm btn-icon btn-outline-danger';
+      removeButton.setAttribute('aria-label', '제거');
+      removeButton.title = '제거';
+      removeButton.setAttribute('data-community-admin-post-extra-field-remove', String(index));
+      removeButton.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">delete</span>';
+      actionGroup.appendChild(removeButton);
+      actions.appendChild(actionGroup);
       row.appendChild(actions);
       list.appendChild(row);
     });

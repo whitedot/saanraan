@@ -168,15 +168,21 @@ $editorView = file_get_contents($root . '/modules/admin/helpers/comment-extra-fi
 sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, 'show_privacy_purpose'), 'admin editor script must save collection-purpose visibility.');
 sr_check_comment_extra_fields_assert(is_string($editorView) && str_contains($editorView, '입력 항목 아래에 표시'), 'admin editor must expose collection-purpose visibility in plain language.');
 
-$editorHtml = sr_admin_comment_extra_fields_editor_html('content_item_comment_extra_fields_json', 'comment_extra_fields_json', []);
+$editorHtml = sr_admin_comment_extra_fields_editor_html('content_item_comment_extra_fields_json', 'comment_extra_fields_json', [], '댓글 추가 입력 항목', '새 콘텐츠에 적용할 기본값입니다.');
 sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'id="content-item-comment-extra-fields-json-section"'), 'admin editor section IDs must use the same hyphenated form as section navigation links.');
 sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'id="content-item-comment-extra-fields-json-modal"'), 'admin editor modal IDs must follow the normalized section ID.');
 sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0"'), 'admin editor modals must use the shared hidden overlay state.');
 sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'aria-hidden="true" inert data-overlay-stack="true"'), 'admin editor modals must expose the shared overlay accessibility contract.');
+sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'admin-extra-field-editor admin-comment-extra-fields'), 'admin editor must use the shared extra field card layout.');
+sr_check_comment_extra_fields_assert(str_contains($editorHtml, 'data-admin-comment-extra-field-table'), 'admin editor must expose the same table contract as the board form editor.');
+sr_check_comment_extra_fields_assert(str_contains($editorHtml, '<p class="form-help">'), 'admin editor guidance must follow the board form table.');
 sr_check_comment_extra_fields_assert(!str_contains($editorHtml, 'maxlength="120" required class="form-input'), 'closed editor modal inputs must not participate in the parent settings form native validation.');
 sr_check_comment_extra_fields_assert(!str_contains($editorHtml, '-field-type" required class="form-select'), 'closed editor modal selects must not participate in the parent settings form native validation.');
 sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, 'function reportTemporaryValidity(control, message)'), 'admin editor must scope required validation to the modal apply action.');
 sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, "control.setCustomValidity('');"), 'admin editor must clear modal custom validity after reporting it.');
+sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, "editButton.setAttribute('data-overlay', modalSelector)"), 'admin editor edit actions must open their shared modal.');
+sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, "editButton.innerHTML = '<span class=\"material-symbols-outlined\" aria-hidden=\"true\">edit</span>';"), 'admin editor edit actions must use the board form icon pattern.');
+sr_check_comment_extra_fields_assert(is_string($editorScript) && str_contains($editorScript, "removeButton.innerHTML = '<span class=\"material-symbols-outlined\" aria-hidden=\"true\">delete</span>';"), 'admin editor remove actions must use the board form icon pattern.');
 
 unset($_POST['comment_extra_fields']);
 

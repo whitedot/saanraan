@@ -20,22 +20,22 @@ function sr_community_admin_post_extra_fields_editor_html(
 
     ob_start();
     ?>
-    <section id="<?php echo sr_e($safeId); ?>-section" class="card admin-list-card admin-list-form" data-admin-section-anchor data-community-admin-post-extra-fields-editor>
+    <section id="<?php echo sr_e($safeId); ?>-section" class="card admin-list-card admin-list-form admin-extra-field-editor admin-community-post-extra-fields" data-admin-section-anchor data-community-admin-post-extra-fields-editor>
         <div class="card-header">
             <h2 class="card-title"><?php echo sr_e($title); ?></h2>
-            <div class="card-actions">
+            <div class="admin-row-actions">
                 <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($modalId); ?>" data-overlay="#<?php echo sr_e($modalId); ?>" data-community-admin-post-extra-field-add>항목 추가</button>
             </div>
         </div>
         <div class="table-wrapper" data-community-admin-post-extra-field-table-wrap hidden>
-            <table class="table table-list">
+            <table class="table table-list admin-extra-field-table" data-community-admin-post-extra-field-table>
                 <caption class="sr-only"><?php echo sr_e($title); ?> 목록</caption>
-                <thead><tr><th>순서</th><th>라벨</th><th>유형</th><th>표시</th><th>개인정보</th><th class="text-end">작업</th></tr></thead>
+                <thead><tr><th class="admin-extra-field-order-cell">순서</th><th>라벨</th><th>유형</th><th>표시</th><th>개인정보</th><th class="text-end">작업</th></tr></thead>
                 <tbody data-community-admin-post-extra-field-list data-admin-reorder-list></tbody>
             </table>
         </div>
-        <p class="admin-empty-state" data-community-admin-post-extra-field-empty hidden>추가 입력 항목이 없습니다.</p>
         <?php if ($help !== '') { ?><p class="form-help"><?php echo sr_e($help); ?></p><?php } ?>
+        <p class="admin-empty-state" data-community-admin-post-extra-field-empty hidden>추가 입력 항목이 없습니다.</p>
         <textarea id="<?php echo sr_e($safeId); ?>" name="<?php echo sr_e($name); ?>" hidden data-community-admin-post-extra-fields-json><?php echo sr_e($json); ?></textarea>
 
         <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>-title" aria-hidden="true" inert data-community-admin-post-extra-field-modal>

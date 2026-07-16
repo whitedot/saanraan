@@ -673,8 +673,12 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 }
 html:not(.sr-material-icons-ready) :is(.sr-icon,.material-symbols-outlined)[data-sr-material-icon]{color:transparent}
 
-.admin-comment-extra-field-order{width:9.5rem;white-space:nowrap}
-.admin-comment-extra-fields .sr-required-label{margin-left:.25rem}
+.admin-extra-field-editor .admin-extra-field-table .admin-extra-field-order-cell{width:1%;min-width:5.75rem;text-align:center;white-space:nowrap}
+.admin-extra-field-editor .admin-extra-field-table td.admin-extra-field-order-cell{padding-inline:calc(var(--spacing) * 1.5)}
+.admin-extra-field-editor .admin-extra-field-table th.admin-extra-field-order-cell{padding-inline:calc(var(--spacing) * 2)}
+.admin-extra-field-editor .admin-extra-field-table .admin-extra-field-order-cell:first-child{padding-left:calc(var(--spacing) * 2)}
+.admin-extra-field-editor .admin-extra-field-table .admin-extra-field-order-cell .admin-row-actions{justify-content:center;gap:calc(var(--spacing) * 1)}
+.admin-extra-field-editor .sr-required-label{margin-left:calc(var(--spacing) * 1)}
 
 /* Shared project icon layer. */
 /*

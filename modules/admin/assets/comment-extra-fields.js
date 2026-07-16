@@ -77,8 +77,17 @@
       row.setAttribute('data-admin-comment-extra-field-key', field.key);
 
       var order = document.createElement('td');
-      order.className = 'admin-comment-extra-field-order';
-      order.innerHTML = '<div class="admin-row-actions"><span class="admin-drag-handle" draggable="true" data-admin-reorder-handle title="드래그해서 순서 변경" aria-label="드래그해서 순서 변경"><span class="material-symbols-outlined admin-drag-handle-icon" aria-hidden="true">apps</span></span></div>';
+      order.className = 'admin-extra-field-order-cell';
+      var orderActions = document.createElement('div');
+      orderActions.className = 'admin-row-actions';
+      var drag = document.createElement('span');
+      drag.className = 'admin-drag-handle';
+      drag.draggable = true;
+      drag.setAttribute('data-admin-reorder-handle', '');
+      drag.title = '드래그해서 순서 변경';
+      drag.setAttribute('aria-label', '드래그해서 순서 변경');
+      drag.innerHTML = '<span class="material-symbols-outlined admin-drag-handle-icon" aria-hidden="true">apps</span>';
+      orderActions.appendChild(drag);
       [['up', '위로', 'arrow_upward'], ['down', '아래로', 'arrow_downward']].forEach(function (action) {
         var button = document.createElement('button');
         button.type = 'button';
@@ -88,8 +97,9 @@
         button.setAttribute('aria-label', action[1]);
         button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + action[2] + '</span>';
         button.disabled = (action[0] === 'up' && index === 0) || (action[0] === 'down' && index === definitions.length - 1);
-        order.firstChild.appendChild(button);
+        orderActions.appendChild(button);
       });
+      order.appendChild(orderActions);
       row.appendChild(order);
 
       var label = document.createElement('td');
@@ -106,14 +116,36 @@
       row.appendChild(type);
       var privacy = document.createElement('td');
       privacy.textContent = (field.privacy_purpose || '수집·이용 목적 미입력')
-        + (field.privacy_purpose ? (field.show_privacy_purpose ? ' (작성 화면 표시)' : ' (작성 화면 숨김)') : '') + ' / '
-        + (field.export_policy === 'exclude' ? '사본에 포함하지 않음' : '사본에 포함') + ' / '
-        + (field.cleanup_policy === 'retain' ? '계정 정리 후에도 보관' : '계정 정리 시 제거');
+        + (field.privacy_purpose ? (field.show_privacy_purpose ? ' / 작성 화면 표시' : ' / 작성 화면 숨김') : '') + ' / '
+        + (field.export_policy === 'exclude' ? '사본 제외' : '사본 포함') + ' / '
+        + (field.cleanup_policy === 'retain' ? '계정 정리 후 보관' : '계정 정리 시 제거');
       row.appendChild(privacy);
       var actions = document.createElement('td');
-      actions.className = 'text-end';
-      actions.innerHTML = '<button type="button" class="btn btn-sm btn-solid-light" data-admin-comment-extra-field-edit="' + index + '">수정</button> '
-        + '<button type="button" class="btn btn-sm btn-outline-danger" data-admin-comment-extra-field-remove="' + index + '">제거</button>';
+      actions.className = 'admin-table-actions-cell';
+      var actionGroup = document.createElement('div');
+      actionGroup.className = 'admin-row-actions';
+      var modal = root.querySelector('[data-admin-comment-extra-field-modal]');
+      var modalSelector = modal && modal.id ? '#' + modal.id : '';
+      var editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'btn btn-sm btn-icon btn-solid-light';
+      editButton.setAttribute('aria-label', '수정');
+      editButton.title = '수정';
+      editButton.setAttribute('aria-haspopup', 'dialog');
+      editButton.setAttribute('aria-expanded', 'false');
+      editButton.setAttribute('data-overlay', modalSelector);
+      editButton.setAttribute('data-admin-comment-extra-field-edit', String(index));
+      editButton.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">edit</span>';
+      actionGroup.appendChild(editButton);
+      var removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn btn-sm btn-icon btn-outline-danger';
+      removeButton.setAttribute('aria-label', '제거');
+      removeButton.title = '제거';
+      removeButton.setAttribute('data-admin-comment-extra-field-remove', String(index));
+      removeButton.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">delete</span>';
+      actionGroup.appendChild(removeButton);
+      actions.appendChild(actionGroup);
       row.appendChild(actions);
       list.appendChild(row);
     });

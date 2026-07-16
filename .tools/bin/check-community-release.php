@@ -766,6 +766,9 @@ sr_community_release_file_contains('modules/community/views/admin-settings.php',
 ], 'Community settings post extra field editor');
 sr_community_release_file_contains('modules/community/helpers/admin-post-extra-fields.php', [
     'data-community-admin-post-extra-fields-editor',
+    'admin-extra-field-editor admin-community-post-extra-fields',
+    'data-community-admin-post-extra-field-table',
+    '<p class="form-help">',
     'class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0"',
     'aria-hidden="true" inert',
     'data-community-admin-post-extra-field-save',
@@ -774,6 +777,8 @@ sr_community_release_file_contains('modules/community/assets/admin-post-extra-fi
     "document.querySelectorAll('[data-community-admin-post-extra-fields-editor]')",
     "textarea.dispatchEvent(new Event('change', { bubbles: true }))",
     "list.addEventListener('admin:reorder'",
+    "editButton.innerHTML = '<span class=\"material-symbols-outlined\" aria-hidden=\"true\">edit</span>';",
+    "removeButton.innerHTML = '<span class=\"material-symbols-outlined\" aria-hidden=\"true\">delete</span>';",
     'function reportTemporaryValidity(control, message)',
     "control.setCustomValidity('');",
 ], 'Community settings post extra field editor behavior');
