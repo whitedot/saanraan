@@ -82,7 +82,7 @@ function sr_community_board_copy_job_create(PDO $pdo, int $sourceBoardId, array 
     $title = sr_community_clean_single_line((string) ($values['title'] ?? ''), 120);
     $errors = [];
     if (!sr_community_board_key_is_valid($boardKey)) {
-        $errors[] = '게시판 Key는 소문자 영문, 숫자, _만 사용할 수 있습니다.';
+        $errors[] = '게시판 식별값은 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } else {
         $boardKey = sr_community_board_copy_unique_board_key($pdo, $boardKey);
     }

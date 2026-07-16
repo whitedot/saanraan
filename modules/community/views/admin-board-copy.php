@@ -19,6 +19,28 @@ $communityBoardCopyAllChecked = sr_community_board_copy_scope_all_selected($valu
 $communityBoardCopyLoad = sr_community_board_copy_load_assessment($communityBoardCopySelectedCounts, $values, $batchAvailable);
 $communityBoardCopySettingsSubmitLabel = '설정만 복사';
 $communityBoardCopyStartSubmitLabel = '복사 시작 (1/' . (string) sr_community_board_copy_job_stage_total() . ')';
+$communityBoardCopyHelpOpenLabel = '도움말 보기';
+$communityBoardCopyHelp = [
+    'board_key' => [
+        'id' => 'community-board-copy-key-help',
+        'title' => '새 게시판 식별값 도움말',
+        'body' => '<p>복사본 게시판을 구분하는 고유한 값으로, 게시판 공개 주소의 <code>?key=...</code>에도 사용됩니다. 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 입력하세요.</p>'
+            . '<p>이미 사용 중인 식별값은 저장할 때 자동으로 다른 값으로 보정됩니다. 복사본을 만든 뒤에는 바꿀 수 없으므로 실행 전에 확인하세요.</p>',
+    ],
+    'scope' => [
+        'id' => 'community-board-copy-scope-help',
+        'title' => '복사 범위 도움말',
+        'body' => '<p>‘설정’은 게시판 그룹, 설명, 읽기·쓰기·댓글 권한, 카테고리, 화면과 운영에 사용하는 게시판별 설정을 복사합니다. 선택하지 않으면 새 게시판은 기본 설정으로 만들어집니다.</p>'
+            . '<p>‘게시글+댓글’을 선택하면 여러 번에 나누어 처리하는 복사 작업을 만듭니다. ‘첨부파일’은 게시글에 연결된 실제 파일까지 복사하며, ‘시리즈’는 새 게시판에 새 시리즈를 만들고 복사된 글을 연결합니다. 두 항목은 게시글+댓글과 함께만 선택할 수 있습니다.</p>'
+            . '<p>‘전체’를 켜면 모든 항목을 선택합니다. 복사본은 범위와 관계없이 항상 ‘사용 중지’ 상태로 만들어지므로, 복사가 끝난 뒤 설정을 확인하고 직접 사용 상태로 바꾸세요.</p>',
+    ],
+    'series' => [
+        'id' => 'community-board-copy-series-help',
+        'title' => '시리즈 제목 도움말',
+        'body' => '<p>원본 시리즈는 그대로 두고 새 게시판 안에 별도의 시리즈를 만듭니다. 각 입력란에서 복사본에 사용할 제목을 확인하세요.</p>'
+            . '<p>시리즈에 연결된 글이 복사 범위에 포함되어야 새 시리즈에도 연결됩니다. 시리즈 복사를 선택하지 않으면 게시글만 복사되고 시리즈 연결은 만들어지지 않습니다.</p>',
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -89,10 +111,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2><?php echo sr_e('복사 설정'); ?></h2>
         <div class="form-row">
-            <label class="form-label" for="community_board_copy_key"><?php echo sr_e('새 게시판 Key'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></label>
+            <?php echo sr_admin_form_label_help_html('community_board_copy_key', '새 게시판 식별값', $communityBoardCopyHelp['board_key']['id'], $communityBoardCopyHelpOpenLabel, true); ?>
             <div class="form-field">
                 <input id="community_board_copy_key" type="text" name="board_key" value="<?php echo sr_e((string) $values['board_key']); ?>" class="form-input form-control-full" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input>
-                <p class="form-help">복사본 게시판을 구분하는 내부 식별값입니다. 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.</p>
+                <p class="form-help">영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 입력하세요. 만든 뒤에는 바꿀 수 없습니다.</p>
             </div>
         </div>
         <div class="form-row">
@@ -102,7 +124,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label"><?php echo sr_e('복사 범위'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></span>
+            <div class="form-label form-label-help">
+                <button type="button" class="admin-label-help-button" aria-label="<?php echo sr_e($communityBoardCopyHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityBoardCopyHelp['scope']['id']); ?>" data-overlay="#<?php echo sr_e($communityBoardCopyHelp['scope']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                <span><?php echo sr_e('복사 범위'); ?> <span class="sr-required-label"><?php echo sr_e('(필수)'); ?></span></span>
+            </div>
             <div class="form-field">
                 <div class="filtering-toggle-group admin-checkbox-toggle-group admin-community-board-copy-scope-group" role="group" aria-label="<?php echo sr_e('복사 범위'); ?>" data-copy-scope-group>
                     <span class="filtering-toggle-item">
@@ -134,7 +159,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </label>
                     </span>
                 </div>
-                <p class="form-help"><?php echo sr_e('전체를 켜면 설정, 게시글+댓글, 첨부파일, 시리즈가 모두 선택됩니다. 설정만 선택하면 바로 복사하고, 게시글+댓글을 켜면 작업 화면에서 준비부터 완료까지 단계별로 이어갑니다. 첨부파일과 시리즈는 게시글+댓글이 선택된 경우에만 복사할 수 있습니다.'); ?></p>
+                <p class="form-help"><?php echo sr_e('설정만 선택하면 바로 복사하고, 게시글+댓글을 선택하면 여러 단계에 나누어 처리합니다.'); ?></p>
             </div>
         </div>
         <?php if ($communityBoardCopyStorageWarnings !== []) { ?>
@@ -148,9 +173,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <?php if ((int) ($copyCounts['series'] ?? 0) > 0) { ?>
             <div class="form-row" data-copy-series-detail<?php echo $communityBoardCopyScopeChecked('series') ? '' : ' hidden'; ?>>
-                <span class="form-label"><?php echo sr_e('시리즈 제목'); ?></span>
+                <div class="form-label form-label-help">
+                    <button type="button" class="admin-label-help-button" aria-label="<?php echo sr_e($communityBoardCopyHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityBoardCopyHelp['series']['id']); ?>" data-overlay="#<?php echo sr_e($communityBoardCopyHelp['series']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    <span><?php echo sr_e('시리즈 제목'); ?></span>
+                </div>
                 <div class="form-field">
-                    <p class="form-help"><?php echo sr_e('시리즈를 선택하면 원본 시리즈에 사본 글을 섞지 않고 새 게시판 안에 새 시리즈를 만듭니다. 각 새 시리즈 제목을 확인하세요.'); ?></p>
+                    <p class="form-help"><?php echo sr_e('새 게시판에 만들 각 시리즈의 제목을 확인하세요.'); ?></p>
                     <?php foreach ($communityBoardCopySeriesSuggestions as $seriesSuggestion) { ?>
                         <?php $seriesId = (int) $seriesSuggestion['series_id']; ?>
                         <div class="admin-setting-unit admin-setting-unit-wide">
@@ -172,6 +200,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 </form>
+
+<?php foreach ($communityBoardCopyHelp as $communityBoardCopyHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $communityBoardCopyHelpModal['id'], (string) $communityBoardCopyHelpModal['title'], (string) $communityBoardCopyHelpModal['body']); ?>
+<?php } ?>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

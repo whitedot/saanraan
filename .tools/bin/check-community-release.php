@@ -964,6 +964,13 @@ sr_community_release_file_contains('modules/community/views/admin-series.php', [
     '‘비공개’는 시리즈 소유자 본인에게만 표시합니다.',
     '회원에게 표시되지 않는 내부 메모입니다.',
 ], 'Community series operator guidance');
+sr_community_release_file_contains('modules/community/views/admin-board-copy.php', [
+    "sr_admin_form_label_help_html('community_board_copy_key', '새 게시판 식별값'",
+    '게시판 공개 주소의 <code>?key=...</code>에도 사용됩니다.',
+    '선택하지 않으면 새 게시판은 기본 설정으로 만들어집니다.',
+    '복사본은 범위와 관계없이 항상 ‘사용 중지’ 상태로 만들어지므로',
+    '시리즈 복사를 선택하지 않으면 게시글만 복사되고 시리즈 연결은 만들어지지 않습니다.',
+], 'Community board copy operator guidance');
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'edit')",
