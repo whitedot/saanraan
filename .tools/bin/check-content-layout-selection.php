@@ -31,6 +31,24 @@ $assert(sr_content_layout_disabled('content.none'), 'Content no-layout helper mu
 $assert(!sr_content_layout_disabled(''), 'An empty legacy layout key must keep its default-layout meaning.');
 $assert(!sr_content_layout_disabled('content.basic'), 'A registered content layout must not be treated as disabled.');
 
+$orderedLayoutContext = sr_content_public_layout_context([
+    'layout_key' => 'content.basic',
+    'theme_key' => 'sample',
+], [
+    'stylesheets' => [
+        '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
+        '/modules/ckeditor/assets/saanraan-ckeditor.css',
+    ],
+]);
+$orderedStylesheets = is_array($orderedLayoutContext['stylesheets'] ?? null) ? $orderedLayoutContext['stylesheets'] : [];
+$moduleStylesheetIndex = array_search('/modules/content/theme/sample/assets/module.css', $orderedStylesheets, true);
+$ckeditorStylesheetIndex = array_search('/modules/ckeditor/vendor/ckeditor5/ckeditor5.css', $orderedStylesheets, true);
+$ckeditorThemeStylesheetIndex = array_search('/modules/ckeditor/assets/saanraan-ckeditor.css', $orderedStylesheets, true);
+$viewThemeStylesheetIndex = array_search('/modules/content/theme/sample/assets/theme.css', $orderedStylesheets, true);
+$assert(is_int($moduleStylesheetIndex) && is_int($ckeditorStylesheetIndex) && $moduleStylesheetIndex < $ckeditorStylesheetIndex, 'Content module styles must load before CKEditor content styles.');
+$assert(is_int($ckeditorStylesheetIndex) && is_int($ckeditorThemeStylesheetIndex) && $ckeditorStylesheetIndex < $ckeditorThemeStylesheetIndex, 'Bundled CKEditor styles must load before the project CKEditor theme.');
+$assert(is_int($ckeditorThemeStylesheetIndex) && is_int($viewThemeStylesheetIndex) && $ckeditorThemeStylesheetIndex < $viewThemeStylesheetIndex, 'Content view theme overrides must load after CKEditor content styles.');
+
 $adminView = $read('modules/content/views/admin-contents.php');
 $assert(str_contains($adminView, 'sr_content_no_layout_key()'), 'Content admin layout select must expose the no-layout option.');
 $assert(str_contains($adminView, 'name="show_title"'), 'Content admin form must expose the no-layout title option.');
@@ -56,21 +74,18 @@ foreach ([
     'modules/content/theme/basic/content.php',
     'modules/content/theme/sample/content.php',
 ] as $contentPublicViewFile) {
-    $assert(str_contains($read($contentPublicViewFile), "include SR_ROOT . '/modules/content/views/content-edit-link.php';"), $contentPublicViewFile . ' must render the shared content edit link.');
+    $contentPublicView = $read($contentPublicViewFile);
+    $assert(str_contains($contentPublicView, "include SR_ROOT . '/modules/content/views/content-edit-link.php';"), $contentPublicViewFile . ' must render the shared content edit link.');
+    $assert(str_contains($contentPublicView, 'sr_content_public_body_html('), $contentPublicViewFile . ' must use the shared editor-aware public body renderer.');
 }
 
 $noLayoutView = $read('modules/content/views/content-no-layout.php');
 $assert(str_contains($noLayoutView, '$contentNoLayoutShowTitle'), 'No-layout renderer must conditionally render the content title.');
-$assert(str_contains($noLayoutView, 'sr_content_body_html('), 'No-layout renderer must render the sanitized content body.');
+$assert(str_contains($noLayoutView, 'sr_content_public_body_html('), 'No-layout renderer must use the shared editor-aware public body renderer.');
 $assert(str_contains($noLayoutView, '<div class="content-body">'), 'No-layout renderer must retain the shared body wrapper for non-CKEditor content.');
-$assert(str_contains($noLayoutView, 'class="content-body ck-content"'), 'No-layout CKEditor content must retain CKEditor body presentation without editor input chrome.');
-$assert(str_contains($noLayoutView, 'data-sr-editor-body-theme="content.'), 'No-layout CKEditor content must use the same themed editor wrapper as the input screen.');
 $assert(!str_contains($noLayoutView, 'ck-editor__editable_inline'), 'No-layout CKEditor content must not render the editor input surface.');
 $assert(!str_contains($noLayoutView, 'ck-editor__main'), 'No-layout CKEditor content must not render editor UI containers.');
-$assert(str_contains($noLayoutView, "'/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'"), 'No-layout CKEditor content must load the original CKEditor content stylesheet.');
-$assert(str_contains($noLayoutView, "'/modules/ckeditor/assets/saanraan-ckeditor.css'"), 'No-layout CKEditor content must load the project CKEditor theme stylesheet.');
 $assert(str_contains($noLayoutView, "sr_public_layout_module_theme_asset_url('content', \$contentNoLayoutThemeKey, 'reset.css')"), 'No-layout content must load the selected content theme reset before editor styles.');
-$assert(str_contains($noLayoutView, 'sr_content_effective_body_format($pdo, $page)'), 'No-layout CKEditor detection must use the same effective body format as body rendering.');
 $assert(str_contains($noLayoutView, "include SR_ROOT . '/modules/content/views/asset-confirmation-modal.php';"), 'No-layout renderer must reuse the original content confirmation modal.');
 $assert(str_contains($noLayoutView, "sr_public_layout_module_theme_asset_url('content', \$contentNoLayoutThemeKey, 'common.css')"), 'No-layout confirmation must load the selected content theme common styles.');
 $assert(str_contains($noLayoutView, "sr_public_layout_module_theme_asset_url('content', \$contentNoLayoutThemeKey, 'module.css')"), 'No-layout confirmation must load the selected content theme module styles.');
@@ -140,14 +155,35 @@ $assert(!str_contains($hiddenTitleHtml, '<h1>'), 'No-layout renderer must hide t
 $assert(str_contains($hiddenTitleHtml, '<title>레이아웃 제목</title>'), 'No-layout renderer must retain the document title when the visible title is hidden.');
 $assert(str_contains($hiddenTitleHtml, '<p>레이아웃 본문</p>'), 'No-layout renderer must retain the sanitized body when the visible title is hidden.');
 $assert(str_contains($hiddenTitleHtml, '<div class="content-body">'), 'No-layout renderer must apply editor body selectors to the rendered content.');
-$assert(str_contains($ckeditorHtml, '<div class="sr-ckeditor" data-sr-editor-body-theme="content.basic">'), 'No-layout CKEditor renderer must preserve the editor body theme context.');
-$assert(str_contains($ckeditorHtml, 'class="content-body ck-content"'), 'No-layout CKEditor renderer must activate CKEditor content presentation rules.');
+$assert(str_contains($ckeditorHtml, '<div class="sr-ckeditor" data-sr-editor-output data-sr-editor-body-theme="content.basic">'), 'No-layout CKEditor renderer must preserve the shared transparent output and editor body theme context.');
+$assert(str_contains($ckeditorHtml, '<div class="ck-content"'), 'No-layout CKEditor renderer must activate CKEditor content presentation rules.');
 $assert(!str_contains($ckeditorHtml, 'ck-editor__editable_inline'), 'No-layout CKEditor renderer must not expose editor input chrome.');
 $assert(!str_contains($ckeditorHtml, 'aria-readonly='), 'No-layout CKEditor body is ordinary public content, not an editor widget.');
 $assert(str_contains($ckeditorHtml, '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'), 'No-layout CKEditor renderer must load the bundled editor stylesheet.');
 $assert(str_contains($ckeditorHtml, '/modules/ckeditor/assets/saanraan-ckeditor.css'), 'No-layout CKEditor renderer must load the project editor theme stylesheet.');
 $assert(str_contains($ckeditorHtml, '/modules/content/theme/basic/assets/reset.css'), 'No-layout CKEditor renderer must load the same reset and token baseline as the editor input screen.');
 $assert(!str_contains($ckeditorHtml, '/assets/editor-ck.css'), 'No-layout CKEditor renderer must not let the reduced public reset override original editor content rules.');
+$contentHelpers = $read('modules/content/helpers.php');
+$assert(str_contains($contentHelpers, 'function sr_content_public_body_html('), 'Content helpers must expose one shared public body renderer for every layout mode.');
+$assert(str_contains($contentHelpers, 'data-sr-editor-output'), 'Shared content body renderer must identify public output separately from editor input UI.');
+$assert(str_contains($contentHelpers, "'/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'"), 'Shared content body assets must load the bundled CKEditor stylesheet.');
+$assert(str_contains($contentHelpers, "'/modules/ckeditor/assets/saanraan-ckeditor.css'"), 'Shared content body assets must load the project CKEditor theme stylesheet.');
+$ckeditorThemeStyles = $read('modules/ckeditor/assets/saanraan-ckeditor.css');
+$ckeditorVendorStyles = $read('modules/ckeditor/vendor/ckeditor5/ckeditor5.css');
+$assert(str_contains($ckeditorThemeStyles, '.sr-ckeditor[data-sr-editor-output] .ck-content'), 'Public CKEditor output must have a scoped background override.');
+$assert(str_contains($ckeditorThemeStyles, 'background: transparent;'), 'Public CKEditor output background must remain transparent.');
+$assert(str_contains($ckeditorVendorStyles, '--ck-content-line-height:1.5'), 'Bundled CKEditor content line-height token must retain its expected source value.');
+$assert(str_contains($ckeditorVendorStyles, 'line-height:var(--ck-content-line-height)'), 'Bundled CKEditor content rules must apply their line-height token.');
+$assert(str_contains($ckeditorThemeStyles, 'font-size: var(--ck-content-font-size);'), 'Public CKEditor output must use the original CKEditor content font-size token.');
+$assert(str_contains($ckeditorThemeStyles, 'line-height: var(--ck-content-line-height);'), 'Public CKEditor output must use the original CKEditor content line-height token.');
+$assert(str_contains($ckeditorThemeStyles, 'padding-inline: 0;'), 'Public CKEditor output must not add horizontal content padding.');
+$assert(!str_contains($ckeditorThemeStyles, 'padding: 0 var(--ck-spacing-standard);'), 'Public CKEditor output must not copy the editable widget horizontal padding.');
+$assert(str_contains($ckeditorThemeStyles, '.ck-content > :first-child'), 'Public CKEditor output must retain the editable surface first-block spacing.');
+$assert(str_contains($ckeditorThemeStyles, 'margin-top: var(--ck-spacing-large);'), 'Public CKEditor output first-block spacing must use the original CKEditor token.');
+$assert(str_contains($ckeditorThemeStyles, '.ck-content > :last-child'), 'Public CKEditor output must retain the editable surface last-block spacing.');
+$assert(str_contains($ckeditorThemeStyles, 'margin-bottom: var(--ck-spacing-large);'), 'Public CKEditor output last-block spacing must use the original CKEditor token.');
+$assert(str_contains($ckeditorThemeStyles, '.ck-content p > img:only-child'), 'CKEditor image-only paragraphs must retain their editor line box in public output.');
+$assert(str_contains($ckeditorThemeStyles, '.ck-content p > a:only-child > img:only-child'), 'Linked CKEditor image-only paragraphs must retain their editor line box in public output.');
 $hiddenTitleBody = strstr($hiddenTitleHtml, '<body>');
 $assert(is_string($hiddenTitleBody) && !str_contains($hiddenTitleBody, '화면에 나오지 않을 요약'), 'No-layout renderer must not expose the content summary in the document body.');
 $assert(str_contains($editableHtml, 'admin/content/edit?id=1'), 'No-layout renderer must expose the resolved content edit URL.');

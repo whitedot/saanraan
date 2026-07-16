@@ -3,25 +3,9 @@
 $contentNoLayoutTitle = (string) (($page['seo_title'] ?? '') ?: ($page['title'] ?? ''));
 $contentNoLayoutDescription = (string) (($page['seo_description'] ?? '') ?: ($page['summary'] ?? ''));
 $contentNoLayoutStylesheets = sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null);
-$contentNoLayoutEditorKey = $pdo instanceof PDO
-    ? sr_content_effective_editor_key($pdo, $page)
-    : sr_content_item_editor_key((string) ($page['editor_key'] ?? 'textarea'));
-$contentNoLayoutBodyFormat = $pdo instanceof PDO
-    ? sr_content_effective_body_format($pdo, $page)
-    : sr_body_format((string) ($page['body_format'] ?? 'plain'));
-$contentNoLayoutUsesCkeditor = $contentNoLayoutEditorKey === 'ckeditor'
-    && $contentNoLayoutBodyFormat === 'html';
 $contentNoLayoutThemeKey = sr_content_theme_key((string) ($contentLayoutSettings['theme_key'] ?? ''));
 $contentNoLayoutThemeReset = sr_public_layout_module_theme_asset_url('content', $contentNoLayoutThemeKey, 'reset.css');
 array_unshift($contentNoLayoutStylesheets, $contentNoLayoutThemeReset);
-if ($contentNoLayoutUsesCkeditor) {
-    $contentNoLayoutStylesheets = array_values(array_filter(
-        $contentNoLayoutStylesheets,
-        static fn(string $stylesheet): bool => $stylesheet !== '/assets/editor-ck.css'
-    ));
-    $contentNoLayoutStylesheets[] = '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css';
-    $contentNoLayoutStylesheets[] = '/modules/ckeditor/assets/saanraan-ckeditor.css';
-}
 $contentNoLayoutShowTitle = (int) ($page['show_title'] ?? 1) === 1;
 $contentEditUrl = (string) ($contentEditUrl ?? '');
 $contentNoLayoutColorScheme = sr_color_scheme(is_array($site ?? null) ? $site : null);
@@ -64,17 +48,9 @@ $contentNoLayoutStylesheets = array_values(array_unique($contentNoLayoutStyleshe
     <?php } ?>
     <?php include SR_ROOT . '/modules/content/views/content-edit-link.php'; ?>
     <?php if (!empty($pageAccess['allowed'])) { ?>
-        <?php if ($contentNoLayoutUsesCkeditor) { ?>
-            <div class="sr-ckeditor" data-sr-editor-body-theme="content.<?php echo sr_e($contentNoLayoutThemeKey); ?>">
-                <div class="content-body ck-content" lang="<?php echo sr_e(sr_locale()); ?>" dir="ltr">
-                    <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
-                </div>
-            </div>
-        <?php } else { ?>
-            <div class="content-body">
-                <?php echo sr_content_body_html($page, $contentLayoutSettings, $pdo); ?>
-            </div>
-        <?php } ?>
+        <div class="content-body">
+            <?php echo sr_content_public_body_html($page, $contentLayoutSettings, $pdo); ?>
+        </div>
     <?php } elseif ($contentNoLayoutNeedsConfirmation) { ?>
         <?php
         $assetConfirmationAssetLabel = (string) ($pageAccess['asset_label'] ?? '');

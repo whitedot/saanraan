@@ -13,7 +13,9 @@
 | 요청 흐름 | `index.php`가 `core/request-bootstrap.php`의 요청 준비 함수를 순서대로 호출한 뒤 활성 모듈의 `paths.php`를 읽고 action 파일을 명시적으로 include |
 | 기본 DB prefix | `sr_` |
 
-공개 `/content/search`는 2글자 이상의 검색어로 공개 콘텐츠 제목, 요약, 허용된 본문을 검색한다. 유료 열람 콘텐츠 본문은 1회 열람 접근권이 있는 회원에게만 검색 범위와 결과 발췌에 포함하고, 본인확인 제한이 켜진 사이트에서는 본문 검색을 제외한다. 콘텐츠 layout shell은 커뮤니티 상단과 같은 브랜드·검색·계정 액션 topbar와 별도 고정 메뉴 행을 사용한다. 콘텐츠 상세는 콘텐츠별 `layout_key`를 우선 적용하며 `content.none`은 layout shell과 부가 영역 없이 제목·본문만 출력한다. 이때 `show_title = 0`이면 화면 제목을 숨기되 문서 제목은 유지한다. 무레이아웃은 선택된 콘텐츠 테마의 reset/token baseline을 먼저 적용한다. CKEditor 본문은 입력 UI의 테두리·안쪽 여백·최소 높이를 만드는 `.ck-editor__main`, `.ck-editor__editable_inline`을 출력하지 않고 `.sr-ckeditor .ck-content`의 본문 표현과 CKEditor 원본·프로젝트 theme stylesheet만 사용한다. Markdown 본문은 renderer stylesheet를 사용한다. CKEditor 판정은 저장된 원본 `body_format`이 아니라 렌더링과 동일한 실효 포맷을 사용한다. 무레이아웃 유료 콘텐츠의 열람 확인은 기존 콘텐츠 모달을 그대로 사용하며, 확인이 필요할 때만 선택된 콘텐츠 테마의 modal/UI kit stylesheet와 공통 overlay script를 불러온다. 로그인 계정이 콘텐츠 관리자이면 관리자 수정 화면, 회원 제출 콘텐츠의 작성자이면 본인 제출본 수정 화면으로 연결하며 승인된 제출본 수정은 공개본을 즉시 덮어쓰지 않고 새 수정안 저장·재검수 흐름을 따른다.
+공개 `/content/search`는 2글자 이상의 검색어로 공개 콘텐츠 제목, 요약, 허용된 본문을 검색한다. 유료 열람 콘텐츠 본문은 1회 열람 접근권이 있는 회원에게만 검색 범위와 결과 발췌에 포함하고, 본인확인 제한이 켜진 사이트에서는 본문 검색을 제외한다. 콘텐츠 layout shell은 커뮤니티 상단과 같은 브랜드·검색·계정 액션 topbar와 별도 고정 메뉴 행을 사용한다. 콘텐츠 상세는 콘텐츠별 `layout_key`를 우선 적용하며 `content.none`은 layout shell과 부가 영역 없이 제목·본문만 출력한다. 이때 `show_title = 0`이면 화면 제목을 숨기되 문서 제목은 유지한다. 모든 콘텐츠 상세는 `sr_content_public_body_html()`로 같은 CKEditor 본문 조각을 출력한다. CKEditor 본문은 입력 UI의 테두리·최소 높이를 만드는 widget 구조를 출력하지 않고 `.sr-ckeditor[data-sr-editor-output] .ck-content`, CKEditor 원본·프로젝트 theme stylesheet를 사용하며 배경은 투명하게 유지한다. Markdown 본문은 renderer stylesheet를 사용한다. CKEditor 판정은 저장된 원본 `body_format`이 아니라 렌더링과 동일한 실효 포맷을 사용한다. 무레이아웃 유료 콘텐츠의 열람 확인은 기존 콘텐츠 모달을 그대로 사용하며, 확인이 필요할 때만 선택된 콘텐츠 테마의 modal/UI kit stylesheet와 공통 overlay script를 불러온다. 로그인 계정이 콘텐츠 관리자이면 관리자 수정 화면, 회원 제출 콘텐츠의 작성자이면 본인 제출본 수정 화면으로 연결하며 승인된 제출본 수정은 공개본을 즉시 덮어쓰지 않고 새 수정안 저장·재검수 흐름을 따른다.
+
+공개 CKEditor 본문은 입력 박스 자체를 재현하지 않고 좌우 padding도 두지 않는다. 본문 font-size·line-height와 첫·마지막 블록의 세로 spacing은 CKEditor 원본 token을 그대로 적용한다.
 
 ## 번들 모듈
 

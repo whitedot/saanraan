@@ -443,10 +443,17 @@ function sr_content_public_layout_context(array $settings, array $context = []):
     $context['module_label'] = '콘텐츠';
     $context['module_menu_label'] = '콘텐츠 메뉴';
     $context['business_info_visible'] = !array_key_exists('business_info_visible', $settings) || !empty($settings['business_info_visible']);
-    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'reset.css');
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'common.css');
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'module.css');
+    $screenStylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets = [
+        sr_public_layout_module_theme_asset_url('content', $themeKey, 'reset.css'),
+        sr_public_layout_module_theme_asset_url('content', $themeKey, 'common.css'),
+        sr_public_layout_module_theme_asset_url('content', $themeKey, 'module.css'),
+    ];
+    foreach ($screenStylesheets as $screenStylesheet) {
+        if (is_string($screenStylesheet) && $screenStylesheet !== '') {
+            $stylesheets[] = $screenStylesheet;
+        }
+    }
     $themeStylesheet = sr_module_view_theme_stylesheet_url('content', $themeKey);
     if ($themeStylesheet !== '') {
         $stylesheets[] = $themeStylesheet;
@@ -743,21 +750,57 @@ function sr_content_body_html(array $page, ?array $settings = null, ?PDO $pdo = 
     return sr_content_body_file_thumbnail_html($html);
 }
 
+function sr_content_body_uses_ckeditor(array $page, ?PDO $pdo = null): bool
+{
+    $editorKey = $pdo instanceof PDO
+        ? sr_content_effective_editor_key($pdo, $page)
+        : sr_content_item_editor_key((string) ($page['editor_key'] ?? 'textarea'));
+    $bodyFormat = $pdo instanceof PDO
+        ? sr_content_effective_body_format($pdo, $page)
+        : sr_body_format((string) ($page['body_format'] ?? 'plain'));
+
+    return $editorKey === 'ckeditor' && $bodyFormat === 'html';
+}
+
+function sr_content_public_body_html(array $page, ?array $settings = null, ?PDO $pdo = null): string
+{
+    $html = sr_content_body_html($page, $settings, $pdo);
+    if (!sr_content_body_uses_ckeditor($page, $pdo)) {
+        return $html;
+    }
+
+    $themeKey = sr_content_theme_key((string) (($settings ?? [])['theme_key'] ?? ''));
+
+    return '<div class="sr-ckeditor" data-sr-editor-output data-sr-editor-body-theme="content.' . sr_e($themeKey) . '">'
+        . '<div class="ck-content" lang="' . sr_e(sr_locale()) . '" dir="ltr">'
+        . $html
+        . '</div>'
+        . '</div>';
+}
+
 function sr_content_body_embed_stylesheets(array $page, ?array $settings = null, ?PDO $pdo = null): array
 {
+    $effectiveBodyFormat = $pdo instanceof PDO
+        ? sr_content_effective_body_format($pdo, $page)
+        : sr_body_format((string) ($page['body_format'] ?? 'plain'));
+    $effectiveEditorKey = $pdo instanceof PDO
+        ? sr_content_effective_editor_key($pdo, $page)
+        : sr_content_item_editor_key((string) ($page['editor_key'] ?? 'textarea'));
+    $editorStylesheets = $effectiveBodyFormat === 'html' && $effectiveEditorKey === 'ckeditor'
+        ? [
+            '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
+            '/modules/ckeditor/assets/saanraan-ckeditor.css',
+        ]
+        : sr_body_editor_stylesheets($effectiveBodyFormat, $effectiveEditorKey);
+
     if (!$pdo instanceof PDO) {
-        return [];
+        return $editorStylesheets;
     }
 
     $linkPlainUrls = sr_content_bool_setting($settings['plain_text_auto_link_urls'] ?? $page['plain_text_auto_link_urls'] ?? false);
     $openPlainLinksInNewTab = sr_content_bool_setting($settings['plain_text_auto_link_new_tab'] ?? $page['plain_text_auto_link_new_tab'] ?? false);
-    $effectiveBodyFormat = sr_content_effective_body_format($pdo, $page);
     $page['body_format'] = $effectiveBodyFormat;
     $html = sr_body_text_html($page, $linkPlainUrls, $pdo, 'full', $openPlainLinksInNewTab);
-    $editorStylesheets = sr_body_editor_stylesheets(
-        $effectiveBodyFormat,
-        sr_content_effective_editor_key($pdo, $page)
-    );
     $markdownStylesheets = $effectiveBodyFormat === 'markdown'
         ? sr_markdown_stylesheets($pdo, (string) ($page['body_text'] ?? ''), 'full')
         : [];

@@ -150,6 +150,22 @@
   overflow-wrap: anywhere;
 }
 
+.sr-ckeditor[data-sr-editor-output] .ck-content {
+  background: transparent;
+  display: flow-root;
+  font-size: var(--ck-content-font-size);
+  line-height: var(--ck-content-line-height);
+  padding-inline: 0;
+}
+
+.sr-ckeditor[data-sr-editor-output] .ck-content > :first-child {
+  margin-top: var(--ck-spacing-large);
+}
+
+.sr-ckeditor[data-sr-editor-output] .ck-content > :last-child {
+  margin-bottom: var(--ck-spacing-large);
+}
+
 .sr-ckeditor .ck-content *,
 .sr-ckeditor .ck-content *::before,
 .sr-ckeditor .ck-content *::after {
@@ -215,6 +231,11 @@
   height: auto;
   max-width: 100%;
   vertical-align: middle;
+}
+
+.sr-ckeditor .ck-content p > img:only-child,
+.sr-ckeditor .ck-content p > a:only-child > img:only-child {
+  display: inline;
 }
 
 .sr-ckeditor .ck-content :where(pre) {
