@@ -4,7 +4,7 @@ $adminPageTitle = '게시판 삭제 작업 관리';
 if (is_array($job ?? null)) {
     $adminPageTitle = sr_community_board_delete_job_stage_progress_label((string) ($job['stage'] ?? 'prepare')) . ' - 게시판 삭제 작업 관리';
 }
-$adminPageSubtitle = '큰 게시판 삭제는 요청당 처리량을 제한해 이어서 실행합니다.';
+$adminPageSubtitle = '큰 게시판은 버튼을 누를 때마다 일정한 양을 나누어 삭제합니다.';
 $adminContainerClass = 'admin-community-board-delete-jobs admin-ui-scope';
 $adminPageTitleActionsHtml = '<a href="' . sr_e(sr_url('/admin/community/boards')) . '" class="btn btn-ghost-secondary">'
     . sr_e('게시판 목록')
@@ -18,6 +18,13 @@ $communityBoardDeleteJobStatusClass = static function (string $status): string {
     };
 };
 $communityBoardDeleteJobs = is_array($jobs ?? null) ? $jobs : [];
+$communityBoardDeleteJobHelp = [
+    'id' => 'community-board-delete-job-process-help',
+    'title' => '게시판 삭제 작업 진행 도움말',
+    'body' => '<p>삭제 작업을 만드는 즉시 해당 게시판은 ‘사용 중지’ 상태가 됩니다. 작업을 만든 뒤에는 취소하는 기능이 없고, 이미 삭제된 항목은 재시도하거나 오류를 해결해도 복원되지 않습니다.</p>'
+        . '<p>이 작업은 화면을 닫아도 자동으로 끝까지 진행되지 않습니다. ‘현재 단계 계속’을 누를 때마다 현재 단계의 일정한 양을 삭제하며, 남은 항목이 있으면 같은 단계가 유지됩니다.</p>'
+        . '<p>실패한 경우 ‘재시도 준비’를 누르면 멈춘 위치에서 다시 진행할 수 있는 상태로 바뀍니다. 준비한 뒤에 ‘현재 단계 계속’을 눌러야 재시도합니다. ‘정리 필요’는 게시판 데이터 삭제 후 일부 첨부 파일만 남은 상태입니다.</p>',
+];
 $communityBoardDeleteJobStatusCounts = [];
 foreach ($communityBoardDeleteJobs as $communityBoardDeleteJobRow) {
     if (!is_array($communityBoardDeleteJobRow)) {
@@ -60,9 +67,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label"><?php echo sr_e('현재 단계'); ?></span>
+            <div class="form-label form-label-help">
+                <button type="button" class="admin-label-help-button" aria-label="<?php echo sr_e('도움말 보기'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityBoardDeleteJobHelp['id']); ?>" data-overlay="#<?php echo sr_e($communityBoardDeleteJobHelp['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                <span><?php echo sr_e('현재 단계'); ?></span>
+            </div>
             <div class="form-field">
                 <p class="admin-form-static"><?php echo sr_e($stageProgressLabel); ?></p>
+                <?php if ($canRun) { ?>
+                    <p class="form-help"><?php echo sr_e('자동으로 다음 처리가 시작되지 않습니다. 아래에서 현재 단계를 계속하세요.'); ?></p>
+                <?php } ?>
             </div>
         </div>
         <div class="form-row">
@@ -102,11 +115,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php if ($mapStatusCounts !== []) { ?>
         <section class="card admin-list-card admin-list-form">
             <div class="card-header">
-                <h2 class="card-title"><?php echo sr_e('저장소 정리 현황'); ?></h2>
+                <h2 class="card-title"><?php echo sr_e('첨부 파일 정리 현황'); ?></h2>
             </div>
             <div class="table-wrapper">
                 <table class="table table-list">
-                    <caption class="sr-only"><?php echo sr_e('게시판 삭제 저장소 정리 현황'); ?></caption>
+                    <caption class="sr-only"><?php echo sr_e('게시판 삭제 첨부 파일 정리 현황'); ?></caption>
                     <thead>
                     <tr>
                         <th><?php echo sr_e('대상'); ?></th>
@@ -141,8 +154,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <thead>
                     <tr>
                         <th><?php echo sr_e('대상'); ?></th>
-                        <th><?php echo sr_e('원본 ID'); ?></th>
-                        <th><?php echo sr_e('저장소'); ?></th>
+                        <th><?php echo sr_e('첨부 번호'); ?></th>
+                        <th><?php echo sr_e('파일 위치'); ?></th>
                         <th><?php echo sr_e('오류'); ?></th>
                         <th><?php echo sr_e('갱신일'); ?></th>
                     </tr>
@@ -174,10 +187,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="admin-community-board-copy-job-action-right">
                     <?php if ($canRetry) { ?>
-                        <button type="submit" name="intent" value="retry" class="btn btn-solid-light" data-confirm="<?php echo sr_e('실패한 삭제 작업을 다시 대기 상태로 돌립니다. 이미 삭제된 항목은 복구되지 않습니다. 계속할까요?'); ?>"><?php echo sr_e('재시도 준비'); ?></button>
+                        <button type="submit" name="intent" value="retry" class="btn btn-solid-light" data-confirm="<?php echo sr_e('멈춘 위치에서 다시 진행할 수 있는 상태로 바꿉니다. 이미 삭제된 항목은 복원되지 않으며, 준비한 뒤 현재 단계를 계속해야 재시도합니다. 계속할까요?'); ?>"><?php echo sr_e('재시도 준비'); ?></button>
                     <?php } ?>
                     <?php if ($canRun) { ?>
-                        <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '정리 다시 시도' : '다음 단계'); ?></button>
+                        <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '파일 정리 다시 시도' : '현재 단계 계속'); ?></button>
                     <?php } ?>
                 </div>
             </form>
@@ -246,8 +259,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
-    <?php echo sr_admin_status_description_list_html('community_board_delete_job_status', array_combine(sr_community_board_delete_job_statuses(), array_map('sr_community_board_delete_job_status_label', sr_community_board_delete_job_statuses())) ?: [], [], '삭제 작업 상태 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('community_board_delete_job_status', array_combine(sr_community_board_delete_job_statuses(), array_map('sr_community_board_delete_job_status_label', sr_community_board_delete_job_statuses())) ?: [], [
+        'pending' => '아직 첫 단계를 시작하지 않았습니다. 게시판은 이미 사용 중지 상태입니다.',
+        'running' => '일부를 삭제했고 남은 항목이 있습니다. 작업 화면에서 현재 단계를 계속하세요.',
+        'failed' => '마지막 오류를 확인한 뒤 재시도를 준비하세요. 이미 삭제된 항목은 복원되지 않습니다.',
+        'cleanup_required' => '게시판 데이터는 삭제되었지만 첨부 파일 일부가 남아 있어 파일 정리를 다시 시도해야 합니다.',
+        'completed' => '게시판 데이터와 첨부 파일 삭제가 모두 끝났습니다.',
+    ], '삭제 작업 상태 설명'); ?>
 </section>
 <?php } ?>
+
+<?php echo sr_admin_help_modal_html($communityBoardDeleteJobHelp['id'], $communityBoardDeleteJobHelp['title'], $communityBoardDeleteJobHelp['body']); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
