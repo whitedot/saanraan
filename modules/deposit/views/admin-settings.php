@@ -46,12 +46,28 @@ $depositSettingsHelpBodyHtml = static function (array $paragraphs): string {
     return $html;
 };
 $depositSettingsHelp = [
+    'usage' => [
+        'id' => 'deposit-settings-help-usage-modal',
+        'title' => $depositDisplayName . ' 기능 도움말',
+        'body_html' => $depositSettingsHelpBodyHtml([
+            '끄면 ' . $depositDisplayName . '을 새로 충전하거나 사용·환불·조정하는 거래를 만들 수 없습니다. 환전과 유료 쿠폰처럼 ' . $depositDisplayName . '을 선택하는 다른 기능에서도 제외됩니다.',
+            '기존 잔액과 거래 내역은 삭제하지 않습니다. 기능을 다시 켜면 저장되어 있던 잔액과 거래 내역을 이어서 사용합니다.',
+        ]),
+    ],
     'refund_requests_enabled' => [
         'id' => 'deposit-settings-help-refund-requests-enabled-modal',
-        'title' => '환불 신청 사용',
+        'title' => '환불 신청 기능 도움말',
         'body_html' => $depositSettingsHelpBodyHtml([
-            '회원 화면에서 예치금 환불 신청 폼을 열지 여부를 정합니다.',
-            '사용하지 않으면 회원 화면의 신청 폼을 숨기고 직접 신청 POST도 서버에서 거부합니다.',
+            '회원 화면에서 예치금 환불 신청을 받을지 정합니다.',
+            '끄면 회원 화면의 신청 입력란을 숨기며, 화면 주소로 직접 신청을 보내도 서버에서 거부합니다. 접수된 기존 신청 내역은 삭제하지 않습니다.',
+        ]),
+    ],
+    'identity_refund_required' => [
+        'id' => 'deposit-settings-help-identity-refund-required-modal',
+        'title' => '환불 신청 본인확인 도움말',
+        'body_html' => $depositSettingsHelpBodyHtml([
+            '회원이 환불 신청을 제출하기 전에 본인확인을 완료하도록 요구합니다. 확인 결과는 신청 한 건을 접수한 뒤 사용 완료 처리하므로 다음 신청에는 다시 확인해야 합니다.',
+            '본인확인 모듈이 켜져 있고 예치금 환불 신청 용도를 지원하는 제공자가 준비되어 있을 때만 사용할 수 있습니다.',
         ]),
     ],
     'refund_allowed_group_keys' => [
@@ -74,10 +90,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2>기본 사용</h2>
         <?php echo sr_csrf_field(); ?>
         <div class="form-row">
-            <label class="form-label" for="deposit_usage_enabled"><?php echo sr_e($depositDisplayName); ?> 사용 여부</label>
+            <?php echo sr_admin_form_label_help_html('deposit_usage_enabled', $depositDisplayName . ' 기능', (string) $depositSettingsHelp['usage']['id'], $depositSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('deposit_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
-                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 <?php echo sr_e($depositDisplayName); ?>을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
+                <p class="form-help">끄면 새 <?php echo sr_e($depositDisplayName); ?> 거래와 환전·유료 쿠폰 등 <?php echo sr_e($depositDisplayName); ?>을 사용하는 기능을 중단합니다.</p>
             </div>
         </div>
         <div class="form-row">
@@ -99,17 +115,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>환불 신청</h2>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('deposit_refund_requests_enabled', '환불 신청 사용', (string) $depositSettingsHelp['refund_requests_enabled']['id'], $depositSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('deposit_refund_requests_enabled', '환불 신청 기능', (string) $depositSettingsHelp['refund_requests_enabled']['id'], $depositSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('deposit_refund_requests_enabled', 'refund_requests_enabled', '1', $refundRequestsEnabled, '사용', '', ' data-deposit-refund-enabled'); ?>
-                <p class="form-help">사용하지 않으면 회원 화면에서 예치금 환불 신청 폼을 숨기고 직접 신청 POST도 거부합니다.</p>
+                <p class="form-help">끄면 회원 화면에서 환불 신청을 받지 않습니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="deposit_identity_refund_required">환불 신청 본인확인</label>
+            <?php echo sr_admin_form_label_help_html('deposit_identity_refund_required', '환불 신청 본인확인', (string) $depositSettingsHelp['identity_refund_required']['id'], $depositSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('deposit_identity_refund_required', 'identity_refund_required', '1', $depositIdentityRefundAvailable && !empty($settings['identity_refund_required']), '사용', '', $depositIdentityVerificationInputAttributes); ?>
-                <p class="form-help">사용하면 회원이 환불 신청을 제출할 때마다 본인확인을 요구합니다.</p>
+                <p class="form-help">켜면 회원이 환불 신청을 제출할 때마다 본인확인을 요구합니다.</p>
                 <?php if (!$depositIdentityRefundAvailable) { ?>
                     <p id="deposit-settings-identity-unavailable" class="form-help form-help-warning">
                         <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 예치금 환불 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
