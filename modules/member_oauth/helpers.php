@@ -172,7 +172,7 @@ function sr_member_oauth_provider_admin_status(array $provider, string $callback
         [
             'label' => 'Client ID',
             'ok' => $isMock || $clientId !== '',
-            'message' => $isMock ? 'Mock 제공자는 Client ID를 쓰지 않습니다.' : ($clientId !== '' ? '입력되었습니다.' : 'Client ID를 입력해야 합니다.'),
+            'message' => $isMock ? '테스트 로그인 서비스는 클라이언트 ID를 사용하지 않습니다.' : ($clientId !== '' ? '입력되었습니다.' : '클라이언트 ID를 입력해야 합니다.'),
         ],
         [
             'label' => 'Callback URL',
@@ -443,7 +443,7 @@ function sr_member_oauth_profile_sync_rules_json_from_input(mixed $raw, array $e
             continue;
         }
         if ($scope !== '' && !isset($allowedScopes[$scope])) {
-            $errors[] = $providerLabel . ' 프로필 동기화 scope는 위 Scope 항목 중에서 선택해 주세요.';
+            $errors[] = $providerLabel . ' 회원 정보 가져오기에 필요한 권한은 위 정보 권한 항목 중에서 선택해 주세요.';
             continue;
         }
         if ($claim === '' || strlen($claim) > 120 || preg_match('/\A[a-zA-Z0-9_.:-]+\z/', $claim) !== 1) {
@@ -577,7 +577,7 @@ function sr_member_oauth_create_state(PDO $pdo, string $providerKey, string $flo
 {
     $providerKey = sr_member_oauth_provider_key($providerKey);
     if ($providerKey === '' || !in_array($flowType, ['login', 'link', 'completion'], true)) {
-        throw new InvalidArgumentException('OAuth state request is invalid.');
+        throw new InvalidArgumentException('외부 로그인 요청 확인값이 올바르지 않습니다.');
     }
 
     $state = bin2hex(random_bytes(32));
