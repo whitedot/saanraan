@@ -129,8 +129,15 @@ $communityLayoutExtraMenuRows = static function (array $menuItems, bool $templat
     }
 };
 $assetModuleChoiceOptions = [];
+$communityAssetModuleReferences = [];
 foreach ($assetModuleOptions as $assetModule => $assetOption) {
     $assetModuleChoiceOptions[(string) $assetModule] = (string) ($assetOption['label'] ?? $assetModule);
+    $assetProviderModuleKey = is_array($assetOption)
+        ? (string) ($assetOption['module_key'] ?? $assetModule)
+        : (string) $assetModule;
+    if ($assetProviderModuleKey !== '') {
+        $communityAssetModuleReferences[$assetProviderModuleKey] = ['module_key' => $assetProviderModuleKey];
+    }
 }
 $assetDeductionPriorityLabels = [];
 foreach (sr_community_asset_deduction_order() as $assetModule) {
@@ -658,6 +665,7 @@ $communitySettingsSectionNavItems = [
                             <input type="hidden" name="<?php echo sr_e((string) $assetPrefix); ?>_amount" value="<?php echo sr_e((string) ($settings[$assetPrefix . '_amount'] ?? 0)); ?>">
                             <p class="form-help"><?php echo sr_e($assetDeductionPriorityHelp); ?></p>
                         <?php } ?>
+                        <?php echo sr_admin_module_reference_list_html($pdo, $communityAssetModuleReferences); ?>
                     </div>
                 </div>
                 <div class="form-row">

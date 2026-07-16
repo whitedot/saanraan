@@ -14,6 +14,16 @@ $quizSiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
     : [];
 $quizIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $quizReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
+$quizAssetModuleReferences = [];
+foreach ($assetOptions as $quizAssetModuleKey => $quizAssetOption) {
+    $assetProviderModuleKey = is_array($quizAssetOption)
+        ? (string) ($quizAssetOption['module_key'] ?? $quizAssetModuleKey)
+        : (string) $quizAssetModuleKey;
+    if ($assetProviderModuleKey !== '') {
+        $quizAssetModuleReferences[$assetProviderModuleKey] = ['module_key' => $assetProviderModuleKey];
+    }
+}
+$quizCouponModuleReferences = [['module_key' => 'coupon', 'path' => '/admin/coupons']];
 $quizSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($quizSiteMenuOptions): void {
     ?>
@@ -485,6 +495,7 @@ $quizSettingsSectionNavItems = [
                             <option value="<?php echo sr_e((string) $assetKey); ?>"<?php echo (string) ($settings['default_reward_module'] ?? '') === (string) $assetKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($asset['label'] ?? $assetKey)); ?></option>
                         <?php } ?>
                     </select>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $quizAssetModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row" data-quiz-settings-reward-row data-quiz-settings-reward-coupon-row>
@@ -503,6 +514,7 @@ $quizSettingsSectionNavItems = [
                     <?php if ($couponRewardDefinitions === []) { ?>
                         <p class="form-help form-help-warning">현재 선택 가능한 활성 쿠폰이 없습니다. <a href="<?php echo sr_e(sr_url('/admin/coupons')); ?>" target="_blank" rel="noopener noreferrer">쿠폰 관리</a>에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.</p>
                     <?php } ?>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $quizCouponModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row" data-quiz-settings-reward-row data-quiz-settings-reward-ledger-row>

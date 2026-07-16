@@ -347,6 +347,31 @@ sr_admin_navigation_runtime_assert(
     'Site screen settings must show active public layout and homepage provider references.'
 );
 
+$assetReferenceViews = [
+    'modules/content/views/admin-settings.php' => ['$contentAssetModuleReferences', 1],
+    'modules/community/views/admin-settings.php' => ['$communityAssetModuleReferences', 1],
+    'modules/quiz/views/admin-settings.php' => ['$quizAssetModuleReferences', 1],
+    'modules/asset_exchange/views/admin-asset-exchange.php' => ['$assetExchangeAssetModuleReferences', 1],
+];
+foreach ($assetReferenceViews as $viewPath => [$variableName, $minimumCallCount]) {
+    $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
+    sr_admin_navigation_runtime_assert(
+        is_string($viewSource)
+            && str_contains($viewSource, "'module_key' => \$assetProviderModuleKey")
+            && substr_count($viewSource, 'sr_admin_module_reference_list_html($pdo, ' . $variableName . ')') >= $minimumCallCount,
+        $viewPath . ' should render asset provider module reference links'
+    );
+}
+$quizSettingsSource = is_file('modules/quiz/views/admin-settings.php')
+    ? file_get_contents('modules/quiz/views/admin-settings.php')
+    : false;
+sr_admin_navigation_runtime_assert(
+    is_string($quizSettingsSource)
+        && str_contains($quizSettingsSource, "['module_key' => 'coupon', 'path' => '/admin/coupons']")
+        && str_contains($quizSettingsSource, 'sr_admin_module_reference_list_html($pdo, $quizCouponModuleReferences)'),
+    'Quiz coupon reward setting should render the coupon management module reference link.'
+);
+
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
     is_string($communityAdminMenu)

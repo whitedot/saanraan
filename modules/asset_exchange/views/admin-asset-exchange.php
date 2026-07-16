@@ -16,6 +16,15 @@ $assetExchangeIdentityVerificationInputAttributes = $assetExchangeIdentityAvaila
     ? ''
     : ' disabled aria-describedby="asset-exchange-settings-identity-unavailable"';
 $assetExchangeIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
+$assetExchangeAssetModuleReferences = [];
+foreach ($assetExchangeAssets as $assetExchangeModuleKey => $assetExchangeAsset) {
+    $assetProviderModuleKey = is_array($assetExchangeAsset)
+        ? (string) ($assetExchangeAsset['module_key'] ?? $assetExchangeModuleKey)
+        : (string) $assetExchangeModuleKey;
+    if ($assetProviderModuleKey !== '') {
+        $assetExchangeAssetModuleReferences[$assetProviderModuleKey] = ['module_key' => $assetProviderModuleKey];
+    }
+}
 $policySlots = isset($policySlots) && is_array($policySlots) ? $policySlots : [];
 $assetExchangePostedPolicies = isset($assetExchangePostedPolicies) && is_array($assetExchangePostedPolicies) ? $assetExchangePostedPolicies : [];
 $policyStatusLabels = ['enabled' => '사용', 'disabled' => '중지'];
@@ -206,6 +215,7 @@ foreach ($policySlots as $assetExchangeNavSlot) {
             <div class="form-field">
                 <?php echo sr_admin_switch_html('asset_exchange_settings_exchange_enabled', 'exchange_enabled', '1', $assetExchangeAvailable && (string) ($settings['exchange_enabled'] ?? '1') === '1', '사용', '0', $assetExchangeInputAttributes); ?>
                 <p class="form-help">끄면 모든 방향의 새 교환 신청과 실행을 막습니다. 기존 교환 내역 조회와 정정은 유지됩니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $assetExchangeAssetModuleReferences); ?>
                 <?php if (!$assetExchangeAvailable) { ?>
                     <p id="asset-exchange-settings-unavailable" class="form-help form-help-warning">
                         교환할 수 있는 포인트·금액 모듈이 2개 이상 설치되어 있고 활성화되어야 사용할 수 있습니다.

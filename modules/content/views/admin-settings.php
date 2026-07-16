@@ -127,6 +127,15 @@ foreach (array_keys(sr_enabled_module_contract_files($pdo, 'url-embed-targets.ph
     ];
 }
 $assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
+$contentAssetModuleReferences = [];
+foreach ($assetModuleOptions as $assetModuleKey => $assetModuleOption) {
+    $assetProviderModuleKey = is_array($assetModuleOption)
+        ? (string) ($assetModuleOption['module_key'] ?? $assetModuleKey)
+        : (string) $assetModuleKey;
+    if ($assetProviderModuleKey !== '') {
+        $contentAssetModuleReferences[$assetProviderModuleKey] = ['module_key' => $assetProviderModuleKey];
+    }
+}
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $contentReactionAvailable = isset($contentReactionAvailable)
     ? (bool) $contentReactionAvailable
@@ -493,6 +502,7 @@ $contentSettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentAssetModuleReferences); ?>
             </div>
         </div>
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled" data-admin-visible-when-select="#content_admin_settings_member_submission_author_reward_asset_module"<?php echo $memberSubmissionEnabled && $authorRewardAssetSelected ? '' : ' hidden'; ?>>
