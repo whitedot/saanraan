@@ -244,6 +244,7 @@ foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
     sr_antispam_check_assert(isset($providerOptions[$providerKey]), 'Antispam provider options must load bundled plugin contract without PDO: ' . $providerKey);
 }
 sr_antispam_check_assert((string) ($providerOptions['turnstile']['widget_class'] ?? '') === 'cf-turnstile', 'Antispam provider options must keep widget class from plugin contract.');
+sr_antispam_check_assert((string) ($providerOptions['turnstile']['module_key'] ?? '') === 'antispam_captcha_providers', 'Antispam provider options must keep the provider module key for admin references.');
 $validProvider = sr_antispam_normalize_provider_definition([
     'label' => 'Fixture CAPTCHA',
     'site_key_setting' => 'fixture_site_key',

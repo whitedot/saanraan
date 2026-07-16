@@ -538,6 +538,9 @@ sr_member_oauth_check_contains('modules/member_oauth_providers/oauth-providers.p
     "'response.id'",
     "'kakao_account.profile.nickname'",
 ]);
+sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
+    "'provider_module_key' => (string) \$moduleKey",
+]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/start.php', [
     "sr_get_string('flow', 20) === 'link'",
     'sr_member_require_login($pdo)',

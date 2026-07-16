@@ -186,6 +186,7 @@ function sr_antispam_provider_options(?PDO $pdo = null): array
 
             $normalized = sr_antispam_normalize_provider_definition($provider);
             if ($normalized !== []) {
+                $normalized['module_key'] = (string) $moduleKey;
                 $providers[$providerKey] = $normalized;
             }
         }

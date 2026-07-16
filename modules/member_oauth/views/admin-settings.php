@@ -67,6 +67,7 @@ $memberOauthHelp = [
 ];
 $memberOauthExternalProviders = [];
 $memberOauthClaimPathOptionsByProvider = [];
+$memberOauthProviderModuleReferences = [];
 foreach ($providers as $provider) {
     if (!empty($provider['mock'])) {
         continue;
@@ -77,6 +78,10 @@ foreach ($providers as $provider) {
     }
     $memberOauthExternalProviders[] = $provider;
     $memberOauthClaimPathOptionsByProvider[$providerKey] = sr_member_oauth_claim_path_options($provider);
+    $providerModuleKey = (string) ($provider['provider_module_key'] ?? '');
+    $memberOauthProviderModuleReferences[$providerKey] = $providerModuleKey !== '' && $providerModuleKey !== 'member_oauth'
+        ? [['module_key' => $providerModuleKey]]
+        : [];
 }
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -203,6 +208,7 @@ if ($memberOauthExternalProviders === []) {
                         </button>
                     </div>
                     <p class="form-help">외부 로그인 서비스 관리 화면에 이 주소와 아래 연결 정보를 등록합니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberOauthProviderModuleReferences[$providerKey] ?? []); ?>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>

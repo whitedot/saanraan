@@ -123,7 +123,10 @@ function sr_member_oauth_providers(PDO $pdo): array
             if ($normalizedKey === '' || !is_array($provider)) {
                 continue;
             }
-            $providers[$normalizedKey] = array_merge($provider, ['provider_key' => $normalizedKey]);
+            $providers[$normalizedKey] = array_merge($provider, [
+                'provider_key' => $normalizedKey,
+                'provider_module_key' => (string) $moduleKey,
+            ]);
         }
     }
     foreach ($providers as $providerKey => $provider) {

@@ -372,6 +372,39 @@ sr_admin_navigation_runtime_assert(
     'Quiz coupon reward setting should render the coupon management module reference link.'
 );
 
+$providerReferenceViews = [
+    'modules/member/views/admin-settings.php' => [
+        "'provider_module_key'",
+        'sr_admin_module_reference_list_html($pdo, $memberMfaModuleReferences)',
+    ],
+    'modules/antispam/views/admin-settings.php' => [
+        "'module_key'",
+        'sr_admin_module_reference_list_html($pdo, $antispamProviderModuleReferences)',
+    ],
+    'modules/member_oauth/views/admin-settings.php' => [
+        "'provider_module_key'",
+        'sr_admin_module_reference_list_html($pdo, $memberOauthProviderModuleReferences[$providerKey] ?? [])',
+    ],
+];
+foreach ($providerReferenceViews as $viewPath => [$moduleKeyMarker, $referenceCall]) {
+    $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
+    sr_admin_navigation_runtime_assert(
+        is_string($viewSource)
+            && str_contains($viewSource, $moduleKeyMarker)
+            && str_contains($viewSource, $referenceCall),
+        $viewPath . ' should render provider contract module reference links'
+    );
+}
+$antispamSettingsSource = is_file('modules/antispam/views/admin-settings.php')
+    ? file_get_contents('modules/antispam/views/admin-settings.php')
+    : false;
+sr_admin_navigation_runtime_assert(
+    is_string($antispamSettingsSource)
+        && str_contains($antispamSettingsSource, '$antispamTargetModuleReferences')
+        && str_contains($antispamSettingsSource, 'sr_admin_module_reference_list_html($pdo, $antispamTargetModuleReferences[(string) $surfaceKey] ?? [])'),
+    'Antispam target settings should render target contract module reference links.'
+);
+
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
     is_string($communityAdminMenu)

@@ -118,6 +118,15 @@ $memberRegistrationPolicyDocumentSelectOptionsHtml = static function (string $cu
 $memberMfaProviderDefinitions = isset($memberMfaProviderDefinitions) && is_array($memberMfaProviderDefinitions)
     ? $memberMfaProviderDefinitions
     : sr_member_mfa_provider_definitions($pdo);
+$memberMfaModuleReferences = [];
+foreach ($memberMfaProviderDefinitions as $memberMfaProviderDefinition) {
+    $memberMfaProviderModuleKey = is_array($memberMfaProviderDefinition)
+        ? (string) ($memberMfaProviderDefinition['provider_module_key'] ?? '')
+        : '';
+    if ($memberMfaProviderModuleKey !== '' && $memberMfaProviderModuleKey !== 'member') {
+        $memberMfaModuleReferences[$memberMfaProviderModuleKey] = ['module_key' => $memberMfaProviderModuleKey];
+    }
+}
 $memberMfaLoginMode = sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null);
 $memberMfaLoginProviderKeys = sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["email","totp"]');
 $memberIdentityRegistrationAvailable = isset($memberIdentityRegistrationAvailable)
@@ -408,6 +417,7 @@ $memberSettingsSectionNavItems = [
                             ><?php echo sr_admin_choice_label_html((string) ($memberMfaProvider['label'] ?? $memberMfaProviderKey)); ?></label>
                         <?php } ?>
                     </div>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberMfaModuleReferences); ?>
                 <?php } ?>
             </div>
         </div>

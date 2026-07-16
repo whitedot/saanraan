@@ -15,6 +15,20 @@ $antispamSectionNavItems = [
     'antispam-section-provider-common' => '외부 검사 공통',
 ];
 $antispamSelectedChallengeType = (string) $settings['challenge_type'];
+$antispamProviderModuleReferences = [];
+foreach ($providerOptions as $providerModuleOption) {
+    $providerModuleKey = is_array($providerModuleOption) ? (string) ($providerModuleOption['module_key'] ?? '') : '';
+    if ($providerModuleKey !== '' && $providerModuleKey !== 'antispam') {
+        $antispamProviderModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey];
+    }
+}
+$antispamTargetModuleReferences = [];
+foreach ($targetOptions as $targetSurfaceKey => $targetModuleOption) {
+    $targetModuleKey = is_array($targetModuleOption) ? (string) ($targetModuleOption['module_key'] ?? '') : '';
+    $antispamTargetModuleReferences[(string) $targetSurfaceKey] = $targetModuleKey !== ''
+        ? [['module_key' => $targetModuleKey]]
+        : [];
+}
 $antispamHelpOpenLabel = '도움말 보기';
 $antispamHelp = [
     'mode' => [
@@ -128,6 +142,7 @@ $antispamHelp = [
                 <?php echo sr_admin_form_label_help_html('antispam_admin_' . $surfaceSettingKey, $surfaceLabel, $antispamHelp['mode']['id'], $antispamHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('antispam_admin_' . $surfaceSettingKey, $surfaceSettingKey, $modeOptions, (string) $settings[$surfaceSettingKey], true); ?>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $antispamTargetModuleReferences[(string) $surfaceKey] ?? []); ?>
                 </div>
             </div>
         <?php } ?>
@@ -144,6 +159,7 @@ $antispamHelp = [
                     <?php } ?>
                 </select>
                 <p class="form-help">방문자에게 제시할 자동등록방지 검사 종류를 선택합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $antispamProviderModuleReferences); ?>
             </div>
         </div>
         <div class="form-grid" data-antispam-challenge-panel="math"<?php echo $antispamSelectedChallengeType === 'math' ? '' : ' hidden'; ?>>
