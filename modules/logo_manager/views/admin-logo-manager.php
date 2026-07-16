@@ -17,6 +17,47 @@ $logoManagerDefaultUsageChecked = [];
 $logoManagerDefaultUsageChecked['all']['top'] = true;
 $logoManagerNow = is_string($logoManagerNow ?? null) ? $logoManagerNow : sr_now();
 $logoManagerFaviconResetMarker = is_string($logoManagerFaviconResetMarker ?? null) ? $logoManagerFaviconResetMarker : '';
+$logoManagerHelpOpenLabel = '도움말 보기';
+$logoManagerHelpButtonHtml = static function (string $label, string $modalId) use ($logoManagerHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $logoManagerHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$logoManagerHelp = [
+    'usage' => [
+        'id' => 'logo-manager-help-usage',
+        'title' => '로고 용도와 사용처 도움말',
+        'body' => '<p>로고 용도는 관리자 사이드바, 사용자 화면 PC·모바일 로고, 앱아이콘, 파비콘 중 어디에 쓸지 정합니다.</p>'
+            . '<p>사용자 화면 로고를 선택하면 화면 틀별 상단·하단 사용처도 지정합니다. 전체를 선택하면 모든 화면 틀에 적용하고, 특정 화면 틀을 선택하면 그 화면에서 우선 사용합니다.</p>'
+            . '<p>예전에 등록되어 사용처 정보가 없는 사용자 화면 로고는 호환을 위해 모든 화면 틀의 상단 로고 후보로 사용합니다.</p>',
+    ],
+    'copies' => [
+        'id' => 'logo-manager-help-copies',
+        'title' => '앱아이콘·파비콘 함께 등록 도움말',
+        'body' => '<p>앱아이콘이나 파비콘으로도 사용을 켜면 같은 이미지로 별도의 로고 항목을 함께 만듭니다. 각각 독립된 저장본이므로 나중에 한쪽을 삭제해도 다른 쪽은 유지됩니다.</p>'
+            . '<p>사용자 화면 심볼로도 사용은 앱아이콘 이미지를 작은 브랜드 심볼 후보로 허용합니다. 선택한 화면 틀이나 화면 스타일이 이 심볼을 표시하도록 만들어진 경우에만 실제 화면에 나타납니다.</p>',
+    ],
+    'file' => [
+        'id' => 'logo-manager-help-file',
+        'title' => '로고 이미지 파일 도움말',
+        'body' => '<p>JPEG, PNG, WebP, SVG 파일을 등록할 수 있으며 용도에 따라 최대 허용 용량은 1~10MB입니다.</p>'
+            . '<p>JPEG, PNG, WebP는 서버가 다시 저장하고 SVG는 위험할 수 있는 내용을 제거한 정리본으로 저장합니다. 수정할 때 새 파일을 선택하지 않으면 기존 이미지를 유지합니다.</p>',
+    ],
+    'schedule' => [
+        'id' => 'logo-manager-help-schedule',
+        'title' => '적용 기간과 우선순위 도움말',
+        'body' => '<p>사용 상태이고 현재 시각이 시작·종료 범위 안에 있는 로고만 적용 후보가 됩니다. 시작과 종료를 모두 비우면 기간 제한 없이 사용합니다.</p>'
+            . '<p>같은 용도와 사용처에 후보가 여러 개면 기간이 있는 로고를 상시 로고보다 먼저 사용합니다. 시작·종료가 모두 있는 후보가 한쪽만 있는 후보보다 우선하고, 전체 기간이 더 짧은 후보를 먼저 사용합니다.</p>'
+            . '<p>위 조건이 같으면 정렬값이 작은 로고, 시작 시각이 더 늦은 로고, 더 최근에 등록된 로고 순으로 선택합니다. 설정을 저장하면 현재 적용 로고가 즉시 바뀔 수 있습니다.</p>',
+    ],
+    'icon_set' => [
+        'id' => 'logo-manager-help-icon-set',
+        'title' => '파비콘 아이콘 세트 도움말',
+        'body' => '<p>파비콘 원본에서 브라우저와 기기별로 사용할 여러 크기의 정사각형 아이콘 파일을 만듭니다.</p>'
+            . '<p>전체가 보이도록 맞춤은 원본을 자르지 않고 정사각형 안에 넣습니다. 정사각형에 꽉 채움은 빈 공간 없이 채우며 원본 가장자리가 잘릴 수 있습니다.</p>'
+            . '<p>배경색은 투명 또는 #RRGGBB 형식의 색상으로 입력합니다. 생성 뒤 사용을 켜면 선택된 파비콘은 원본 대신 생성된 아이콘 세트를 우선 출력합니다.</p>',
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -79,7 +120,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="create_logo">
                 <div class="form-row">
-                    <label class="form-label" for="logo_manager_position_key"><?php echo sr_e(sr_t('logo_manager::ui.position.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_position_key', sr_t('logo_manager::ui.position.label'), $logoManagerHelp['usage']['id'], $logoManagerHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <select id="logo_manager_position_key" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
                             <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
@@ -90,7 +131,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-usage-target-row>
-                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.usage.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
+                    <span class="form-label form-label-help"><?php echo $logoManagerHelpButtonHtml(sr_t('logo_manager::ui.usage.label'), $logoManagerHelp['usage']['id']); ?><span><?php echo sr_e(sr_t('logo_manager::ui.usage.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span></span>
                     <div class="form-field">
                         <div class="logo-manager-usage-grid" data-logo-manager-usage-group>
                             <span class="logo-manager-usage-grid-heading"><?php echo sr_e(sr_t('logo_manager::ui.usage.provider')); ?></span>
@@ -113,7 +154,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-app-icon-copy-row>
-                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.copy.app_icon.label')); ?></span>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_also_use_as_app_icon', sr_t('logo_manager::ui.copy.app_icon.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel); ?>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_also_use_as_app_icon">
                             <input id="logo_manager_also_use_as_app_icon" type="checkbox" name="also_use_as_app_icon" value="1" class="form-switch form-switch-light" data-logo-manager-app-icon-copy-switch>
@@ -123,7 +164,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-public-symbol-row>
-                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_use_as_public_symbol', sr_t('logo_manager::ui.public_symbol.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel); ?>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_use_as_public_symbol">
                             <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-switch-light" data-logo-manager-public-symbol-switch>
@@ -133,7 +174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-favicon-copy-row>
-                    <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.copy.favicon.label')); ?></span>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_also_use_as_favicon', sr_t('logo_manager::ui.copy.favicon.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel); ?>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_also_use_as_favicon">
                             <input id="logo_manager_also_use_as_favicon" type="checkbox" name="also_use_as_favicon" value="1" class="form-switch form-switch-light">
@@ -171,14 +212,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="logo_manager_logo_file"><?php echo sr_e(sr_t('logo_manager::ui.text.4becf8bb')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_logo_file', sr_t('logo_manager::ui.text.4becf8bb'), $logoManagerHelp['file']['id'], $logoManagerHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <input id="logo_manager_logo_file" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg" class="form-input" required>
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.1.save.save.cfcc4930')); ?></small>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="logo_manager_starts_at"><?php echo sr_e(sr_t('logo_manager::ui.text.65bdaefd')); ?></label>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_starts_at', sr_t('logo_manager::ui.text.65bdaefd'), $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel); ?>
                     <div class="form-field">
                         <input id="logo_manager_starts_at" type="datetime-local" name="starts_at" class="form-input">
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
@@ -191,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="logo_manager_sort_order"><?php echo sr_e(sr_t('logo_manager::ui.text.3788952d')); ?></label>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_sort_order', '우선순위 정렬값', $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel); ?>
                     <div class="form-field">
                         <input id="logo_manager_sort_order" type="number" name="sort_order" value="100" class="form-input">
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.sort.help')); ?></small>
@@ -400,7 +441,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input type="hidden" name="intent" value="update_logo">
                     <input type="hidden" name="logo_id" value="<?php echo sr_e((string) (int) $logo['id']); ?>">
                     <div class="form-row">
-                        <label class="form-label" for="logo_manager_edit_position_key_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.position.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></label>
+                        <?php echo sr_admin_form_label_help_html('logo_manager_edit_position_key_' . (string) (int) $logo['id'], sr_t('logo_manager::ui.position.label'), $logoManagerHelp['usage']['id'], $logoManagerHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <select id="logo_manager_edit_position_key_<?php echo sr_e((string) (int) $logo['id']); ?>" name="position_key" class="form-select" data-overlay-focus required data-logo-manager-position-select>
                                 <?php foreach ($positionOptions as $positionKey => $positionOption) { ?>
@@ -411,7 +452,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row" data-logo-manager-usage-target-row>
-                        <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.usage.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
+                        <span class="form-label form-label-help"><?php echo $logoManagerHelpButtonHtml(sr_t('logo_manager::ui.usage.label'), $logoManagerHelp['usage']['id']); ?><span><?php echo sr_e(sr_t('logo_manager::ui.usage.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span></span>
                         <div class="form-field">
                             <div class="logo-manager-usage-grid" data-logo-manager-usage-group>
                                 <span class="logo-manager-usage-grid-heading"><?php echo sr_e(sr_t('logo_manager::ui.usage.provider')); ?></span>
@@ -434,7 +475,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row" data-logo-manager-public-symbol-row>
-                        <span class="form-label"><?php echo sr_e(sr_t('logo_manager::ui.public_symbol.label')); ?></span>
+                        <?php echo sr_admin_form_label_help_html('logo_manager_edit_use_as_public_symbol_' . (string) (int) $logo['id'], sr_t('logo_manager::ui.public_symbol.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel); ?>
                         <div class="form-field">
                             <label class="form-check form-label" for="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>">
                                 <input id="logo_manager_edit_use_as_public_symbol_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-switch-light" data-logo-manager-public-symbol-switch<?php echo !empty($logo['use_as_public_symbol']) ? ' checked' : ''; ?>>
@@ -480,14 +521,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="logo_manager_edit_logo_file_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.4becf8bb')); ?></label>
+                        <?php echo sr_admin_form_label_help_html('logo_manager_edit_logo_file_' . (string) (int) $logo['id'], sr_t('logo_manager::ui.text.4becf8bb'), $logoManagerHelp['file']['id'], $logoManagerHelpOpenLabel); ?>
                         <div class="form-field">
                             <input id="logo_manager_edit_logo_file_<?php echo sr_e((string) (int) $logo['id']); ?>" type="file" name="logo_file" accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg" class="form-input">
                             <small class="form-help">새 파일을 선택하지 않으면 기존 이미지를 유지합니다.</small>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="logo_manager_edit_starts_at_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.65bdaefd')); ?></label>
+                        <?php echo sr_admin_form_label_help_html('logo_manager_edit_starts_at_' . (string) (int) $logo['id'], sr_t('logo_manager::ui.text.65bdaefd'), $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel); ?>
                         <div class="form-field">
                             <input id="logo_manager_edit_starts_at_<?php echo sr_e((string) (int) $logo['id']); ?>" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_logo_manager_admin_datetime_value($logo['starts_at'] ?? null)); ?>" class="form-input">
                             <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
@@ -500,7 +541,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="logo_manager_edit_sort_order_<?php echo sr_e((string) (int) $logo['id']); ?>"><?php echo sr_e(sr_t('logo_manager::ui.text.3788952d')); ?></label>
+                        <?php echo sr_admin_form_label_help_html('logo_manager_edit_sort_order_' . (string) (int) $logo['id'], '우선순위 정렬값', $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel); ?>
                         <div class="form-field">
                             <input id="logo_manager_edit_sort_order_<?php echo sr_e((string) (int) $logo['id']); ?>" type="number" name="sort_order" value="<?php echo sr_e((string) $logo['sort_order']); ?>" class="form-input">
                             <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.sort.help')); ?></small>
@@ -537,7 +578,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="form-row">
-                            <span class="form-label">생성 크기 <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span>
+                            <span class="form-label form-label-help"><?php echo $logoManagerHelpButtonHtml('생성 크기', $logoManagerHelp['icon_set']['id']); ?><span>생성 크기 <span class="sr-required-label"><?php echo sr_e(sr_t('logo_manager::ui.required.1f227c67')); ?></span></span></span>
                             <div class="form-field logo-manager-icon-size-grid" data-logo-manager-icon-size-group>
                                 <label class="form-check form-label" for="logo_manager_icon_all_<?php echo sr_e((string) (int) $logo['id']); ?>">
                                     <input id="logo_manager_icon_all_<?php echo sr_e((string) (int) $logo['id']); ?>" type="checkbox" class="form-switch form-switch-light" data-logo-manager-icon-size-all>
@@ -552,17 +593,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="form-row">
-                            <label class="form-label" for="logo_manager_icon_fit_<?php echo sr_e((string) (int) $logo['id']); ?>">맞춤 방식</label>
+                            <?php echo sr_admin_form_label_help_html('logo_manager_icon_fit_' . (string) (int) $logo['id'], '맞춤 방식', $logoManagerHelp['icon_set']['id'], $logoManagerHelpOpenLabel); ?>
                             <div class="form-field">
                                 <select id="logo_manager_icon_fit_<?php echo sr_e((string) (int) $logo['id']); ?>" name="fit_mode" class="form-select">
-                                    <option value="contain">contain</option>
-                                    <option value="cover">cover</option>
+                                    <option value="contain">전체가 보이도록 맞춤</option>
+                                    <option value="cover">정사각형에 꽉 채움</option>
                                 </select>
-                                <small class="form-help">contain은 전체 로고를 맞추고, cover는 정사각형을 꽉 채웁니다.</small>
+                                <small class="form-help">꽉 채우기를 선택하면 원본 이미지 가장자리가 잘릴 수 있습니다.</small>
                             </div>
                         </div>
                         <div class="form-row">
-                            <label class="form-label" for="logo_manager_icon_bg_<?php echo sr_e((string) (int) $logo['id']); ?>">배경색</label>
+                            <?php echo sr_admin_form_label_help_html('logo_manager_icon_bg_' . (string) (int) $logo['id'], '배경색', $logoManagerHelp['icon_set']['id'], $logoManagerHelpOpenLabel); ?>
                             <div class="form-field">
                                 <input id="logo_manager_icon_bg_<?php echo sr_e((string) (int) $logo['id']); ?>" type="text" name="background_color" value="transparent" class="form-input" maxlength="20" pattern="transparent|#[0-9a-fA-F]{6}">
                                 <small class="form-help">transparent 또는 #RRGGBB 형식으로 입력하세요.</small>
@@ -586,6 +627,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
     <?php } ?>
+<?php } ?>
+
+<?php foreach ($logoManagerHelp as $logoManagerHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $logoManagerHelpModal['id'], (string) $logoManagerHelpModal['title'], (string) $logoManagerHelpModal['body']); ?>
 <?php } ?>
 
 <script>
