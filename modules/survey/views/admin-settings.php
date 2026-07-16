@@ -150,12 +150,30 @@ $surveySettingsHelp = [
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$surveySettingsSectionNavItems = [
+    'survey-settings-section-display' => '공개 화면',
+    'survey-settings-section-defaults' => '새 설문',
+    'survey-settings-section-access' => '참여/본인확인',
+    'survey-settings-section-reaction' => '리액션',
+    'survey-comment-extra-fields-json-section' => '댓글 추가 입력',
+];
+?>
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="설문 설정 섹션">
+    <?php $surveySettingsSectionNavIndex = 0; ?>
+    <?php foreach ($surveySettingsSectionNavItems as $surveySettingsSectionId => $surveySettingsSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $surveySettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $surveySettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $surveySettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $surveySettingsSectionLabel); ?>
+        </a>
+        <?php $surveySettingsSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/surveys/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
 
-    <section class="card">
+    <section id="survey-settings-section-display" class="card" data-admin-section-anchor>
         <div class="card-header">
-            <h2 class="card-title">공개 화면 구성과 새 설문 기본값</h2>
+            <h2 class="card-title">공개 화면 구성</h2>
         </div>
         <div class="form-grid">
             <div class="form-row">
@@ -230,6 +248,14 @@ $surveySettingsHelp = [
                     <p class="form-help">사이트 설정에 저장된 사업자 정보 중 값이 있는 항목을 설문 공개 레이아웃 푸터에 표시합니다.</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section id="survey-settings-section-defaults" class="card" data-admin-section-anchor>
+        <div class="card-header">
+            <h2 class="card-title">새 설문 기본값</h2>
+        </div>
+        <div class="form-grid">
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_default_status', '기본 상태', $surveySettingsHelp['default_status']['id'], $surveySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
@@ -274,6 +300,14 @@ $surveySettingsHelp = [
                     <p class="form-help">꺼져 있으면 콘텐츠나 커뮤니티 본문에 붙여 넣은 설문 URL을 자동 표시하지 않습니다.</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section id="survey-settings-section-access" class="card" data-admin-section-anchor>
+        <div class="card-header">
+            <h2 class="card-title">참여와 본인확인</h2>
+        </div>
+        <div class="form-grid">
             <div class="form-row">
                 <span class="form-label">설문 참여 본인확인</span>
                 <div class="form-field">
@@ -309,6 +343,14 @@ $surveySettingsHelp = [
                     <?php echo sr_admin_switch_html('survey_settings_consent_required', 'default_consent_required', '1', (int) ($settings['default_consent_required'] ?? 0) === 1, '적용'); ?>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section id="survey-settings-section-reaction" class="card" data-admin-section-anchor>
+        <div class="card-header">
+            <h2 class="card-title">리액션</h2>
+        </div>
+        <div class="form-grid">
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_reaction_preset_key', '설문 리액션 프리셋', $surveySettingsHelp['reaction_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">

@@ -82,9 +82,29 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<?php
+$contentSettingsSectionNavItems = [
+    'content-settings-section-writing' => '작성 기본값',
+    'content-settings-section-display' => '공개 화면',
+    'content-settings-section-series' => '시리즈',
+    'content-settings-section-reaction' => '리액션',
+    'content-settings-section-access' => '이용/과금',
+    'content-settings-section-submission' => '회원 제출',
+    'content-comment-extra-fields-json-section' => '댓글 추가 입력',
+];
+?>
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="콘텐츠 설정 섹션">
+    <?php $contentSettingsSectionNavIndex = 0; ?>
+    <?php foreach ($contentSettingsSectionNavItems as $contentSettingsSectionId => $contentSettingsSectionLabel) { ?>
+        <a href="#<?php echo sr_e((string) $contentSettingsSectionId); ?>" class="tab-trigger-underline-justified<?php echo $contentSettingsSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $contentSettingsSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
+            <?php echo sr_e((string) $contentSettingsSectionLabel); ?>
+        </a>
+        <?php $contentSettingsSectionNavIndex++; ?>
+    <?php } ?>
+</nav>
 <form method="post" action="<?php echo sr_e(sr_url('/admin/content/settings')); ?>" class="admin-form ui-form-theme">
     <?php echo sr_csrf_field(); ?>
-    <section class="card">
+    <section id="content-settings-section-writing" class="card" data-admin-section-anchor>
         <h2>작성 기본값</h2>
         <div class="form-row">
             <label class="form-label" for="content_admin_settings_editor">에디터 <span class="sr-required-label">(필수)</span></label>
@@ -138,7 +158,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card">
+    <section id="content-settings-section-display" class="card" data-admin-section-anchor>
         <h2>공개 화면 구성</h2>
         <div class="form-row">
             <label class="form-label" for="content_admin_settings_theme_key">기본 콘텐츠 테마 <span class="sr-required-label">(필수)</span></label>
@@ -201,7 +221,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card">
+    <section id="content-settings-section-series" class="card" data-admin-section-anchor>
         <h2>시리즈</h2>
         <div class="form-row">
             <span class="form-label">시리즈 기능</span>
@@ -212,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card">
+    <section id="content-settings-section-reaction" class="card" data-admin-section-anchor>
         <h2>리액션</h2>
         <div class="form-row">
             <span class="form-label">리액션 사용 여부</span>
@@ -251,7 +271,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </section>
 
-    <section class="card">
+    <section id="content-settings-section-access" class="card" data-admin-section-anchor>
         <h2>이용/과금 기준</h2>
         <div class="form-row">
             <span class="form-label">콘텐츠 열람 본인확인</span>
@@ -291,7 +311,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
     </section>
-    <section class="card">
+    <section id="content-settings-section-submission" class="card" data-admin-section-anchor>
         <h2>회원 콘텐츠 제출</h2>
         <div class="form-row">
             <span class="form-label">회원 제출 기능</span>
