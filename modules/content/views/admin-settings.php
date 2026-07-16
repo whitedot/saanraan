@@ -90,6 +90,16 @@ $contentSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($
     <?php
 };
 $contentLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
+$contentLayoutModuleReferences = [];
+foreach ($contentLayoutOptions as $contentLayoutOption) {
+    $providerModuleKey = is_array($contentLayoutOption) ? (string) ($contentLayoutOption['provider_module_key'] ?? '') : '';
+    if ($providerModuleKey !== '' && $providerModuleKey !== 'content') {
+        $contentLayoutModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey];
+    }
+}
+$contentSiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
+    ? [['module_key' => 'site_menu']]
+    : [];
 $assetModuleOptions = isset($assetModuleOptions) && is_array($assetModuleOptions) ? $assetModuleOptions : [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $contentReactionAvailable = isset($contentReactionAvailable)
@@ -255,6 +265,7 @@ $contentSettingsSectionNavItems = [
                     <?php } ?>
                 </select>
                 <p class="form-help">콘텐츠 화면의 헤더, 푸터와 메뉴 배치를 정합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentLayoutModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -263,6 +274,8 @@ $contentSettingsSectionNavItems = [
                 <select id="content_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
                     <?php $contentSiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
                 </select>
+                <p class="form-help">콘텐츠 화면 틀의 기본 메뉴 위치에 표시할 메뉴를 정합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentSiteMenuModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -281,6 +294,7 @@ $contentSettingsSectionNavItems = [
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-layout-menu-add><?php echo sr_material_icon_html('add'); ?> 추가 메뉴 추가</button>
                     </div>
                 </div>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentSiteMenuModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">

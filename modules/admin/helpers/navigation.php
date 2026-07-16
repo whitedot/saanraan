@@ -306,6 +306,46 @@ function sr_admin_module_menu_reference(PDO $pdo, string $moduleKey, string $pat
     return is_array($reference) ? $reference : [];
 }
 
+function sr_admin_module_reference_target(PDO $pdo, string $moduleKey, string $preferredPath = ''): array
+{
+    $moduleReferences = sr_admin_module_menu_reference_index($pdo)[$moduleKey] ?? [];
+    if (!is_array($moduleReferences) || $moduleReferences === []) {
+        return [];
+    }
+
+    if ($preferredPath !== '' && isset($moduleReferences[$preferredPath])) {
+        return ['module_key' => $moduleKey, 'path' => $preferredPath];
+    }
+
+    $adminMetadata = sr_admin_module_admin_metadata($moduleKey);
+    $settingsPath = trim((string) ($adminMetadata['settings_path'] ?? ''));
+    if ($settingsPath !== '' && isset($moduleReferences[$settingsPath])) {
+        return ['module_key' => $moduleKey, 'path' => $settingsPath];
+    }
+
+    $settingsReferences = array_filter(
+        $moduleReferences,
+        static fn (array $reference): bool => str_ends_with((string) ($reference['path'] ?? ''), '/settings')
+    );
+    if (count($settingsReferences) === 1) {
+        $settingsReference = reset($settingsReferences);
+        return [
+            'module_key' => $moduleKey,
+            'path' => (string) ($settingsReference['path'] ?? ''),
+        ];
+    }
+
+    if (count($moduleReferences) === 1) {
+        $reference = reset($moduleReferences);
+        return [
+            'module_key' => $moduleKey,
+            'path' => (string) ($reference['path'] ?? ''),
+        ];
+    }
+
+    return [];
+}
+
 function sr_admin_module_reference_list_html(PDO $pdo, array $targets): string
 {
     $items = [];
@@ -318,6 +358,10 @@ function sr_admin_module_reference_list_html(PDO $pdo, array $targets): string
 
         $moduleKey = trim((string) ($target['module_key'] ?? ''));
         $path = trim((string) ($target['path'] ?? ''));
+        if ($path === '') {
+            $resolvedTarget = sr_admin_module_reference_target($pdo, $moduleKey);
+            $path = (string) ($resolvedTarget['path'] ?? '');
+        }
         $reference = $referenceIndex[$moduleKey][$path] ?? [];
         $label = is_array($reference) ? trim((string) ($reference['label'] ?? '')) : '';
         if ($label === '' || $path === '' || isset($items[$path])) {

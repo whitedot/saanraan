@@ -209,8 +209,8 @@ sr_admin_navigation_runtime_assert(
     'Admin module menu reference index must use only the module label when the sidebar has no submenu.'
 );
 $communityReferenceHtml = sr_admin_module_reference_list_html($pdo, [
-    ['module_key' => 'community', 'path' => '/admin/community/settings'],
-    ['module_key' => 'seo', 'path' => '/admin/seo'],
+    ['module_key' => 'community'],
+    ['module_key' => 'seo'],
 ]);
 sr_admin_navigation_runtime_assert(
     str_contains($communityReferenceHtml, 'class="form-help form-help-info form-help-reference-list"')
@@ -254,6 +254,23 @@ sr_admin_navigation_runtime_assert(
     ]) === '/admin/community/boards',
     'Admin shell active menu path should support item active_paths aliases.'
 );
+
+$publicSettingsReferenceViews = [
+    'content' => 'modules/content/views/admin-settings.php',
+    'quiz' => 'modules/quiz/views/admin-settings.php',
+    'survey' => 'modules/survey/views/admin-settings.php',
+];
+foreach ($publicSettingsReferenceViews as $moduleKey => $viewPath) {
+    $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
+    sr_admin_navigation_runtime_assert(
+        is_string($viewSource)
+            && str_contains($viewSource, '$providerModuleKey')
+            && str_contains($viewSource, "['module_key' => \$providerModuleKey]")
+            && str_contains($viewSource, "['module_key' => 'site_menu']")
+            && substr_count($viewSource, 'sr_admin_module_reference_list_html($pdo,') >= 3,
+        ucfirst($moduleKey) . ' public settings must show contract-derived layout and site menu references.'
+    );
+}
 
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(

@@ -1,6 +1,17 @@
 <?php
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
+$surveyLayoutOptions = isset($surveyLayoutOptions) && is_array($surveyLayoutOptions) ? $surveyLayoutOptions : [];
+$surveyLayoutModuleReferences = [];
+foreach ($surveyLayoutOptions as $surveyLayoutOption) {
+    $providerModuleKey = is_array($surveyLayoutOption) ? (string) ($surveyLayoutOption['provider_module_key'] ?? '') : '';
+    if ($providerModuleKey !== '' && $providerModuleKey !== 'survey') {
+        $surveyLayoutModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey];
+    }
+}
+$surveySiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
+    ? [['module_key' => 'site_menu']]
+    : [];
 $surveySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $surveySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($surveySiteMenuOptions): void {
     ?>
@@ -208,6 +219,7 @@ $surveySettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">선택한 테마 아래에서 설문 화면을 감싸는 공개 화면 틀입니다. 공통 레이아웃과 필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveyLayoutModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -229,6 +241,8 @@ $surveySettingsSectionNavItems = [
                     <select id="survey_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
                         <?php $surveySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
                     </select>
+                    <p class="form-help">설문 공개 레이아웃의 기본 메뉴 위치에 표시할 메뉴를 정합니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveySiteMenuModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -247,6 +261,7 @@ $surveySettingsSectionNavItems = [
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-layout-menu-add><?php echo sr_material_icon_html('add'); ?> 추가 메뉴 추가</button>
                         </div>
                     </div>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveySiteMenuModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">

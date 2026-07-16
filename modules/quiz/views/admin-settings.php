@@ -2,6 +2,16 @@
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 $quizLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : [];
+$quizLayoutModuleReferences = [];
+foreach ($quizLayoutOptions as $quizLayoutOption) {
+    $providerModuleKey = is_array($quizLayoutOption) ? (string) ($quizLayoutOption['provider_module_key'] ?? '') : '';
+    if ($providerModuleKey !== '' && $providerModuleKey !== 'quiz') {
+        $quizLayoutModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey];
+    }
+}
+$quizSiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
+    ? [['module_key' => 'site_menu']]
+    : [];
 $quizSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($quizSiteMenuOptions): void {
     ?>
@@ -269,6 +279,7 @@ $quizSettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">선택한 테마 아래에서 퀴즈 화면을 감싸는 공개 화면 틀입니다. 공통 레이아웃과 필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $quizLayoutModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -290,6 +301,8 @@ $quizSettingsSectionNavItems = [
                     <select id="quiz_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
                         <?php $quizSiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
                     </select>
+                    <p class="form-help">퀴즈 공개 레이아웃의 기본 메뉴 위치에 표시할 메뉴를 정합니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $quizSiteMenuModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -308,6 +321,7 @@ $quizSettingsSectionNavItems = [
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-layout-menu-add><?php echo sr_material_icon_html('add'); ?> 추가 메뉴 추가</button>
                         </div>
                     </div>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $quizSiteMenuModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
