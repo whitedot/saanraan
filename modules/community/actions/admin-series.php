@@ -49,7 +49,7 @@ if (sr_request_method() === 'POST') {
             'message' => 'Community series moderated.',
             'metadata' => ['before_status' => (string) $series['status'], 'after_status' => $status],
         ]);
-        $notice = '시리즈 상태를 저장했습니다.';
+        $notice = '시리즈 운영 설정을 저장했습니다.';
     }
 
     $redirectQuery = (string) ($_SERVER['QUERY_STRING'] ?? '');

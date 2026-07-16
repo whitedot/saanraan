@@ -958,6 +958,12 @@ sr_community_release_file_contains('modules/community/views/admin-asset-policy-s
     '일치하는 규칙이 없으면 기본 금액을 그대로 사용합니다.',
     '사용 중지·보관 상태에서는 새 금액 계산에 이 규칙 묶음을 적용하지 않습니다.',
 ], 'Community asset policy set operator guidance');
+sr_community_release_file_contains('modules/community/views/admin-series.php', [
+    '모든 글의 시리즈 연결을 해제하며',
+    '상태를 되돌려도 자동 복원되지 않습니다.',
+    '‘비공개’는 시리즈 소유자 본인에게만 표시합니다.',
+    '회원에게 표시되지 않는 내부 메모입니다.',
+], 'Community series operator guidance');
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'edit')",

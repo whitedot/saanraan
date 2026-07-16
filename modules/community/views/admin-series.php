@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = '커뮤니티 시리즈';
-$adminPageSubtitle = '';
+$adminPageSubtitle = '회원이 게시글을 순서대로 묶은 시리즈의 공개 상태와 운영 메모를 관리합니다.';
 $adminContainerClass = 'admin-page-community-series-list admin-ui-scope';
 $seriesFilters = isset($seriesFilters) && is_array($seriesFilters) ? $seriesFilters : ['status' => [], 'visibility' => [], 'field' => 'all', 'q' => ''];
 $seriesSortOptions = isset($seriesSortOptions) && is_array($seriesSortOptions) ? $seriesSortOptions : sr_community_admin_series_sort_options();
@@ -21,6 +21,26 @@ $seriesStatusClass = static function (string $status): string {
         default => 'is-warning',
     };
 };
+$communitySeriesHelp = [
+    'status' => [
+        'id' => 'community-series-status-help',
+        'title' => '커뮤니티 시리즈 상태 도움말',
+        'body' => '<p>‘사용’ 상태에서만 게시글 화면과 시리즈 화면에 제목, 글 목록, 이전·다음 이동이 표시됩니다. 연결 게시판도 사용 중이고 시리즈 기능과 읽기 권한이 허용되어야 합니다.</p>'
+            . '<p>‘대기’와 ‘숨김’은 공개 화면에서 시리즈를 숨기지만 글 연결은 유지합니다. ‘보관’이나 ‘삭제’로 바꾸면 모든 글의 시리즈 연결을 해제하며, 나중에 상태를 다시 ‘사용’으로 바꿔도 자동으로 복원되지 않습니다.</p>',
+    ],
+    'visibility' => [
+        'id' => 'community-series-visibility-help',
+        'title' => '커뮤니티 시리즈 공개 범위 도움말',
+        'body' => '<p>공개 범위는 상태가 ‘사용’일 때 적용됩니다. ‘전체 공개’는 게시판을 읽을 수 있는 누구나, ‘회원 공개’는 로그인하고 게시판을 읽을 수 있는 회원만 시리즈를 볼 수 있습니다.</p>'
+            . '<p>‘비공개’는 시리즈 소유자 본인에게만 표시합니다. 운영자에게 자동 공개되는 설정은 아니며, 연결 게시판의 상태·시리즈 사용 설정·읽기 권한이 별도로 적용됩니다.</p>',
+    ],
+    'admin_note' => [
+        'id' => 'community-series-admin-note-help',
+        'title' => '운영 메모 도움말',
+        'body' => '<p>운영자가 시리즈 상태를 바꾼 이유나 후속 확인 내용을 기록하는 내부 메모입니다. 시리즈 소유자와 일반 회원에게는 표시되지 않습니다.</p>'
+            . '<p>메모를 입력한 뒤 ‘메모 저장’을 누르세요. 같은 행의 상태나 공개 범위 버튼을 눌러도 현재 입력한 메모가 함께 저장됩니다.</p>',
+    ],
+];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/community/series');
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -91,7 +111,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <div class="card-header">
         <div>
             <h2 class="card-title">커뮤니티 시리즈 목록</h2>
-            <p class="admin-dashboard-meta">작성자 공개 수정은 활성 시리즈와 글쓰기 가능한 게시판으로 제한하고, 관리자 메모는 조치 기록으로만 관리합니다.</p>
+            <p class="admin-dashboard-meta">회원이 만든 시리즈의 노출 여부를 조정하고 운영 조치 내용을 내부 메모로 남깁니다.</p>
         </div>
     </div>
     <div class="admin-list-summary-row">
@@ -108,11 +128,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('board_title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('게시판', 'board_title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('owner_display_name', $seriesSort); ?>><?php echo sr_admin_sort_header_html('소유자', 'owner_display_name', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>><?php echo sr_admin_sort_header_html('공개', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>>
+                        <?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?>
+                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="커뮤니티 시리즈 상태 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySeriesHelp['status']['id']); ?>" data-overlay="#<?php echo sr_e($communitySeriesHelp['status']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    </th>
+                    <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>>
+                        <?php echo sr_admin_sort_header_html('공개 범위', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?>
+                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="커뮤니티 시리즈 공개 범위 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySeriesHelp['visibility']['id']); ?>" data-overlay="#<?php echo sr_e($communitySeriesHelp['visibility']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    </th>
                     <th<?php echo sr_admin_sort_aria('active_item_count', $seriesSort); ?>><?php echo sr_admin_sort_header_html('글', 'active_item_count', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('updated_at', $seriesSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
-                    <th class="text-end">관리</th>
+                    <th class="text-end">
+                        관리
+                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="운영 메모 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySeriesHelp['admin_note']['id']); ?>" data-overlay="#<?php echo sr_e($communitySeriesHelp['admin_note']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -142,8 +171,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php if ((string) $series['status'] === $status) { ?>
                                         <?php continue; ?>
                                     <?php } ?>
-                                    <?php $statusLabel = sr_community_series_status_label($status); ?>
-                                    <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo sr_admin_row_action_confirm_attr($status, $statusLabel); ?>><?php echo sr_e($statusLabel); ?></button>
+                                    <?php
+                                    $statusLabel = sr_community_series_status_label($status);
+                                    $statusConfirmAttribute = sr_admin_row_action_confirm_attr($status, $statusLabel);
+                                    if (in_array($status, ['archived', 'deleted'], true)) {
+                                        $statusConfirmMessage = $statusLabel . ' 상태로 변경할까요? 모든 글의 시리즈 연결이 해제되며 상태를 되돌려도 자동 복원되지 않습니다.';
+                                        $statusConfirmAttribute = ' onclick="return confirm(\'' . sr_e($statusConfirmMessage) . '\');"';
+                                    }
+                                    ?>
+                                    <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo $statusConfirmAttribute; ?>><?php echo sr_e($statusLabel); ?></button>
                                 <?php } ?>
                             </div>
                         </td>
@@ -163,7 +199,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-nowrap admin-community-series-date-cell"><?php echo sr_community_time_html((string) ($series['updated_at'] ?? '')); ?></td>
                         <td class="admin-table-actions-cell">
                             <div class="admin-row-actions admin-community-series-actions">
-                                <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="text" name="admin_note" maxlength="2000" value="<?php echo sr_e((string) ($series['admin_note'] ?? '')); ?>" class="form-input admin-community-series-note-input" aria-label="관리자 메모">
+                                <input form="<?php echo sr_e($seriesUpdateFormId); ?>" type="text" name="admin_note" maxlength="2000" value="<?php echo sr_e((string) ($series['admin_note'] ?? '')); ?>" class="form-input admin-community-series-note-input" aria-label="운영 메모" title="회원에게 표시되지 않는 내부 메모입니다.">
                                 <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" class="btn btn-sm btn-solid-light" aria-label="커뮤니티 시리즈 메모 저장" title="메모 저장">메모 저장</button>
                             </div>
                         </td>
@@ -172,9 +208,23 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </tbody>
         </table>
     </div>
-    <?php echo sr_admin_status_description_list_html('community_series_status', array_combine(sr_community_series_statuses(), array_map('sr_community_series_status_label', sr_community_series_statuses())) ?: [], [], '시리즈 상태 설명'); ?>
-    <?php echo sr_admin_status_description_list_html('community_series_visibility', array_combine(sr_community_series_visibility_values(), array_map('sr_community_series_visibility_label', sr_community_series_visibility_values())) ?: [], [], '공개 범위 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('community_series_status', array_combine(sr_community_series_statuses(), array_map('sr_community_series_status_label', sr_community_series_statuses())) ?: [], [
+        'pending' => '공개 화면에서는 숨기고 글 연결은 유지합니다.',
+        'active' => '게시판 상태와 읽기 권한, 공개 범위에 따라 시리즈 정보를 표시합니다.',
+        'hidden' => '공개 화면에서는 숨기고 글 연결은 유지합니다.',
+        'archived' => '공개 화면에서 숨기고 모든 글의 시리즈 연결을 해제합니다.',
+        'deleted' => '삭제 예정 상태로 표시하고 모든 글의 시리즈 연결을 해제합니다.',
+    ], '시리즈 상태 설명'); ?>
+    <?php echo sr_admin_status_description_list_html('community_series_visibility', array_combine(sr_community_series_visibility_values(), array_map('sr_community_series_visibility_label', sr_community_series_visibility_values())) ?: [], [
+        'public' => '게시판을 읽을 수 있는 누구나 시리즈를 볼 수 있습니다.',
+        'member' => '로그인하고 게시판을 읽을 수 있는 회원만 시리즈를 볼 수 있습니다.',
+        'private' => '게시판을 읽을 수 있는 시리즈 소유자 본인에게만 표시합니다.',
+    ], '공개 범위 설명'); ?>
 </section>
 <?php echo sr_admin_pagination_html($seriesPagination, '커뮤니티 시리즈 목록 페이지'); ?>
+
+<?php foreach ($communitySeriesHelp as $communitySeriesHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $communitySeriesHelpModal['id'], (string) $communitySeriesHelpModal['title'], (string) $communitySeriesHelpModal['body']); ?>
+<?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
