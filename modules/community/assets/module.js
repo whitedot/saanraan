@@ -963,6 +963,10 @@
         if (!nextSummary) {
           throw new Error('community_summary_markup_missing');
         }
+        var boardSidebarMenu = summary.querySelector('[data-community-board-sidebar-menu]');
+        if (boardSidebarMenu) {
+          nextSummary.insertBefore(document.importNode(boardSidebarMenu, true), nextSummary.firstChild);
+        }
         summary.replaceWith(document.importNode(nextSummary, true));
       }).catch(function () {
         summary.removeAttribute('data-community-summary-loading');

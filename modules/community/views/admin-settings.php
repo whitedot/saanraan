@@ -38,6 +38,17 @@ $communitySiteMenuSelectOptions = static function (string $selectedMenuKey) use 
     <?php } ?>
     <?php
 };
+$communityBoardSidebarSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($communitySiteMenuOptions): void {
+    ?>
+    <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>선택 안 함</option>
+    <?php foreach ($communitySiteMenuOptions as $menuKey => $menu) { ?>
+        <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
+        <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>>
+            <?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?>
+        </option>
+    <?php } ?>
+    <?php
+};
 $communityLayoutExtraMenuItems = function_exists('sr_community_layout_extra_menu_items_from_settings') ? sr_community_layout_extra_menu_items_from_settings($settings) : [];
 if (is_array($adminFormDraft ?? null)) {
     $communityLayoutExtraMenuItems = sr_admin_form_draft_parallel_rows((array) $adminFormDraft['payload'], [
@@ -781,6 +792,26 @@ $communitySettingsSectionNavItems = [
                 <select id="community_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
                     <?php $communitySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
                 </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_board_sidebar_menu_type">게시판 사이드 메뉴</label>
+            <div class="form-field">
+                <select id="community_admin_settings_board_sidebar_menu_type" name="board_sidebar_menu_type" class="form-select" required>
+                    <?php foreach (sr_community_board_sidebar_menu_type_options() as $menuType => $menuTypeLabel) { ?>
+                        <option value="<?php echo sr_e((string) $menuType); ?>"<?php echo (string) ($settings['board_sidebar_menu_type'] ?? 'all_boards') === (string) $menuType ? ' selected' : ''; ?>><?php echo sr_e((string) $menuTypeLabel); ?></option>
+                    <?php } ?>
+                </select>
+                <p class="form-help">게시판 목록·읽기·쓰기 화면에서 인기글 위에 표시할 기본 메뉴 범위를 정합니다. 게시판 관리에서 개별값으로 바꿀 수 있습니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_board_sidebar_site_menu_key">사이드 사이트 메뉴</label>
+            <div class="form-field">
+                <select id="community_admin_settings_board_sidebar_site_menu_key" name="board_sidebar_site_menu_key" class="form-select">
+                    <?php $communityBoardSidebarSiteMenuSelectOptions((string) ($settings['board_sidebar_site_menu_key'] ?? '')); ?>
+                </select>
+                <p class="form-help">게시판 사이드 메뉴에서 사이트 메뉴의 특정값을 선택한 경우에만 사용합니다.</p>
             </div>
         </div>
         <div class="form-row">

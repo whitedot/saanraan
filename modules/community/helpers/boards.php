@@ -83,6 +83,8 @@ function sr_community_board_group_setting_keys(): array
         'list_per_page',
         'list_default_sort',
         'summary_feed_enabled',
+        'board_sidebar_menu_type',
+        'board_sidebar_site_menu_key',
         'reaction_enabled',
         'reaction_post_preset_key',
         'reaction_comment_preset_key',
@@ -209,6 +211,8 @@ function sr_community_board_group_default_settings(array $settings): array
         'list_per_page' => (string) min(100, max(1, (int) ($settings['posts_per_page'] ?? 20))),
         'list_default_sort' => 'latest',
         'summary_feed_enabled' => '1',
+        'board_sidebar_menu_type' => sr_community_board_sidebar_menu_type((string) ($settings['board_sidebar_menu_type'] ?? 'all_boards')),
+        'board_sidebar_site_menu_key' => sr_community_board_sidebar_site_menu_key((string) ($settings['board_sidebar_site_menu_key'] ?? '')),
         'level_post_score' => (string) min(10000, max(0, (int) ($settings['level_post_score'] ?? 10))),
         'level_comment_score' => (string) min(10000, max(0, (int) ($settings['level_comment_score'] ?? 2))),
         'image_uploads_enabled' => !empty($settings['image_uploads_enabled']) ? '1' : '0',
@@ -339,6 +343,27 @@ function sr_community_board_group_column_setting_keys(): array
 function sr_community_board_setting_source_values(): array
 {
     return ['board', 'group', 'all'];
+}
+
+function sr_community_board_sidebar_menu_type_options(): array
+{
+    return [
+        'all_boards' => '전체 게시판',
+        'same_group' => '같은 그룹 게시판',
+        'site_menu' => '사이트 메뉴의 특정값',
+    ];
+}
+
+function sr_community_board_sidebar_menu_type(string $value): string
+{
+    $value = strtolower(trim($value));
+    return array_key_exists($value, sr_community_board_sidebar_menu_type_options()) ? $value : 'all_boards';
+}
+
+function sr_community_board_sidebar_site_menu_key(string $value): string
+{
+    $value = strtolower(trim($value));
+    return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
 }
 
 function sr_community_normalize_board_setting_source(string $source): string
@@ -980,6 +1005,8 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     }
     $board['summary_feed_enabled'] = $summaryFeedSetting ?? '1';
     $board['effective_summary_feed_enabled'] = sr_community_effective_board_summary_feed_enabled($pdo, $board) ? '1' : '0';
+    $board['board_sidebar_menu_type'] = sr_community_board_sidebar_menu_type((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'board_sidebar_menu_type') ?? ($settings['board_sidebar_menu_type'] ?? 'all_boards')));
+    $board['board_sidebar_site_menu_key'] = sr_community_board_sidebar_site_menu_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'board_sidebar_site_menu_key') ?? ($settings['board_sidebar_site_menu_key'] ?? '')));
     $board['level_post_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
     $board['level_comment_score'] = sr_community_board_own_level_score($pdo, (int) $board['id'], 'level_comment_score', $settings);
     $board['effective_level_post_score'] = sr_community_board_level_score($pdo, (int) $board['id'], 'level_post_score', $settings);
@@ -1516,6 +1543,80 @@ function sr_community_effective_board_setting(PDO $pdo, array $board, string $se
     }
 
     return (string) $default;
+}
+
+function sr_community_board_sidebar_menu_context(PDO $pdo, array $board, ?array $account, array $settings = []): array
+{
+    $settings = $settings !== [] ? $settings : sr_community_settings($pdo);
+    $menuType = sr_community_board_sidebar_menu_type(sr_community_effective_board_setting(
+        $pdo,
+        $board,
+        'board_sidebar_menu_type',
+        (string) ($settings['board_sidebar_menu_type'] ?? 'all_boards')
+    ));
+    $siteMenuKey = sr_community_board_sidebar_site_menu_key(sr_community_effective_board_setting(
+        $pdo,
+        $board,
+        'board_sidebar_site_menu_key',
+        (string) ($settings['board_sidebar_site_menu_key'] ?? '')
+    ));
+
+    if ($menuType === 'site_menu') {
+        if ($siteMenuKey === '' || !sr_module_enabled($pdo, 'site_menu') || !is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+            return ['type' => $menuType, 'title' => '', 'html' => ''];
+        }
+        require_once SR_ROOT . '/modules/site_menu/helpers.php';
+        $siteMenuOptions = function_exists('sr_site_menu_options') ? sr_site_menu_options($pdo) : [];
+        $siteMenu = is_array($siteMenuOptions[$siteMenuKey] ?? null) ? $siteMenuOptions[$siteMenuKey] : [];
+        $menuTitle = trim((string) ($siteMenu['label'] ?? ''));
+        $html = function_exists('sr_site_menu_render')
+            ? sr_site_menu_render($pdo, $siteMenuKey, 'community_board_sidebar')
+            : '';
+
+        return ['type' => $menuType, 'title' => $menuTitle, 'html' => $html];
+    }
+
+    $currentBoardId = (int) ($board['id'] ?? 0);
+    $currentBoardGroupId = (int) ($board['board_group_id'] ?? 0);
+    $menuTitle = $menuType === 'same_group'
+        ? (trim((string) ($board['board_group_title'] ?? '')) !== '' ? (string) $board['board_group_title'] : '그룹 없음')
+        : '커뮤니티';
+    $links = [];
+    foreach (sr_community_enabled_boards($pdo) as $candidateBoard) {
+        if ($menuType === 'same_group') {
+            $candidateGroupId = (int) ($candidateBoard['board_group_id'] ?? 0);
+            if ($currentBoardGroupId > 0 ? $candidateGroupId !== $currentBoardGroupId : (int) ($candidateBoard['id'] ?? 0) !== $currentBoardId) {
+                continue;
+            }
+        }
+        if (!sr_community_account_can_read_board($pdo, $candidateBoard, $account)) {
+            continue;
+        }
+
+        $boardKey = (string) ($candidateBoard['board_key'] ?? '');
+        if (!sr_community_board_key_is_valid($boardKey)) {
+            continue;
+        }
+        $links[] = [
+            'label' => trim((string) ($candidateBoard['title'] ?? '')) !== '' ? (string) $candidateBoard['title'] : $boardKey,
+            'url' => sr_url('/community/board?key=' . rawurlencode($boardKey)),
+            'current' => (int) ($candidateBoard['id'] ?? 0) === $currentBoardId,
+        ];
+    }
+
+    if ($links === []) {
+        return ['type' => $menuType, 'title' => $menuTitle, 'html' => ''];
+    }
+
+    $html = '<nav class="community-board-sidebar-nav" aria-label="게시판 사이드 메뉴"><ul>';
+    foreach ($links as $link) {
+        $html .= '<li><a href="' . sr_e((string) $link['url']) . '"' . (!empty($link['current']) ? ' aria-current="page"' : '') . '>'
+            . sr_e((string) $link['label'])
+            . '</a></li>';
+    }
+    $html .= '</ul></nav>';
+
+    return ['type' => $menuType, 'title' => $menuTitle, 'html' => $html];
 }
 
 function sr_community_effective_board_policy(PDO $pdo, array $board, string $settingKey): string

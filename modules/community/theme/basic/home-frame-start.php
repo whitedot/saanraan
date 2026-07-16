@@ -1,6 +1,12 @@
 <?php
 $communityLayoutSettings = isset($communityLayoutSettings) && is_array($communityLayoutSettings) ? $communityLayoutSettings : (isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo));
 $communityFrameAccount = isset($account) && is_array($account) ? $account : null;
+$communityFrameBoard = isset($board) && is_array($board)
+    ? $board
+    : (isset($postBoard) && is_array($postBoard) ? $postBoard : null);
+$communityBoardSidebarMenu = is_array($communityFrameBoard)
+    ? sr_community_board_sidebar_menu_context($pdo, $communityFrameBoard, $communityFrameAccount, $communityLayoutSettings)
+    : ['type' => '', 'title' => '', 'html' => ''];
 $communityFrameSummaryEnabled = !isset($communityFrameSummaryEnabled) || $communityFrameSummaryEnabled !== false;
 $communityFrameSummaryDeferred = !empty($communityFrameSummaryDeferred);
 $communityFrameChromeReady = !$communityFrameSummaryEnabled || $communityFrameSummaryDeferred || isset($popularPosts, $popularPostReactionCounts, $latestComments, $recentSeries, $communitySeriesSupported, $homeExcerptAllowedByBoardId);

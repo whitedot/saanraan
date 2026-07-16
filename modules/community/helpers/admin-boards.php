@@ -65,6 +65,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
     $enabledMemberGroupKeys = is_array($context['enabled_member_group_keys'] ?? null) ? $context['enabled_member_group_keys'] : [];
     $assetModuleOptions = is_array($context['asset_module_options'] ?? null) ? $context['asset_module_options'] : [];
     $reactionPresetOptions = is_array($context['reaction_preset_options'] ?? null) ? $context['reaction_preset_options'] : [];
+    $siteMenuOptions = is_array($context['site_menu_options'] ?? null) ? $context['site_menu_options'] : [];
     $afterSave = is_callable($context['after_save'] ?? null) ? $context['after_save'] : null;
     $reactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
     $privacyConsentPolicyDocumentsAvailable = sr_community_privacy_consent_policy_documents_available($pdo);
@@ -142,6 +143,9 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $listDefaultSortInput = sr_post_string('list_default_sort', 20);
         $listDefaultSort = sr_community_board_list_sort_key($listDefaultSortInput);
         $summaryFeedEnabled = ($_POST['summary_feed_enabled'] ?? '') === '1';
+        $boardSidebarMenuTypeInput = sr_post_string('board_sidebar_menu_type', 30);
+        $boardSidebarMenuType = sr_community_board_sidebar_menu_type($boardSidebarMenuTypeInput);
+        $boardSidebarSiteMenuKey = sr_community_board_sidebar_site_menu_key(sr_post_string('board_sidebar_site_menu_key', 60));
         $reactionEnabledInput = ($_POST['reaction_enabled'] ?? '') === '1';
         $reactionPostPresetInput = sr_post_string('reaction_post_preset_key', 80);
         $reactionCommentPresetInput = sr_post_string('reaction_comment_preset_key', 80);
@@ -297,6 +301,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         foreach (sr_community_board_group_setting_keys() as $settingKey) {
             $settingSources[$settingKey] = sr_community_normalize_board_setting_source(sr_post_string('source_' . $settingKey, 20));
         }
+        $settingSources['board_sidebar_site_menu_key'] = (string) ($settingSources['board_sidebar_menu_type'] ?? 'board');
         foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey) {
             $privacyConsentSettingKey = 'privacy_consent_require_' . $privacyConsentTargetKey;
             $privacyConsentDocumentSettingKey = sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey);
@@ -319,6 +324,12 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         if ($description === null) {
             $errors[] = sr_t('community::action.admin.description_too_long');
             $description = '';
+        }
+        if ($boardSidebarMenuTypeInput !== $boardSidebarMenuType || !array_key_exists($boardSidebarMenuType, sr_community_board_sidebar_menu_type_options())) {
+            $errors[] = '게시판 사이드 메뉴 유형이 올바르지 않습니다.';
+        }
+        if ($boardSidebarMenuType === 'site_menu' && ($boardSidebarSiteMenuKey === '' || !isset($siteMenuOptions[$boardSidebarSiteMenuKey]))) {
+            $errors[] = '게시판 사이드에 표시할 사이트 메뉴를 선택하세요.';
         }
 
         if (!in_array($status, $allowedStatuses, true)) {
@@ -660,6 +671,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'list_per_page' => (string) $listPerPage,
                 'list_default_sort' => $listDefaultSort,
                 'summary_feed_enabled' => $summaryFeedEnabled ? '1' : '0',
+                'board_sidebar_menu_type' => $boardSidebarMenuType,
+                'board_sidebar_site_menu_key' => $boardSidebarSiteMenuKey,
                 'reaction_enabled' => $reactionEnabled ? '1' : '0',
                 'reaction_post_preset_key' => $reactionPostPresetKey,
                 'reaction_comment_preset_key' => $reactionCommentPresetKey,

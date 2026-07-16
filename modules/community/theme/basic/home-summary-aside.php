@@ -1,4 +1,5 @@
 <aside class="community-home-aside" aria-label="커뮤니티 요약">
+    <?php include SR_ROOT . '/modules/community/theme/basic/board-sidebar-menu.php'; ?>
     <section class="card community-home-aside-section" aria-labelledby="community_home_popular_posts_title">
         <div class="card-header">
             <h2 id="community_home_popular_posts_title" class="community-home-aside-title">인기글</h2>

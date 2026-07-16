@@ -180,6 +180,9 @@ if (sr_request_method() === 'POST') {
         $layoutKey = sr_public_layout_normalize_key(sr_post_string('layout_key', 80));
         $themeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
         $layoutPrimaryMenuKey = sr_community_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60));
+        $boardSidebarMenuTypeInput = sr_post_string('board_sidebar_menu_type', 30);
+        $boardSidebarMenuType = sr_community_board_sidebar_menu_type($boardSidebarMenuTypeInput);
+        $boardSidebarSiteMenuKey = sr_community_board_sidebar_site_menu_key(sr_post_string('board_sidebar_site_menu_key', 60));
         $layoutExtraMenuItems = sr_community_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []);
         $layoutExtraMenuKeys = sr_community_layout_extra_menu_keys_from_value($layoutExtraMenuItems);
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
@@ -311,6 +314,12 @@ if (sr_request_method() === 'POST') {
                 $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
                 break;
             }
+        }
+        if ($boardSidebarMenuTypeInput !== $boardSidebarMenuType || !array_key_exists($boardSidebarMenuType, sr_community_board_sidebar_menu_type_options())) {
+            $errors[] = '게시판 사이드 메뉴 유형이 올바르지 않습니다.';
+        }
+        if ($boardSidebarMenuType === 'site_menu' && ($boardSidebarSiteMenuKey === '' || !isset($siteMenuOptions[$boardSidebarSiteMenuKey]))) {
+            $errors[] = '게시판 사이드에 표시할 사이트 메뉴를 선택하세요.';
         }
         if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
             $errors[] = '게시글 에디터 값이 올바르지 않습니다.';
@@ -473,6 +482,8 @@ if (sr_request_method() === 'POST') {
                 ['theme_key', $themeKey, 'string'],
                 ['layout_primary_menu_key', $layoutPrimaryMenuKey, 'string'],
                 ['layout_extra_menu_keys_json', sr_community_layout_extra_menu_keys_json($layoutExtraMenuItems), 'json'],
+                ['board_sidebar_menu_type', $boardSidebarMenuType, 'string'],
+                ['board_sidebar_site_menu_key', $boardSidebarSiteMenuKey, 'string'],
                 ['business_info_visible', $businessInfoVisible ? '1' : '0', 'bool'],
                 ['series_enabled', $seriesEnabled ? '1' : '0', 'bool'],
                 ['draft_autosave_enabled', $draftAutosaveEnabled ? '1' : '0', 'bool'],
@@ -616,6 +627,8 @@ if (sr_request_method() === 'POST') {
                         'theme_key' => $themeKey,
                         'layout_primary_menu_key' => $layoutPrimaryMenuKey,
                         'layout_extra_menu_keys_json' => $layoutExtraMenuItems,
+                        'board_sidebar_menu_type' => $boardSidebarMenuType,
+                        'board_sidebar_site_menu_key' => $boardSidebarSiteMenuKey,
                         'business_info_visible' => $businessInfoVisible,
                         'series_enabled' => $seriesEnabled,
                         'post_editor' => $postEditor,

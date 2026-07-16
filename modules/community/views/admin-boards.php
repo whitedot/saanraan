@@ -81,6 +81,16 @@ $boardField = static function (array $board, string $key, string $default = ''):
 $memberSearchUrl = sr_url('/admin/community/boards/member-search');
 $assetModuleChoiceOptions = [];
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
+$communityBoardSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
+$communityBoardSidebarSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($communityBoardSiteMenuOptions): void {
+    ?>
+    <option value=""<?php echo $selectedMenuKey === '' ? ' selected' : ''; ?>>선택 안 함</option>
+    <?php foreach ($communityBoardSiteMenuOptions as $menuKey => $menu) { ?>
+        <?php $menuLabel = (string) ($menu['label'] ?? $menuKey); ?>
+        <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo $selectedMenuKey === (string) $menuKey ? ' selected' : ''; ?>><?php echo sr_e($menuLabel . ' (' . (string) $menuKey . ')'); ?></option>
+    <?php } ?>
+    <?php
+};
 $communityBoardReactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
 $communityBoardReactionInputAttributes = $communityBoardReactionAvailable
     ? ''
@@ -577,6 +587,27 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php } ?>
                                         </select>
                     <?php echo $settingSourceRadioHtml('source_skin_key', $boardSettingSource($formBoard, 'skin_key')); ?>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_boards_board_sidebar_menu_type">게시판 사이드 메뉴</label>
+                <div class="form-field">
+                    <select id="community_admin_boards_board_sidebar_menu_type" name="board_sidebar_menu_type" class="form-select" required>
+                        <?php foreach (sr_community_board_sidebar_menu_type_options() as $menuType => $menuTypeLabel) { ?>
+                            <option value="<?php echo sr_e((string) $menuType); ?>"<?php echo $boardField($formBoard, 'board_sidebar_menu_type', (string) ($settings['board_sidebar_menu_type'] ?? 'all_boards')) === (string) $menuType ? ' selected' : ''; ?>><?php echo sr_e((string) $menuTypeLabel); ?></option>
+                        <?php } ?>
+                    </select>
+                    <?php echo $settingSourceRadioHtml('source_board_sidebar_menu_type', $boardSettingSource($formBoard, 'board_sidebar_menu_type')); ?>
+                    <p class="form-help">이 게시판의 목록·읽기·쓰기 화면에서 인기글 위에 표시할 메뉴를 정합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_boards_board_sidebar_site_menu_key">사이드 사이트 메뉴</label>
+                <div class="form-field">
+                    <select id="community_admin_boards_board_sidebar_site_menu_key" name="board_sidebar_site_menu_key" class="form-select">
+                        <?php $communityBoardSidebarSiteMenuSelectOptions($boardField($formBoard, 'board_sidebar_site_menu_key', (string) ($settings['board_sidebar_site_menu_key'] ?? ''))); ?>
+                    </select>
+                    <p class="form-help">게시판 사이드 메뉴에서 사이트 메뉴의 특정값을 선택한 경우에만 사용하며, 위 설정과 같은 범위로 저장됩니다.</p>
                 </div>
             </div>
             <div class="form-row">

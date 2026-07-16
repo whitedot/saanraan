@@ -583,6 +583,8 @@ $settingKeys = [
     'list_per_page',
     'list_default_sort',
     'summary_feed_enabled',
+    'board_sidebar_menu_type',
+    'board_sidebar_site_menu_key',
     'reaction_enabled',
 ];
 
@@ -724,6 +726,49 @@ sr_check_community_board_settings_contains('modules/community/views/admin-boards
     'name="comments_per_page"',
     '0이면 커뮤니티 환경설정의 기본값을 사용합니다.',
 ], 'community board comment page size field');
+sr_check_community_board_settings_contains('modules/community/actions/admin-settings.php', [
+    "['board_sidebar_menu_type', \$boardSidebarMenuType, 'string']",
+    "['board_sidebar_site_menu_key', \$boardSidebarSiteMenuKey, 'string']",
+    '게시판 사이드에 표시할 사이트 메뉴를 선택하세요.',
+], 'community global board sidebar menu save');
+sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', [
+    "'board_sidebar_menu_type' => \$boardSidebarMenuType",
+    "'board_sidebar_site_menu_key' => \$boardSidebarSiteMenuKey",
+    "\$settingSources['board_sidebar_site_menu_key'] = (string) (\$settingSources['board_sidebar_menu_type'] ?? 'board')",
+], 'community board sidebar menu save');
+sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
+    'name="board_sidebar_menu_type"',
+    'name="board_sidebar_site_menu_key"',
+    '게시판 목록·읽기·쓰기 화면에서 인기글 위에 표시할 기본 메뉴 범위를 정합니다.',
+], 'community global board sidebar menu fields');
+sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
+    'name="board_sidebar_menu_type"',
+    'name="board_sidebar_site_menu_key"',
+    "source_board_sidebar_menu_type",
+], 'community board sidebar menu fields');
+sr_check_community_board_settings_contains('modules/community/theme/basic/home-frame-start.php', [
+    'sr_community_board_sidebar_menu_context',
+], 'community board sidebar menu public context');
+sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
+    "'title' => \$menuTitle",
+    ": '커뮤니티'",
+    ": '그룹 없음'",
+    "\$siteMenu['label']",
+], 'community board sidebar menu public title');
+sr_check_community_board_settings_contains('modules/community/theme/basic/home-summary-aside.php', [
+    'board-sidebar-menu.php',
+], 'community board sidebar menu above summary');
+sr_check_community_board_settings_contains('modules/community/theme/basic/board-sidebar-menu.php', [
+    "\$communityBoardSidebarMenuTitle",
+    "sr_e(\$communityBoardSidebarMenuTitle)",
+], 'community board sidebar menu title rendering');
+sr_check_community_board_settings_contains('modules/community/theme/basic/home-summary-deferred.php', [
+    'board-sidebar-menu.php',
+], 'community deferred board sidebar menu');
+sr_check_community_board_settings_contains('modules/community/assets/module.js', [
+    "summary.querySelector('[data-community-board-sidebar-menu]')",
+    'nextSummary.insertBefore(document.importNode(boardSidebarMenu, true), nextSummary.firstChild)',
+], 'community deferred summary board sidebar preservation');
 sr_check_community_board_settings_contains('modules/community/actions/list.php', [
     'sr_community_board_list_per_page',
     'sr_community_board_list_default_sort',
@@ -767,6 +812,13 @@ if (sr_community_body_plain_length('<p>안녕<br>하세요</p>', 'html') !== 6) 
 }
 if (sr_community_body_excerpt('abcdef', 'plain', 3) !== 'abc...') {
     sr_check_community_board_settings_error('community body excerpt truncation failed.');
+}
+if (sr_community_board_sidebar_menu_type('same_group') !== 'same_group'
+    || sr_community_board_sidebar_menu_type('invalid') !== 'all_boards'
+    || sr_community_board_sidebar_site_menu_key('Header_Menu') !== 'header_menu'
+    || sr_community_board_sidebar_site_menu_key('../header') !== ''
+) {
+    sr_check_community_board_settings_error('community board sidebar menu normalization failed.');
 }
 
 sr_check_community_board_settings_runtime();
