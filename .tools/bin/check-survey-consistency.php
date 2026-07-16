@@ -166,6 +166,32 @@ foreach (["'GET /admin/surveys/groups'", "'POST /admin/surveys/groups'"] as $nee
     sr_survey_check_contains('modules/survey/paths.php', $needle, 'Survey group admin routes must be registered');
 }
 foreach ([
+    'function sr_survey_admin_group_count',
+    'function sr_survey_admin_group_sort_options',
+    'function sr_survey_admin_group_default_sort',
+    'function sr_survey_admin_groups',
+    'LIMIT :limit_value OFFSET :offset_value',
+] as $needle) {
+    sr_survey_check_contains('modules/survey/helpers/groups.php', $needle, 'Survey group admin list must use bounded sortable queries');
+}
+foreach ([
+    'admin-list-card admin-list-form',
+    'sr_admin_pagination_summary_html($groupPagination)',
+    "sr_admin_sort_header_html('식별값'",
+    '<th class="text-end">관리</th>',
+    'class="admin-empty-state"',
+    'class="badge-status <?php echo sr_e($groupStatusClass); ?>"',
+    'class="admin-table-actions-cell"',
+    'class="admin-row-actions"',
+    'class="admin-icon-button-legend"',
+    "sr_admin_pagination_html(\$groupPagination, '설문 그룹 목록 페이지')",
+] as $needle) {
+    sr_survey_check_contains('modules/survey/actions/admin-groups.php', $needle, 'Survey group admin list must use the shared list UI');
+}
+foreach (['<th>Key</th>', '<th>작업</th>', 'class="table-empty"'] as $needle) {
+    sr_survey_check_not_contains('modules/survey/actions/admin-groups.php', $needle, 'Survey group admin list must not keep legacy list markup');
+}
+foreach ([
     "'item' => '단독'",
     "'group' => '그룹'",
     "'all' => '전체'",
