@@ -29,7 +29,7 @@ if ($policySetPage === 'edit') {
     $setId = (int) sr_get_string('id', 20);
     $editPolicySet = sr_content_asset_policy_set_by_id($pdo, $setId);
     if (!is_array($editPolicySet)) {
-        sr_render_error(404, '콘텐츠 회원 그룹별 설정 세트를 찾을 수 없습니다.');
+        sr_render_error(404, '콘텐츠 회원 그룹별 금액 규칙 묶음을 찾을 수 없습니다.');
     }
 }
 
@@ -41,7 +41,7 @@ if (sr_request_method() === 'POST') {
     $isUpdate = $setId > 0;
     $existing = $isUpdate ? sr_content_asset_policy_set_by_id($pdo, $setId) : null;
     if ($isUpdate && !is_array($existing)) {
-        $errors[] = '수정할 콘텐츠 회원 그룹별 설정 세트를 찾을 수 없습니다.';
+        $errors[] = '수정할 콘텐츠 회원 그룹별 금액 규칙 묶음을 찾을 수 없습니다.';
     }
 
     $policiesJson = sr_content_asset_group_policy_json_from_post('policies');
@@ -54,17 +54,17 @@ if (sr_request_method() === 'POST') {
     ];
 
     if (!sr_content_asset_policy_set_key_is_valid((string) $values['set_key'])) {
-        $errors[] = '회원 그룹별 설정 Key는 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
+        $errors[] = '규칙 묶음 식별값은 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다.';
     } elseif (sr_content_asset_policy_set_key_exists($pdo, (string) $values['set_key'], $setId)) {
-        $errors[] = '이미 사용 중인 회원 그룹별 설정 Key입니다.';
+        $errors[] = '이미 사용 중인 규칙 묶음 식별값입니다.';
     }
     if ((string) $values['title'] === '') {
-        $errors[] = '회원 그룹별 설정 이름을 입력하세요.';
+        $errors[] = '규칙 묶음 이름을 입력하세요.';
     }
     if (!in_array((string) $values['status'], sr_content_asset_policy_set_statuses(), true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';
     }
-    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($policiesJson), '콘텐츠 회원 그룹별 설정', true, $assetModuleOptions));
+    $errors = array_merge($errors, sr_admin_asset_group_policy_validation_errors($pdo, sr_content_asset_group_policies_from_value($policiesJson), '콘텐츠 회원 그룹별 금액 규칙', true, $assetModuleOptions));
 
     if ($errors !== []) {
         $_SESSION['sr_content_asset_policy_set_errors'] = $errors;
@@ -84,7 +84,7 @@ if (sr_request_method() === 'POST') {
         'metadata' => $values,
     ]);
 
-    $_SESSION['sr_content_asset_policy_set_notice'] = '콘텐츠 회원 그룹별 설정을 저장했습니다.';
+    $_SESSION['sr_content_asset_policy_set_notice'] = '콘텐츠 회원 그룹별 금액 규칙을 저장했습니다.';
     sr_redirect('/admin/content/asset-policy-sets');
 }
 
