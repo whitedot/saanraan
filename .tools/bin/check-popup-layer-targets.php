@@ -250,6 +250,30 @@ function sr_banner_check_runtime_fixture(): array
         $errors[] = 'banner runtime fixture should render by sort_order ASC then id DESC.';
     }
 
+    $bannerContract = require SR_ROOT . '/modules/banner/output-slots.php';
+    $bannerAssetsFunction = $bannerContract['assets_function'] ?? null;
+    $visibleBannerAssets = is_callable($bannerAssetsFunction)
+        ? $bannerAssetsFunction($pdo, [
+            'module_key' => 'content',
+            'point_key' => 'content.view',
+            'slot_key' => 'before_content',
+            'subject_id' => 'content-1',
+        ])
+        : [];
+    if (!in_array('/modules/banner/assets/module.css', $visibleBannerAssets['stylesheets'] ?? [], true)) {
+        $errors[] = 'banner output slot contract should declare CSS when the current slot renders a banner.';
+    }
+    $emptyBannerAssets = is_callable($bannerAssetsFunction)
+        ? $bannerAssetsFunction($pdo, [
+            'module_key' => 'content',
+            'point_key' => 'content.view',
+            'slot_key' => 'missing_slot',
+        ])
+        : [];
+    if ($emptyBannerAssets !== []) {
+        $errors[] = 'banner output slot contract should omit CSS when the current slot is empty.';
+    }
+
     $invalidHtml = sr_banner_render_slot($pdo, [
         'module_key' => '../content',
         'point_key' => 'content.view',
@@ -563,6 +587,33 @@ function sr_popup_layer_check_runtime_fixture(): array
     }
     if (!str_contains($html, 'data-cookie-path=')) {
         $errors[] = 'popup layer runtime fixture should expose dismiss cookie path metadata.';
+    }
+
+    $popupContract = require SR_ROOT . '/modules/popup_layer/output-slots.php';
+    $popupAssetsFunction = $popupContract['assets_function'] ?? null;
+    $visiblePopupAssets = is_callable($popupAssetsFunction)
+        ? $popupAssetsFunction($pdo, [
+            'module_key' => 'content',
+            'point_key' => 'content.view',
+            'slot_key' => 'before_content',
+            'subject_id' => 'content-1',
+        ])
+        : [];
+    if (
+        !in_array('/modules/popup_layer/assets/module.css', $visiblePopupAssets['stylesheets'] ?? [], true)
+        || !in_array('/modules/popup_layer/assets/saanraan-popup-layer.js', $visiblePopupAssets['scripts'] ?? [], true)
+    ) {
+        $errors[] = 'popup layer output slot contract should declare CSS and JS when the current slot renders a popup.';
+    }
+    $emptyPopupAssets = is_callable($popupAssetsFunction)
+        ? $popupAssetsFunction($pdo, [
+            'module_key' => 'content',
+            'point_key' => 'content.view',
+            'slot_key' => 'missing_slot',
+        ])
+        : [];
+    if ($emptyPopupAssets !== []) {
+        $errors[] = 'popup layer output slot contract should omit CSS and JS when the current slot is empty.';
     }
 
     $_COOKIE[sr_popup_layer_cookie_name(4)] = '1';

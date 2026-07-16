@@ -403,7 +403,7 @@
 }
 
 .example-site-hero h1,
-.example-community-hero h1,
+.example-community-hero h1:not(.type-page-title):not(.type-page-title-fluid),
 .example-quiz-hero h1,
 .example-survey-hero h1 {
     font-size: 2.5rem;
@@ -416,7 +416,7 @@
     .example-content-hero h1,
     .example-content-reader-header h1,
     .example-site-hero h1,
-    .example-community-hero h1,
+    .example-community-hero h1:not(.type-page-title):not(.type-page-title-fluid),
     .example-quiz-hero h1,
     .example-survey-hero h1 {
         font-size: 4.75rem;

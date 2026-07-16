@@ -97,13 +97,12 @@ if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
 $layoutPrivacyCookieConsentHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_file(SR_ROOT . '/modules/privacy/helpers.php')) {
     require_once SR_ROOT . '/modules/privacy/helpers.php';
-    $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
     $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
+    if ($layoutPrivacyCookieConsentHtml !== '') {
+        $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
+    }
 }
 if ($layoutPdo instanceof PDO) {
-    if (sr_module_enabled($layoutPdo, 'banner')) {
-        $layoutStylesheets[] = '/modules/banner/assets/module.css';
-    }
     $layoutBeforeLayoutHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.layout', 'slot_key' => 'before_layout']);
     $layoutModuleBeforeLayoutHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'quiz', 'point_key' => 'quiz.layout', 'slot_key' => 'before_layout']);
     $layoutModuleBeforeFooterHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'quiz', 'point_key' => 'quiz.layout', 'slot_key' => 'before_footer']);
@@ -189,6 +188,13 @@ if (
         $layoutNotificationSummary = sr_notification_public_header_summary($layoutPdo, (int) $layoutCurrentAccount['id'], 5);
         $layoutNotificationHasAccount = true;
     }
+}
+$layoutRenderedAssetMarkup = implode('', [$layoutContent, $layoutBeforeLayoutHtml, $layoutModuleBeforeLayoutHtml, $layoutModuleBeforeFooterHtml, $layoutAfterLayoutHtml]);
+if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'banner') && str_contains($layoutRenderedAssetMarkup, 'class="sr-banner')) {
+    $layoutStylesheets[] = '/modules/banner/assets/module.css';
+}
+if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'popup_layer') && str_contains($layoutRenderedAssetMarkup, 'data-sr-popup-layer')) {
+    $layoutStylesheets[] = '/modules/popup_layer/assets/module.css';
 }
 ?>
 <!doctype html>

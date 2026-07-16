@@ -12,6 +12,7 @@ if (!$communityCommentFragmentResponse) {
 $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.post',
+    'scripts' => is_array($account ?? null) ? ['/assets/mention-input.js'] : [],
     'stylesheets' => array_merge(sr_enabled_module_asset_paths($pdo ?? null, [
         'banner' => '/modules/banner/assets/module.css',
         'popup_layer' => '/modules/popup_layer/assets/module.css',

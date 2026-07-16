@@ -604,10 +604,8 @@ $outputSlotAssets = sr_output_slot_asset_paths($layoutPdo, [
     'slot_key' => 'before_content',
 ]);
 sr_output_helper_assert(
-    in_array('/modules/banner/assets/module.css', $outputSlotAssets['stylesheets'] ?? [], true)
-        && in_array('/modules/popup_layer/assets/module.css', $outputSlotAssets['stylesheets'] ?? [], true)
-        && in_array('/modules/popup_layer/assets/saanraan-popup-layer.js', $outputSlotAssets['scripts'] ?? [], true),
-    'Output slot asset lookup should collect declared public stylesheets and scripts from enabled slot providers.'
+    ($outputSlotAssets['stylesheets'] ?? []) === [] && ($outputSlotAssets['scripts'] ?? []) === [],
+    'Output slot asset lookup should omit provider assets when the current slot has no rendered output.'
 );
 $siteMetaPdo = new PDO('sqlite::memory:');
 $siteMetaPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

@@ -27,6 +27,7 @@ $contentStylesheets = sr_enabled_module_asset_paths($pdo ?? null, [
 $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.view',
+    'scripts' => is_array($account ?? null) && !empty($pageAccess['allowed']) ? ['/assets/mention-input.js'] : [],
     'stylesheets' => $contentStylesheets,
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'before_content'],

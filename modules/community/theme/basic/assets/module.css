@@ -16,7 +16,7 @@
     margin-top: 0;
 }
 
-.community-screen h1 {
+.community-screen h1:not(.type-page-title):not(.type-page-title-fluid) {
     color: var(--sr-text, var(--text-strong, #242424));
     font-family: var(--font-secondary);
     font-size: clamp(var(--type-page-title-size), 4vw, var(--type-page-title-fluid-max-size));
@@ -1043,6 +1043,21 @@
 .community-action-group-trailing {
     justify-content: flex-end;
     margin-left: auto;
+}
+
+.community-admin-button {
+    --community-admin-button-color: var(--sr-danger-text, var(--sr-danger, var(--color-danger, #f43f5e)));
+    --community-admin-button-state-background: color-mix(in oklab, var(--sr-danger-border, var(--sr-danger, var(--color-danger, #f43f5e))) 24%, var(--sr-surface, transparent));
+    --btn-focus-color: var(--sr-danger-border, var(--sr-danger, var(--color-danger, #f43f5e)));
+    background-color: var(--sr-danger-bg, color-mix(in oklab, var(--sr-danger, var(--color-danger, #f43f5e)) 15%, var(--sr-surface, transparent)));
+    border-color: transparent;
+    color: var(--community-admin-button-color);
+}
+
+.community-admin-button:is(:hover, :focus, :focus-visible, :active) {
+    background-color: var(--community-admin-button-state-background);
+    border-color: transparent;
+    color: var(--community-admin-button-color);
 }
 
 .community-post-view-actions:empty {

@@ -18,10 +18,6 @@ $seo = sr_community_board_seo_meta($pdo, $board, [
 $memberSettings = sr_member_settings($pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.list',
-    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
-        'banner' => '/modules/banner/assets/module.css',
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-    ]),
     'output_slots' => [
         ['module_key' => 'community', 'point_key' => 'community.board.list', 'slot_key' => 'before_list'],
         ['module_key' => 'community', 'point_key' => 'community.board.list', 'slot_key' => 'after_list'],
@@ -32,12 +28,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
 <main class="example-community-theme example-community-board" data-example-theme-view="community.list">
     <header class="example-community-hero">
         <p class="example-content-kicker">BOARD LIST FROM THEME</p>
-        <h1><?php echo sr_e((string) ($seo['title'] ?? $board['title'] ?? '게시판')); ?></h1>
+        <h1 class="type-page-title"><?php echo sr_e((string) ($seo['title'] ?? $board['title'] ?? '게시판')); ?></h1>
         <?php if ((string) ($board['description'] ?? '') !== '') { ?>
             <p><?php echo sr_e((string) $board['description']); ?></p>
         <?php } ?>
-        <?php if (!empty($canWriteBoard)) { ?>
-            <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">글쓰기</a></p>
+        <?php if (!empty($canManageBoard) || !empty($canWriteBoard)) { ?>
+            <p>
+                <?php if (!empty($canManageBoard)) { ?>
+                    <a class="btn btn-icon btn-soft-danger community-admin-button" href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" aria-label="<?php echo sr_e('게시판 관리'); ?>" title="<?php echo sr_e('게시판 관리'); ?>"><?php echo sr_material_icon_html('settings'); ?></a>
+                <?php } ?>
+                <?php if (!empty($canWriteBoard)) { ?>
+                    <a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>">글쓰기</a>
+                <?php } ?>
+            </p>
         <?php } ?>
     </header>
 

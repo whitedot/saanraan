@@ -72,12 +72,74 @@ sr_mention_check_assert(is_string($mentionJs) && str_contains($mentionJs, "scrol
 
 foreach ([
     '/layouts/public/basic/layout.php',
-    '/modules/community/theme/basic/layout.php',
     '/modules/content/theme/basic/layout.php',
+    '/modules/content/theme/sample/layout.php',
+    '/modules/community/theme/basic/layout.php',
+    '/modules/community/theme/sample/layout.php',
+    '/modules/quiz/theme/basic/layout.php',
+    '/modules/quiz/theme/sample/layout.php',
+    '/modules/survey/theme/basic/layout.php',
+    '/modules/survey/theme/sample/layout.php',
 ] as $layoutPath) {
     $layout = file_get_contents($root . $layoutPath);
-    sr_mention_check_assert(is_string($layout) && str_contains($layout, '/assets/mention-input.js'), 'public layout should load mention input asset: ' . $layoutPath);
+    sr_mention_check_assert(is_string($layout) && !str_contains($layout, '/assets/mention-input.js'), 'public layout should not load mention input on every screen: ' . $layoutPath);
+    sr_mention_check_assert(is_string($layout) && !str_contains($layout, '/assets/member-recipient-picker.js'), 'public layout should not load the message recipient picker: ' . $layoutPath);
+    sr_mention_check_assert(is_string($layout) && str_contains($layout, '$layoutPrivacyCookieConsentHtml !=='), 'public layout should load privacy consent CSS only when consent markup exists: ' . $layoutPath);
+    sr_mention_check_assert(is_string($layout) && str_contains($layout, '$layoutRenderedAssetMarkup'), 'public layout should inspect rendered markup before adding optional display assets: ' . $layoutPath);
+    sr_mention_check_assert(is_string($layout) && str_contains($layout, "str_contains(\$layoutRenderedAssetMarkup, 'class=\"sr-banner')"), 'public layout should load banner CSS only when banner markup exists: ' . $layoutPath);
+    sr_mention_check_assert(is_string($layout) && str_contains($layout, "str_contains(\$layoutRenderedAssetMarkup, 'data-sr-popup-layer')"), 'public layout should load popup CSS only when popup markup exists: ' . $layoutPath);
 }
+
+foreach ([
+    '/modules/community/skins/basic/list.php',
+    '/modules/community/theme/basic/list.php',
+    '/modules/community/theme/sample/list.php',
+] as $listViewPath) {
+    $listView = file_get_contents($root . $listViewPath);
+    sr_mention_check_assert(is_string($listView) && !str_contains($listView, '/assets/mention-input.js'), 'community list should not request mention input: ' . $listViewPath);
+    sr_mention_check_assert(is_string($listView) && !str_contains($listView, '/assets/member-recipient-picker.js'), 'community list should not request the message recipient picker: ' . $listViewPath);
+    sr_mention_check_assert(is_string($listView) && !str_contains($listView, 'sr_enabled_module_asset_paths('), 'community list should not load optional module assets solely because their modules are enabled: ' . $listViewPath);
+}
+
+foreach ([
+    '/modules/community/skins/basic/view.php',
+    '/modules/community/theme/basic/post.php',
+    '/modules/community/theme/sample/post.php',
+] as $viewPath) {
+    $view = file_get_contents($root . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => is_array(\$account ?? null) ? ['/assets/mention-input.js'] : []"), 'community post view should request mention input only for a signed-in account: ' . $viewPath);
+}
+
+foreach ([
+    '/modules/content/views/content.php',
+    '/modules/content/theme/basic/content.php',
+    '/modules/content/theme/sample/content.php',
+] as $viewPath) {
+    $view = file_get_contents($root . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => is_array(\$account ?? null) && !empty(\$pageAccess['allowed']) ? ['/assets/mention-input.js'] : []"), 'content view should request mention input only when a signed-in account can view the content: ' . $viewPath);
+}
+
+foreach ([
+    '/modules/quiz/skins/basic/view.php',
+    '/modules/quiz/theme/basic/view.php',
+] as $viewPath) {
+    $view = file_get_contents($root . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => \$quizCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'quiz view should request mention input only when a signed-in account can use comments: ' . $viewPath);
+}
+
+foreach ([
+    '/modules/survey/skins/basic/view.php',
+    '/modules/survey/theme/basic/view.php',
+] as $viewPath) {
+    $view = file_get_contents($root . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => \$surveyCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'survey view should request mention input only when a signed-in account can use comments: ' . $viewPath);
+}
+
+$messageWriteView = file_get_contents($root . '/modules/message/views/message-write.php');
+sr_mention_check_assert(
+    is_string($messageWriteView) && str_contains($messageWriteView, "'scripts' => ['/assets/member-recipient-picker.js']"),
+    'message write view should request the recipient picker asset it owns.'
+);
 
 foreach ([
     '/modules/community/skins/basic/view.php',

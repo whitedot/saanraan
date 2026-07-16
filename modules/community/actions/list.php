@@ -32,6 +32,7 @@ if (!empty($communityBoardIdentityPolicy['required']) && empty($communityBoardId
     sr_render_error(403, sr_community_identity_action_error_message('enter', (string) ($communityBoardIdentityPolicy['purpose'] ?? 'real_name')));
 }
 $isAdminWriter = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit');
+$canManageBoard = is_array($account) && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/boards', 'view');
 $canViewMemberIdentifiers = sr_community_admin_can_view_member_identifiers($pdo, is_array($account) ? $account : null);
 $canWriteBoard = sr_community_account_can_write_board($pdo, $board, is_array($account) ? $account : null, $isAdminWriter)
     || sr_community_account_can_write_notice($pdo, $board, is_array($account) ? $account : null, $isAdminWriter);

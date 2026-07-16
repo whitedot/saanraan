@@ -35,10 +35,7 @@ $communityListReactionCounts = $communityListReactionVisible && is_array($posts 
     : [];
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.list',
-    'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), sr_enabled_module_asset_paths($pdo ?? null, [
-        'banner' => '/modules/banner/assets/module.css',
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-    ])),
+    'stylesheets' => sr_community_skin_stylesheets($skinKey ?? 'basic'),
     'output_slots' => [
         ['module_key' => 'community', 'point_key' => 'community.board.list', 'slot_key' => 'before_list'],
         ['module_key' => 'community', 'point_key' => 'community.board.list', 'slot_key' => 'after_list'],
@@ -63,7 +60,7 @@ $communityFrameModifier = 'list';
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_before_list_id'] ?? 0)); ?>
         <?php } ?>
 
-        <h1><?php echo sr_e($pageTitle); ?></h1>
+        <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
         <?php if ((string) ($board['description'] ?? '') !== '') { ?>
             <p><?php echo sr_e((string) $board['description']); ?></p>
         <?php } ?>
@@ -119,9 +116,14 @@ $communityFrameModifier = 'list';
                 <?php } ?>
             </div>
         </form>
-        <?php if ($canWriteBoard) { ?>
+        <?php if (!empty($canManageBoard) || $canWriteBoard) { ?>
             <div class="community-action-group community-action-group-trailing">
-                <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.1f1955dd')); ?></a>
+                <?php if (!empty($canManageBoard)) { ?>
+                    <a class="btn btn-icon btn-soft-danger community-admin-button" href="<?php echo sr_e(sr_url('/admin/community/boards/edit?id=' . rawurlencode((string) $board['id']))); ?>" aria-label="<?php echo sr_e('게시판 관리'); ?>" title="<?php echo sr_e('게시판 관리'); ?>"><?php echo sr_material_icon_html('settings'); ?></a>
+                <?php } ?>
+                <?php if ($canWriteBoard) { ?>
+                    <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/community/write?key=' . rawurlencode((string) $board['board_key']))); ?>"><?php echo sr_e(sr_t('community::ui.text.1f1955dd')); ?></a>
+                <?php } ?>
             </div>
         <?php } ?>
         </div>

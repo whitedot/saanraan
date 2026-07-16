@@ -10,6 +10,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'consumer_domain' => 'message',
     'module_home_url' => sr_url('/messages'),
     'module_label' => '쪽지',
+    'scripts' => ['/assets/member-recipient-picker.js'],
 ]);
 ?>
     <main class="message-screen">
