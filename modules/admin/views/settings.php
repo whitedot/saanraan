@@ -113,6 +113,23 @@ $siteSettingsHelp = [
     ],
 ];
 $businessInfoRows = sr_admin_business_info_form_rows($values);
+$adminPublicLayoutModuleReferences = [];
+foreach ($publicLayoutOptions as $publicLayoutKey => $publicLayoutOption) {
+    if (!is_array($publicLayoutOption)) {
+        continue;
+    }
+    $providerModuleKey = sr_admin_public_layout_provider_module_key((string) $publicLayoutKey, $publicLayoutOption);
+    if ($providerModuleKey !== '' && $providerModuleKey !== 'core' && $providerModuleKey !== 'admin') {
+        $adminPublicLayoutModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey];
+    }
+}
+$adminHomepageModuleReferences = [];
+foreach ($homepageCandidates as $homepageCandidate) {
+    $providerModuleKey = is_array($homepageCandidate) ? (string) ($homepageCandidate['module_key'] ?? '') : '';
+    if ($providerModuleKey !== '' && $providerModuleKey !== 'core' && $providerModuleKey !== 'admin') {
+        $adminHomepageModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey];
+    }
+}
 $adminIconOverrideCount = 0;
 $adminIconRows = [];
 foreach ($adminIconDefaults as $adminIconSymbolName => $_adminIconDefaultMaterialName) {
@@ -387,6 +404,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         </option>
                                     <?php } ?>
                 </select>
+                <p class="form-help">초기화면과 사이트 공통 공개 화면을 감싸는 레이아웃을 정합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $adminPublicLayoutModuleReferences); ?>
                 <?php $layoutWarnings = is_array($publicLayoutHealthWarnings ?? null) ? $publicLayoutHealthWarnings : []; ?>
                 <?php if ($layoutWarnings !== []) { ?>
                     <div class="alert alert-warning admin-inline-alert">
@@ -437,6 +456,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php } ?>
                 </select>
                 <p class="form-help"><?php echo sr_e(sr_t('admin::ui.page.page.community.status.active.ee1178b4')); ?> 회원 전용 모드가 켜져 있으면 비로그인 방문자에게 초기화면 대신 로그인 화면이 먼저 표시됩니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $adminHomepageModuleReferences); ?>
             </div>
         </div>
     </section>

@@ -335,6 +335,18 @@ sr_admin_navigation_runtime_assert(
     'Content writing settings must show active editor, toolbar, and URL embed provider references.'
 );
 
+$adminSettingsSource = is_file('modules/admin/views/settings.php')
+    ? file_get_contents('modules/admin/views/settings.php')
+    : false;
+sr_admin_navigation_runtime_assert(
+    is_string($adminSettingsSource)
+        && str_contains($adminSettingsSource, 'sr_admin_public_layout_provider_module_key')
+        && str_contains($adminSettingsSource, "\$homepageCandidate['module_key']")
+        && str_contains($adminSettingsSource, 'sr_admin_module_reference_list_html($pdo, $adminPublicLayoutModuleReferences)')
+        && str_contains($adminSettingsSource, 'sr_admin_module_reference_list_html($pdo, $adminHomepageModuleReferences)'),
+    'Site screen settings must show active public layout and homepage provider references.'
+);
+
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
     is_string($communityAdminMenu)
