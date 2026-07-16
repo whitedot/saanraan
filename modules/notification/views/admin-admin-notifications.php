@@ -107,7 +107,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <th class="admin-notification-source-head">출처</th>
                 <th class="admin-notification-time-head">발생</th>
                 <th class="admin-notification-read-head">읽음</th>
-                <th class="admin-notification-actions-head text-end">작업</th>
+                <th class="admin-notification-actions-head text-end">관리</th>
             </tr>
         </thead>
         <tbody>

@@ -30,7 +30,7 @@ function sr_community_admin_post_extra_fields_editor_html(
         <div class="table-wrapper" data-community-admin-post-extra-field-table-wrap hidden>
             <table class="table table-list admin-extra-field-table" data-community-admin-post-extra-field-table>
                 <caption class="sr-only"><?php echo sr_e($title); ?> 목록</caption>
-                <thead><tr><th class="admin-extra-field-order-cell">순서</th><th>라벨</th><th>유형</th><th>표시</th><th>개인정보</th><th class="text-end">작업</th></tr></thead>
+                <thead><tr><th class="admin-extra-field-order-cell">순서</th><th>라벨</th><th>유형</th><th>표시</th><th>개인정보</th><th class="text-end">관리</th></tr></thead>
                 <tbody data-community-admin-post-extra-field-list data-admin-reorder-list></tbody>
             </table>
         </div>

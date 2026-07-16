@@ -239,7 +239,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <th>저장소</th>
                             <th>시도</th>
                             <th>오류</th>
-                            <th class="text-end">작업</th>
+                            <th class="text-end">관리</th>
                         </tr>
                     </thead>
                     <tbody>

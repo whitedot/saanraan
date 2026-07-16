@@ -114,7 +114,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>금액</th>
                     <th>시도</th>
                     <th>일시</th>
-                    <th>작업</th>
+                    <th>관리</th>
                 </tr>
             </thead>
             <tbody>

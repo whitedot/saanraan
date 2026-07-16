@@ -468,7 +468,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <th>저장소</th>
                             <th>시도</th>
                             <th>오류</th>
-                            <th class="text-end">작업</th>
+                            <th class="text-end">관리</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -605,7 +605,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <th>유형</th>
                             <th>표시</th>
                             <th>개인정보</th>
-                            <th class="text-end">작업</th>
+                            <th class="text-end">관리</th>
                         </tr>
                     </thead>
                     <tbody data-community-extra-field-list data-admin-reorder-list></tbody>
@@ -1588,7 +1588,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <th>회원</th>
                             <th>권한</th>
                             <th>부여일</th>
-                            <th class="text-end">작업</th>
+                            <th class="text-end">관리</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1729,7 +1729,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <th>이름</th>
                             <th>상태</th>
                             <th>정렬</th>
-                            <th class="text-end">작업</th>
+                            <th class="text-end">관리</th>
                         </tr>
                     </thead>
                     <tbody>

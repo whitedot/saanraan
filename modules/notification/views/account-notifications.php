@@ -41,7 +41,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             <th>수신처</th>
                             <th>상태</th>
                             <th>연결일</th>
-                            <th>작업</th>
+                            <th>관리</th>
                         </tr>
                     </thead>
                     <tbody>

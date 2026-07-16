@@ -97,6 +97,39 @@ foreach ($scanFiles as $relativePath) {
     }
 }
 
+$managementColumnFiles = [
+    'modules/admin/helpers/comment-extra-fields.php',
+    'modules/asset_exchange/views/admin-asset-exchange-logs.php',
+    'modules/asset_ledger/views/admin-recovery-failures.php',
+    'modules/community/helpers/admin-post-extra-fields.php',
+    'modules/community/views/admin-boards.php',
+    'modules/community/views/admin-reports.php',
+    'modules/content/views/admin-content-groups.php',
+    'modules/member/views/admin-settings.php',
+    'modules/notification/views/account-notifications.php',
+    'modules/notification/views/admin-admin-notifications.php',
+    'modules/quiz/actions/admin-groups.php',
+    'modules/survey/actions/admin-groups.php',
+];
+foreach ($managementColumnFiles as $relativePath) {
+    $content = file_get_contents($root . '/' . $relativePath);
+    if (!is_string($content)) {
+        $errors[] = '관리 열 문구 검사 파일을 읽을 수 없습니다: ' . $relativePath;
+        continue;
+    }
+    if (str_contains($content, '>작업</th>')) {
+        $errors[] = '버튼과 링크를 담는 목록 열은 작업 대신 관리로 표시해야 합니다: ' . $relativePath;
+    }
+    if (!str_contains($content, '>관리</th>')) {
+        $errors[] = '목록 관리 열 표기가 빠졌습니다: ' . $relativePath;
+    }
+}
+
+$policyDocumentLang = file_get_contents($root . '/modules/policy_documents/lang/ko.php');
+if (!is_string($policyDocumentLang) || !str_contains($policyDocumentLang, "'ui.action' => '관리'")) {
+    $errors[] = '정책 문서 목록의 버튼 열은 관리로 표시해야 합니다.';
+}
+
 $toastHelperPath = $root . '/modules/admin/helpers/action-results.php';
 $toastHelper = is_file($toastHelperPath) ? file_get_contents($toastHelperPath) : false;
 if (is_string($toastHelper)) {

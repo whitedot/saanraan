@@ -75,7 +75,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>수수료</th>
                     <th>상태</th>
                     <th>실패 사유</th>
-                    <th>작업</th>
+                    <th>관리</th>
                 </tr>
             </thead>
             <tbody>

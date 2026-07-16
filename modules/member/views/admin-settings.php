@@ -264,7 +264,7 @@ $memberSettingsSectionNavItems = [
                         <th>유형</th>
                         <th>표시</th>
                         <th>개인정보</th>
-                        <th class="text-end">작업</th>
+                        <th class="text-end">관리</th>
                     </tr>
                 </thead>
                 <tbody data-member-profile-field-list></tbody>

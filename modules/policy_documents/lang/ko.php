@@ -16,7 +16,7 @@ return [
     'notice.version_created' => '문서 버전을 저장했습니다.',
     'notice.version_published' => '문서 버전을 공개했습니다.',
     'notice.version_updated' => '문서 버전을 수정했습니다.',
-    'ui.action' => '작업',
+    'ui.action' => '관리',
     'ui.body' => '본문',
     'ui.body.help' => '저장할 때 위험한 코드와 허용되지 않은 서식을 제거합니다.',
     'ui.body_mode.ckeditor' => 'CKEditor',
