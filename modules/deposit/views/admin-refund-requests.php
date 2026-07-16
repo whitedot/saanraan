@@ -21,6 +21,13 @@ $searchFieldOptions = [
     'request' => '신청/거래 번호',
 ];
 $requestListActionUrl = sr_url((string) ($_SERVER['REQUEST_URI'] ?? '/admin/deposits/refund-requests'));
+$depositRefundHelp = [
+    'id' => 'deposit-refund-processing-help',
+    'title' => '예치금 환불 처리 도움말',
+    'body' => '<p>‘완료’는 은행 이체를 실행하는 기능이 아닙니다. 운영자가 실제 환불 이체를 마친 뒤 이체 확인 번호나 처리 근거를 입력하고 완료하세요. 완료하면 신청 금액만큼 회원의 예치금 잔액을 차감하고 복원할 수 없는 거래 기록을 만듭니다.</p>'
+        . '<p>‘거부’는 예치금을 차감하지 않고 신청만 거부 상태로 바꿉니다. 완료 처리 근거와 거부 사유는 회원의 환불 신청 내역에도 표시되므로 개인정보나 내부 전용 메모를 입력하지 마세요.</p>'
+        . '<p>일괄처리는 실행 시점의 필터·검색 조건에 맞는 대기 신청을 대상으로 합니다. 화면을 연 뒤 신청이 변하면 표시된 건수와 실제 처리 건수가 다를 수 있습니다. 일부 신청이 잔액 부족이나 이미 처리된 상태로 실패해도 나머지 신청은 계속 처리합니다.</p>',
+];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/deposits/refund-requests');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -79,7 +86,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>상태</th>
                     <th>요청 메모</th>
                     <th>처리 정보</th>
-                    <th class="text-end">관리</th>
+                    <th class="text-end">
+                        <span class="form-label-help">
+                            <button type="button" class="admin-label-help-button" aria-label="환불 처리 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositRefundHelp['id']); ?>" data-overlay="#<?php echo sr_e($depositRefundHelp['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                            <span>처리</span>
+                        </span>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -113,7 +125,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
                                         <div class="admin-row-actions">
-                                            <input type="text" name="admin_note" maxlength="255" required class="form-input" placeholder="이체 확인 번호">
+                                            <input type="text" name="admin_note" maxlength="255" required class="form-input" placeholder="외부 이체 확인 번호 또는 처리 근거" aria-label="회원에게 표시할 환불 완료 처리 근거">
                                             <button type="submit" name="intent" value="complete" class="btn btn-sm btn-solid-primary">완료</button>
                                             <button type="button" class="btn btn-sm btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>" data-overlay="#deposit-refund-reject-modal-<?php echo sr_e((string) $request['id']); ?>">거부</button>
                                         </div>
@@ -131,7 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="request_id" value="<?php echo sr_e((string) $request['id']); ?>">
                                                     <input type="hidden" name="intent" value="reject">
-                                                    <p class="form-help">이 환불 신청을 거부합니다. 거부하면 원장 거래는 생성되지 않고, 회원 신청 내역에 거부 사유가 표시됩니다.</p>
+                                                    <p class="form-help">거부하면 예치금은 차감하지 않고, 입력한 사유는 회원의 환불 신청 내역에 표시됩니다.</p>
                                                     <div class="form-row">
                                                         <label for="deposit-refund-reject-note-<?php echo sr_e((string) $request['id']); ?>" class="form-row-label">거부 사유 <span class="text-danger">(필수)</span></label>
                                                         <div class="form-field">
@@ -172,13 +184,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-body">
                 <?php echo sr_csrf_field(); ?>
                 <p class="form-help">
-                    현재 필터와 검색 조건에 맞는 대기 환불 신청 <?php echo sr_e(number_format($requestBatchPendingCount)); ?>건을 처리합니다. 한 번에 최대 <?php echo sr_e(number_format($requestBatchLimit)); ?>건까지 처리할 수 있습니다.
+                    현재 필터와 검색 조건에 맞는 대기 환불 신청 <?php echo sr_e(number_format($requestBatchPendingCount)); ?>건을 처리합니다. 한 번에 최대 <?php echo sr_e(number_format($requestBatchLimit)); ?>건까지 처리하며, 실행 시점에 신청 상태가 바뀌면 실제 처리 건수가 다를 수 있습니다.
                 </p>
                 <div class="form-row">
-                    <label for="deposit-refund-batch-admin-note" class="form-row-label">처리 메모 <span class="text-danger">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('deposit-refund-batch-admin-note', '처리 메모', $depositRefundHelp['id'], '환불 처리 도움말 보기', true); ?>
                     <div class="form-field">
-                        <input id="deposit-refund-batch-admin-note" type="text" name="admin_note" maxlength="255" required class="form-input" placeholder="공통 이체 확인 번호 또는 거부 사유">
-                        <p class="form-help">완료와 거부 모두 이 메모가 각 요청의 처리 정보에 저장됩니다.</p>
+                        <input id="deposit-refund-batch-admin-note" type="text" name="admin_note" maxlength="255" required class="form-input" placeholder="공통 외부 이체 확인 번호 또는 거부 사유">
+                        <p class="form-help">모든 처리 대상에 같은 메모를 저장하며 회원에게도 표시합니다.</p>
                     </div>
                 </div>
             </div>
@@ -190,5 +202,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </div>
 </div>
+
+<?php echo sr_admin_help_modal_html($depositRefundHelp['id'], $depositRefundHelp['title'], $depositRefundHelp['body']); ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>
