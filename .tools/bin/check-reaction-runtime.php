@@ -481,6 +481,17 @@ if (is_string($adminReactionView)) {
     $assert(!str_contains($adminReactionView, "<code><?php echo sr_e((string) (\$record['reaction_key'] ?? '')); ?></code>"), 'reaction record admin view should not display raw reaction keys as the primary reaction value.');
     $assert(!str_contains($adminReactionView, '$recordReactionStatus ='), 'reaction record admin view should not render a duplicate reaction status badge in the reaction value column.');
     $assert(!str_contains($adminReactionView, "sr_admin_status_description_list_html('reaction_status', ['active' => '사용', 'disabled' => '중지'], [], '리액션 상태 설명')"), 'reaction record admin view should not render a duplicate reaction status legend.');
+    $assert(
+        str_contains($adminReactionView, "'reaction-help-definition'")
+            && str_contains($adminReactionView, "'reaction-help-icon'")
+            && str_contains($adminReactionView, "'reaction-help-display'")
+            && str_contains($adminReactionView, "'reaction-help-cleanup'")
+            && str_contains($adminReactionView, "'reaction-help-preset'")
+            && str_contains($adminReactionView, '‘공개 UI에서 숨김’과 ‘관리자/통계에만 표시’는 현재 같은 결과')
+            && str_contains($adminReactionView, '가능한 경우 사이트 기본 묶음으로 대체합니다.')
+            && str_contains($adminReactionView, 'sr_admin_help_modal_html'),
+        'reaction admin forms should explain immutable identifiers, public visibility, cleanup equivalence, and preset fallback behavior.'
+    );
 }
 
 $targetContractFiles = [

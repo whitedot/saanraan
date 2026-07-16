@@ -78,6 +78,46 @@ $reactionModalHiddenAttrs = static function (bool $open): string {
     return ' aria-hidden="' . ($open ? 'false' : 'true') . '"' . ($open ? '' : ' inert');
 };
 $reactionCloseLabel = sr_t('admin::ui.close.1e8c1020');
+$reactionHelpOpenLabel = '도움말 보기';
+$reactionHelpButtonHtml = static function (string $label, string $modalId) use ($reactionHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $reactionHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$reactionHelp = [
+    'definition' => [
+        'id' => 'reaction-help-definition',
+        'title' => '리액션 기본 정보 도움말',
+        'body' => '<p>리액션 식별값은 게시물·댓글의 사용 기록, 리액션 묶음과 알림이 같은 반응을 찾을 때 사용하는 내부 고유값입니다. 만든 뒤에는 바꿀 수 없으므로 용도를 알아볼 수 있게 입력하세요.</p>'
+            . '<p>사용 중지하면 공개 화면에서 선택할 수 없고 새 기록도 만들 수 없습니다. 기존 사용 기록은 자동으로 삭제하거나 다른 리액션으로 바꾸지 않으며, 필요하면 별도의 기존 기록 처리 작업을 실행해야 합니다.</p>',
+    ],
+    'icon' => [
+        'id' => 'reaction-help-icon',
+        'title' => '리액션 아이콘 도움말',
+        'body' => '<p>이모지는 아이콘 내용에 이모지 문자 자체를 입력합니다. Material 아이콘은 시스템 아이콘 이름을 입력하고, 이미지 업로드는 JPG·PNG·WebP 파일을 선택하면 저장 위치가 자동으로 기록됩니다.</p>'
+            . '<p>수정할 때 이미지 업로드 방식을 유지하면서 새 파일을 선택하지 않으면 현재 이미지를 그대로 사용합니다. 아이콘 방식과 입력 내용이 맞지 않으면 저장할 수 없습니다.</p>',
+    ],
+    'display' => [
+        'id' => 'reaction-help-display',
+        'title' => '표시 정보와 정렬 도움말',
+        'body' => '<p>표시명은 공개 버튼과 알림에 사용합니다. 설명은 현재 관리자용 정보이며 기본 공개 버튼에는 표시하지 않습니다. 색상은 메타데이터로 저장되지만 현재 기본 공개 리액션 화면에는 자동 적용하지 않습니다.</p>'
+            . '<p>정렬 순서는 관리자 리액션 목록의 순서이며 숫자가 작을수록 먼저 표시됩니다. 리액션 묶음 안의 공개 순서는 묶음을 저장할 때의 선택 목록 순서로 따로 저장되므로, 정의 정렬을 바꾼 뒤 기존 묶음도 같은 순서로 맞추려면 묶음을 다시 저장하세요.</p>',
+    ],
+    'cleanup' => [
+        'id' => 'reaction-help-cleanup',
+        'title' => '기존 사용 기록 처리 도움말',
+        'body' => '<p>기록 보관을 선택하면 사용 기록을 바꾸지 않습니다. 사용 중지된 리액션은 이미 공개 화면에서 숨겨지므로 ‘공개 UI에서 숨김’과 ‘관리자/통계에만 표시’는 현재 같은 결과이며, 선택한 처리 이름만 감사 로그에 남습니다.</p>'
+            . '<p>삭제는 해당 식별값의 모든 사용 기록을 영구 삭제합니다. 병합은 기록을 사용 중인 다른 리액션으로 바꾸며, 같은 회원이 같은 대상에 병합할 리액션을 이미 남겼다면 중복되는 기존 기록을 삭제합니다.</p>'
+            . '<p>삭제와 병합에는 삭제 권한과 정확한 확인 문구가 필요합니다. 실행 전 화면에 표시된 전체 기존 기록 수를 확인하세요.</p>',
+    ],
+    'preset' => [
+        'id' => 'reaction-help-preset',
+        'title' => '리액션 묶음 도움말',
+        'body' => '<p>리액션 묶음은 공개 화면에 함께 보여줄 반응을 모아 둔 구성입니다. 묶음 식별값은 게시판이나 콘텐츠 설정에서 이 구성을 찾을 때 사용하며 만든 뒤에는 바꿀 수 없습니다.</p>'
+            . '<p>공개 표시 개수만큼 선택 목록의 앞쪽 리액션을 보여주되 사용 중인 정의만 셉니다. 묶음을 저장할 때 현재 리액션 정의 정렬 순서가 묶음 안의 순서로 저장됩니다. 모든 묶음은 한 회원이 한 대상에 하나만 고를 수 있고 다른 반응을 고르면 기존 선택을 바꿉니다.</p>'
+            . '<p>묶음을 사용 중지하면 그 묶음을 지정한 화면은 가능한 경우 사이트 기본 묶음으로 대체합니다. 화면에서 리액션을 완전히 끄려면 해당 게시판이나 콘텐츠 모듈의 리액션 사용 설정도 확인하세요.</p>',
+    ],
+];
 $reactionCreateDefinitionModalOpen = $errors !== [] && $reactionPostedIntent === 'save_definition' && $reactionPostedId < 1;
 $reactionCreatePresetModalOpen = $errors !== [] && $reactionPostedIntent === 'save_preset' && $reactionPostedId < 1;
 $reactionRecordFilterOpen = array_filter($reactionRecordFilters, static function (mixed $value): bool {
@@ -412,16 +452,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-body">
                 <div class="form-grid">
                     <div class="form-field">
-                        <label for="reaction_new_key">키 <span class="sr-required-label">(필수)</span></label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_key', '리액션 식별값', $reactionHelp['definition']['id'], $reactionHelpOpenLabel, true); ?>
                         <input id="reaction_new_key" type="text" name="reaction_key" class="form-input" maxlength="80" pattern="[a-z][a-z0-9_]*" data-admin-key-input required value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('reaction_key', 80)) : ''; ?>">
-                        <p class="form-help">영문 소문자, 숫자, _ 조합으로 입력하세요. 생성 후 변경하지 않습니다.</p>
+                        <p class="form-help">영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용합니다.</p>
                     </div>
                     <div class="form-field">
                         <label for="reaction_new_label">표시명 <span class="sr-required-label">(필수)</span></label>
                         <input id="reaction_new_label" type="text" name="label" class="form-input" maxlength="80" required value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('label', 80)) : ''; ?>">
                     </div>
                     <div class="form-field">
-                        <label for="reaction_new_icon_type">아이콘 유형</label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_icon_type', '아이콘 방식', $reactionHelp['icon']['id'], $reactionHelpOpenLabel); ?>
                         <select id="reaction_new_icon_type" name="icon_type" class="form-select">
                             <?php foreach ($iconTypes as $iconType) { ?>
                                 <option value="<?php echo sr_e($iconType); ?>"<?php echo $reactionCreateDefinitionModalOpen && sr_post_string('icon_type', 20) === $iconType ? ' selected' : ''; ?>><?php echo sr_e(sr_reaction_icon_type_label($iconType)); ?></option>
@@ -429,26 +469,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                     <div class="form-field">
-                        <label for="reaction_new_icon_value">아이콘 값</label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_icon_value', '아이콘 내용', $reactionHelp['icon']['id'], $reactionHelpOpenLabel); ?>
                         <input id="reaction_new_icon_value" type="text" name="icon_value" class="form-input" maxlength="180" list="reaction-material-icon-options" value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('icon_value', 180)) : ''; ?>">
-                        <p class="form-help">이모지는 문자 그대로, Material 아이콘은 아이콘 키를 입력하거나 목록에서 고르세요. 이미지 업로드를 선택하면 저장 후 자동으로 채워집니다.</p>
+                        <p class="form-help">이모지 문자나 시스템 아이콘 이름을 입력합니다. 이미지 방식은 업로드 후 자동으로 채웁니다.</p>
                     </div>
                     <div class="form-field">
-                        <label for="reaction_new_icon_image">아이콘 이미지</label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_icon_image', '아이콘 이미지', $reactionHelp['icon']['id'], $reactionHelpOpenLabel); ?>
                         <input id="reaction_new_icon_image" type="file" name="icon_image" class="form-input" accept="image/jpeg,image/png,image/webp">
                         <p class="form-help">이미지 업로드 유형에서 사용합니다. JPG, PNG, WebP / 최대 <?php echo sr_e(sr_format_bytes(sr_reaction_icon_upload_max_bytes())); ?> / 512px 이하.</p>
                     </div>
                     <div class="form-field">
-                        <label for="reaction_new_color_hex">색상</label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_color_hex', '색상', $reactionHelp['display']['id'], $reactionHelpOpenLabel); ?>
                         <input id="reaction_new_color_hex" type="text" name="color_hex" class="form-input" maxlength="20" placeholder="#2563eb" value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('color_hex', 20)) : ''; ?>">
                     </div>
                     <div class="form-field">
-                        <label for="reaction_new_sort">정렬</label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_sort', '정렬 순서', $reactionHelp['display']['id'], $reactionHelpOpenLabel); ?>
                         <input id="reaction_new_sort" type="number" name="sort_order" class="form-input" min="0" max="999999" value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('sort_order', 20)) : '100'; ?>">
                     </div>
                 </div>
                 <div class="form-field">
-                    <label for="reaction_new_description">설명</label>
+                    <label for="reaction_new_description">관리용 설명</label>
                     <input id="reaction_new_description" type="text" name="description" class="form-input" maxlength="255" value="<?php echo $reactionCreateDefinitionModalOpen ? sr_e(sr_post_string('description', 255)) : ''; ?>">
                 </div>
             </div>
@@ -485,7 +525,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="<?php echo sr_e($definitionModalId); ?>_label" type="text" name="label" class="form-input" maxlength="80" value="<?php echo sr_e((string) ($definition['label'] ?? '')); ?>" required>
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($definitionModalId); ?>_status">상태</label>
+                            <?php echo sr_admin_form_label_help_html($definitionModalId . '_status', '사용 상태', $reactionHelp['definition']['id'], $reactionHelpOpenLabel); ?>
                             <select id="<?php echo sr_e($definitionModalId); ?>_status" name="status" class="form-select">
                                 <?php foreach ($definitionStatuses as $status) { ?>
                                     <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($definition['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?></option>
@@ -496,7 +536,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($definitionModalId); ?>_icon_type">아이콘 유형</label>
+                            <?php echo sr_admin_form_label_help_html($definitionModalId . '_icon_type', '아이콘 방식', $reactionHelp['icon']['id'], $reactionHelpOpenLabel); ?>
                             <select id="<?php echo sr_e($definitionModalId); ?>_icon_type" name="icon_type" class="form-select">
                                 <?php foreach ($iconTypes as $iconType) { ?>
                                     <option value="<?php echo sr_e($iconType); ?>"<?php echo (string) ($definition['icon_type'] ?? '') === $iconType ? ' selected' : ''; ?>><?php echo sr_e(sr_reaction_icon_type_label($iconType)); ?></option>
@@ -504,26 +544,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </select>
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($definitionModalId); ?>_icon_value">아이콘 값</label>
+                            <?php echo sr_admin_form_label_help_html($definitionModalId . '_icon_value', '아이콘 내용', $reactionHelp['icon']['id'], $reactionHelpOpenLabel); ?>
                             <input id="<?php echo sr_e($definitionModalId); ?>_icon_value" type="text" name="icon_value" class="form-input" maxlength="180" list="reaction-material-icon-options" value="<?php echo sr_e((string) ($definition['icon_value'] ?? '')); ?>">
                             <p class="form-help">이미지 업로드 유형에서 새 파일을 선택하지 않으면 현재 이미지 값을 유지합니다.</p>
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($definitionModalId); ?>_icon_image">아이콘 이미지</label>
+                            <?php echo sr_admin_form_label_help_html($definitionModalId . '_icon_image', '아이콘 이미지', $reactionHelp['icon']['id'], $reactionHelpOpenLabel); ?>
                             <input id="<?php echo sr_e($definitionModalId); ?>_icon_image" type="file" name="icon_image" class="form-input" accept="image/jpeg,image/png,image/webp">
                             <p class="form-help">JPG, PNG, WebP / 최대 <?php echo sr_e(sr_format_bytes(sr_reaction_icon_upload_max_bytes())); ?> / 512px 이하.</p>
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($definitionModalId); ?>_color_hex">색상</label>
+                            <?php echo sr_admin_form_label_help_html($definitionModalId . '_color_hex', '색상', $reactionHelp['display']['id'], $reactionHelpOpenLabel); ?>
                             <input id="<?php echo sr_e($definitionModalId); ?>_color_hex" type="text" name="color_hex" class="form-input" maxlength="20" value="<?php echo sr_e((string) ($definition['color_hex'] ?? '')); ?>">
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($definitionModalId); ?>_sort_order">정렬</label>
+                            <?php echo sr_admin_form_label_help_html($definitionModalId . '_sort_order', '정렬 순서', $reactionHelp['display']['id'], $reactionHelpOpenLabel); ?>
                             <input id="<?php echo sr_e($definitionModalId); ?>_sort_order" type="number" name="sort_order" class="form-input" min="0" max="999999" value="<?php echo sr_e((string) (int) ($definition['sort_order'] ?? 100)); ?>">
                         </div>
                     </div>
                     <div class="form-field">
-                        <label for="<?php echo sr_e($definitionModalId); ?>_description">설명</label>
+                        <label for="<?php echo sr_e($definitionModalId); ?>_description">관리용 설명</label>
                         <input id="<?php echo sr_e($definitionModalId); ?>_description" type="text" name="description" class="form-input" maxlength="255" value="<?php echo sr_e((string) ($definition['description'] ?? '')); ?>">
                     </div>
                 </div>
@@ -556,7 +596,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-body">
                     <p class="admin-summary-meta">기존 사용 기록 <?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개</p>
                     <div class="form-field">
-                        <label for="<?php echo sr_e($cleanupModalId); ?>_policy">처리 방식</label>
+                        <?php echo sr_admin_form_label_help_html($cleanupModalId . '_policy', '처리 방식', $reactionHelp['cleanup']['id'], $reactionHelpOpenLabel); ?>
                         <select id="<?php echo sr_e($cleanupModalId); ?>_policy" name="cleanup_policy" class="form-select">
                             <option value="keep_public_hidden">보관하고 공개 UI에서 숨김</option>
                             <option value="keep_admin_statistics">보관하고 관리자/통계에만 표시</option>
@@ -565,7 +605,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                     <div class="form-field">
-                        <label for="<?php echo sr_e($cleanupModalId); ?>_merge_target">병합 대상 키</label>
+                        <?php echo sr_admin_form_label_help_html($cleanupModalId . '_merge_target', '합칠 리액션', $reactionHelp['cleanup']['id'], $reactionHelpOpenLabel); ?>
                         <select id="<?php echo sr_e($cleanupModalId); ?>_merge_target" name="merge_target_key" class="form-select">
                             <option value="">선택 안 함</option>
                             <?php foreach ($activeDefinitions as $activeDefinition) { ?>
@@ -573,10 +613,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e($activeKey); ?>"><?php echo sr_e((string) ($activeDefinition['label'] ?? $activeKey)); ?> (<?php echo sr_e($activeKey); ?>)</option>
                             <?php } ?>
                         </select>
-                        <p class="form-help">병합을 선택할 때만 사용합니다. 같은 회원이 같은 대상에 병합 대상 키를 이미 사용했다면 중복되는 기존 기록은 삭제됩니다.</p>
+                        <p class="form-help">병합할 때만 선택합니다. 같은 회원·대상에 중복되는 기록은 하나만 남깁니다.</p>
                     </div>
                     <div class="form-field">
-                        <label for="<?php echo sr_e($cleanupModalId); ?>_confirm">확인 문구</label>
+                        <?php echo sr_admin_form_label_help_html($cleanupModalId . '_confirm', '확인 문구', $reactionHelp['cleanup']['id'], $reactionHelpOpenLabel); ?>
                         <input id="<?php echo sr_e($cleanupModalId); ?>_confirm" type="text" name="confirmation_key" class="form-input" maxlength="80">
                         <p class="form-help">삭제 또는 병합을 실행하려면 <code><?php echo sr_e($reactionKey); ?></code>를 입력하세요.</p>
                     </div>
@@ -605,7 +645,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="modal-body">
                 <div class="form-grid">
                     <div class="form-field">
-                        <label for="reaction_new_preset_key">묶음 키 <span class="sr-required-label">(필수)</span></label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_preset_key', '묶음 식별값', $reactionHelp['preset']['id'], $reactionHelpOpenLabel, true); ?>
                         <input id="reaction_new_preset_key" type="text" name="preset_key" class="form-input" maxlength="80" pattern="[a-z][a-z0-9_]*" data-admin-key-input required value="<?php echo $reactionCreatePresetModalOpen ? sr_e(sr_post_string('preset_key', 80)) : ''; ?>">
                     </div>
                     <div class="form-field">
@@ -613,11 +653,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="reaction_new_preset_label" type="text" name="label" class="form-input" maxlength="80" required value="<?php echo $reactionCreatePresetModalOpen ? sr_e(sr_post_string('label', 80)) : ''; ?>">
                     </div>
                     <div class="form-field">
-                        <label for="reaction_new_preset_limit">공개 표시 개수</label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_preset_limit', '공개 표시 개수', $reactionHelp['preset']['id'], $reactionHelpOpenLabel); ?>
                         <input id="reaction_new_preset_limit" type="number" name="visible_key_limit" class="form-input" min="1" max="12" value="<?php echo $reactionCreatePresetModalOpen ? sr_e(sr_post_string('visible_key_limit', 20)) : '6'; ?>">
                     </div>
                     <div class="form-field">
-                        <label for="reaction_new_preset_sort">정렬</label>
+                        <?php echo sr_admin_form_label_help_html('reaction_new_preset_sort', '묶음 정렬 순서', $reactionHelp['preset']['id'], $reactionHelpOpenLabel); ?>
                         <input id="reaction_new_preset_sort" type="number" name="sort_order" class="form-input" min="0" max="999999" value="<?php echo $reactionCreatePresetModalOpen ? sr_e(sr_post_string('sort_order', 20)) : '100'; ?>">
                     </div>
                 </div>
@@ -626,7 +666,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <input id="reaction_new_preset_description" type="text" name="description" class="form-input" maxlength="255" value="<?php echo $reactionCreatePresetModalOpen ? sr_e(sr_post_string('description', 255)) : ''; ?>">
                 </div>
                 <fieldset class="form-field">
-                    <legend>리액션 키 <span class="sr-required-label">(필수)</span></legend>
+                    <legend><?php echo $reactionHelpButtonHtml('공개할 리액션', $reactionHelp['preset']['id']); ?> 공개할 리액션 <span class="sr-required-label">(필수)</span></legend>
                     <?php foreach ($reactionDefinitions as $definition) { ?>
                         <?php $key = (string) ($definition['reaction_key'] ?? ''); ?>
                         <label class="admin-check-row">
@@ -676,7 +716,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="<?php echo sr_e($presetModalId); ?>_label" type="text" name="label" class="form-input" maxlength="80" value="<?php echo sr_e((string) ($preset['label'] ?? '')); ?>" required>
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($presetModalId); ?>_status">상태</label>
+                            <?php echo sr_admin_form_label_help_html($presetModalId . '_status', '사용 상태', $reactionHelp['preset']['id'], $reactionHelpOpenLabel); ?>
                             <select id="<?php echo sr_e($presetModalId); ?>_status" name="status" class="form-select">
                                 <?php foreach ($presetStatuses as $status) { ?>
                                     <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($preset['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($status, 'module_status')); ?></option>
@@ -684,11 +724,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </select>
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($presetModalId); ?>_limit">공개 표시 개수</label>
+                            <?php echo sr_admin_form_label_help_html($presetModalId . '_limit', '공개 표시 개수', $reactionHelp['preset']['id'], $reactionHelpOpenLabel); ?>
                             <input id="<?php echo sr_e($presetModalId); ?>_limit" type="number" name="visible_key_limit" class="form-input" min="1" max="12" value="<?php echo sr_e((string) (int) ($preset['visible_key_limit'] ?? 6)); ?>">
                         </div>
                         <div class="form-field">
-                            <label for="<?php echo sr_e($presetModalId); ?>_sort_order">정렬</label>
+                            <?php echo sr_admin_form_label_help_html($presetModalId . '_sort_order', '묶음 정렬 순서', $reactionHelp['preset']['id'], $reactionHelpOpenLabel); ?>
                             <input id="<?php echo sr_e($presetModalId); ?>_sort_order" type="number" name="sort_order" class="form-input" min="0" max="999999" value="<?php echo sr_e((string) (int) ($preset['sort_order'] ?? 100)); ?>">
                         </div>
                     </div>
@@ -697,7 +737,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input id="<?php echo sr_e($presetModalId); ?>_description" type="text" name="description" class="form-input" maxlength="255" value="<?php echo sr_e((string) ($preset['description'] ?? '')); ?>">
                     </div>
                     <fieldset class="form-field">
-                        <legend>리액션 키 <span class="sr-required-label">(필수)</span></legend>
+                        <legend><?php echo $reactionHelpButtonHtml('공개할 리액션', $reactionHelp['preset']['id']); ?> 공개할 리액션 <span class="sr-required-label">(필수)</span></legend>
                         <?php foreach ($reactionDefinitions as $definition) { ?>
                             <?php $key = (string) ($definition['reaction_key'] ?? ''); ?>
                             <label class="admin-check-row">
@@ -715,6 +755,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 <?php } ?>
+<?php } ?>
+
+<?php foreach ($reactionHelp as $reactionHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $reactionHelpModal['id'], (string) $reactionHelpModal['title'], (string) $reactionHelpModal['body']); ?>
 <?php } ?>
 
 <datalist id="reaction-material-icon-options">

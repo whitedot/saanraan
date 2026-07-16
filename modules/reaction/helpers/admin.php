@@ -437,23 +437,23 @@ function sr_reaction_validate_preset_input(PDO $pdo, array $input): array
     $errors = [];
 
     if ($presetId < 1 && $presetKey === '') {
-        $errors[] = 'Preset 키는 영문 소문자, 숫자, _ 조합으로 입력하세요.';
+        $errors[] = '리액션 묶음 식별값은 영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용하세요.';
     }
     if ($label === '') {
-        $errors[] = 'Preset 이름을 입력하세요.';
+        $errors[] = '리액션 묶음 이름을 입력하세요.';
     }
     if (!in_array($status, sr_reaction_preset_statuses(), true)) {
-        $errors[] = 'Preset 상태 값을 확인하세요.';
+        $errors[] = '리액션 묶음 상태를 확인하세요.';
     }
     if ($reactionKeys === []) {
-        $errors[] = 'Preset에 표시할 리액션을 하나 이상 선택하세요.';
+        $errors[] = '묶음에 표시할 리액션을 하나 이상 선택하세요.';
     }
 
     if ($presetId < 1 && $presetKey !== '') {
         $stmt = $pdo->prepare('SELECT id FROM sr_reaction_presets WHERE preset_key = :preset_key LIMIT 1');
         $stmt->execute(['preset_key' => $presetKey]);
         if (is_array($stmt->fetch())) {
-            $errors[] = '이미 사용 중인 preset 키입니다.';
+            $errors[] = '이미 사용 중인 리액션 묶음 식별값입니다.';
         }
     }
 
@@ -587,7 +587,7 @@ function sr_reaction_save_preset(PDO $pdo, array $input, int $actorAccountId): a
             $pdo->rollBack();
         }
         sr_log_exception($exception, 'reaction_preset_save');
-        return ['ok' => false, 'errors' => ['Preset 저장 중 오류가 발생했습니다.']];
+        return ['ok' => false, 'errors' => ['리액션 묶음을 저장하는 중 오류가 발생했습니다.']];
     }
 }
 
