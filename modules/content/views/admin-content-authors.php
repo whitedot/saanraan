@@ -1,13 +1,29 @@
 <?php
 
 $adminPageTitle = '콘텐츠 작성자 승인';
-$adminPageSubtitle = '';
+$adminPageSubtitle = '회원에게 콘텐츠 제출 권한을 직접 부여하고 제출본 검수 방식을 정합니다.';
 $adminContainerClass = 'admin-page-content-authors admin-ui-scope';
 $canEditContentAuthors = !empty($canEditContentAuthors);
 $authorReturnTo = sr_admin_current_get_url('/admin/content/authors');
 $authorAddMemberInputId = 'content_author_add_account_identifier';
 $authorAddMemberLookupModalId = 'content_author_add_member_lookup_modal';
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/content/authors');
+$contentAuthorHelpOpenLabel = '도움말 보기';
+$contentAuthorHelp = [
+    'status' => [
+        'id' => 'content-author-status-help',
+        'title' => '작성자 상태 도움말',
+        'body' => '<p>‘허용’은 이 회원에게 콘텐츠 제출 권한을 직접 부여합니다. 사이트의 회원 제출 기능과 제출할 콘텐츠 그룹의 회원 제출 기능도 모두 사용 중이어야 합니다.</p>'
+            . '<p>‘차단’은 이 화면에서 부여한 직접 권한을 사용하지 않는다는 뜻입니다. 회원이 콘텐츠 그룹에서 허용한 회원 그룹에 속해 있으면 그 그룹에는 계속 제출할 수 있습니다.</p>'
+            . '<p>상태를 바꿔도 이미 제출하거나 공개한 콘텐츠는 삭제되거나 취소되지 않습니다.</p>',
+    ],
+    'review' => [
+        'id' => 'content-author-review-help',
+        'title' => '검수 방식 도움말',
+        'body' => '<p>‘기본 설정 따름’은 콘텐츠 그룹의 검수 설정을 따르고, 그룹에 별도 설정이 없으면 콘텐츠 환경설정의 기본 검수 값을 사용합니다.</p>'
+            . '<p>‘항상 검수’와 ‘검수 면제’는 사이트와 콘텐츠 그룹의 설정보다 우선합니다. 변경한 방식은 이후 회원이 콘텐츠를 제출할 때 적용되며, 이미 처리된 제출본의 상태는 바꾸지 않습니다.</p>',
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
@@ -89,30 +105,36 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <input id="<?php echo sr_e($authorAddMemberInputId); ?>" type="text" name="account_identifier" class="form-input" maxlength="80" required data-overlay-focus>
                                 <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($authorAddMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($authorAddMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($authorAddMemberInputId); ?>">회원 검색</button>
                             </div>
+                            <small class="form-help">회원 검색에서 대상을 찾아 선택하세요. 이미 등록된 회원을 선택하면 기존 설정을 새 값으로 바꿉니다.</small>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="content_author_add_status">상태 <span class="sr-required-label">(필수)</span></label>
+                        <?php echo sr_admin_form_label_help_html('content_author_add_status', '상태', $contentAuthorHelp['status']['id'], $contentAuthorHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <select id="content_author_add_status" name="status" class="form-select" required>
                                 <option value="allowed">허용</option>
                                 <option value="blocked">차단</option>
                             </select>
+                            <small class="form-help">차단해도 회원 그룹을 통해 받은 제출 권한은 유지될 수 있습니다.</small>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="content_author_add_review_required_override">검수 예외 <span class="sr-required-label">(필수)</span></label>
+                        <?php echo sr_admin_form_label_help_html('content_author_add_review_required_override', '검수 방식', $contentAuthorHelp['review']['id'], $contentAuthorHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <select id="content_author_add_review_required_override" name="review_required_override" class="form-select" required>
                                 <option value="inherit">기본 설정 따름</option>
                                 <option value="required">항상 검수</option>
                                 <option value="exempt">검수 면제</option>
                             </select>
+                            <small class="form-help">항상 검수와 검수 면제는 사이트·콘텐츠 그룹 설정보다 우선합니다.</small>
                         </div>
                     </div>
                     <div class="form-row">
                         <label class="form-label" for="content_author_add_note">메모</label>
-                        <div class="form-field"><textarea id="content_author_add_note" name="note" rows="3" class="form-input"></textarea></div>
+                        <div class="form-field">
+                            <textarea id="content_author_add_note" name="note" rows="3" class="form-input"></textarea>
+                            <small class="form-help">운영자만 확인하는 내부 메모입니다.</small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -144,27 +166,32 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <div class="form-field"><p class="admin-form-static"><?php echo sr_e($authorLabel); ?></p></div>
                         </div>
                         <div class="form-row">
-                            <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-status">상태 <span class="sr-required-label">(필수)</span></label>
+                            <?php echo sr_admin_form_label_help_html($authorEditModalId . '-status', '상태', $contentAuthorHelp['status']['id'], $contentAuthorHelpOpenLabel, true); ?>
                             <div class="form-field">
                                 <select id="<?php echo sr_e($authorEditModalId); ?>-status" name="status" class="form-select" required data-overlay-focus>
                                     <option value="allowed"<?php echo (string) $permission['status'] === 'allowed' ? ' selected' : ''; ?>>허용</option>
                                     <option value="blocked"<?php echo (string) $permission['status'] === 'blocked' ? ' selected' : ''; ?>>차단</option>
                                 </select>
+                                <small class="form-help">차단해도 회원 그룹을 통해 받은 제출 권한은 유지될 수 있습니다.</small>
                             </div>
                         </div>
                         <div class="form-row">
-                            <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-review">검수 예외 <span class="sr-required-label">(필수)</span></label>
+                            <?php echo sr_admin_form_label_help_html($authorEditModalId . '-review', '검수 방식', $contentAuthorHelp['review']['id'], $contentAuthorHelpOpenLabel, true); ?>
                             <div class="form-field">
                                 <select id="<?php echo sr_e($authorEditModalId); ?>-review" name="review_required_override" class="form-select" required>
                                     <option value="inherit"<?php echo (string) $permission['review_required_override'] === 'inherit' ? ' selected' : ''; ?>>기본 설정 따름</option>
                                     <option value="required"<?php echo (string) $permission['review_required_override'] === 'required' ? ' selected' : ''; ?>>항상 검수</option>
                                     <option value="exempt"<?php echo (string) $permission['review_required_override'] === 'exempt' ? ' selected' : ''; ?>>검수 면제</option>
                                 </select>
+                                <small class="form-help">항상 검수와 검수 면제는 사이트·콘텐츠 그룹 설정보다 우선합니다.</small>
                             </div>
                         </div>
                         <div class="form-row">
                             <label class="form-label" for="<?php echo sr_e($authorEditModalId); ?>-note">메모</label>
-                            <div class="form-field"><textarea id="<?php echo sr_e($authorEditModalId); ?>-note" name="note" rows="3" class="form-input"><?php echo sr_e((string) ($permission['note'] ?? '')); ?></textarea></div>
+                            <div class="form-field">
+                                <textarea id="<?php echo sr_e($authorEditModalId); ?>-note" name="note" rows="3" class="form-input"><?php echo sr_e((string) ($permission['note'] ?? '')); ?></textarea>
+                                <small class="form-help">운영자만 확인하는 내부 메모입니다.</small>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -185,5 +212,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ];
     include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
     ?>
+    <?php foreach ($contentAuthorHelp as $contentAuthorHelpModal) { ?>
+        <?php echo sr_admin_help_modal_html((string) $contentAuthorHelpModal['id'], (string) $contentAuthorHelpModal['title'], (string) $contentAuthorHelpModal['body']); ?>
+    <?php } ?>
 <?php } ?>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

@@ -35,7 +35,7 @@ if (sr_request_method() === 'POST') {
             throw new InvalidArgumentException('상태를 선택하세요.');
         }
         if (!in_array($reviewOverride, ['inherit', 'required', 'exempt'], true)) {
-            throw new InvalidArgumentException('검수 예외를 선택하세요.');
+            throw new InvalidArgumentException('검수 방식을 선택하세요.');
         }
         if (sr_member_find_by_id($pdo, $targetAccountId) === null) {
             throw new InvalidArgumentException('회원을 찾을 수 없습니다.');

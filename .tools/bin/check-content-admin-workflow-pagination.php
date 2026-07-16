@@ -53,6 +53,9 @@ $assertContains('modules/content/views/admin-content-authors.php', [
     'sr_admin_pagination_summary_html($contentAuthorPagination)',
     'sr_admin_pagination_html($contentAuthorPagination',
     "sr_admin_current_get_url('/admin/content/authors')",
+    '차단해도 회원 그룹을 통해 받은 제출 권한은 유지될 수 있습니다.',
+    '항상 검수와 검수 면제는 사이트·콘텐츠 그룹 설정보다 우선합니다.',
+    '이미 처리된 제출본의 상태는 바꾸지 않습니다.',
 ]);
 $assertContains('modules/content/views/admin-content-submissions.php', [
     'sr_admin_pagination_summary_html($contentSubmissionPagination)',
