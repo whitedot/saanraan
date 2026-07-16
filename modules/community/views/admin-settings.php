@@ -33,6 +33,7 @@ $communitySiteMenuModuleReferences = $communityBoardSidebarSiteMenuAvailable
     : [];
 $communityIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $communityReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
+$communityPolicyDocumentModuleReferences = [['module_key' => 'policy_documents']];
 $communityEditorModuleReferences = [];
 foreach (sr_editor_contracts($pdo) as $communityEditorContract) {
     $editorModuleKey = is_array($communityEditorContract) ? (string) ($communityEditorContract['module_key'] ?? '') : '';
@@ -525,6 +526,7 @@ $communitySettingsSectionNavItems = [
                         <?php echo sr_admin_choice_label_html('사용'); ?>
                     </label>
                     <p class="form-help">게시판 개별 설정에서 다른 값으로 재정의할 수 있습니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $communityPolicyDocumentModuleReferences); ?>
                     <?php if (!$communityPrivacyConsentPolicyDocumentsAvailable) { ?>
                         <p id="community-settings-privacy-consent-unavailable" class="form-help form-help-warning">
                             <a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">약관/방침 관리 모듈</a>이 설치되어 있지 않거나 활성화되어 있지 않고, <a href="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" target="_blank" rel="noopener noreferrer">게시된 정책 문서</a>가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
@@ -547,6 +549,7 @@ $communitySettingsSectionNavItems = [
                         <?php } ?>
                     </div>
                     <p class="form-help">동의 사용 시 3가지 중 하나 이상 정책 문서를 선택해야 하며, 선택 안 함인 대상에는 동의를 적용하지 않습니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $communityPolicyDocumentModuleReferences); ?>
                     <input type="hidden" name="privacy_consent_title" value="">
                     <input type="hidden" name="privacy_consent_version" value="">
                     <input type="hidden" name="privacy_consent_body" value="">

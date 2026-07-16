@@ -142,6 +142,7 @@ $memberIdentityAccountSecurityInputAttributes = $memberIdentityAccountSecurityAv
     ? ''
     : ' disabled aria-describedby="member-settings-identity-unavailable"';
 $memberIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
+$memberPolicyDocumentModuleReferences = [['module_key' => 'policy_documents']];
 $memberRuntimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberRuntimeSessionLifetimeSeconds = (int) ($memberRuntimeConfig['session']['lifetime_seconds'] ?? 86400);
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -300,6 +301,7 @@ $memberSettingsSectionNavItems = [
                         <?php echo $memberRegistrationPolicyDocumentSelectOptionsHtml((string) ($settings['registration_terms_document_key'] ?? 'member_terms'), false); ?>
                     </select>
                     <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_terms_document.help')); ?></p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberPolicyDocumentModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -309,6 +311,7 @@ $memberSettingsSectionNavItems = [
                         <?php echo $memberRegistrationPolicyDocumentSelectOptionsHtml((string) ($settings['registration_privacy_document_key'] ?? 'member_privacy_collection'), false); ?>
                     </select>
                     <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_privacy_document.help')); ?></p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberPolicyDocumentModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -318,6 +321,7 @@ $memberSettingsSectionNavItems = [
                         <?php echo $memberRegistrationPolicyDocumentSelectOptionsHtml((string) ($settings['registration_marketing_document_key'] ?? 'member_marketing'), true); ?>
                     </select>
                     <p class="form-help"><?php echo sr_e(sr_t('member::settings.registration_marketing_document.help')); ?></p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberPolicyDocumentModuleReferences); ?>
                 </div>
             </div>
         </div>

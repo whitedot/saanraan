@@ -308,6 +308,20 @@ foreach ($reactionReferenceViews as $viewPath => [$variableName, $minimumCallCou
     );
 }
 
+$policyDocumentReferenceViews = [
+    'modules/member/views/admin-settings.php' => ['$memberPolicyDocumentModuleReferences', 3],
+    'modules/community/views/admin-settings.php' => ['$communityPolicyDocumentModuleReferences', 2],
+];
+foreach ($policyDocumentReferenceViews as $viewPath => [$variableName, $minimumCallCount]) {
+    $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
+    sr_admin_navigation_runtime_assert(
+        is_string($viewSource)
+            && str_contains($viewSource, $variableName . " = [['module_key' => 'policy_documents']]")
+            && substr_count($viewSource, 'sr_admin_module_reference_list_html($pdo, ' . $variableName . ')') >= $minimumCallCount,
+        $viewPath . ' must show the policy document module reference below every dependent setting.'
+    );
+}
+
 $communityAdminMenu = is_file('modules/community/admin-menu.php') ? file_get_contents('modules/community/admin-menu.php') : false;
 sr_admin_navigation_runtime_assert(
     is_string($communityAdminMenu)
