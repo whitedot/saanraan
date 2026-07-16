@@ -223,7 +223,9 @@ $paginationPairs = [
     ['modules/notification/actions/admin-admin-notifications.php', 'modules/notification/views/admin-admin-notifications.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/privacy/actions/admin-privacy-requests.php', 'modules/privacy/views/admin-privacy-requests.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/quiz/actions/admin-quiz.php', 'modules/quiz/actions/admin-quiz.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
+    ['modules/quiz/actions/admin-groups.php', 'modules/quiz/actions/admin-groups.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/quiz/actions/admin-attempts.php', 'modules/quiz/actions/admin-attempts.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
+    ['modules/survey/actions/admin-groups.php', 'modules/survey/actions/admin-groups.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/survey/actions/admin-responses.php', 'modules/survey/actions/admin-responses.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/banner/actions/admin-banners.php', 'modules/banner/views/admin-banners.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/popup_layer/actions/admin-popup-layers.php', 'modules/popup_layer/views/admin-popup-layers.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
@@ -253,6 +255,8 @@ $limitedQueryFiles = [
     'modules/notification/helpers.php',
     'modules/privacy/helpers/requests.php',
     'modules/quiz/helpers.php',
+    'modules/quiz/helpers/groups.php',
+    'modules/survey/helpers/groups.php',
     'modules/admin/helpers/asset-ledgers.php',
 ];
 
