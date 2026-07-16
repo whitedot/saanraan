@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.07.005',
+    'version' => '2026.07.006',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [

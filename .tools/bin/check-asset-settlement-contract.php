@@ -834,12 +834,17 @@ sr_asset_settlement_check_contains('modules/content/actions/download.php', [
 ]);
 sr_asset_settlement_check_contains('modules/content/views/asset-confirmation-modal.php', [
     '$assetConfirmationExchangeSuggestion',
-    'sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)',
+    "include SR_ROOT . '/modules/content/views/asset-confirmation-hidden-fields.php';",
 ]);
 sr_asset_settlement_check_assert(
-    substr_count((string) file_get_contents('modules/content/views/asset-confirmation-modal.php'), 'sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)') >= 2,
-    'content confirmation modal coupon and asset payment forms must both preserve exchange confirmation.'
+    substr_count((string) file_get_contents('modules/content/views/asset-confirmation-modal.php'), "include SR_ROOT . '/modules/content/views/asset-confirmation-hidden-fields.php';") >= 2,
+    'content confirmation modal coupon and asset payment forms must both use the shared settlement fields.'
 );
+sr_asset_settlement_check_contains('modules/content/views/asset-confirmation-hidden-fields.php', [
+    'name="asset_confirm"',
+    'sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)',
+    'name="asset_request_token"',
+]);
 sr_asset_settlement_check_contains('modules/community/views/asset-confirmation-modal.php', [
     '$assetConfirmationExchangeSuggestion',
     'sr_community_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion)',

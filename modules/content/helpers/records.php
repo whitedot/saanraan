@@ -44,6 +44,7 @@ function sr_content_input_values(?PDO $pdo = null): array
         'raw_editor_key' => $rawEditorKey,
         'status' => sr_post_string('status', 30),
         'layout_key' => sr_public_layout_normalize_key(sr_post_string('layout_key', 80)),
+        'show_title' => sr_post_string('show_title', 1) === '1' ? 1 : 0,
         'asset_access_enabled' => sr_post_string('asset_access_enabled', 1) === '1' ? 1 : 0,
         'asset_module' => sr_content_asset_module_value_from_keys(sr_content_asset_module_keys_from_value($_POST['asset_module'] ?? '')),
         'asset_access_amount' => sr_admin_post_int_in_range('asset_access_amount', 0, 999999999) ?? 0,
@@ -184,7 +185,7 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     }
 
     $layoutKey = (string) ($values['layout_key'] ?? '');
-    if ($layoutKey !== '' && !isset(sr_public_layout_options($pdo)[$layoutKey])) {
+    if ($layoutKey !== '' && !sr_content_layout_disabled($layoutKey) && !isset(sr_public_layout_options($pdo)[$layoutKey])) {
         $errors[] = '콘텐츠 레이아웃 값이 올바르지 않습니다.';
     }
 
@@ -322,6 +323,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                      editor_key = :editor_key,
                      status = :status,
                      layout_key = :layout_key,
+                     show_title = :show_title,
                      asset_access_enabled = :asset_access_enabled,
                      asset_module = :asset_module,
                      asset_access_amount = :asset_access_amount,
@@ -361,6 +363,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'textarea')),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
+                'show_title' => sr_content_layout_disabled((string) ($values['layout_key'] ?? '')) ? (int) ($values['show_title'] ?? 1) : 1,
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
                 'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
@@ -394,9 +397,9 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_content_items
-                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, reaction_preset_key, reaction_comment_preset_key, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, show_title, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, reaction_preset_key, reaction_comment_preset_key, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :reaction_preset_key, :reaction_comment_preset_key, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :show_title, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :reaction_preset_key, :reaction_comment_preset_key, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
@@ -409,6 +412,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'textarea')),
                 'status' => (string) $values['status'],
                 'layout_key' => (string) ($values['layout_key'] ?? ''),
+                'show_title' => sr_content_layout_disabled((string) ($values['layout_key'] ?? '')) ? (int) ($values['show_title'] ?? 1) : 1,
                 'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
                 'asset_module' => (string) ($values['asset_module'] ?? ''),
                 'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
@@ -494,9 +498,9 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
 {
     $stmt = $pdo->prepare(
         'INSERT INTO sr_content_revisions
-            (content_id, content_group_id, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
+            (content_id, content_group_id, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, show_title, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, created_by, created_at)
          VALUES
-            (:content_id, :content_group_id, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
+            (:content_id, :content_group_id, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :show_title, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :created_by, :created_at)'
     );
     $stmt->execute([
         'content_id' => $pageId,
@@ -509,6 +513,7 @@ function sr_content_record_revision(PDO $pdo, int $pageId, array $values, int $a
         'editor_key' => sr_content_item_editor_key((string) ($values['editor_key'] ?? 'textarea')),
         'status' => (string) $values['status'],
         'layout_key' => (string) ($values['layout_key'] ?? ''),
+        'show_title' => sr_content_layout_disabled((string) ($values['layout_key'] ?? '')) ? (int) ($values['show_title'] ?? 1) : 1,
         'asset_access_enabled' => (int) ($values['asset_access_enabled'] ?? 0),
         'asset_module' => (string) ($values['asset_module'] ?? ''),
         'asset_access_amount' => (int) ($values['asset_access_amount'] ?? 0),
@@ -635,9 +640,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
 
         $stmt = $pdo->prepare(
             'INSERT INTO sr_content_items
-                (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, show_title, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
              VALUES
-                (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :show_title, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
         );
         $stmt->execute([
             'content_group_id' => (int) ($copy['content_group_id'] ?? 0) > 0 ? (int) $copy['content_group_id'] : null,
@@ -650,6 +655,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'editor_key' => sr_content_item_editor_key((string) ($copy['editor_key'] ?? 'textarea')),
             'status' => 'draft',
             'layout_key' => (string) ($copy['layout_key'] ?? ''),
+            'show_title' => sr_content_layout_disabled((string) ($copy['layout_key'] ?? '')) ? (int) ($copy['show_title'] ?? 1) : 1,
             'asset_access_enabled' => (int) ($copy['asset_access_enabled'] ?? 0),
             'asset_module' => (string) ($copy['asset_module'] ?? ''),
             'asset_access_amount' => (int) ($copy['asset_access_amount'] ?? 0),

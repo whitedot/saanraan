@@ -42,38 +42,13 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
                 <?php if ($assetConfirmationCouponIssues !== []) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="content-asset-confirmation-coupons"<?php echo $assetConfirmationCloseOnSubmit ? ' data-content-asset-confirmation-close-on-submit' : ''; ?>>
                         <?php echo sr_csrf_field(); ?>
-                        <?php if ($assetConfirmationId > 0) { ?>
-                            <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
-                        <?php } ?>
-                        <input type="hidden" name="asset_confirm" value="1">
-                        <?php echo sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion); ?>
-                        <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
-                        <?php if ($assetConfirmationContentId > 0) { ?>
-                            <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
-                        <?php } ?>
-                        <fieldset>
-                            <legend>쿠폰 선택</legend>
-                            <?php foreach ($assetConfirmationCouponIssues as $couponIndex => $couponIssue) { ?>
-                                <?php
-                                $couponIssueId = (int) ($couponIssue['id'] ?? 0);
-                                if ($couponIssueId <= 0) {
-                                    continue;
-                                }
-                                $couponInputId = $assetConfirmationModalId . '_coupon_' . (string) $couponIssueId;
-                                $couponTitle = (string) (($couponIssue['title'] ?? '') ?: ($couponIssue['coupon_key'] ?? '쿠폰'));
-                                $couponExpiresAt = (string) ($couponIssue['expires_at'] ?? '');
-                                ?>
-                                <label class="content-asset-confirmation-coupon" for="<?php echo sr_e($couponInputId); ?>">
-                                    <input id="<?php echo sr_e($couponInputId); ?>" type="radio" name="coupon_issue_id" value="<?php echo sr_e((string) $couponIssueId); ?>" class="form-radio"<?php echo $couponIndex === 0 ? ' checked' : ''; ?>>
-                                    <span>
-                                        <strong><?php echo sr_e($couponTitle); ?></strong>
-                                        <?php if ($couponExpiresAt !== '') { ?>
-                                            <small><?php echo sr_content_time_html($couponExpiresAt); ?></small>
-                                        <?php } ?>
-                                    </span>
-                                </label>
-                            <?php } ?>
-                        </fieldset>
+                        <?php include SR_ROOT . '/modules/content/views/asset-confirmation-hidden-fields.php'; ?>
+                        <?php
+                        $assetConfirmationCouponFieldsetClass = '';
+                        $assetConfirmationCouponLabelClass = 'content-asset-confirmation-coupon';
+                        $assetConfirmationCouponInputClass = 'form-radio';
+                        include SR_ROOT . '/modules/content/views/asset-confirmation-coupon-options.php';
+                        ?>
                         <button type="submit" class="btn btn-solid-primary">쿠폰 적용</button>
                     </form>
                 <?php } ?>
@@ -86,15 +61,7 @@ $assetConfirmationClasses .= $assetConfirmationOpen ? ' overlay-open open' : ' m
                 <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url($assetConfirmationAction)); ?>" class="modal-action"<?php echo $assetConfirmationCloseOnSubmit ? ' data-content-asset-confirmation-close-on-submit' : ''; ?>>
                     <?php echo sr_csrf_field(); ?>
-                    <?php if ($assetConfirmationId > 0) { ?>
-                        <input type="hidden" name="id" value="<?php echo sr_e((string) $assetConfirmationId); ?>">
-                    <?php } ?>
-                    <input type="hidden" name="asset_confirm" value="1">
-                    <?php echo sr_content_asset_settlement_exchange_hidden_inputs_html($assetConfirmationExchangeSuggestion); ?>
-                    <input type="hidden" name="asset_request_token" value="<?php echo sr_e($assetConfirmationRequestToken); ?>">
-                    <?php if ($assetConfirmationContentId > 0) { ?>
-                        <input type="hidden" name="content_id" value="<?php echo sr_e((string) $assetConfirmationContentId); ?>">
-                    <?php } ?>
+                    <?php include SR_ROOT . '/modules/content/views/asset-confirmation-hidden-fields.php'; ?>
                     <button type="submit" class="btn btn-solid-warning"><?php echo sr_e($assetConfirmationSubmitLabel); ?></button>
                 </form>
             </div>

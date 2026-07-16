@@ -66,7 +66,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                             <td><?php echo sr_e((string) $submission['title']); ?></td>
                             <td><?php echo sr_e((string) ($submission['group_title'] ?? '')); ?></td>
                             <td><?php echo sr_e((string) $submission['review_status']); ?></td>
-                            <td><?php if (in_array((string) $submission['review_status'], ['member_draft', 'revision_requested', 'rejected'], true)) { ?><a href="<?php echo sr_e(sr_url('/account/content?id=' . (string) (int) $submission['id'] . ($contentSubmissionPage > 1 ? '&page=' . (string) $contentSubmissionPage : ''))); ?>">수정</a><?php } ?></td>
+                            <td><?php if (in_array((string) $submission['review_status'], ['approved', 'member_draft', 'revision_requested', 'rejected'], true)) { ?><a href="<?php echo sr_e(sr_url('/account/content?id=' . (string) (int) $submission['id'] . ($contentSubmissionPage > 1 ? '&page=' . (string) $contentSubmissionPage : ''))); ?>">수정</a><?php } ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>

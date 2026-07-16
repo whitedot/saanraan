@@ -31,6 +31,7 @@ if (is_array($adminFormDraftForDisplay) && is_array($adminFormDraftForDisplay['p
         'secret_comments_enabled',
         'reaction_enabled',
         'public_listed',
+        'show_title',
     ]);
     if (is_array($contentDraftPayload['content_file_link_ids'] ?? null)) {
         $values['content_file_link_ids'] = array_values($contentDraftPayload['content_file_link_ids']);
@@ -50,6 +51,7 @@ $contentSeriesValues = [
     'series_episode_label' => array_key_exists('series_episode_label', $values) ? (string) $values['series_episode_label'] : (is_array($currentContentSeriesItem) ? (string) ($currentContentSeriesItem['episode_label'] ?? '') : ''),
     'series_sort_order' => array_key_exists('series_sort_order', $values) ? (int) $values['series_sort_order'] : (is_array($currentContentSeriesItem) ? (int) ($currentContentSeriesItem['sort_order'] ?? 0) : 0),
 ];
+$contentHasSelectedSeries = (int) $contentSeriesValues['series_id'] > 0;
 
 $adminPageTitle = $pageAdminPage === 'form' ? ($editing ? sr_t('content::ui.content.edit.9fdd9b62') : sr_t('content::ui.content.62a2bf90')) : '콘텐츠 관리';
 $adminPageSubtitle = '';
@@ -219,9 +221,13 @@ foreach (sr_content_group_file_asset_setting_keys() as $settingKey) {
     }
 }
 $values['layout_key'] = sr_public_layout_normalize_key((string) ($values['layout_key'] ?? ''));
-if ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']])) {
+if (
+    !sr_content_layout_disabled($values['layout_key'])
+    && ($values['layout_key'] === '' || !isset($publicLayoutOptions[$values['layout_key']]))
+) {
     $values['layout_key'] = sr_public_layout_key($site ?? null, $pdo ?? null);
 }
+$contentNoLayoutSelected = sr_content_layout_disabled((string) $values['layout_key']);
 $totalPages = (int) ($pageStatusCounts['total'] ?? count($pages ?? []));
 $contentHelpOpenLabel = sr_t('content::help.open');
 $contentHelpButtonHtml = static function (string $label, string $modalId) use ($contentHelpOpenLabel): string {
@@ -634,7 +640,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <label class="form-label" for="content_admin_contents_series_id"><?php echo sr_e('시리즈'); ?></label>
                     <div class="form-field">
-                        <select id="content_admin_contents_series_id" name="series_id" class="form-select">
+                        <select id="content_admin_contents_series_id" name="series_id" class="form-select" data-content-series-select>
                             <option value="0"<?php echo (int) $contentSeriesValues['series_id'] === 0 ? ' selected' : ''; ?>><?php echo sr_e('연결 안 함'); ?></option>
                             <?php foreach ($contentSeriesOptions as $seriesOption) { ?>
                                 <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) $contentSeriesValues['series_id'] === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
@@ -643,16 +649,20 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } ?>
                         </select>
                         <p class="form-help"><?php echo sr_e('콘텐츠 시리즈는 읽기 흐름입니다. 콘텐츠 그룹과 독립적으로 회차 표시, 정렬 순서, 이전/다음 내비게이션만 관리합니다.'); ?></p>
-                        <div class="admin-form-inline">
-                            <label for="content_admin_contents_series_episode_label">
-                                <span><?php echo sr_e('회차 표시'); ?></span>
-                                <input id="content_admin_contents_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) $contentSeriesValues['series_episode_label']); ?>" class="form-input">
-                            </label>
-                            <label for="content_admin_contents_series_sort_order">
-                                <span><?php echo sr_e('정렬 순서'); ?></span>
-                                <input id="content_admin_contents_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) $contentSeriesValues['series_sort_order']); ?>" class="form-input">
-                            </label>
-                        </div>
+                    </div>
+                </div>
+                <div class="form-row"<?php echo $contentHasSelectedSeries ? '' : ' hidden'; ?> data-content-series-detail>
+                    <label class="form-label" for="content_admin_contents_series_episode_label"><?php echo sr_e('회차 표시'); ?></label>
+                    <div class="form-field">
+                        <input id="content_admin_contents_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) $contentSeriesValues['series_episode_label']); ?>" class="form-input"<?php echo $contentHasSelectedSeries ? '' : ' disabled'; ?> data-content-series-detail-input>
+                        <p class="form-help"><?php echo sr_e('예: 1화, 프롤로그. 비워 두면 콘텐츠 제목만 회차 목록에 표시됩니다.'); ?></p>
+                    </div>
+                </div>
+                <div class="form-row"<?php echo $contentHasSelectedSeries ? '' : ' hidden'; ?> data-content-series-detail>
+                    <label class="form-label" for="content_admin_contents_series_sort_order"><?php echo sr_e('회차 정렬 순서'); ?> <span class="sr-required-label" data-content-series-sort-required><?php echo sr_e('(필수)'); ?></span></label>
+                    <div class="form-field">
+                        <input id="content_admin_contents_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) $contentSeriesValues['series_sort_order']); ?>" class="form-input"<?php echo $contentHasSelectedSeries ? ' required' : ' disabled'; ?> data-content-series-detail-input data-content-series-sort-input>
+                        <p class="form-help"><?php echo sr_e('숫자가 작은 회차부터 먼저 표시됩니다.'); ?></p>
                     </div>
                 </div>
             <?php } ?>
@@ -727,15 +737,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 	            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('content_admin_contents_layout_key', sr_t('content::ui.content.fa985852'), $contentHelp['layout']['id'], $contentHelpOpenLabel); ?>
                 <div class="form-field">
-                    <select id="content_admin_contents_layout_key" name="layout_key" class="form-select">
-                                                <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
-                                                    <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($values['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
-                                                        <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
+                    <select id="content_admin_contents_layout_key" name="layout_key" class="form-select" data-content-layout-select>
+                        <option value="<?php echo sr_e(sr_content_no_layout_key()); ?>"<?php echo $contentNoLayoutSelected ? ' selected' : ''; ?>><?php echo sr_e('선택 안 함'); ?></option>
+                        <?php foreach ($publicLayoutOptions as $layoutKey => $layoutOption) { ?>
+                            <option value="<?php echo sr_e((string) $layoutKey); ?>"<?php echo (string) ($values['layout_key'] ?? '') === (string) $layoutKey ? ' selected' : ''; ?>>
+                                <?php echo sr_e((string) ($layoutOption['label'] ?? $layoutKey)); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
                     <?php echo $pageSettingSourceRadioHtml('source_layout_key', $pageSettingSource($values, 'layout_key')); ?>
-                    <p class="form-help"><?php echo sr_e(sr_t('content::ui.content.05b39bf1')); ?></p>
+                    <p class="form-help"><?php echo sr_e('선택 안 함은 공통 header/footer와 콘텐츠 부가 영역 없이 제목과 본문만 출력합니다.'); ?></p>
+                </div>
+            </div>
+            <div class="form-row"<?php echo $contentNoLayoutSelected ? '' : ' hidden'; ?> data-content-no-layout-title-row>
+                <span class="form-label"><?php echo sr_e('제목 표시'); ?></span>
+                <div class="form-field">
+                    <label class="form-check form-label" for="content_admin_contents_show_title">
+                        <input id="content_admin_contents_show_title" type="checkbox" name="show_title" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['show_title'] ?? 1) === 1 ? ' checked' : ''; ?><?php echo $contentNoLayoutSelected ? '' : ' disabled'; ?> data-content-no-layout-title-input>
+                        <?php echo sr_e('화면에 콘텐츠 제목 표시'); ?>
+                    </label>
+                    <p class="form-help"><?php echo sr_e('레이아웃을 선택하지 않은 콘텐츠에만 적용됩니다. 숨겨도 관리자 목록과 브라우저 제목에는 콘텐츠 제목이 유지됩니다.'); ?></p>
                 </div>
             </div>
         </section>
@@ -1514,6 +1535,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var statusSelect = document.querySelector('[data-content-status-select]');
         var scheduledInput = document.querySelector('[data-content-scheduled-input]');
         var scheduledRequiredLabel = document.querySelector('[data-content-scheduled-required]');
+        var seriesSelect = document.querySelector('[data-content-series-select]');
+        var seriesDetailRows = document.querySelectorAll('[data-content-series-detail]');
+        var seriesDetailInputs = document.querySelectorAll('[data-content-series-detail-input]');
+        var seriesSortInput = document.querySelector('[data-content-series-sort-input]');
+        var layoutSelect = document.querySelector('[data-content-layout-select]');
+        var noLayoutTitleRow = document.querySelector('[data-content-no-layout-title-row]');
+        var noLayoutTitleInput = document.querySelector('[data-content-no-layout-title-input]');
         var selectFallbackOption = function (option, fallbackValue) {
             var fallback = document.querySelector('input[name="' + option.name + '"][value="' + fallbackValue + '"]');
             if (fallback) {
@@ -1585,8 +1613,39 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (statusSelect) {
             statusSelect.addEventListener('change', syncScheduledPublishAt);
         }
+        var syncSeriesDetails = function () {
+            if (!seriesSelect) {
+                return;
+            }
+            var hasSeries = seriesSelect.value !== '0';
+            Array.prototype.slice.call(seriesDetailRows).forEach(function (row) {
+                row.hidden = !hasSeries;
+            });
+            Array.prototype.slice.call(seriesDetailInputs).forEach(function (input) {
+                input.disabled = !hasSeries;
+            });
+            if (seriesSortInput) {
+                seriesSortInput.required = hasSeries;
+            }
+        };
+        var syncNoLayoutTitleOption = function () {
+            if (!layoutSelect || !noLayoutTitleRow || !noLayoutTitleInput) {
+                return;
+            }
+            var noLayout = layoutSelect.value === <?php echo sr_js_json_encode(sr_content_no_layout_key()); ?>;
+            noLayoutTitleRow.hidden = !noLayout;
+            noLayoutTitleInput.disabled = !noLayout;
+        };
+        if (seriesSelect) {
+            seriesSelect.addEventListener('change', syncSeriesDetails);
+        }
+        if (layoutSelect) {
+            layoutSelect.addEventListener('change', syncNoLayoutTitleOption);
+        }
         syncGroupScope();
         syncScheduledPublishAt();
+        syncSeriesDetails();
+        syncNoLayoutTitleOption();
     });
     </script>
 <?php } ?>

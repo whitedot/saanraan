@@ -88,6 +88,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <?php if ($contentDateText !== '') { ?>
                     <span><?php echo sr_content_time_html($contentDateText); ?></span>
                 <?php } ?>
+                <?php include SR_ROOT . '/modules/content/views/content-edit-link.php'; ?>
             </div>
         </header>
         <?php if ((string) ($page['cover_image_url'] ?? '') !== '') { ?>

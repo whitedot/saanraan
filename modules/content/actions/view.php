@@ -94,6 +94,29 @@ if (!$contentAdminPreview && !empty($pageAccess['allowed']) && sr_content_should
     $page['view_count'] = (int) ($page['view_count'] ?? 0) + 1;
 }
 
+$contentEditUrl = '';
+if (is_array($account)) {
+    $contentAccountId = (int) ($account['id'] ?? 0);
+    if ($contentAccountId > 0 && sr_admin_has_permission($pdo, $contentAccountId, '/admin/content', 'edit')) {
+        $contentEditUrl = '/admin/content/edit?id=' . rawurlencode((string) (int) $page['id']);
+    } elseif ($contentAccountId > 0 && (int) ($page['created_by'] ?? 0) === $contentAccountId) {
+        $contentAuthorSubmission = sr_content_editable_submission_for_content_author($pdo, (int) $page['id'], $contentAccountId);
+        if (is_array($contentAuthorSubmission)) {
+            $contentEditUrl = '/account/content?id=' . rawurlencode((string) (int) $contentAuthorSubmission['id']);
+        }
+    }
+}
+
+$contentLayoutSettings = $contentSettings;
+$contentPageLayoutKey = sr_public_layout_normalize_key((string) ($page['layout_key'] ?? ''));
+if (sr_content_layout_disabled($contentPageLayoutKey)) {
+    include SR_ROOT . '/modules/content/views/content-no-layout.php';
+    return;
+}
+if ($contentPageLayoutKey !== '' && isset(sr_public_layout_options($pdo)[$contentPageLayoutKey])) {
+    $contentLayoutSettings['layout_key'] = $contentPageLayoutKey;
+}
+
 $contentFiles = !empty($pageAccess['allowed']) ? sr_content_files_for_content($pdo, (int) $page['id']) : [];
 $contentImageFiles = [];
 foreach ($contentFiles as $contentFile) {
@@ -129,7 +152,6 @@ $memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_arra
     ? $_SESSION['sr_member_follow_feedback']
     : ['notice' => '', 'errors' => []];
 unset($_SESSION['sr_member_follow_feedback']);
-$contentLayoutSettings = $contentSettings;
 
 $contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/content.php';
 include sr_content_public_view_file($pdo, $contentLayoutSettings, 'content.php');

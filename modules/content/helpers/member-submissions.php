@@ -563,6 +563,31 @@ function sr_content_submission_by_id(PDO $pdo, int $submissionId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_content_editable_submission_for_content_author(PDO $pdo, int $contentId, int $accountId): ?array
+{
+    if ($contentId < 1 || $accountId < 1) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        "SELECT *
+         FROM sr_content_submissions
+         WHERE content_id = :content_id
+           AND author_account_id = :author_account_id
+         ORDER BY id DESC
+         LIMIT 1"
+    );
+    $stmt->execute([
+        'content_id' => $contentId,
+        'author_account_id' => $accountId,
+    ]);
+    $row = $stmt->fetch();
+
+    return is_array($row) && in_array((string) ($row['review_status'] ?? ''), ['approved', 'member_draft', 'revision_requested', 'rejected'], true)
+        ? $row
+        : null;
+}
+
 function sr_content_member_submission_count(PDO $pdo, int $accountId): int
 {
     if ($accountId < 1) {
@@ -682,7 +707,7 @@ function sr_content_save_member_submission(PDO $pdo, int $accountId, array $valu
     }
 
     $existing = $submissionId > 0 ? sr_content_submission_by_id($pdo, $submissionId) : null;
-    if ($submissionId > 0 && (!is_array($existing) || (int) ($existing['author_account_id'] ?? 0) !== $accountId || !in_array((string) ($existing['review_status'] ?? ''), ['member_draft', 'revision_requested', 'rejected'], true))) {
+    if ($submissionId > 0 && (!is_array($existing) || (int) ($existing['author_account_id'] ?? 0) !== $accountId || !in_array((string) ($existing['review_status'] ?? ''), ['approved', 'member_draft', 'revision_requested', 'rejected'], true))) {
         throw new InvalidArgumentException('수정할 수 없는 제출본입니다.');
     }
 

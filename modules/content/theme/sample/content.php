@@ -62,6 +62,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <?php if ((string) ($page['summary'] ?? '') !== '') { ?>
                     <p><?php echo sr_e((string) $page['summary']); ?></p>
                 <?php } ?>
+                <?php include SR_ROOT . '/modules/content/views/content-edit-link.php'; ?>
             </header>
 
             <?php if (empty($pageAccess['allowed'])) { ?>

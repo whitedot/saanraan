@@ -388,6 +388,16 @@ function sr_content_layout_required_targets(): array
     return ['content.home', 'content.group', 'content.view', 'content.search'];
 }
 
+function sr_content_no_layout_key(): string
+{
+    return 'content.none';
+}
+
+function sr_content_layout_disabled(string $layoutKey): bool
+{
+    return sr_public_layout_normalize_key($layoutKey) === sr_content_no_layout_key();
+}
+
 function sr_content_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
 {
     return sr_public_layout_options_for_targets($pdo, sr_content_layout_required_targets(), $includeInstalledModules);
@@ -779,6 +789,7 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
         'editor_key' => 'textarea',
         'status' => (string) ($defaults['status'] ?? 'draft'),
         'layout_key' => (string) ($defaults['layout_key'] ?? ($pdo instanceof PDO ? sr_content_default_layout_key($pdo, $site) : '')),
+        'show_title' => 1,
         'asset_access_enabled' => (int) ($defaults['asset_access_enabled'] ?? 0),
         'asset_module' => (string) ($defaults['asset_module'] ?? ''),
         'asset_access_amount' => (int) ($defaults['asset_access_amount'] ?? 0),
