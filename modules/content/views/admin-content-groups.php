@@ -1,7 +1,7 @@
 <?php
 
 $adminPageTitle = $pageGroupsPage === 'list' ? '콘텐츠 그룹 관리' : ($pageGroupsPage === 'edit' ? sr_t('content::ui.content.edit.700b7706') : sr_t('content::ui.content.5a50b240'));
-$adminPageSubtitle = '';
+$adminPageSubtitle = '콘텐츠를 주제별로 묶어 공개 화면과 메뉴 후보를 관리합니다.';
 $adminContainerClass = $pageGroupsPage === 'list' ? 'admin-content-group-list admin-ui-scope' : 'admin-content-group-form admin-ui-scope';
 $contentGroupFormPage = $pageGroupsPage !== 'list';
 $pageGroupFilters = isset($pageGroupFilters) && is_array($pageGroupFilters) ? $pageGroupFilters : ['status' => '', 'field' => 'all', 'q' => ''];
@@ -12,6 +12,27 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url($pageGroupsPage === 'list', '
 $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOptions) ? $publicLayoutOptions : sr_public_layout_options($pdo ?? null);
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $editing = is_array($editPageGroup ?? null);
+$contentGroupHelpOpenLabel = '도움말 보기';
+$contentGroupHelp = [
+    'key' => [
+        'id' => 'content-group-key-help',
+        'title' => '콘텐츠 그룹 식별값 도움말',
+        'body' => '<p>식별값은 공개 그룹 주소의 <code>?key=식별값</code> 부분과 사이트 메뉴·초기 화면 후보를 구분하는 데 사용합니다.</p>'
+            . '<p>영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 입력할 수 있습니다. 그룹을 만든 뒤에는 연결 주소가 바뀌지 않도록 수정할 수 없습니다.</p>',
+    ],
+    'status' => [
+        'id' => 'content-group-status-help',
+        'title' => '콘텐츠 그룹 상태 도움말',
+        'body' => '<p>‘사용’은 그룹 공개 화면을 열고 사이트 메뉴·초기 화면 후보와 회원 제출 대상에 포함합니다. 그룹 안의 콘텐츠는 각 콘텐츠의 공개 상태를 별도로 따릅니다.</p>'
+            . '<p>‘사용안함’은 그룹 공개 화면과 새 회원 제출을 중지하지만 연결된 콘텐츠를 삭제하지 않습니다. ‘보관’도 공개와 제출에서 제외되며, 더 이상 운영하지 않는 그룹을 관리 목록에 기록으로 남길 때 사용합니다.</p>',
+    ],
+    'sort_order' => [
+        'id' => 'content-group-sort-order-help',
+        'title' => '표시 순서 도움말',
+        'body' => '<p>숫자가 작은 그룹부터 콘텐츠 공개 화면의 그룹 목록, 기본 메뉴 후보, 초기 화면 후보 등에 먼저 표시됩니다.</p>'
+            . '<p>같은 숫자를 입력한 그룹끼리는 먼저 만든 그룹이 앞에 표시됩니다.</p>',
+    ],
+];
 $contentGroupAssetAuditUrl = $editing ? sr_admin_asset_settings_audit_url('content_group.asset_settings.updated', 'content_group', (string) (int) ($editPageGroup['id'] ?? 0)) : '';
 if (!is_array($values ?? null) || $values === []) {
     $values = $editing ? $editPageGroup : [
@@ -181,7 +202,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <?php echo sr_csrf_field(); ?>
                                             <input type="hidden" name="intent" value="delete_group">
                                             <input type="hidden" name="group_id" value="<?php echo sr_e((string) $pageGroup['id']); ?>">
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 그룹 삭제" title="콘텐츠 그룹 삭제" onclick="return confirm('이 콘텐츠 그룹을 삭제할까요? 연결 콘텐츠는 삭제하지 않고 그룹 연결만 해제합니다. 외부 운영 참조가 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 그룹 삭제" title="콘텐츠 그룹 삭제" onclick="return confirm('이 콘텐츠 그룹을 삭제할까요? 연결 콘텐츠는 삭제하지 않고 그룹 연결만 해제합니다. 사이트 메뉴나 초기 화면에서 사용 중이면 삭제할 수 없습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
                                     </div>
                                 </td>
@@ -197,7 +218,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> <?php echo sr_e(sr_t('content::ui.edit.3537f0cc')); ?></span>
             <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('delete'); ?> 콘텐츠 그룹 삭제</span>
         </div>
-        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled', 'archived'], 'content_status')); ?>
     </section>
     <?php echo sr_admin_pagination_html($pageGroupPagination, '콘텐츠 그룹 목록 페이지'); ?>
     <?php $contentStorageCleanupFailures = is_array($contentStorageCleanupFailures ?? null) ? $contentStorageCleanupFailures : []; ?>
@@ -252,13 +273,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="intent" value="<?php echo $editing ? 'update_group' : 'create_group'; ?>">
             <input type="hidden" name="group_id" value="<?php echo $editing ? sr_e((string) $editPageGroup['id']) : '0'; ?>">
             <div class="form-row">
-                <label class="form-label" for="content_admin_groups_group_key"><?php echo sr_e(sr_t('content::ui.key.1057ecca')); ?><?php echo $editing ? '' : sr_t('content::ui.span.class.sr.required.label.07a9346b'); ?></label>
+                <?php if ($editing) { ?>
+                    <div class="form-label form-label-help">
+                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="식별값 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentGroupHelp['key']['id']); ?>" data-overlay="#<?php echo sr_e($contentGroupHelp['key']['id']); ?>">
+                            <?php echo sr_material_icon_html('help'); ?>
+                        </button>
+                        <span>식별값</span>
+                    </div>
+                <?php } else { ?>
+                    <?php echo sr_admin_form_label_help_html('content_admin_groups_group_key', '식별값', $contentGroupHelp['key']['id'], $contentGroupHelpOpenLabel, true); ?>
+                <?php } ?>
                 <div class="form-field">
                     <?php if ($editing) { ?>
                         <code><?php echo sr_e((string) ($values['group_key'] ?? '')); ?></code>
                     <?php } else { ?>
                         <input id="content_admin_groups_group_key" type="text" name="group_key" value="<?php echo sr_e((string) ($values['group_key'] ?? '')); ?>" class="form-input" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#content_admin_groups_title" data-admin-key-suggest-fallback="content_group">
-                        <p class="form-help"><?php echo sr_e(sr_t('content::ui.active.bd86f3a1')); ?></p>
+                        <p class="form-help">영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 입력하세요. 만든 뒤에는 바꿀 수 없습니다.</p>
                     <?php } ?>
                 </div>
             </div>
@@ -266,16 +296,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="content_admin_groups_title"><?php echo sr_e(sr_t('content::ui.name.253d1510')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
                     <input id="content_admin_groups_title" type="text" name="title" value="<?php echo sr_e((string) ($values['title'] ?? '')); ?>" class="form-input form-control-full" maxlength="120" required>
+                    <small class="form-help">공개 그룹 화면과 사이트 메뉴 후보에 표시되는 이름입니다.</small>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="content_admin_groups_description"><?php echo sr_e(sr_t('content::ui.text.8c3f651d')); ?></label>
                 <div class="form-field">
                     <textarea id="content_admin_groups_description" name="description" rows="4" cols="60" class="form-textarea"><?php echo sr_e((string) ($values['description'] ?? '')); ?></textarea>
+                    <small class="form-help">공개 그룹 화면의 제목 아래와 검색·공유용 설명에 표시됩니다.</small>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="content_admin_groups_status"><?php echo sr_e(sr_t('content::ui.status.e10195a1')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_groups_status', '상태', $contentGroupHelp['status']['id'], $contentGroupHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <select id="content_admin_groups_status" name="status" class="form-select">
                         <?php foreach ($allowedGroupStatuses as $status) { ?>
@@ -284,12 +316,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </option>
                         <?php } ?>
                     </select>
+                    <small class="form-help">사용안함·보관 상태에서는 그룹 공개 화면과 새 회원 제출을 사용할 수 없습니다.</small>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="content_admin_groups_sort_order"><?php echo sr_e(sr_t('content::ui.text.7d2dc215')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('content::ui.required.1f227c67')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('content_admin_groups_sort_order', '표시 순서', $contentGroupHelp['sort_order']['id'], $contentGroupHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <input id="content_admin_groups_sort_order" type="number" name="sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($values['sort_order'] ?? 0)); ?>" required class="form-input">
+                    <small class="form-help">숫자가 작을수록 그룹 목록과 메뉴 후보에서 먼저 표시됩니다.</small>
                 </div>
             </div>
         </section>
@@ -318,12 +352,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <input type="hidden" name="intent" value="delete_group">
                         <input type="hidden" name="group_id" value="<?php echo sr_e((string) ($editPageGroup['id'] ?? 0)); ?>">
                         <p class="form-help">
-                            콘텐츠 그룹을 삭제하면 그룹 정보가 삭제되고,
-                            연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건은 삭제하지 않고 그룹 연결만 해제됩니다.
-                            댓글 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['comments'] ?? 0)); ?>건,
-                            파일 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['files'] ?? 0)); ?>건,
-                            revision snapshot 참조 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['revision_references'] ?? 0)); ?>건,
-                            외부 참조 <?php echo sr_e((string) array_sum(array_map('intval', is_array($contentGroupDeleteCheck['external_references'] ?? null) ? $contentGroupDeleteCheck['external_references'] : []))); ?>건.
+                            콘텐츠 그룹과 그룹 설정을 삭제합니다.
+                            연결 콘텐츠 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['contents'] ?? 0)); ?>건은 남겨 두고 그룹 연결만 해제하며,
+                            해당 콘텐츠의 댓글 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['comments'] ?? 0)); ?>건과 파일 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['files'] ?? 0)); ?>건도 그대로 유지합니다.
+                            변경 이력에 이 그룹이 기록된 항목은 <?php echo sr_e((string) (int) ($contentGroupDeleteCheck['references']['revision_references'] ?? 0)); ?>건입니다.
+                            사이트 메뉴나 초기 화면에서 이 그룹을 사용 중인 곳이 <?php echo sr_e((string) array_sum(array_map('intval', is_array($contentGroupDeleteCheck['external_references'] ?? null) ? $contentGroupDeleteCheck['external_references'] : []))); ?>건 있으면 삭제할 수 없습니다.
                             현재 편집 중인 변경사항은 삭제 실행 전에 저장되지 않습니다.
                         </p>
                     </div>
@@ -334,6 +367,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </form>
             </div>
         </div>
+    <?php } ?>
+    <?php foreach ($contentGroupHelp as $contentGroupHelpModal) { ?>
+        <?php echo sr_admin_help_modal_html((string) $contentGroupHelpModal['id'], (string) $contentGroupHelpModal['title'], (string) $contentGroupHelpModal['body']); ?>
     <?php } ?>
 <?php } ?>
 

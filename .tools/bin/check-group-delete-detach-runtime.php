@@ -15,6 +15,20 @@ require_once $root . '/modules/survey/helpers/groups.php';
 
 $errors = [];
 
+$contentGroupAdminView = (string) file_get_contents($root . '/modules/content/views/admin-content-groups.php');
+if (!str_contains($contentGroupAdminView, '그룹을 만든 뒤에는 연결 주소가 바뀌지 않도록 수정할 수 없습니다.')) {
+    $errors[] = 'Content group identifier help must explain why the value cannot change after creation.';
+}
+if (!str_contains($contentGroupAdminView, '사용안함·보관 상태에서는 그룹 공개 화면과 새 회원 제출을 사용할 수 없습니다.')) {
+    $errors[] = 'Content group status help must explain the public and member submission effect.';
+}
+if (!str_contains($contentGroupAdminView, "['enabled', 'disabled', 'archived']")) {
+    $errors[] = 'Content group status descriptions must include the archived status offered by the form.';
+}
+if (!str_contains($contentGroupAdminView, '해당 콘텐츠의 댓글') || !str_contains($contentGroupAdminView, '사이트 메뉴나 초기 화면에서 이 그룹을 사용 중인 곳이')) {
+    $errors[] = 'Content group delete help must explain retained content data and blocking references.';
+}
+
 function sr_group_delete_detach_error(string $message): void
 {
     global $errors;
