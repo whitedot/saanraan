@@ -85,6 +85,18 @@ if (is_string($policyDocumentViewSource)) {
             && !str_contains($policyDocumentViewSource, 'policy_documents::ui.version_key'),
         'policy document admin view should hide internal version keys and provide fullscreen read-only body viewing for each version.'
     );
+    sr_policy_documents_check_assert(
+        str_contains($policyDocumentViewSource, "'policy-document-help-document'")
+            && str_contains($policyDocumentViewSource, "'policy-document-help-body'")
+            && str_contains($policyDocumentViewSource, "'policy-document-help-version-status'")
+            && str_contains($policyDocumentViewSource, "'policy-document-help-history'")
+            && str_contains($policyDocumentViewSource, "'policy-document-help-effective'")
+            && str_contains($policyDocumentViewSource, '문서 사용 상태와 버전 상태는 별도입니다.')
+            && str_contains($policyDocumentViewSource, '변경 안내메일 작업은 버전을 게시할 때 바로 생성되며')
+            && str_contains($policyDocumentViewSource, '초안의 시행일은 공개 예약이 아닙니다.')
+            && str_contains($policyDocumentViewSource, 'sr_admin_help_modal_html'),
+        'policy document admin form should explain document/version state, body formats, history links, and effective-date mail timing.'
+    );
 }
 sr_policy_documents_check_assert(
     is_string($policyDocumentViewSource)

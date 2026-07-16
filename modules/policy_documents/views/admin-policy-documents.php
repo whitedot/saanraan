@@ -90,6 +90,46 @@ $policyDocumentStandardTemplateHtml = '';
 $policyDocumentStandardTemplateLabel = '';
 $policyDocumentStandardTemplateRevisionDateLabel = '';
 $policyDocumentStandardTemplateNoticeUrl = '';
+$policyDocumentHelpOpenLabel = '도움말 보기';
+$policyDocumentHelpButtonHtml = static function (string $label, string $modalId) use ($policyDocumentHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $policyDocumentHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$policyDocumentHelp = [
+    'document' => [
+        'id' => 'policy-document-help-document',
+        'title' => '약관·방침 기본 정보 도움말',
+        'body' => '<p>문서 식별값은 회원가입, 동의가 필요한 공개 폼과 약관 안내 화면이 이 문서를 찾을 때 사용하는 내부 고유값입니다. 저장한 뒤 바꾸는 화면이 없으므로 용도를 알아볼 수 있게 입력하세요.</p>'
+            . '<p>문서 상태를 사용 안 함으로 저장하면 게시 버전이 있어도 공개 약관과 동의 문서 선택 대상에서 제외됩니다. 정렬 순서는 문서 선택 목록과 관리자 목록의 배치 기준이며 숫자가 작을수록 먼저 표시됩니다.</p>',
+    ],
+    'body' => [
+        'id' => 'policy-document-help-body',
+        'title' => '본문 작성 방식 도움말',
+        'body' => '<p>일반 텍스트는 줄바꿈을 문단으로 바꾸어 저장합니다. Markdown은 Markdown Editor를 사용할 수 있을 때만 선택할 수 있으며, HTML은 태그를 직접 입력합니다. CKEditor는 편집 도구가 활성화된 경우에만 나타납니다.</p>'
+            . '<p>어떤 방식을 선택해도 저장할 때 허용되지 않은 태그와 위험한 코드를 제거합니다. 저장되는 것은 선택한 작성 방식의 내용이므로, 방식을 바꾼 뒤에는 표시된 본문을 다시 확인하세요.</p>',
+    ],
+    'status' => [
+        'id' => 'policy-document-help-version-status',
+        'title' => '문서 버전 상태 도움말',
+        'body' => '<p>초안은 공개되지 않으며 나중에 수정하거나 별도 공개 작업을 할 수 있습니다. 게시는 시행일 조건이 맞으면 공개 약관에 적용되고 변경 안내메일 작업을 만듭니다. 보관은 현재 공개 버전으로 사용하지 않지만 이전 버전 기록에는 연결할 수 있습니다.</p>'
+            . '<p>문서 사용 상태와 버전 상태는 별도입니다. 문서를 사용 안 함으로 저장하면 게시 버전은 공개되지 않지만, 첫 버전을 게시 상태로 저장할 때는 안내메일 작업이 생성됩니다.</p>'
+            . '<p>게시 버전의 시행일이 비어 있거나 현재 이전이면 기존의 현재 적용 버전을 보관 상태로 바꿉니다. 미래 시행일인 게시 버전은 그 시각이 될 때까지 기존 버전을 유지하고, 이후 조회부터 새 버전을 자동 선택합니다.</p>',
+    ],
+    'history' => [
+        'id' => 'policy-document-help-history',
+        'title' => '이전 버전 기록 도움말',
+        'body' => '<p>사용하면 현재 공개 본문 아래에 이전 게시·보관 버전의 시행일 또는 게시일 링크를 자동으로 붙입니다. 이전 본문 전체를 현재 본문 안에 복사하지는 않습니다.</p>'
+            . '<p>링크 목록은 공개 화면을 조회할 때 저장된 버전을 기준으로 만듭니다. 현재 본문 원문은 바꾸지 않으며, 문서 자체가 사용 상태여야 이전 버전 링크도 열 수 있습니다.</p>',
+    ],
+    'effective' => [
+        'id' => 'policy-document-help-effective',
+        'title' => '시행일과 안내메일 도움말',
+        'body' => '<p>게시 상태에서 시행일을 비워 두면 게시 즉시 적용합니다. 미래 시각을 입력하면 그 시각 전까지 기존 공개 버전을 유지하고, 시행일이 지난 뒤 공개 화면 조회부터 새 버전을 적용합니다.</p>'
+            . '<p>변경 안내메일 작업은 버전을 게시할 때 바로 생성되며 시행일까지 자동으로 기다렸다가 보내지 않습니다. 시행 전 고지가 필요하면 시행일을 먼저 정하고 원하는 시점에 안내메일 작업을 실행하세요.</p>'
+            . '<p>초안의 시행일은 공개 예약이 아닙니다. 초안을 별도로 공개해야 적용과 안내메일 작업 생성이 시작됩니다.</p>',
+    ],
+];
 $policyDocumentSelectedDocumentKey = is_array($selectedDocument) ? (string) ($selectedDocument['document_key'] ?? '') : '';
 if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentSelectedDocumentKey !== '' && isset($pdo) && $pdo instanceof PDO) {
     $policyDocumentStandardTemplateHtml = sr_policy_document_standard_template_html($pdo, $policyDocumentSelectedDocumentKey, is_array($site ?? null) ? $site : null);
@@ -121,7 +161,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
 
                 <div class="form-row">
-                    <label class="form-label" for="policy_document_document_key"><?php echo sr_e(sr_t('policy_documents::ui.document_key')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('policy_document_document_key', sr_t('policy_documents::ui.document_key'), $policyDocumentHelp['document']['id'], $policyDocumentHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <input id="policy_document_document_key" class="form-input" type="text" name="document_key" maxlength="80" pattern="[a-z][a-z0-9_]{2,79}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-validation-message="<?php echo sr_e(sr_t('policy_documents::error.document_key_invalid')); ?>">
                         <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.document_key.help')); ?></p>
@@ -132,23 +172,26 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="policy_document_document_description"><?php echo sr_e(sr_t('policy_documents::ui.document_description')); ?></label>
                     <div class="form-field">
                         <textarea id="policy_document_document_description" class="form-textarea form-control-full" name="description" rows="3" maxlength="2000"></textarea>
+                        <p class="form-help">문서의 용도를 운영자가 구분할 수 있도록 적습니다. 공개 약관 본문에는 표시되지 않습니다.</p>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <label class="form-label" for="policy_document_document_status"><?php echo sr_e(sr_t('policy_documents::ui.status')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('policy_document_document_status', '문서 사용 상태', $policyDocumentHelp['document']['id'], $policyDocumentHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <select id="policy_document_document_status" class="form-select" name="status" required>
                             <option value="enabled"><?php echo sr_e(sr_t('policy_documents::ui.status.enabled')); ?></option>
                             <option value="disabled"><?php echo sr_e(sr_t('policy_documents::ui.status.disabled')); ?></option>
                         </select>
+                        <p class="form-help">사용 안 함이면 게시 버전이 있어도 공개 화면과 동의 문서 선택에서 제외합니다.</p>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <label class="form-label" for="policy_document_document_sort_order"><?php echo sr_e(sr_t('policy_documents::ui.sort_order')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('policy_document_document_sort_order', sr_t('policy_documents::ui.sort_order'), $policyDocumentHelp['document']['id'], $policyDocumentHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <input id="policy_document_document_sort_order" class="form-input" type="number" name="sort_order" min="0" max="1000000" value="100" required>
+                        <p class="form-help">숫자가 작을수록 문서 선택 목록에서 먼저 표시됩니다.</p>
                     </div>
                 </div>
             </section>
@@ -157,7 +200,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <p class="form-help">새 약관/방침의 첫 버전을 함께 저장합니다.</p>
 
                 <div class="form-row">
-                    <label class="form-label" for="policy_document_body_html"><?php echo sr_e(sr_t('policy_documents::ui.body')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('policy_document_body_html', sr_t('policy_documents::ui.body'), $policyDocumentHelp['body']['id'], $policyDocumentHelpOpenLabel, true); ?>
                     <div class="form-field" data-admin-body-editor-mode-group>
                         <div>
                             <?php echo sr_admin_radio_toggle_group_html('policy_document_body_editor_mode', 'body_editor_mode', $policyDocumentBodyEditorOptions, $policyDocumentBodyEditorMode, true, ' data-admin-body-editor-mode'); ?>
@@ -184,11 +227,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="policy_document_summary_text"><?php echo sr_e(sr_t('policy_documents::ui.summary')); ?></label>
                     <div class="form-field">
                         <textarea id="policy_document_summary_text" class="form-textarea form-control-full" name="summary_text" rows="3" maxlength="1000"></textarea>
+                        <p class="form-help">변경 내용을 관리하거나 연동 기능에서 사용할 요약입니다. 기본 공개 약관 화면에는 표시되지 않습니다.</p>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <label class="form-label" for="policy_document_initial_version_status"><?php echo sr_e(sr_t('policy_documents::ui.status')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('policy_document_initial_version_status', '첫 버전 상태', $policyDocumentHelp['status']['id'], $policyDocumentHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <select id="policy_document_initial_version_status" class="form-select" name="version_status" required>
                             <option value="draft"><?php echo sr_e(sr_t('policy_documents::ui.status.draft')); ?></option>
@@ -199,7 +243,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
 
                 <div class="form-row">
-                    <label class="form-label" for="policy_document_effective_from"><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></label>
+                    <?php echo sr_admin_form_label_help_html('policy_document_effective_from', sr_t('policy_documents::ui.effective_from'), $policyDocumentHelp['effective']['id'], $policyDocumentHelpOpenLabel); ?>
                     <div class="form-field">
                         <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from">
                         <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.effective_from.help')); ?></p>
@@ -236,7 +280,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
 
             <div class="form-row">
-                <label class="form-label" for="policy_document_body_html"><?php echo sr_e(sr_t('policy_documents::ui.body')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                <?php echo sr_admin_form_label_help_html('policy_document_body_html', sr_t('policy_documents::ui.body'), $policyDocumentHelp['body']['id'], $policyDocumentHelpOpenLabel, true); ?>
                 <div class="form-field" data-admin-body-editor-mode-group>
                     <div>
                         <?php echo sr_admin_radio_toggle_group_html('policy_document_body_editor_mode', 'body_editor_mode', $policyDocumentBodyEditorOptions, $policyDocumentBodyEditorMode, true, ' data-admin-body-editor-mode'); ?>
@@ -276,11 +320,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <label class="form-label" for="policy_document_summary_text"><?php echo sr_e(sr_t('policy_documents::ui.summary')); ?></label>
                 <div class="form-field">
                     <textarea id="policy_document_summary_text" class="form-textarea form-control-full" name="summary_text" rows="3" maxlength="1000"><?php echo sr_e($policyDocumentVersionValue('summary_text')); ?></textarea>
+                    <p class="form-help">변경 내용을 관리하거나 연동 기능에서 사용할 요약입니다. 기본 공개 약관 화면에는 표시되지 않습니다.</p>
                 </div>
             </div>
 
             <div class="form-row">
-                <span class="form-label"><?php echo sr_e(sr_t('policy_documents::ui.previous_versions.option')); ?></span>
+                <span class="form-label form-label-help">
+                    <?php echo $policyDocumentHelpButtonHtml(sr_t('policy_documents::ui.previous_versions.option'), $policyDocumentHelp['history']['id']); ?>
+                    <span><?php echo sr_e(sr_t('policy_documents::ui.previous_versions.option')); ?></span>
+                </span>
                 <div class="form-field">
                     <?php echo sr_admin_checkbox_toggle_html('policy_document_append_previous_versions', 'append_previous_versions', '1', $policyDocumentVersionValue('append_previous_versions') === '1', sr_t('policy_documents::ui.previous_versions.option.enable')); ?>
                     <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.previous_versions.option.help', ['count' => number_format($policyDocumentPreviousHistoryCandidateCount)])); ?></p>
@@ -289,7 +337,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
             <?php if (!$editingVersion) { ?>
                 <div class="form-row">
-                    <label class="form-label" for="policy_document_status"><?php echo sr_e(sr_t('policy_documents::ui.status')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('policy_documents::ui.required')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('policy_document_status', '버전 상태', $policyDocumentHelp['status']['id'], $policyDocumentHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <select id="policy_document_status" class="form-select" name="status" required>
                             <option value="draft"><?php echo sr_e(sr_t('policy_documents::ui.status.draft')); ?></option>
@@ -301,7 +349,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
 
             <div class="form-row">
-                <label class="form-label" for="policy_document_effective_from"><?php echo sr_e(sr_t('policy_documents::ui.effective_from')); ?></label>
+                <?php echo sr_admin_form_label_help_html('policy_document_effective_from', sr_t('policy_documents::ui.effective_from'), $policyDocumentHelp['effective']['id'], $policyDocumentHelpOpenLabel); ?>
                 <div class="form-field">
                     <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from" value="<?php echo sr_e(sr_datetime_local_value($policyDocumentVersionValue('effective_from'))); ?>">
                     <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.effective_from.help')); ?></p>
@@ -566,6 +614,12 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_pagination_html($mailJobPagination, '정책 문서 안내메일 작업 목록 페이지'); ?>
         <?php echo sr_admin_status_description_list_html('policy_document_mail_status', $policyDocumentMailStatusLabels); ?>
     </section>
+<?php } ?>
+
+<?php if ($policyDocumentAdminPage === 'form') { ?>
+    <?php foreach ($policyDocumentHelp as $policyDocumentHelpModal) { ?>
+        <?php echo sr_admin_help_modal_html((string) $policyDocumentHelpModal['id'], (string) $policyDocumentHelpModal['title'], (string) $policyDocumentHelpModal['body']); ?>
+    <?php } ?>
 <?php } ?>
 
 <?php if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentStandardTemplateHtml !== '') { ?>
