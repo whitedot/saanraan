@@ -107,6 +107,15 @@ sr_browser_qa_require_markers('.tools/browser-qa/tests/ckeditor-browser-smoke.sp
     'fixture upload rejected',
 ]);
 
+sr_browser_qa_require_markers('.tools/browser-qa/tests/admin-module-reference-theme.spec.js', [
+    'getComputedStyle',
+    'form-help-reference-list',
+    'form-help-reference-icon',
+    'form-help-reference-label',
+    "element.setAttribute('data-theme', 'dark')",
+    "itemFlexBasis).toBe('100%')",
+]);
+
 sr_browser_qa_require_markers('docs/smoke-test.md', [
     'npm --prefix .tools/browser-qa run test:ckeditor',
     'ckeditor-browser-smoke.spec.js',
@@ -128,6 +137,7 @@ foreach ([
     '.tools/browser-qa/tests/milestone-15-deep-browser.spec.js',
     '.tools/browser-qa/tests/ckeditor-browser-smoke.spec.js',
     '.tools/browser-qa/tests/admin-form-draft-theme.spec.js',
+    '.tools/browser-qa/tests/admin-module-reference-theme.spec.js',
 ] as $jsFile) {
     sr_browser_qa_node_check($jsFile);
 }
