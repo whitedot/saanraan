@@ -2,7 +2,7 @@
 
 return [
     'name' => '설문·여론조사',
-    'version' => '2026.07.004',
+    'version' => '2026.07.005',
     'type' => 'module',
     'description' => '설문 작성, 공개 응답 수집, 응답 보상을 관리하는 모듈입니다.',
     'admin' => [

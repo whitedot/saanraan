@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/groups.php';
+
 function sr_survey_admin_list_count(PDO $pdo, array $where, array $params): int
 {
     if ($where === []) {
@@ -24,12 +26,17 @@ function sr_survey_admin_list_rows(PDO $pdo, array $where, array $params, string
     }
     $limit = max(1, min(200, $limit));
     $offset = max(0, $offset);
+    $groupSchemaAvailable = sr_survey_groups_table_exists($pdo);
+    $groupSelectSql = $groupSchemaAvailable ? 's.survey_group_id, sg.title AS survey_group_title,' : '0 AS survey_group_id, \'\' AS survey_group_title,';
+    $groupJoinSql = $groupSchemaAvailable ? ' LEFT JOIN sr_survey_groups sg ON sg.id = s.survey_group_id' : '';
+    $groupBySql = $groupSchemaAvailable ? ', s.survey_group_id, sg.title' : '';
     $stmt = $pdo->prepare(
-        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at,
+        'SELECT s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at, ' . $groupSelectSql . '
                 COUNT(r.id) AS response_count,
                 COALESCE(srg.reward_grant_count, 0) AS reward_grant_count,
                 COALESCE(sscf.cleanup_pending_count, 0) AS cleanup_pending_count
          FROM sr_survey_forms s
+         ' . $groupJoinSql . '
          LEFT JOIN sr_survey_responses r ON r.survey_id = s.id
          LEFT JOIN (
              SELECT survey_id, COUNT(*) AS reward_grant_count
@@ -43,7 +50,7 @@ function sr_survey_admin_list_rows(PDO $pdo, array $where, array $params, string
              GROUP BY source_id
          ) sscf ON sscf.source_id = s.id
          WHERE ' . implode(' AND ', $where) . '
-         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at, srg.reward_grant_count, sscf.cleanup_pending_count
+         GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at, s.deleted_at' . $groupBySql . ', srg.reward_grant_count, sscf.cleanup_pending_count
          ' . $orderSql . '
          LIMIT :limit_value OFFSET :offset_value'
     );
@@ -310,6 +317,11 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
 {
     $errors = [];
     $surveyId = (int) sr_post_string('survey_id', 20);
+    $surveyGroupId = max(0, (int) sr_post_string('survey_group_id', 20));
+    $settingSources = [];
+    foreach (array_keys(sr_survey_group_setting_bundles()) as $settingKey) {
+        $settingSources[$settingKey] = sr_survey_setting_scope(sr_post_string('source_' . $settingKey, 20));
+    }
     $surveyKey = sr_survey_clean_key(sr_post_string('survey_key', 64), 64);
     $title = sr_survey_clean_single_line(sr_post_string('title', 190), 190);
     $description = sr_survey_clean_text(sr_post_string('description', 2000), 2000);
@@ -423,6 +435,15 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     }
     if ($surveyId > 0 && !is_array($existingSurveyForSave)) {
         $errors[] = '수정할 설문을 찾을 수 없습니다.';
+    }
+    if ($surveyGroupId > 0 && !is_array(sr_survey_group_by_id($pdo, $surveyGroupId))) {
+        $errors[] = '설문 그룹을 확인하세요.';
+    }
+    foreach ($settingSources as $settingSource) {
+        if ($settingSource === 'group' && $surveyGroupId < 1) {
+            $errors[] = '그룹 적용을 사용하려면 설문 그룹을 선택하세요.';
+            break;
+        }
     }
     if (!in_array($status, sr_survey_statuses(), true)) {
         $errors[] = '상태 값이 올바르지 않습니다.';
@@ -566,6 +587,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     if ($errors === []) {
         $now = sr_now();
         $surveyValues = [
+            'survey_group_id' => $surveyGroupId > 0 ? $surveyGroupId : null,
             'survey_key' => $surveyKey,
             'title' => $title,
             'description' => $description,
@@ -629,7 +651,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
                 $nextQuestionnaireVersion = max(1, (int) ($existingSurvey['questionnaire_version'] ?? 1)) + 1;
                 $pdo->prepare(
                     'UPDATE sr_survey_forms
-                     SET survey_key = :survey_key, title = :title, description = :description,
+                     SET survey_group_id = :survey_group_id, survey_key = :survey_key, title = :title, description = :description,
                          cover_image_url = :cover_image_url,
                          skin_key = :skin_key,
                          research_purpose = :research_purpose, target_population = :target_population, recruitment_method = :recruitment_method,
@@ -659,7 +681,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
             } else {
                 $pdo->prepare(
                     'INSERT INTO sr_survey_forms
-                        (survey_key, title, description, cover_image_url, skin_key, research_purpose, target_population, recruitment_method, estimated_minutes,
+                        (survey_group_id, survey_key, title, description, cover_image_url, skin_key, research_purpose, target_population, recruitment_method, estimated_minutes,
                          project_brief, sponsor_name, research_region, research_language, fieldwork_method, sample_frame, sample_method, target_sample_size,
                          quota_policy, response_rate_basis, analysis_plan, weighting_policy, margin_error_note, methodology_disclosure, ethics_note,
                          sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
@@ -668,7 +690,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
                          public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, comment_extra_fields_json, reaction_preset_key, reaction_comment_preset_key, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
-                        (:survey_key, :title, :description, :cover_image_url, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
+                        (:survey_group_id, :survey_key, :title, :description, :cover_image_url, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
                          :project_brief, :sponsor_name, :research_region, :research_language, :fieldwork_method, :sample_frame, :sample_method, :target_sample_size,
                          :quota_policy, :response_rate_basis, :analysis_plan, :weighting_policy, :margin_error_note, :methodology_disclosure, :ethics_note,
                          :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
@@ -685,6 +707,21 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
             }
             sr_survey_replace_questions($pdo, $surveyId, $questions, $now);
             sr_survey_replace_reward_policy($pdo, $surveyId, $rewardEnabled, $rewardProvider, $rewardModule, $rewardCouponDefinitionId, $rewardAmount, $rewardDedupeScope, $now);
+            $scopeValues = array_merge($surveyValues, [
+                'member_group_keys' => $memberGroupKeys,
+                'starts_at' => $startsAtInput,
+                'ends_at' => $endsAtInput,
+                'response_limit_period_seconds' => $responseLimitPeriodSeconds,
+                'reward_provider' => $rewardProvider,
+                'reward_module' => $rewardModule,
+                'reward_coupon_definition_id' => $rewardCouponDefinitionId,
+                'reward_amount' => $rewardAmount,
+                'reward_dedupe_scope' => $rewardDedupeScope,
+            ]);
+            foreach ($settingSources as $settingKey => $settingSource) {
+                $scopeValues['source_' . $settingKey] = $settingSource;
+            }
+            sr_survey_apply_group_setting_scopes($pdo, $surveyId, $surveyGroupId, $scopeValues, (int) ($account['id'] ?? 0), $now);
             $afterCoverImageUrl = sr_survey_clean_cover_image_url($coverImageUrl);
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) ($account['id'] ?? 0),
@@ -786,6 +823,7 @@ function sr_survey_permanently_delete(PDO $pdo, int $surveyId, string $confirmat
         }
         $pdo->prepare('DELETE FROM sr_survey_comments WHERE survey_id = :survey_id')->execute(['survey_id' => $surveyId]);
         $pdo->prepare('DELETE FROM sr_survey_questions WHERE survey_id = :survey_id')->execute(['survey_id' => $surveyId]);
+        $pdo->prepare('DELETE FROM sr_survey_setting_sources WHERE survey_id = :survey_id')->execute(['survey_id' => $surveyId]);
         $deleteStmt = $pdo->prepare('DELETE FROM sr_survey_forms WHERE id = :id AND deleted_at IS NOT NULL');
         $deleteStmt->execute(['id' => $surveyId]);
         if ($deleteStmt->rowCount() < 1) {

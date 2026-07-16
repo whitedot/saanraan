@@ -751,7 +751,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'comment_extra_fields_json',
             $values['comment_extra_fields_json'] ?? '[]',
             '댓글 추가 입력 항목',
-            '이 콘텐츠의 댓글과 답글 작성 시 받을 항목입니다.'
+            '이 콘텐츠의 댓글과 답글 작성 시 받을 항목입니다.',
+            '<div class="admin-setting-source-line admin-setting-source-line-end">' . $pageSettingSourceRadioHtml('source_comment_extra_fields_json', $pageSettingSource($values, 'comment_extra_fields_json')) . '</div>'
         ); ?>
         <section id="content-section-seo" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e('SEO 설정'); ?></h2>

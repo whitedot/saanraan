@@ -11,6 +11,8 @@ return [
     'POST /quiz/*' => 'actions/view.php',
     'GET /admin/quiz' => 'actions/admin-quiz.php',
     'POST /admin/quiz' => 'actions/admin-quiz.php',
+    'GET /admin/quiz/groups' => 'actions/admin-groups.php',
+    'POST /admin/quiz/groups' => 'actions/admin-groups.php',
     'GET /admin/quiz/comments' => 'actions/admin-comments.php',
     'POST /admin/quiz/comments' => 'actions/admin-comments.php',
     'GET /admin/quiz/settings' => 'actions/admin-settings.php',

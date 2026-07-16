@@ -15,6 +15,11 @@ return [
             'order' => 20,
         ],
         [
+            'label' => '퀴즈 그룹 관리',
+            'path' => '/admin/quiz/groups',
+            'order' => 15,
+        ],
+        [
             'label' => '댓글 관리',
             'path' => '/admin/quiz/comments',
             'order' => 25,

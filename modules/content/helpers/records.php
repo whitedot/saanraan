@@ -62,6 +62,7 @@ function sr_content_input_values(?PDO $pdo = null): array
         'reaction_preset_key' => $pdo instanceof PDO && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_preset_key', 80)) : '',
         'reaction_comment_preset_key' => $pdo instanceof PDO && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '',
         'comment_extra_fields_json' => sr_post_string_without_truncation('comment_extra_fields_json', 20000) ?? '[]',
+        'source_comment_extra_fields_json' => sr_content_normalize_setting_source(sr_post_string('source_comment_extra_fields_json', 20)),
         'seo_title' => sr_content_clean_single_line(sr_post_string('seo_title', 160), 160),
         'seo_description' => sr_content_clean_single_line(sr_post_string('seo_description', 255), 255),
     ];
@@ -151,6 +152,9 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
         if (sr_content_normalize_setting_source((string) ($values[$sourceKey] ?? 'content')) === 'group' && $pageGroupId < 1) {
             $errors[] = $sourceLabel . ' 설정은 콘텐츠 그룹이 있어야 그룹 적용을 할 수 있습니다.';
         }
+    }
+    if (sr_content_normalize_setting_source((string) ($values['source_comment_extra_fields_json'] ?? 'content')) === 'group' && $pageGroupId < 1) {
+        $errors[] = '댓글 추가 입력 항목 설정은 콘텐츠 그룹이 있어야 그룹 적용을 할 수 있습니다.';
     }
 
     $slug = (string) ($values['slug'] ?? '');

@@ -8,6 +8,7 @@ require_once SR_ROOT . '/modules/quiz/helpers/admin.php';
 require_once SR_ROOT . '/modules/quiz/helpers/attempts.php';
 require_once SR_ROOT . '/modules/quiz/helpers/comments.php';
 require_once SR_ROOT . '/modules/quiz/helpers/rewards.php';
+require_once SR_ROOT . '/modules/quiz/helpers/groups.php';
 
 function sr_quiz_key_is_valid(string $key): bool
 {
@@ -1401,9 +1402,13 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
     }
     $limit = max(1, min(200, $limit));
     $offset = max(0, $offset);
+    $groupSchemaAvailable = sr_quiz_groups_table_exists($pdo);
+    $groupSelectSql = $groupSchemaAvailable ? 'q.quiz_group_id, qg.title AS quiz_group_title,' : '0 AS quiz_group_id, \'\' AS quiz_group_title,';
+    $groupJoinSql = $groupSchemaAvailable ? ' LEFT JOIN sr_quiz_groups qg ON qg.id = q.quiz_group_id' : '';
+    $groupBySql = $groupSchemaAvailable ? ', q.quiz_group_id, qg.title' : '';
 
     $stmt = $pdo->prepare(
-        'SELECT q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
+        'SELECT q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score, ' . $groupSelectSql . '
                 q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
                 q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, q.deleted_at,
                 COUNT(DISTINCT qs.id) AS question_count,
@@ -1415,6 +1420,7 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
                 COALESCE(qrg.reward_grant_count, 0) AS reward_grant_count,
                 COALESCE(qscf.cleanup_pending_count, 0) AS cleanup_pending_count
          FROM sr_quiz_sets q
+         ' . $groupJoinSql . '
          LEFT JOIN sr_quiz_questions qs ON qs.quiz_id = q.id
          LEFT JOIN sr_quiz_result_rules rr ON rr.quiz_id = q.id
          LEFT JOIN sr_quiz_reward_policies rp ON rp.quiz_id = q.id AND rp.status = \'active\'
@@ -1439,7 +1445,7 @@ function sr_quiz_admin_quizzes(PDO $pdo, array $filters = [], int $limit = 100, 
              GROUP BY source_id
          ) qscf ON qscf.source_id = q.id
          ' . $whereSql . '
-         GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score,
+         GROUP BY q.id, q.quiz_key, q.title, q.status, q.quiz_mode, q.scoring_model, q.pass_score' . $groupBySql . ',
                   q.starts_at, q.ends_at, q.attempt_limit_policy, q.attempt_limit_period_seconds,
                   q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at, q.deleted_at,
                   qa.attempt_count, qa.passed_count, qrg.reward_grant_count, qscf.cleanup_pending_count

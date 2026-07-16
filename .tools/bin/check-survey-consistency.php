@@ -156,9 +156,18 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.07.004'",
+    "'version' => '2026.07.005'",
     'Survey module version must include display name update'
 );
+foreach (['CREATE TABLE IF NOT EXISTS sr_survey_groups', 'CREATE TABLE IF NOT EXISTS sr_survey_setting_sources', 'survey_group_id BIGINT UNSIGNED NULL'] as $needle) {
+    sr_survey_check_contains('modules/survey/install.sql', $needle, 'Survey group schema must be installed');
+}
+foreach (["'GET /admin/surveys/groups'", "'POST /admin/surveys/groups'"] as $needle) {
+    sr_survey_check_contains('modules/survey/paths.php', $needle, 'Survey group admin routes must be registered');
+}
+foreach (["'item' => '단독'", "'group' => '그룹'", "'all' => '전체'", 'source_comment_extra_fields_json'] as $needle) {
+    sr_survey_check_contains('modules/survey/actions/admin-surveys.php', $needle, 'Survey setting scope UI must expose item, group, and all');
+}
 foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
     sr_survey_check_contains(
         'modules/survey/updates/2026.06.009.sql',

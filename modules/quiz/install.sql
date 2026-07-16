@@ -1,5 +1,20 @@
+CREATE TABLE IF NOT EXISTS sr_quiz_groups (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    group_key VARCHAR(64) NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    description TEXT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'enabled',
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_quiz_groups_key (group_key),
+    KEY idx_sr_quiz_groups_status_sort (status, sort_order, id)
+);
+
 CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    quiz_group_id BIGINT UNSIGNED NULL,
     quiz_key VARCHAR(64) NOT NULL,
     title VARCHAR(190) NOT NULL,
     description TEXT NULL,
@@ -30,11 +45,24 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     deleted_at DATETIME NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_sr_quiz_sets_quiz_key (quiz_key),
+    KEY idx_sr_quiz_sets_group (quiz_group_id, id),
     KEY idx_sr_quiz_sets_status (status),
     KEY idx_sr_quiz_sets_status_dates (status, starts_at, ends_at),
     KEY idx_sr_quiz_sets_mode_model (quiz_mode, scoring_model),
     KEY idx_sr_quiz_sets_view_count (view_count, id),
     KEY idx_sr_quiz_sets_reward (reward_enabled)
+);
+
+CREATE TABLE IF NOT EXISTS sr_quiz_setting_sources (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    quiz_id BIGINT UNSIGNED NOT NULL,
+    setting_key VARCHAR(80) NOT NULL,
+    source VARCHAR(20) NOT NULL DEFAULT 'item',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sr_quiz_setting_sources_key (quiz_id, setting_key),
+    KEY idx_sr_quiz_setting_sources_quiz (quiz_id)
 );
 
 CREATE TABLE IF NOT EXISTS sr_quiz_storage_cleanup_failures (

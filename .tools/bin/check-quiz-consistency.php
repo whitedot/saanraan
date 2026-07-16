@@ -106,6 +106,9 @@ function sr_quiz_check_schema(): void
         'attempt_limit_policy VARCHAR(30)',
         'member_group_keys_json LONGTEXT',
         'comments_enabled TINYINT(1)',
+        'CREATE TABLE IF NOT EXISTS sr_quiz_groups',
+        'CREATE TABLE IF NOT EXISTS sr_quiz_setting_sources',
+        'quiz_group_id BIGINT UNSIGNED NULL',
         'skin_key VARCHAR(40) NOT NULL DEFAULT \'\'',
         'return_url VARCHAR(255)',
         'source_module VARCHAR(40)',
@@ -120,7 +123,17 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.07.004'",
+        "'version' => '2026.07.005'",
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/paths.php', [
+        "'GET /admin/quiz/groups'",
+        "'POST /admin/quiz/groups'",
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/admin-quiz.php', [
+        "'item' => '단독'",
+        "'group' => '그룹'",
+        "'all' => '전체'",
+        'source_comment_extra_fields_json',
     ]);
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.012.sql', [
         'ALTER TABLE sr_quiz_sets',

@@ -11,6 +11,8 @@ return [
     'POST /survey/*' => 'actions/view.php',
     'GET /admin/surveys' => 'actions/admin-surveys.php',
     'POST /admin/surveys' => 'actions/admin-surveys.php',
+    'GET /admin/surveys/groups' => 'actions/admin-groups.php',
+    'POST /admin/surveys/groups' => 'actions/admin-groups.php',
     'GET /admin/surveys/comments' => 'actions/admin-comments.php',
     'POST /admin/surveys/comments' => 'actions/admin-comments.php',
     'GET /admin/surveys/responses' => 'actions/admin-responses.php',

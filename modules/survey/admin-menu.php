@@ -15,6 +15,11 @@ return [
             'order' => 20,
         ],
         [
+            'label' => '설문 그룹 관리',
+            'path' => '/admin/surveys/groups',
+            'order' => 15,
+        ],
+        [
             'label' => '보상 로그',
             'path' => '/admin/surveys/reward-logs',
             'order' => 25,

@@ -211,6 +211,17 @@ if ($mode === 'edit') {
 $values = is_array($sessionValues) && $sessionValues !== []
     ? $sessionValues
     : (is_array($editQuiz) ? sr_quiz_admin_values_from_row($editQuiz) : sr_quiz_default_admin_values(sr_quiz_settings($pdo)));
+$quizGroups = sr_quiz_groups($pdo);
+$quizScopeRadioHtml = static function (string $settingKey, string $selected): string {
+    $selected = sr_quiz_setting_scope($selected);
+    $html = '<div class="admin-setting-source-options">';
+    foreach (['item' => '단독', 'group' => '그룹', 'all' => '전체'] as $scope => $label) {
+        $id = 'quiz_setting_source_' . $settingKey . '_' . $scope;
+        $toast = $scope === 'group' ? '저장하면 같은 퀴즈 그룹에 적용됩니다.' : ($scope === 'all' ? '저장하면 삭제되지 않은 전체 퀴즈에 적용됩니다.' : '');
+        $html .= '<label class="form-check form-label" for="' . sr_e($id) . '"><input id="' . sr_e($id) . '" type="radio" name="source_' . sr_e($settingKey) . '" value="' . sr_e($scope) . '" class="form-radio"' . ($toast !== '' ? ' data-admin-scope-toast="' . sr_e($toast) . '"' : '') . ($selected === $scope ? ' checked' : '') . '>' . sr_e($label) . '<span class="sr-only"> 적용</span></label>';
+    }
+    return $html . '</div>';
+};
 $couponRewardDefinitions = sr_quiz_reward_coupon_definitions($pdo, (int) ($values['reward_coupon_definition_id'] ?? 0));
 
 $adminPageTitle = $mode === 'list' ? '퀴즈 관리' : ($mode === 'edit' ? '퀴즈 수정' : '퀴즈 생성');
@@ -294,6 +305,7 @@ if ($mode === 'list') {
                     <tr>
                         <th<?php echo sr_admin_sort_aria('quiz_key', $quizSort); ?>><?php echo sr_admin_sort_header_html('Key', 'quiz_key', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('title', $quizSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
+                        <th>그룹</th>
                         <th<?php echo sr_admin_sort_aria('status', $quizSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('question_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('문제', 'question_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('source_count', $quizSort); ?>><?php echo sr_admin_sort_header_html('연결', 'source_count', $quizSort, $quizSortOptions, $quizDefaultSort); ?></th>
@@ -307,7 +319,7 @@ if ($mode === 'list') {
                 <tbody>
                     <?php if ($quizzes === []) { ?>
                         <tr>
-                            <td colspan="10" class="admin-empty-state"><?php echo $quizDeletedView ? '삭제한 퀴즈가 없습니다.' : '조건에 맞는 퀴즈가 없습니다.'; ?></td>
+                            <td colspan="11" class="admin-empty-state"><?php echo $quizDeletedView ? '삭제한 퀴즈가 없습니다.' : '조건에 맞는 퀴즈가 없습니다.'; ?></td>
                         </tr>
                     <?php } ?>
                     <?php foreach ($quizzes as $quiz) { ?>
@@ -341,6 +353,7 @@ if ($mode === 'list') {
                                     </span>
                                 <?php } ?>
                             </td>
+                            <td class="admin-table-break"><?php echo sr_e((string) ($quiz['quiz_group_title'] ?? '')); ?></td>
                             <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($quizIsDeleted ? 'is-danger' : sr_quiz_admin_status_class($quizStatus)); ?>"><?php echo sr_e($quizIsDeleted ? '삭제됨' : sr_quiz_status_label($quizStatus)); ?></span></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['question_count'] ?? 0))); ?></td>
                             <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($quiz['source_count'] ?? 0))); ?></td>
@@ -753,6 +766,18 @@ $quizSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
+                <label class="form-label" for="quiz_group_id">퀴즈 그룹</label>
+                <div class="form-field">
+                    <select id="quiz_group_id" name="quiz_group_id" class="form-select">
+                        <option value="0">선택안함</option>
+                        <?php foreach ($quizGroups as $quizGroup) { ?>
+                            <option value="<?php echo sr_e((string) (int) $quizGroup['id']); ?>"<?php echo (int) ($values['quiz_group_id'] ?? 0) === (int) $quizGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $quizGroup['title']); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="form-help">그룹 적용 범위를 사용하려면 그룹을 선택하세요.</p>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label" for="quiz_cover_image_url">대표/OG 이미지</label>
                 <div class="form-field">
                     <input id="quiz_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
@@ -774,6 +799,7 @@ $quizSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">퀴즈 상세, 응시, 결과 화면에 사용할 출력 템플릿 묶음을 고릅니다.</p>
+                    <?php echo $quizScopeRadioHtml('display', (string) ($values['source_display'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -818,6 +844,7 @@ $quizSectionNavItems = [
                 <label class="form-label" for="quiz_pass_score">통과 점수</label>
                 <div class="form-field">
                     <input id="quiz_pass_score" type="number" name="pass_score" value="<?php echo sr_e((string) ($values['pass_score'] ?? '')); ?>" class="form-input" min="0" step="1">
+                    <?php echo $quizScopeRadioHtml('scoring', (string) ($values['source_scoring'] ?? 'item')); ?>
                 </div>
             </div>
         </div>
@@ -1010,6 +1037,7 @@ $quizSectionNavItems = [
                 <label class="form-label" for="quiz_ends_at">공개 종료일시</label>
                 <div class="form-field">
                     <input id="quiz_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_quiz_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
+                    <?php echo $quizScopeRadioHtml('publication', (string) ($values['source_publication'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -1034,6 +1062,7 @@ $quizSectionNavItems = [
                 <div class="form-field">
                     <?php echo sr_admin_member_group_key_badge_select_html('quiz_member_group_keys', 'member_group_keys', sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), $memberGroups); ?>
                     <p class="form-help">선택하지 않으면 로그인 회원 전체가 응시할 수 있습니다.</p>
+                    <?php echo $quizScopeRadioHtml('attempt', (string) ($values['source_attempt'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -1048,6 +1077,7 @@ $quizSectionNavItems = [
                         허용
                     </label>
                     <p class="form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
+                    <?php echo $quizScopeRadioHtml('comments', (string) ($values['source_comments'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -1070,6 +1100,7 @@ $quizSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용합니다.</p>
+                    <?php echo $quizScopeRadioHtml('reactions', (string) ($values['source_reactions'] ?? 'item')); ?>
                 </div>
             </div>
         </div>
@@ -1080,7 +1111,8 @@ $quizSectionNavItems = [
         'comment_extra_fields_json',
         $values['comment_extra_fields_json'] ?? '[]',
         '댓글 추가 입력 항목',
-        '이 퀴즈의 댓글과 답글 작성 시 받을 항목입니다.'
+        '이 퀴즈의 댓글과 답글 작성 시 받을 항목입니다.',
+        '<div class="admin-setting-source-line admin-setting-source-line-end">' . $quizScopeRadioHtml('comment_extra_fields_json', (string) ($values['source_comment_extra_fields_json'] ?? 'item')) . '</div>'
     ); ?>
 
     <section id="quiz-section-questions" class="card admin-list-card admin-list-form" data-admin-section-anchor>
@@ -1398,6 +1430,7 @@ $quizSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">같은 회원에게 같은 보상을 다시 지급할 수 있는 범위를 정합니다.</p>
+                    <?php echo $quizScopeRadioHtml('reward', (string) ($values['source_reward'] ?? 'item')); ?>
                 </div>
             </div>
         </div>

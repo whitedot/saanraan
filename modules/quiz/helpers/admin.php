@@ -19,6 +19,7 @@ function sr_quiz_default_admin_values(?array $settings = null): array
 
     return [
         'id' => 0,
+        'quiz_group_id' => 0,
         'quiz_key' => '',
         'title' => '',
         'description' => '',
@@ -56,6 +57,14 @@ function sr_quiz_default_admin_values(?array $settings = null): array
                 'choices' => $defaultChoices,
             ],
         ],
+        'source_display' => 'item',
+        'source_publication' => 'item',
+        'source_scoring' => 'item',
+        'source_attempt' => 'item',
+        'source_comments' => 'item',
+        'source_reactions' => 'item',
+        'source_comment_extra_fields_json' => 'item',
+        'source_reward' => 'item',
     ];
 }
 
@@ -108,6 +117,7 @@ function sr_quiz_admin_values_from_row(array $quiz): array
 
     return [
         'id' => (int) ($quiz['id'] ?? 0),
+        'quiz_group_id' => (int) ($quiz['quiz_group_id'] ?? 0),
         'quiz_key' => (string) ($quiz['quiz_key'] ?? ''),
         'title' => (string) ($quiz['title'] ?? ''),
         'description' => (string) ($quiz['description'] ?? ''),
@@ -137,6 +147,14 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'community_source_ids' => implode("\n", $communitySourceIds),
         'result_rules' => implode("\n", $resultRules),
         'questions' => $questions === [] ? sr_quiz_default_admin_values()['questions'] : $questions,
+        'source_display' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'display') : 'item',
+        'source_publication' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'publication') : 'item',
+        'source_scoring' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'scoring') : 'item',
+        'source_attempt' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'attempt') : 'item',
+        'source_comments' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'comments') : 'item',
+        'source_reactions' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'reactions') : 'item',
+        'source_comment_extra_fields_json' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'comment_extra_fields_json') : 'item',
+        'source_reward' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'reward') : 'item',
     ];
 }
 
@@ -256,6 +274,7 @@ function sr_quiz_admin_values_from_post(): array
 
     return [
         'id' => (int) sr_post_string('quiz_id', 20),
+        'quiz_group_id' => max(0, (int) sr_post_string('quiz_group_id', 20)),
         'quiz_key' => sr_quiz_clean_key(sr_post_string('quiz_key', 64)),
         'title' => sr_quiz_clean_single_line(sr_post_string('title', 190), 190),
         'description' => sr_quiz_clean_text(sr_post_string('description', 2000), 2000),
@@ -285,6 +304,14 @@ function sr_quiz_admin_values_from_post(): array
         'community_source_ids' => sr_quiz_clean_text(sr_post_string('community_source_ids', 1000), 1000),
         'result_rules' => sr_quiz_clean_text($resultRuleLines === [] ? sr_post_string('result_rules', 4000) : implode("\n", $resultRuleLines), 4000),
         'questions' => $questions,
+        'source_display' => sr_quiz_setting_scope(sr_post_string('source_display', 20)),
+        'source_publication' => sr_quiz_setting_scope(sr_post_string('source_publication', 20)),
+        'source_scoring' => sr_quiz_setting_scope(sr_post_string('source_scoring', 20)),
+        'source_attempt' => sr_quiz_setting_scope(sr_post_string('source_attempt', 20)),
+        'source_comments' => sr_quiz_setting_scope(sr_post_string('source_comments', 20)),
+        'source_reactions' => sr_quiz_setting_scope(sr_post_string('source_reactions', 20)),
+        'source_comment_extra_fields_json' => sr_quiz_setting_scope(sr_post_string('source_comment_extra_fields_json', 20)),
+        'source_reward' => sr_quiz_setting_scope(sr_post_string('source_reward', 20)),
     ];
 }
 
@@ -418,6 +445,16 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
     }
     if ((string) ($values['title'] ?? '') === '') {
         $errors[] = '퀴즈 제목을 입력하세요.';
+    }
+    $quizGroupId = (int) ($values['quiz_group_id'] ?? 0);
+    if ($quizGroupId > 0 && !is_array(sr_quiz_group_by_id($pdo, $quizGroupId))) {
+        $errors[] = '퀴즈 그룹을 확인하세요.';
+    }
+    foreach (array_keys(sr_quiz_group_setting_bundles()) as $settingKey) {
+        if (sr_quiz_setting_scope((string) ($values['source_' . $settingKey] ?? 'item')) === 'group' && $quizGroupId < 1) {
+            $errors[] = '그룹 적용을 사용하려면 퀴즈 그룹을 선택하세요.';
+            break;
+        }
     }
     $skinKey = (string) ($values['skin_key'] ?? '');
     if ($skinKey !== '' && !isset(sr_quiz_skin_options()[$skinKey])) {
@@ -965,6 +1002,7 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
 function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
 {
     $quizId = (int) ($values['id'] ?? 0);
+    $quizGroupId = (int) ($values['quiz_group_id'] ?? 0);
     $now = sr_now();
     $passScore = (string) ($values['pass_score'] ?? '') === '' ? null : (int) $values['pass_score'];
     $quizMode = in_array((string) ($values['quiz_mode'] ?? 'scored'), sr_quiz_modes(), true) ? (string) $values['quiz_mode'] : 'scored';
@@ -1005,6 +1043,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
             $stmt = $pdo->prepare(
                 'UPDATE sr_quiz_sets
                  SET quiz_key = :quiz_key,
+                     quiz_group_id = :quiz_group_id,
                      title = :title,
                      description = :description,
                      cover_image_url = :cover_image_url,
@@ -1031,6 +1070,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
             );
             $stmt->execute([
                 'quiz_key' => (string) $values['quiz_key'],
+                'quiz_group_id' => $quizGroupId > 0 ? $quizGroupId : null,
                 'title' => (string) $values['title'],
                 'description' => (string) $values['description'],
                 'cover_image_url' => sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')),
@@ -1057,16 +1097,17 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_quiz_sets
-                    (quiz_key, title, description, cover_image_url, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
+                    (quiz_group_id, quiz_key, title, description, cover_image_url, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
                      attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reaction_preset_key, reaction_comment_preset_key, comment_extra_fields_json, reward_enabled,
                      created_by_account_id, updated_by_account_id, created_at, updated_at)
                  VALUES
-                    (:quiz_key, :title, :description, :cover_image_url, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
+                    (:quiz_group_id, :quiz_key, :title, :description, :cover_image_url, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
                      :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reaction_preset_key, :reaction_comment_preset_key, :comment_extra_fields_json, :reward_enabled,
                      :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'quiz_key' => (string) $values['quiz_key'],
+                'quiz_group_id' => $quizGroupId > 0 ? $quizGroupId : null,
                 'title' => (string) $values['title'],
                 'description' => (string) $values['description'],
                 'cover_image_url' => sr_quiz_clean_cover_image_url((string) ($values['cover_image_url'] ?? '')),
@@ -1243,6 +1284,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
             ]);
         }
 
+        sr_quiz_apply_group_setting_scopes($pdo, $quizId, $quizGroupId, $values, $accountId, $now);
         $pdo->commit();
         if (function_exists('sr_url_embed_mark_target_url_cache_stale')) {
             sr_url_embed_mark_target_url_cache_stale($pdo, 'quiz', 'quiz_set', $quizId);
@@ -1307,6 +1349,7 @@ function sr_quiz_permanently_delete(PDO $pdo, int $quizId, string $confirmationP
         $pdo->prepare('DELETE FROM sr_quiz_sources WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
         $pdo->prepare('DELETE FROM sr_quiz_comments WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
         $pdo->prepare('DELETE FROM sr_quiz_questions WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
+        $pdo->prepare('DELETE FROM sr_quiz_setting_sources WHERE quiz_id = :quiz_id')->execute(['quiz_id' => $quizId]);
         $deleteStmt = $pdo->prepare('DELETE FROM sr_quiz_sets WHERE id = :id AND deleted_at IS NOT NULL');
         $deleteStmt->execute(['id' => $quizId]);
         if ($deleteStmt->rowCount() < 1) {

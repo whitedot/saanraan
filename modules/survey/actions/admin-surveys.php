@@ -174,6 +174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <th<?php echo sr_admin_sort_aria('survey_key', $surveySort); ?>><?php echo sr_admin_sort_header_html('Key', 'survey_key', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
                         <th<?php echo sr_admin_sort_aria('title', $surveySort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
+                        <th>그룹</th>
                         <th<?php echo sr_admin_sort_aria('status', $surveySort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $surveySort, $surveySortOptions, $surveyDefaultSort); ?></th>
                         <th>기간</th>
                         <th>대상</th>
@@ -187,7 +188,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </thead>
                 <tbody>
                     <?php if ($surveys === []): ?>
-                        <tr><td colspan="11" class="admin-empty-state"><?php echo $surveyDeletedView ? '삭제한 설문이 없습니다.' : '등록된 설문이 없습니다.'; ?></td></tr>
+                        <tr><td colspan="12" class="admin-empty-state"><?php echo $surveyDeletedView ? '삭제한 설문이 없습니다.' : '등록된 설문이 없습니다.'; ?></td></tr>
                     <?php endif; ?>
                     <?php foreach ($surveys as $survey): ?>
                         <?php
@@ -221,6 +222,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </span>
                                 <?php endif; ?>
                             </td>
+                            <td class="admin-table-break"><?php echo sr_e((string) ($survey['survey_group_title'] ?? '')); ?></td>
                             <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($surveyIsDeleted ? 'is-danger' : sr_survey_admin_status_class($surveyStatus)); ?>"><?php echo sr_e($surveyIsDeleted ? '삭제됨' : sr_survey_status_label($surveyStatus)); ?></span></td>
                             <td class="admin-table-break"><?php echo $periodLabel === '~' || $periodLabel === '' ? '상시' : sr_e($periodLabel); ?></td>
                             <td class="admin-table-break"><?php echo $listGroupKeys === [] ? '전체' : sr_e(implode(', ', $listGroupKeys)); ?></td>
@@ -302,6 +304,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $values = is_array($editSurvey) ? $editSurvey : [
         ...sr_survey_settings($pdo),
         'id' => 0,
+        'survey_group_id' => 0,
         'survey_key' => '',
         'title' => '',
         'description' => '',
@@ -356,6 +359,22 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'reaction_comment_preset_key' => '',
         'reward_enabled' => 0,
     ];
+    $surveyGroups = sr_survey_groups($pdo);
+    foreach (array_keys(sr_survey_group_setting_bundles()) as $settingKey) {
+        $values['source_' . $settingKey] = $mode === 'edit' && (int) ($values['id'] ?? 0) > 0
+            ? sr_survey_setting_source($pdo, (int) $values['id'], $settingKey)
+            : 'item';
+    }
+    $surveyScopeRadioHtml = static function (string $settingKey, string $selected): string {
+        $selected = sr_survey_setting_scope($selected);
+        $html = '<div class="admin-setting-source-options">';
+        foreach (['item' => '단독', 'group' => '그룹', 'all' => '전체'] as $scope => $label) {
+            $id = 'survey_setting_source_' . $settingKey . '_' . $scope;
+            $toast = $scope === 'group' ? '저장하면 같은 설문 그룹에 적용됩니다.' : ($scope === 'all' ? '저장하면 삭제되지 않은 전체 설문에 적용됩니다.' : '');
+            $html .= '<label class="form-check form-label" for="' . sr_e($id) . '"><input id="' . sr_e($id) . '" type="radio" name="source_' . sr_e($settingKey) . '" value="' . sr_e($scope) . '" class="form-radio"' . ($toast !== '' ? ' data-admin-scope-toast="' . sr_e($toast) . '"' : '') . ($selected === $scope ? ' checked' : '') . '>' . sr_e($label) . '<span class="sr-only"> 적용</span></label>';
+        }
+        return $html . '</div>';
+    };
     $selectedMemberGroupKeys = sr_survey_member_group_keys_from_json($values['member_group_keys_json'] ?? '[]');
     if ($editQuestions === []) {
         $editQuestions = [
@@ -550,6 +569,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
+                    <label class="form-label" for="survey_group_id">설문 그룹</label>
+                    <div class="form-field"><select id="survey_group_id" name="survey_group_id" class="form-select"><option value="0">선택안함</option><?php foreach ($surveyGroups as $surveyGroup): ?><option value="<?php echo sr_e((string) (int) $surveyGroup['id']); ?>"<?php echo (int) ($values['survey_group_id'] ?? 0) === (int) $surveyGroup['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $surveyGroup['title']); ?></option><?php endforeach; ?></select><p class="form-help">그룹 적용 범위를 사용하려면 그룹을 선택하세요.</p></div>
+                </div>
+                <div class="form-row">
                     <label class="form-label" for="survey_cover_image_url">대표/OG 이미지</label>
                     <div class="form-field">
                         <input id="survey_cover_image_url" type="text" name="cover_image_url" value="<?php echo sr_e(sr_survey_clean_cover_image_url((string) ($values['cover_image_url'] ?? ''))); ?>" class="form-input form-control-full" maxlength="255" placeholder="/storage/... 또는 https://...">
@@ -691,6 +714,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="survey_ends_at">공개 종료일시</label>
                     <div class="form-field">
                         <input id="survey_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
+                        <?php echo $surveyScopeRadioHtml('publication', (string) ($values['source_publication'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -740,6 +764,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             비밀 댓글 허용
                         </label>
                         <p class="form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
+                        <?php echo $surveyScopeRadioHtml('comments', (string) ($values['source_comments'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -762,6 +787,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php endforeach; ?>
                         </select>
                         <p class="form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용합니다.</p>
+                        <?php echo $surveyScopeRadioHtml('reactions', (string) ($values['source_reactions'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -778,6 +804,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="survey_response_limit_period_seconds">제한 기간</label>
                     <div class="form-field">
                         <input id="survey_response_limit_period_seconds" type="number" name="response_limit_period_seconds" value="<?php echo sr_e((string) ($values['response_limit_period_seconds'] ?? '')); ?>" class="form-input" min="0">
+                        <?php echo $surveyScopeRadioHtml('participation', (string) ($values['source_participation'] ?? 'item')); ?>
                         <p class="form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
                     </div>
                 </div>
@@ -789,6 +816,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="index"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'index' ? ' selected' : ''; ?>>색인 허용</option>
                             <option value="noindex"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'noindex' ? ' selected' : ''; ?>>색인 제외</option>
                         </select>
+                        <?php echo $surveyScopeRadioHtml('display', (string) ($values['source_display'] ?? 'item')); ?>
                     </div>
                 </div>
             </div>
@@ -922,6 +950,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="survey_privacy_notice">개인정보 안내</label>
                     <div class="form-field">
                         <textarea id="survey_privacy_notice" name="privacy_notice" class="form-textarea"><?php echo sr_e((string) ($values['privacy_notice'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('consent', (string) ($values['source_consent'] ?? 'item')); ?>
                     </div>
                 </div>
             </div>
@@ -946,6 +975,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="ledger_asset"<?php echo $policyProvider === 'ledger_asset' ? ' selected' : ''; ?>>포인트/금액</option>
                             <option value="coupon"<?php echo $policyProvider === 'coupon' ? ' selected' : ''; ?>>쿠폰</option>
                         </select>
+                        <?php echo $surveyScopeRadioHtml('reward', (string) ($values['source_reward'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -993,7 +1023,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             'comment_extra_fields_json',
             $values['comment_extra_fields_json'] ?? '[]',
             '댓글 추가 입력 항목',
-            '이 설문의 댓글과 답글 작성 시 받을 항목입니다.'
+            '이 설문의 댓글과 답글 작성 시 받을 항목입니다.',
+            '<div class="admin-setting-source-line admin-setting-source-line-end">' . $surveyScopeRadioHtml('comment_extra_fields_json', (string) ($values['source_comment_extra_fields_json'] ?? 'item')) . '</div>'
         ); ?>
         <section id="survey-section-questions" class="card admin-list-card admin-list-form admin-survey-question-list-card" data-admin-section-anchor>
             <div class="card-header">

@@ -7,6 +7,7 @@ require_once dirname(__DIR__, 2) . '/core/helpers/comment-extra-fields.php';
 require_once dirname(__DIR__, 2) . '/core/helpers/upload.php';
 require_once SR_ROOT . '/modules/survey/helpers/comments.php';
 require_once SR_ROOT . '/modules/survey/helpers/responses.php';
+require_once SR_ROOT . '/modules/survey/helpers/groups.php';
 
 function sr_survey_key_is_valid(string $key): bool
 {
