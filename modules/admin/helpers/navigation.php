@@ -299,6 +299,45 @@ function sr_admin_module_menu_reference_index(PDO $pdo): array
     return $references;
 }
 
+function sr_admin_module_menu_reference(PDO $pdo, string $moduleKey, string $path): array
+{
+    $reference = sr_admin_module_menu_reference_index($pdo)[$moduleKey][$path] ?? [];
+
+    return is_array($reference) ? $reference : [];
+}
+
+function sr_admin_module_reference_list_html(PDO $pdo, array $targets): string
+{
+    $items = [];
+    $referenceIndex = sr_admin_module_menu_reference_index($pdo);
+
+    foreach ($targets as $target) {
+        if (!is_array($target)) {
+            continue;
+        }
+
+        $moduleKey = trim((string) ($target['module_key'] ?? ''));
+        $path = trim((string) ($target['path'] ?? ''));
+        $reference = $referenceIndex[$moduleKey][$path] ?? [];
+        $label = is_array($reference) ? trim((string) ($reference['label'] ?? '')) : '';
+        if ($label === '' || $path === '' || isset($items[$path])) {
+            continue;
+        }
+
+        $items[$path] = '<li><a href="' . sr_e(sr_url($path)) . '" target="_blank" rel="noopener noreferrer">'
+            . sr_material_icon_html('extension', 'form-help-reference-icon')
+            . '<span class="form-help-reference-label">' . sr_e($label) . '</span></a></li>';
+    }
+
+    if ($items === []) {
+        return '';
+    }
+
+    return '<ul class="form-help form-help-info form-help-reference-list" aria-label="참조 모듈">'
+        . implode('', $items)
+        . '</ul>';
+}
+
 function sr_admin_apply_dynamic_module_menu_labels(PDO $pdo, string $moduleKey, array $menu): array
 {
     $assetMenus = [

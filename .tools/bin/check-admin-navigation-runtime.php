@@ -208,6 +208,17 @@ sr_admin_navigation_runtime_assert(
     (string) ($seoReference['label'] ?? '') === (string) ($moduleGroups['seo']['label'] ?? ''),
     'Admin module menu reference index must use only the module label when the sidebar has no submenu.'
 );
+$communityReferenceHtml = sr_admin_module_reference_list_html($pdo, [
+    ['module_key' => 'community', 'path' => '/admin/community/settings'],
+    ['module_key' => 'seo', 'path' => '/admin/seo'],
+]);
+sr_admin_navigation_runtime_assert(
+    str_contains($communityReferenceHtml, 'class="form-help form-help-info form-help-reference-list"')
+        && str_contains($communityReferenceHtml, 'form-help-reference-icon')
+        && str_contains($communityReferenceHtml, 'class="form-help-reference-label"')
+        && str_contains($communityReferenceHtml, 'target="_blank" rel="noopener noreferrer"'),
+    'Admin module reference renderer must output linked menu contract labels with the shared reference style.'
+);
 
 $pdoWithoutNotification = sr_admin_navigation_runtime_pdo();
 $pdoWithoutNotification->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'notification'");

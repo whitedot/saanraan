@@ -7,34 +7,6 @@ $communitySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions
 $communityBoardSidebarSiteMenuAvailable = isset($communityBoardSidebarSiteMenuAvailable)
     ? (bool) $communityBoardSidebarSiteMenuAvailable
     : sr_community_board_sidebar_site_menu_available($pdo);
-$communitySettingsModuleReferenceListHtml = static function (array $references): string {
-    $items = [];
-    foreach ($references as $reference) {
-        if (!is_array($reference)) {
-            continue;
-        }
-        $label = trim((string) ($reference['label'] ?? ''));
-        $path = trim((string) ($reference['path'] ?? ''));
-        if ($label === '' || $path === '' || isset($items[$path])) {
-            continue;
-        }
-        $items[$path] = '<li><a href="' . sr_e(sr_url($path)) . '" target="_blank" rel="noopener noreferrer">'
-            . sr_material_icon_html('extension', 'form-help-reference-icon')
-            . '<span class="form-help-reference-label">' . sr_e($label) . '</span></a></li>';
-    }
-    if ($items === []) {
-        return '';
-    }
-
-    return '<ul class="form-help form-help-info form-help-reference-list" aria-label="참조 모듈">'
-        . implode('', $items)
-        . '</ul>';
-};
-$communitySettingsModuleAdminReferenceIndex = sr_admin_module_menu_reference_index($pdo);
-$communitySettingsModuleAdminReference = static function (string $moduleKey, string $path) use ($communitySettingsModuleAdminReferenceIndex): array {
-    $reference = $communitySettingsModuleAdminReferenceIndex[$moduleKey][$path] ?? [];
-    return is_array($reference) ? $reference : [];
-};
 $communitySettingsModuleAdminPaths = [
     'site_menu' => '/admin/site-menus',
     'content_layout' => '/admin/content/settings',
@@ -52,21 +24,19 @@ foreach ($communityLayoutOptions as $communityLayoutOption) {
     $providerModuleKey = is_array($communityLayoutOption) ? (string) ($communityLayoutOption['provider_module_key'] ?? '') : '';
     $referenceKey = $providerModuleKey . '_layout';
     $referencePath = (string) ($communitySettingsModuleAdminPaths[$referenceKey] ?? '');
-    $reference = $communitySettingsModuleAdminReference($providerModuleKey, $referencePath);
-    if ($providerModuleKey !== 'community' && $reference !== []) {
-        $communityLayoutModuleReferences[$providerModuleKey] = $reference;
+    if ($providerModuleKey !== 'community' && $referencePath !== '') {
+        $communityLayoutModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey, 'path' => $referencePath];
     }
 }
 $communitySiteMenuModuleReferences = $communityBoardSidebarSiteMenuAvailable
-    ? array_filter([$communitySettingsModuleAdminReference('site_menu', $communitySettingsModuleAdminPaths['site_menu'])])
+    ? [['module_key' => 'site_menu', 'path' => $communitySettingsModuleAdminPaths['site_menu']]]
     : [];
 $communityEditorModuleReferences = [];
 foreach (sr_editor_contracts($pdo) as $communityEditorContract) {
     $editorModuleKey = is_array($communityEditorContract) ? (string) ($communityEditorContract['module_key'] ?? '') : '';
     $referencePath = (string) ($communitySettingsModuleAdminPaths[$editorModuleKey] ?? '');
-    $reference = $communitySettingsModuleAdminReference($editorModuleKey, $referencePath);
-    if ($reference !== []) {
-        $communityEditorModuleReferences[$editorModuleKey] = $reference;
+    if ($editorModuleKey !== '' && $referencePath !== '') {
+        $communityEditorModuleReferences[$editorModuleKey] = ['module_key' => $editorModuleKey, 'path' => $referencePath];
     }
 }
 $communityToolbarModuleReferences = isset($communityEditorModuleReferences['ckeditor'])
@@ -76,9 +46,8 @@ $communityInternalEmbedModuleReferences = [];
 foreach (array_keys(sr_enabled_module_contract_files($pdo, 'url-embed-targets.php', ['community'])) as $embedModuleKey) {
     $referenceKey = (string) $embedModuleKey . '_embed';
     $referencePath = (string) ($communitySettingsModuleAdminPaths[$referenceKey] ?? '');
-    $reference = $communitySettingsModuleAdminReference((string) $embedModuleKey, $referencePath);
-    if ($reference !== []) {
-        $communityInternalEmbedModuleReferences[(string) $embedModuleKey] = $reference;
+    if ($referencePath !== '') {
+        $communityInternalEmbedModuleReferences[(string) $embedModuleKey] = ['module_key' => (string) $embedModuleKey, 'path' => $referencePath];
     }
 }
 $communityBoardSidebarMenuTypeOptions = sr_community_board_sidebar_menu_type_options($communityBoardSidebarSiteMenuAvailable);
@@ -866,7 +835,7 @@ $communitySettingsSectionNavItems = [
                     <?php } ?>
                 </select>
                 <p class="form-help">커뮤니티 화면의 헤더, 푸터와 메뉴 배치를 정합니다.</p>
-                <?php echo $communitySettingsModuleReferenceListHtml($communityLayoutModuleReferences); ?>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityLayoutModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -875,7 +844,7 @@ $communitySettingsSectionNavItems = [
                 <select id="community_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
                     <?php $communitySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
                 </select>
-                <?php echo $communitySettingsModuleReferenceListHtml($communitySiteMenuModuleReferences); ?>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communitySiteMenuModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -897,7 +866,7 @@ $communitySettingsSectionNavItems = [
                     <?php $communityBoardSidebarSiteMenuSelectOptions((string) ($settings['board_sidebar_site_menu_key'] ?? '')); ?>
                 </select>
                 <p class="form-help">게시판 사이드 메뉴에서 사이트 메뉴의 특정값을 선택한 경우에만 사용합니다.</p>
-                <?php echo $communitySettingsModuleReferenceListHtml($communitySiteMenuModuleReferences); ?>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communitySiteMenuModuleReferences); ?>
             </div>
         </div>
         <?php } ?>
@@ -917,7 +886,7 @@ $communitySettingsSectionNavItems = [
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-admin-layout-menu-add><?php echo sr_material_icon_html('add'); ?> 추가 메뉴 추가</button>
                     </div>
                 </div>
-                <?php echo $communitySettingsModuleReferenceListHtml($communitySiteMenuModuleReferences); ?>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communitySiteMenuModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -932,7 +901,7 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
                 <p class="form-help">새 게시판과 별도 설정이 없는 기존 게시판에 적용할 기본 입력 방식입니다.</p>
-                <?php echo $communitySettingsModuleReferenceListHtml($communityEditorModuleReferences); ?>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityEditorModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -946,7 +915,7 @@ $communitySettingsSectionNavItems = [
                     <?php } ?>
                 </select>
                 <p class="form-help">CKEditor를 사용할 때 커뮤니티 게시글 작성/수정 화면에 적용할 툴바입니다.</p>
-                <?php echo $communitySettingsModuleReferenceListHtml($communityToolbarModuleReferences); ?>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityToolbarModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -982,7 +951,7 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_internal_embed_enabled', 'internal_embed_enabled', '1', !empty($settings['internal_embed_enabled']), '사용'); ?>
                 <p class="form-help">사이트 안의 콘텐츠 주소를 게시글에서 미리보기 형태로 표시합니다.</p>
-                <?php echo $communitySettingsModuleReferenceListHtml($communityInternalEmbedModuleReferences); ?>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityInternalEmbedModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
