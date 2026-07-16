@@ -682,7 +682,7 @@ foreach ([
 foreach ([
     '단계별 처리 현황',
     '실패 항목',
-    '실패 항목을 다시 대기 상태로 돌립니다.',
+    '실패한 항목만 다시 처리할 수 있는 상태로 바꾸며',
 ] as $marker) {
     $boardCopyJobsView = is_file('modules/community/views/admin-board-copy-jobs.php') ? file_get_contents('modules/community/views/admin-board-copy-jobs.php') : false;
     if (!is_string($boardCopyJobsView) || !str_contains($boardCopyJobsView, $marker)) {
@@ -764,7 +764,10 @@ foreach ([
     '확인됨',
     '정상으로 취급',
     '허용 지연',
-    '<th class="text-end">관리</th>',
+    'admin-operations-status-action-help',
+    '실패한 발송·정리·회수 작업을 실제로 재시도하거나 해결하는 기능이 아닙니다.',
+    '원인을 해결하지 않아도 건수·가장 오래된 시각·원래 상태가 바뀌기 전까지는 정상으로 보일 수 있습니다.',
+    '운영자가 경고를 확인했지만 대상 항목은 아직 남아 있습니다.',
     '<th>대상</th>',
     'colspan="9"',
     '<div class="admin-operations-target-list">',
