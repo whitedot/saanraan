@@ -952,6 +952,12 @@ sr_community_release_file_contains('modules/community/views/admin-boards.php', [
     'data-community-extra-field-input="export_policy"',
     'data-community-extra-field-input="cleanup_policy"',
 ], 'Community admin board extra field UI');
+sr_community_release_file_contains('modules/community/views/admin-asset-policy-sets.php', [
+    "sr_admin_form_label_help_html('community_policy_set_key', '규칙 묶음 식별값'",
+    '회원이 여러 규칙에 해당하면 최소 레벨이 높은 규칙을 우선합니다.',
+    '일치하는 규칙이 없으면 기본 금액을 그대로 사용합니다.',
+    '사용 중지·보관 상태에서는 새 금액 계산에 이 규칙 묶음을 적용하지 않습니다.',
+], 'Community asset policy set operator guidance');
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'edit')",
