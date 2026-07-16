@@ -556,8 +556,8 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
 foreach (['content', 'community'] as $ownerModuleKey) {
     sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/module.php', "'external_embed_enabled' => true");
     sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/module.php', "'internal_embed_enabled' => true");
-    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', $ownerModuleKey === 'content' ? '외부 서비스 자동 표시' : '외부 서비스 임베드');
-    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', $ownerModuleKey === 'content' ? '사이트 콘텐츠 자동 표시' : '내부 모듈 간 임베드');
+    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', '외부 서비스 자동 표시');
+    sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', '사이트 콘텐츠 자동 표시');
 }
 foreach (['quiz', 'survey'] as $providerModuleKey) {
     sr_url_embed_contract_contains('modules/' . $providerModuleKey . '/module.php', "'internal_embed_enabled' => true");

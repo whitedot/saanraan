@@ -53,7 +53,7 @@ $communityLayoutExtraMenuRows = static function (array $menuItems, bool $templat
         $selectedMenuKey = is_array($menuItem) ? (string) ($menuItem['menu_key'] ?? '') : (string) $menuItem;
         ?>
         <div class="admin-layout-menu-row"<?php echo $template ? ' hidden data-admin-layout-menu-template' : ''; ?> data-admin-layout-menu-row>
-            <input type="text" name="layout_extra_menu_area_keys[]" value="<?php echo sr_e($areaKey); ?>" class="form-input admin-layout-menu-key-input" maxlength="60" pattern="(?:[a-f0-9]{12}|[a-z][a-z0-9_]{0,59})" inputmode="latin" autocapitalize="none" spellcheck="false" placeholder="자동 key" aria-label="추가 메뉴 자동 key" readonly data-admin-layout-menu-key data-admin-layout-menu-field<?php echo $template ? ' disabled' : ''; ?>>
+            <input type="text" name="layout_extra_menu_area_keys[]" value="<?php echo sr_e($areaKey); ?>" class="form-input admin-layout-menu-key-input" maxlength="60" pattern="(?:[a-f0-9]{12}|[a-z][a-z0-9_]{0,59})" inputmode="latin" autocapitalize="none" spellcheck="false" placeholder="자동 식별값" aria-label="추가 메뉴 자동 식별값" readonly data-admin-layout-menu-key data-admin-layout-menu-field<?php echo $template ? ' disabled' : ''; ?>>
             <input type="text" name="layout_extra_menu_labels[]" value="<?php echo sr_e($menuLabel); ?>" class="form-input" maxlength="80" placeholder="이름" aria-label="추가 메뉴 이름" data-admin-layout-menu-field<?php echo $template ? ' disabled' : ''; ?>>
             <select name="layout_extra_menu_keys[]" class="form-select" data-admin-layout-menu-select data-admin-layout-menu-field<?php echo $template ? ' disabled' : ''; ?>>
                 <?php $communitySiteMenuSelectOptions((string) $selectedMenuKey); ?>
@@ -131,7 +131,8 @@ $communitySettingsHelp = [
     'asset_settings' => [
         'id' => 'community_settings_help_asset_settings',
         'title' => sr_t('community::help.asset_settings.title'),
-        'body' => $communitySettingsHelpBodyHtml(['community::help.asset_settings.body.1', 'community::help.asset_settings.body.2', 'community::help.asset_settings.body.3']),
+        'body' => $communitySettingsHelpBodyHtml(['community::help.asset_settings.body.1', 'community::help.asset_settings.body.2', 'community::help.asset_settings.body.3'])
+            . '<p>회원 그룹별 적용을 선택하면 회원의 그룹, 레벨과 이용 대상에 맞는 규칙으로 실제 지급·차감 금액을 계산합니다. 규칙의 계산 방식과 조정값은 커뮤니티 회원 그룹별 설정 화면에서 관리합니다.</p>',
     ],
     'once_history_policy' => [
         'id' => 'community_settings_help_once_history_policy',
@@ -159,6 +160,83 @@ $communitySettingsHelp = [
         'title' => sr_t('community::help.level_min_score.title'),
         'body' => $communitySettingsHelpBodyHtml(['community::help.level_min_score.body.1', 'community::help.level_min_score.body.2']),
     ],
+    'report_auto_action' => [
+        'id' => 'community_settings_help_report_auto_action',
+        'title' => '신고 자동 임시 조치 도움말',
+        'body' => '<p>게시글이나 댓글에 정해진 수 이상의 서로 다른 회원이 신고하면 시스템이 먼저 공개 화면에서 숨기고, 운영자가 신고 관리 화면에서 확정·해제·기각을 판단하게 합니다. 같은 회원의 여러 신고는 한 명으로 계산하고 기각된 신고는 제외합니다.</p>'
+            . '<p>집계 기간이 0일이면 마지막 운영자 처리 뒤의 전체 신고를, 1일 이상이면 그 기간 안의 신고만 계산합니다.</p>'
+            . '<p>현재는 공개 처리 방식에서 어느 값을 선택해도 자동 숨김 대상을 목록에서 제외합니다. 대체 문구 선택은 이후 표시 방식을 위한 기준값만 저장합니다.</p>',
+    ],
+    'publication_hold' => [
+        'id' => 'community_settings_help_publication_hold',
+        'title' => '반복 신고 작성자 게시 보류 도움말',
+        'body' => '<p>같은 작성자의 서로 다른 게시글 여러 개가 동시에 자동 임시 조치되면, 정해진 기간 동안 그 회원의 새 게시글을 바로 공개하지 않고 검토 대기로 저장합니다. 댓글 자동 임시 조치는 이 기준에 포함하지 않습니다.</p>'
+            . '<p>각 게시글의 신고자가 설정한 비율 이상 서로 겹치면 조직적인 중복 신고 가능성이 있다고 보고 자동 게시 보류 대신 운영자 검토 대상으로 남깁니다.</p>'
+            . '<p>보류 기간이 끝나도 이미 검토 대기로 저장된 글은 자동 공개하지 않습니다. 운영자가 직접 검토해야 합니다.</p>',
+    ],
+    'confirmed_hold' => [
+        'id' => 'community_settings_help_confirmed_hold',
+        'title' => '확정 조치 반복 게시 보류 도움말',
+        'body' => '<p>설정한 집계 기간 안에 운영자가 확정한 신고 자동조치가 기준 건수 이상 쌓이면 해당 작성자의 새 게시글을 일정 시간 검토 대기로 보냅니다. 확정된 게시글과 댓글 조치를 함께 계산합니다.</p>'
+            . '<p>운영자가 해제하거나 기각한 조치는 계산하지 않습니다. 이 자동 조치는 회원 계정을 정지하지 않고 커뮤니티의 새 게시글 공개만 보류합니다.</p>',
+    ],
+    'multi_asset' => [
+        'id' => 'community_settings_help_multi_asset',
+        'title' => '여러 포인트·금액 함께 결제 도움말',
+        'body' => '<p>유료 게시글 열람이나 첨부 다운로드 한 건을 결제할 때 포인트, 예치금, 적립금처럼 서로 다른 포인트·금액 항목을 함께 사용할 수 있게 합니다.</p>'
+            . '<p>끄면 한 건의 결제에는 한 종류만 사용할 수 있습니다. 쿠폰으로 일부 할인한 뒤 남은 금액을 결제할 때도 같은 제한을 적용합니다.</p>',
+    ],
+    'drafts' => [
+        'id' => 'community_settings_help_drafts',
+        'title' => '게시글 자동 임시저장 도움말',
+        'body' => '<p>로그인 회원이 게시글을 작성하거나 수정할 때 제목, 본문, 카테고리와 선택 항목을 서버에 임시저장합니다. 비회원 게시글, 댓글, 첨부파일 선택값은 저장하지 않습니다.</p>'
+            . '<p>내용이 바뀌었을 때만 설정한 간격으로 저장합니다. 서버 저장에 실패하면 같은 브라우저 탭에 복구용 내용을 남기며, 여러 탭에서 같은 글을 편집하면 마지막으로 저장된 내용이 우선합니다.</p>'
+            . '<p>보존 기간이 지난 임시저장본과 계정별 최대 개수를 넘은 오래된 임시저장본은 작성 화면을 열거나 자동저장에 성공할 때 일부씩 정리합니다. 정해진 시각에 한꺼번에 삭제하는 방식은 아닙니다.</p>',
+    ],
+    'reaction' => [
+        'id' => 'community_settings_help_reaction',
+        'title' => '기본 반응 구성 도움말',
+        'body' => '<p>반응 구성은 좋아요 같은 반응 버튼의 종류와 표시 방식을 묶어 둔 설정이며, 리액션 모듈에서는 프리셋이라고 부릅니다.</p>'
+            . '<p>게시판 그룹이나 게시판에서 별도 구성을 선택하지 않았을 때 이 값을 사용합니다. 더 구체적인 게시판 설정이 전체 기본값보다 우선합니다.</p>',
+    ],
+    'thumbnail' => [
+        'id' => 'community_settings_help_thumbnail',
+        'title' => '첨부 이미지 썸네일 도움말',
+        'body' => '<p>이 설정은 게시글 읽기 화면의 첨부 이미지 미리보기를 작은 캐시 이미지로 만들지 정합니다. 게시판에서 별도 값을 정하면 게시판 설정이 우선합니다.</p>'
+            . '<p>게시글 목록 이미지는 공개 첨부 이미지가 있으면 이 설정과 관계없이 캐시 썸네일을 우선 사용합니다. 너비 또는 파일 용량 중 선택한 기준 하나만 읽기 화면 미리보기에 적용합니다.</p>'
+            . '<p>캐시 파일을 정리해도 원본 첨부파일과 게시글은 삭제되지 않으며 필요할 때 다시 생성할 수 있습니다.</p>',
+    ],
+    'menus' => [
+        'id' => 'community_settings_help_menus',
+        'title' => '공개 화면 메뉴 도움말',
+        'body' => '<p>주 메뉴는 화면 틀이 기본 메뉴 위치에 표시할 메뉴입니다. 추가 메뉴는 화면 틀이 여러 메뉴 위치를 지원할 때 함께 전달할 메뉴입니다.</p>'
+            . '<p>추가 메뉴의 이름은 화면 틀이 각 메뉴 영역을 구분할 때 쓰는 값이며, 자동 식별값은 저장 항목을 구분하므로 직접 수정하지 않습니다. 실제 표시 위치와 지원 개수는 선택한 화면 틀에 따라 달라집니다.</p>',
+    ],
+    'editor_default' => [
+        'id' => 'community_settings_help_editor_default',
+        'title' => '게시글 입력 방식 기본값 도움말',
+        'body' => '<p>새 게시판을 만들 때 기본으로 선택할 게시글 입력 방식입니다. 기존 게시판에 따로 저장된 값은 자동으로 바꾸지 않습니다.</p>'
+            . '<p>다만 게시글은 작성 당시의 입력 방식을 별도로 저장하지 않습니다. 이 전체 기본값을 그대로 따르는 기존 게시판은 설정을 바꾸면 예전에 작성한 게시글의 공개 표시 방식도 달라질 수 있으므로 변경 전에 확인하세요.</p>',
+    ],
+    'body_length' => [
+        'id' => 'community_settings_help_body_length',
+        'title' => '게시글 본문 길이 기본값 도움말',
+        'body' => '<p>새 게시판을 만들 때 사용할 본문 최소·최대 길이 기본값입니다. 게시판에서 별도 값을 정하면 해당 게시판 설정이 우선하며 기존 게시판 값은 자동으로 바뀌지 않습니다.</p>'
+            . '<p>0은 해당 길이를 검사하지 않는다는 뜻입니다. 최대 길이를 0으로 두어도 데이터베이스 용량과 웹 서버의 요청 크기 제한을 넘는 본문은 저장할 수 없습니다.</p>',
+    ],
+    'embed' => [
+        'id' => 'community_settings_help_embed',
+        'title' => '주소 자동 표시 도움말',
+        'body' => '<p>임베드는 게시글에 입력한 주소를 동영상 플레이어나 미리보기 카드처럼 바로 볼 수 있는 형태로 바꾸어 표시하는 기능입니다.</p>'
+            . '<p>외부 서비스 자동 표시는 지원하는 YouTube, X, Instagram 주소에 적용합니다. 사이트 콘텐츠 자동 표시는 다른 모듈 주소를 미리보기로 바꾸고, 커뮤니티 게시글 주소도 다른 본문에서 미리보기로 사용할 수 있게 합니다.</p>'
+            . '<p>설정을 꺼도 저장된 게시글 주소는 삭제되지 않으며 공개 화면에서 자동 표시만 하지 않습니다.</p>',
+    ],
+    'auto_link' => [
+        'id' => 'community_settings_help_auto_link',
+        'title' => '일반 텍스트 URL 링크 도움말',
+        'body' => '<p>일반 텍스트 입력 방식으로 저장한 게시글에서 URL을 찾아 클릭할 수 있는 링크로 바꿉니다. 새 탭을 함께 켜면 이렇게 자동으로 만든 링크만 새 탭에서 엽니다.</p>'
+            . '<p>Markdown이나 HTML 방식의 게시글에 작성자가 직접 만든 링크에는 적용하지 않습니다. 설정을 바꿔도 저장된 게시글 내용은 변경되지 않습니다.</p>',
+    ],
 ];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -172,7 +250,7 @@ $communitySettingsSectionNavItems = [
     'community-settings-section-identity' => '본인확인',
     'community-settings-section-report-auto-action' => '신고 자동조치',
     'community-settings-section-privacy-consent' => '개인정보 동의',
-    'community-settings-section-assets' => '자산/과금',
+    'community-settings-section-assets' => '포인트·금액/결제',
     'community-settings-section-series' => '시리즈',
     'community-settings-section-drafts' => '임시저장',
     'community-settings-section-reaction' => '리액션',
@@ -275,10 +353,10 @@ $communitySettingsSectionNavItems = [
         <h2>신고 자동조치</h2>
         <div class="form-grid">
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_report_auto_action_enabled">자동 임시 조치</label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_report_auto_action_enabled', '자동 임시 조치', $communitySettingsHelp['report_auto_action']['id'], $communitySettingsHelpOpenLabel); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_report_auto_action_enabled', 'report_auto_action_enabled', '1', !empty($settings['report_auto_action_enabled']), '사용'); ?>
-                    <p class="form-help">켜면 게시글이나 댓글이 임계 신고자 수에 도달했을 때 시스템이 먼저 숨김 처리하고, 운영자가 신고 관리에서 후속 판단을 남깁니다.</p>
+                    <p class="form-help">신고자가 기준 수에 도달하면 먼저 숨기고 운영자 검토 대상으로 보냅니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -296,17 +374,17 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <span class="form-label">공개 처리 방식 <span class="sr-required-label">(필수)</span></span>
+                <span class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml('공개 처리 방식', $communitySettingsHelp['report_auto_action']['id']); ?><span>공개 처리 방식 <span class="sr-required-label">(필수)</span></span></span>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_report_auto_action_public_mode', 'report_auto_action_public_mode', ['exclude' => '목록 제외', 'placeholder' => '대체 문구'], (string) ($settings['report_auto_action_public_mode'] ?? 'exclude'), true); ?>
-                    <p class="form-help">자동 숨김된 게시글과 댓글을 공개 화면에서 제외할지, 후속 구현에서 대체 문구로 표시할지 정하는 기준입니다. 현재 기본값은 목록 제외입니다.</p>
+                    <p class="form-help">현재는 두 선택 모두 자동 숨김 대상을 목록에서 제외합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_enabled">반복 신고 작성자 게시 보류</label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_account_guard_publication_hold_enabled', '반복 신고 작성자 게시 보류', $communitySettingsHelp['publication_hold']['id'], $communitySettingsHelpOpenLabel); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_account_guard_publication_hold_enabled', 'account_guard_publication_hold_enabled', '1', !empty($settings['account_guard_publication_hold_enabled']), '사용'); ?>
-                    <p class="form-help">같은 작성자의 여러 게시글 자동조치가 겹칠 때 신규 게시글을 검토 대기로 보낼지 정합니다. 댓글 자동조치는 기본 집계에 포함하지 않습니다.</p>
+                    <p class="form-help">여러 게시글이 동시에 자동 숨김되면 작성자의 새 게시글을 검토 대기로 보냅니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -327,20 +405,20 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_publication_hold_overlap_review_percent">신고자 중복률 검토 기준 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_account_guard_publication_hold_overlap_review_percent', '신고자 중복률 검토 기준', $communitySettingsHelp['publication_hold']['id'], $communitySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <div class="input-group">
                         <input id="community_admin_settings_account_guard_publication_hold_overlap_review_percent" type="number" name="account_guard_publication_hold_overlap_review_percent" min="0" max="100" value="<?php echo sr_e((string) (int) ($settings['account_guard_publication_hold_overlap_review_percent'] ?? 80)); ?>" required class="form-input">
                         <span class="input-group-text">%</span>
                     </div>
-                    <p class="form-help">자동조치된 게시글들의 신고자가 이 비율 이상 겹치면 자동 보류하지 않고 운영자 검토 대상으로만 남깁니다.</p>
+                    <p class="form-help">신고자가 이 비율 이상 겹치면 자동 게시 보류 대신 운영자 검토 대상으로 남깁니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_account_guard_confirmed_hold_enabled">확정 조치 반복 게시 보류</label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_account_guard_confirmed_hold_enabled', '확정 조치 반복 게시 보류', $communitySettingsHelp['confirmed_hold']['id'], $communitySettingsHelpOpenLabel); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_account_guard_confirmed_hold_enabled', 'account_guard_confirmed_hold_enabled', '1', !empty($settings['account_guard_confirmed_hold_enabled']), '사용'); ?>
-                    <p class="form-help">운영자가 신고 자동조치를 확정 처리한 반복 이력만 기준으로 삼습니다. 자동 경로는 회원 계정을 정지하지 않고 커뮤니티 글쓰기 보류만 적용합니다.</p>
+                    <p class="form-help">운영자가 확정한 반복 조치만 계산해 새 게시글을 검토 대기로 보냅니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -414,7 +492,7 @@ $communitySettingsSectionNavItems = [
 
     <section id="community-settings-section-assets" class="card" data-admin-section-anchor>
         <h2>
-            <span>자산/과금</span>
+            <span>포인트·금액/결제</span>
             <span class="form-actions">
                 <a href="<?php echo sr_e($communityAssetAuditUrl); ?>" class="btn btn-sm btn-solid-light"><?php echo sr_e('포인트/금액 설정 변경 이력'); ?></a>
             </span>
@@ -488,12 +566,12 @@ $communitySettingsSectionNavItems = [
                                 <input id="modules_community_admin_settings_paid_attachment_download_publisher_reward_rate" type="number" min="0" max="100" name="paid_attachment_download_publisher_reward_rate" value="<?php echo sr_e((string) (int) ($settings['paid_attachment_download_publisher_reward_rate'] ?? 0)); ?>" class="form-input admin-community-publisher-reward-rate-input">
                                 <span class="input-group-text">%</span>
                             </div>
-                            <p class="form-help">실제 차감된 자산과 같은 자산으로 게시글 작성자에게 지급합니다. 본인 다운로드, 무료 통과, 이미 차감된 once 다운로드는 지급하지 않습니다.</p>
+                            <p class="form-help">실제로 차감한 것과 같은 포인트·금액 항목으로 게시글 작성자에게 지급합니다. 본인 다운로드, 무료 이용, 최초 1회 방식에서 이미 결제한 다운로드는 지급하지 않습니다.</p>
                         </div>
                     </div>
                 <?php } ?>
                 <div class="form-row">
-                    <span class="form-label"><?php echo sr_e($assetLabel . ' 자산 설정'); ?></span>
+                    <span class="form-label"><?php echo sr_e($assetLabel . ' 포인트·금액'); ?></span>
                     <div class="form-field">
                         <?php if ($isRewardAsset) { ?>
                             <div class="admin-asset-setting-target admin-asset-single-setting-target" data-admin-asset-enable-target="#<?php echo sr_e($assetEnabledId); ?>">
@@ -515,18 +593,18 @@ $communitySettingsSectionNavItems = [
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="<?php echo sr_e('community_settings_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('회원 그룹별 적용'); ?></label>
+                    <div class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml($assetLabel . ' 회원 그룹별 적용', $communitySettingsHelp['asset_settings']['id']); ?><label for="<?php echo sr_e('community_settings_' . (string) $assetPrefix . '_policy_set_ids'); ?>"><?php echo sr_e('회원 그룹별 적용'); ?></label></div>
                     <div class="form-field admin-policy-set-field">
                         <?php echo sr_community_asset_policy_set_checkboxes_html('community_settings_' . (string) $assetPrefix . '_policy_set_ids', (string) $assetPrefix . '_policy_set_ids', $assetPolicySets ?? [], sr_community_asset_policy_set_ids_with_legacy($settings[$assetPrefix . '_group_policies_json'] ?? '', (int) ($settings[$assetPrefix . '_policy_set_id'] ?? 0)), $isRewardAsset ? 'grant' : 'use', '#' . $assetSourceId, $pdo); ?>
-                        <p class="form-help">도움말: 선택한 회원 그룹별 적용이 회원의 그룹, 레벨, 대상 항목에 맞는 실제 금액을 계산합니다. 세트의 계산 방식과 조정값은 커뮤니티 회원 그룹별 설정 화면에서 관리합니다.</p>
+                        <p class="form-help">회원의 그룹과 레벨에 맞는 규칙으로 실제 지급·차감 금액을 계산합니다.</p>
                     </div>
                 </div>
             <?php } ?>
             <div class="form-row">
-                <span class="form-label">복합 자산 결제</span>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_multi_asset_payment_enabled', '여러 포인트·금액 함께 결제', $communitySettingsHelp['multi_asset']['id'], $communitySettingsHelpOpenLabel); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_multi_asset_payment_enabled', 'multi_asset_payment_enabled', '1', !empty($settings['multi_asset_payment_enabled']), '허용'); ?>
-                    <p class="form-help">끄면 유료 게시글 열람과 첨부 다운로드 결제는 포인트/금액 항목을 하나만 사용할 수 있습니다. 쿠폰 일부 할인 후 남은 금액도 같은 기준으로 처리합니다.</p>
+                    <p class="form-help">한 건의 유료 열람이나 다운로드에 여러 포인트·금액 항목을 함께 쓸 수 있게 합니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -554,37 +632,37 @@ $communitySettingsSectionNavItems = [
         <h2>임시저장</h2>
         <div class="form-grid">
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_draft_autosave_enabled">자동 임시저장</label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_draft_autosave_enabled', '자동 임시저장', $communitySettingsHelp['drafts']['id'], $communitySettingsHelpOpenLabel); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_draft_autosave_enabled', 'draft_autosave_enabled', '1', !empty($settings['draft_autosave_enabled']), '사용'); ?>
-                    <p class="form-help">로그인 회원의 게시글 작성/수정 화면에서 제목, 본문, 카테고리, 선택형 폼 상태를 서버 draft로 저장합니다. 비회원 글, 댓글, 파일 input 값은 저장하지 않습니다.</p>
+                    <p class="form-help">로그인 회원이 작성·수정 중인 게시글 내용을 서버에 임시로 저장합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_draft_autosave_interval_seconds">저장 간격 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_draft_autosave_interval_seconds', '저장 간격', $communitySettingsHelp['drafts']['id'], $communitySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <div class="input-group admin-input-unit">
                         <input id="community_admin_settings_draft_autosave_interval_seconds" type="number" name="draft_autosave_interval_seconds" min="30" max="600" value="<?php echo sr_e((string) (int) ($settings['draft_autosave_interval_seconds'] ?? 60)); ?>" required class="form-input">
                         <span class="input-group-text">초</span>
                     </div>
-                    <p class="form-help">클라이언트는 변경이 있을 때만 저장하고, 실패 시 같은 탭의 sessionStorage 버퍼를 유지합니다.</p>
+                    <p class="form-help">내용이 바뀌었을 때만 이 간격으로 저장합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_draft_retention_days">보존기간 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_draft_retention_days', '보존 기간', $communitySettingsHelp['drafts']['id'], $communitySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <div class="input-group admin-input-unit">
                         <input id="community_admin_settings_draft_retention_days" type="number" name="draft_retention_days" min="1" max="30" value="<?php echo sr_e((string) (int) ($settings['draft_retention_days'] ?? 7)); ?>" required class="form-input">
                         <span class="input-group-text">일</span>
                     </div>
-                    <p class="form-help">만료 draft는 자동저장 성공 경로와 작성/수정 화면 진입 경로에서 제한된 개수로 정리합니다.</p>
+                    <p class="form-help">이 기간이 지난 임시저장본은 작성 화면 이용 중에 일부씩 정리합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="community_admin_settings_draft_max_count_per_account">계정당 최대 개수 <span class="sr-required-label">(필수)</span></label>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_draft_max_count_per_account', '회원당 최대 개수', $communitySettingsHelp['drafts']['id'], $communitySettingsHelpOpenLabel, true); ?>
                 <div class="form-field">
                     <input id="community_admin_settings_draft_max_count_per_account" type="number" name="draft_max_count_per_account" min="1" max="100" value="<?php echo sr_e((string) (int) ($settings['draft_max_count_per_account'] ?? 20)); ?>" required class="form-input">
-                    <p class="form-help">새 draft 저장 뒤 최신순 상한을 넘는 오래된 draft를 정리합니다. 여러 탭에서 같은 글을 편집하면 마지막 저장이 우선합니다.</p>
+                    <p class="form-help">최대 개수를 넘으면 오래된 임시저장본부터 정리합니다.</p>
                 </div>
             </div>
         </div>
@@ -603,7 +681,7 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="community_admin_settings_reaction_post_preset_key">게시글 리액션 프리셋</label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_reaction_post_preset_key', '게시글 기본 반응 구성', $communitySettingsHelp['reaction']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <select id="community_admin_settings_reaction_post_preset_key" name="reaction_post_preset_key" class="form-select"<?php echo $communityReactionInputAttributes; ?>>
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
@@ -613,14 +691,14 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="community_admin_settings_reaction_comment_preset_key">댓글 리액션 프리셋</label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_reaction_comment_preset_key', '댓글 기본 반응 구성', $communitySettingsHelp['reaction']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <select id="community_admin_settings_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo $communityReactionInputAttributes; ?>>
                     <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                         <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                     <?php } ?>
                 </select>
-                <p class="form-help">게시판 그룹과 게시판에서 따로 선택하지 않은 대상에 적용합니다.</p>
+                <p class="form-help">게시판 그룹과 게시판에서 따로 정하지 않았을 때 사용하는 반응 버튼 구성입니다.</p>
             </div>
         </div>
     </section>
@@ -628,20 +706,20 @@ $communitySettingsSectionNavItems = [
     <section id="community-settings-section-thumbnail" class="card" data-admin-section-anchor>
         <h2>썸네일</h2>
         <div class="form-row">
-            <span class="form-label">썸네일 생성</span>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_thumbnail_enabled', '첨부 이미지 썸네일', $communitySettingsHelp['thumbnail']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_thumbnail_enabled', 'thumbnail_enabled', '1', !empty($settings['thumbnail_enabled']), '사용'); ?>
-                <p class="form-help">게시글 목록 이미지는 공개 첨부 이미지가 있으면 항상 캐시 썸네일을 우선 사용합니다. 이 설정은 읽기 화면의 첨부 이미지 미리보기에 적용되며, 게시판 개별 설정에서 재정의할 수 있습니다.</p>
+                <p class="form-help">게시글 읽기 화면의 첨부 이미지 미리보기에 작은 캐시 이미지를 사용합니다.</p>
                 <?php if ($canViewCommunityThumbnailFileCache) { ?>
                     <p class="form-help">생성된 공개 썸네일 파일은 <a href="<?php echo sr_e(sr_url('/admin/storage-cache?module_key=community')); ?>">썸네일 파일 캐시</a>에서 확인하고 정리할 수 있습니다. 정리해도 원본 파일과 게시글은 삭제되지 않습니다.</p>
                 <?php } ?>
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">생성 기준 <span class="sr-required-label">(필수)</span></span>
+            <span class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml('썸네일 생성 기준', $communitySettingsHelp['thumbnail']['id']); ?><span>생성 기준 <span class="sr-required-label">(필수)</span></span></span>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_thumbnail_criterion', 'thumbnail_criterion', ['width' => '너비 기준', 'bytes' => '용량 기준'], $thumbnailCriterionValue, true, ' data-community-thumbnail-criterion'); ?>
-                <p class="form-help">선택한 기준 하나만 읽기 화면의 첨부 이미지 미리보기에 적용합니다. 목록 표시 크기는 목록 화면과 스킨 CSS가 결정합니다.</p>
+                <p class="form-help">원본 너비와 파일 용량 중 썸네일을 만들 기준 하나를 선택합니다.</p>
             </div>
         </div>
         <div class="form-row" data-community-thumbnail-rule="width"<?php echo $thumbnailCriterionValue === 'width' ? '' : ' hidden'; ?>>
@@ -672,7 +750,7 @@ $communitySettingsSectionNavItems = [
     <section id="community-settings-section-display" class="card" data-admin-section-anchor>
         <h2>공개 화면 구성</h2>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('community_admin_settings_theme_key', '커뮤니티 공개 테마', $communitySettingsHelp['theme']['id'], $communitySettingsHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_theme_key', '기본 화면 스타일', $communitySettingsHelp['theme']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <select id="community_admin_settings_theme_key" name="theme_key" class="form-select" required>
                     <?php foreach ($communityThemeOptions as $themeKey => $themeOption) { ?>
@@ -681,11 +759,11 @@ $communitySettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">커뮤니티 공개 화면의 본문 구조, 색, 표면, 상호작용 상태에 적용할 시각 테마입니다.</p>
+                <p class="form-help">커뮤니티 본문 안쪽의 색상과 구성 요소 모양을 정합니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', sr_t('community::ui.community.8f453af4'), $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_key', '커뮤니티 화면 틀', $communitySettingsHelp['layout']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <select id="community_admin_settings_layout_key" name="layout_key" class="form-select">
                     <?php foreach ($communityLayoutOptions as $layoutKey => $layoutOption) { ?>
@@ -694,11 +772,11 @@ $communitySettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">선택한 테마 아래에서 커뮤니티 화면을 감싸는 공개 화면 틀입니다. 공통 레이아웃과 필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.</p>
+                <p class="form-help">커뮤니티 화면의 헤더, 푸터와 메뉴 배치를 정합니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="community_admin_settings_layout_primary_menu_key">주 메뉴</label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_layout_primary_menu_key', '주 메뉴', $communitySettingsHelp['menus']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <select id="community_admin_settings_layout_primary_menu_key" name="layout_primary_menu_key" class="form-select">
                     <?php $communitySiteMenuSelectOptions((string) ($settings['layout_primary_menu_key'] ?? 'header')); ?>
@@ -706,11 +784,11 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">추가 메뉴</span>
+            <span class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml('추가 메뉴', $communitySettingsHelp['menus']['id']); ?><span>추가 메뉴</span></span>
             <div class="form-field">
                 <div class="admin-layout-menu-list" data-admin-layout-menu-list>
                     <div class="admin-layout-menu-header"<?php echo $communityLayoutExtraMenuItems === [] ? ' hidden' : ''; ?> aria-hidden="true" data-admin-layout-menu-header>
-                        <span>Key</span>
+                        <span>자동 식별값</span>
                         <span>이름</span>
                         <span>메뉴</span>
                         <span>동작</span>
@@ -731,10 +809,10 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="community_admin_settings_post_editor">게시글 에디터 <span class="sr-required-label">(필수)</span></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_post_editor', '게시글 입력 방식', $communitySettingsHelp['editor_default']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
-                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 기존 게시판 값은 자동 변경되지 않습니다. 게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로, 이 기본값을 상속하는 기존 게시판의 공개 출력 방식도 함께 바뀔 수 있습니다.</p>
+                <p class="form-help">새 게시판과 별도 설정이 없는 기존 게시판에 적용할 기본 입력 방식입니다.</p>
             </div>
         </div>
         <div class="form-row">
@@ -751,17 +829,17 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="community_admin_settings_post_body_min_length">게시글 본문 최소 길이 <span class="sr-required-label">(필수)</span></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_post_body_min_length', '게시글 본문 최소 길이', $communitySettingsHelp['body_length']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <input id="community_admin_settings_post_body_min_length" type="number" name="post_body_min_length" min="0" max="<?php echo sr_e((string) $communityPostBodyLengthMax); ?>" value="<?php echo sr_e((string) ($settings['post_body_min_length'] ?? 0)); ?>" required class="form-input">
-                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 0이면 최소 길이를 검사하지 않습니다.</p>
+                <p class="form-help">새 게시판의 기본값이며 0이면 최소 길이를 검사하지 않습니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="community_admin_settings_post_body_max_length">게시글 본문 최대 길이 <span class="sr-required-label">(필수)</span></label>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_post_body_max_length', '게시글 본문 최대 길이', $communitySettingsHelp['body_length']['id'], $communitySettingsHelpOpenLabel, true); ?>
             <div class="form-field">
                 <input id="community_admin_settings_post_body_max_length" type="number" name="post_body_max_length" min="0" max="<?php echo sr_e((string) $communityPostBodyLengthMax); ?>" value="<?php echo sr_e((string) ($settings['post_body_max_length'] ?? 0)); ?>" required class="form-input">
-                <p class="form-help">새 게시판을 만들 때 참고할 전역 기본값입니다. 0이면 최대 길이를 검사하지 않습니다. 저장 가능한 실제 크기는 DB와 서버 요청 크기 설정의 영향을 받습니다.</p>
+                <p class="form-help">새 게시판의 기본값이며 0이면 커뮤니티의 최대 길이 검사를 하지 않습니다.</p>
             </div>
         </div>
         <div class="form-row">
@@ -772,27 +850,27 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">외부 서비스 임베드</span>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_external_embed_enabled', '외부 서비스 자동 표시', $communitySettingsHelp['embed']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_external_embed_enabled', 'external_embed_enabled', '1', !empty($settings['external_embed_enabled']), '사용'); ?>
-                <p class="form-help">게시글 본문에 단독으로 붙여 넣은 YouTube, X, Instagram 주소를 공개 화면에서 자동 표시합니다.</p>
+                <p class="form-help">본문에 단독으로 붙여 넣은 YouTube, X, Instagram 주소를 바로 볼 수 있게 표시합니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">내부 모듈 간 임베드</span>
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_internal_embed_enabled', '사이트 콘텐츠 자동 표시', $communitySettingsHelp['embed']['id'], $communitySettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('community_admin_settings_internal_embed_enabled', 'internal_embed_enabled', '1', !empty($settings['internal_embed_enabled']), '사용'); ?>
-                <p class="form-help">게시글 본문의 내부 모듈 URL을 자동 표시하고, 다른 본문에 붙여 넣은 커뮤니티 게시글 URL의 임베드 제공을 허용합니다.</p>
+                <p class="form-help">사이트 안의 콘텐츠 주소를 게시글에서 미리보기 형태로 표시합니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label">본문 URL 자동 링크</span>
+            <span class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml('일반 텍스트 URL 링크', $communitySettingsHelp['auto_link']['id']); ?><span>일반 텍스트 URL 링크</span></span>
             <div class="form-field">
                 <div class="admin-community-url-link-switches">
                     <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>
                     <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_new_tab', 'plain_text_auto_link_new_tab', '1', !empty($settings['plain_text_auto_link_new_tab']), '새 탭'); ?>
                 </div>
-                <p class="form-help">textarea로 저장된 plain text 게시글에서 자동 생성한 링크에만 적용합니다. Markdown/HTML 게시글의 링크에는 영향을 주지 않습니다.</p>
+                <p class="form-help">일반 텍스트 게시글의 URL을 링크로 바꾸고, 필요하면 새 탭에서 엽니다.</p>
             </div>
         </div>
         <div class="form-row">

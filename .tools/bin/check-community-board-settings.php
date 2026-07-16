@@ -647,8 +647,8 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-sett
     '[\'comments_per_page\', (string) $commentsPerPage, \'int\']',
 ], 'community global post body length setting save');
 sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
-    '게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
-    '기존 게시판의 공개 출력 방식도 함께 바뀔 수 있습니다.',
+    '게시글은 작성 당시의 입력 방식을 별도로 저장하지 않습니다.',
+    '예전에 작성한 게시글의 공개 표시 방식도 달라질 수 있으므로',
 ], 'community global post editor operational warning');
 sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
     '커뮤니티 게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
