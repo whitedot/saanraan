@@ -879,8 +879,9 @@ sr_skin_theme_check_contains('modules/survey/views/admin-settings.php', [
 ], 'Survey theme setting help UI');
 
 sr_skin_theme_check_contains('modules/content/views/admin-settings.php', [
-    '콘텐츠 공개 레이아웃',
-    '필요한 화면 대상을 지원하는 다른 모듈 레이아웃도 선택할 수 있습니다.',
+    '콘텐츠 화면 틀',
+    'content-settings-help-appearance',
+    '선택한 틀이 콘텐츠 화면을 지원해야 하며',
 ], 'Content public layout setting copy');
 
 sr_skin_theme_check_not_contains([
