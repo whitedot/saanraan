@@ -169,6 +169,38 @@ $couponIssueModalOpenDefinitionId = isset($couponIssueModalOpenDefinitionId) ? (
 $couponTargetLookupModalId = 'coupon-target-lookup-modal';
 $couponTargetLookupResultsId = 'coupon-target-lookup-results';
 $couponInitialTargetType = (string) array_key_first($targetTypes);
+$couponDefinitionHelp = [
+    'key' => [
+        'id' => 'coupon-definition-help-key',
+        'title' => '쿠폰 식별값 도움말',
+        'body' => '<p>쿠폰 식별값은 화면에 표시할 이름과 별도로 쿠폰을 구분하는 내부 고유값입니다. 저장한 뒤에는 바꿀 수 없으므로 쿠폰의 용도를 알아볼 수 있게 입력하세요.</p>'
+            . '<p>영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용할 수 있습니다. 예: welcome_coupon, summer_2026</p>',
+    ],
+    'benefit' => [
+        'id' => 'coupon-definition-help-benefit',
+        'title' => '쿠폰 혜택 도움말',
+        'body' => '<p>열람/이용권은 연결한 콘텐츠나 게시글의 이용 금액 전부를 쿠폰으로 처리합니다. 정액 할인은 입력한 원화 금액만큼, 정률 할인은 결제 금액에서 입력한 비율만큼 할인합니다.</p>'
+            . '<p>할인액은 실제 결제 금액을 넘지 않습니다. 정률 할인 계산에서 소수점 이하 금액이 생기면 버립니다. 현재 쿠폰 종류에는 최소 결제 금액이나 정률 할인의 최대 할인액을 따로 정하는 기능이 없습니다.</p>',
+    ],
+    'target' => [
+        'id' => 'coupon-definition-help-target',
+        'title' => '쿠폰 사용처 도움말',
+        'body' => '<p>사용처를 전체로 선택하면 쿠폰 연동을 지원하는 모든 사용처에 적용할 수 있습니다. 특정 사용처를 선택하고 대상 번호를 비워 두면 그 사용처의 모든 콘텐츠나 게시글에 적용합니다.</p>'
+            . '<p>한 콘텐츠나 게시글에만 쓰게 하려면 사용처를 먼저 선택한 뒤 검색에서 대상을 고르거나 번호를 직접 입력하세요. 검색 버튼은 대상 검색을 지원하는 사용처에서만 나타납니다.</p>',
+    ],
+    'refund' => [
+        'id' => 'coupon-definition-help-refund',
+        'title' => '사용 취소·환급 도움말',
+        'body' => '<p>환급 없음을 선택하면 사용을 마친 쿠폰을 관리자 화면에서 취소할 수 없습니다. 환급 가능을 선택하면 관리자가 사용 내역에서 취소 사유를 남기고 쿠폰 사용 상태와 제공한 접근권을 되돌릴 수 있습니다.</p>'
+            . '<p>현재 환급 가능은 열람/이용권에만 설정할 수 있습니다. 특정 사용처를 연결한 경우에는 그 사용처가 접근권 회수를 지원해야 저장할 수 있습니다. 정액·정률 할인 쿠폰의 결제 취소는 이 쿠폰 화면에서 처리하지 않습니다.</p>',
+    ],
+    'validity' => [
+        'id' => 'coupon-definition-help-validity',
+        'title' => '쿠폰 사용 기간 도움말',
+        'body' => '<p>제한 없음은 별도 만료 시각을 두지 않습니다. 고정 사용 기간은 모든 지급 쿠폰에 같은 시작·만료 시각을 적용하고, 고정 만료일은 시작 제한 없이 같은 만료 시각을 적용합니다.</p>'
+            . '<p>발급 후 일수는 회원에게 지급한 시각부터 입력한 일수만큼 사용할 수 있게 합니다. 발급 캠페인에서 지급 쿠폰의 만료일수나 고정 만료 시각을 따로 정하면 캠페인 설정을 우선 적용합니다.</p>',
+    ],
+];
 $couponEmailWarningHtml = static function (string $eventKey) use ($couponNotificationEmailWarnings): string {
     $message = trim((string) ($couponNotificationEmailWarnings[$eventKey] ?? ''));
     if ($message === '') {
@@ -1092,10 +1124,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
             <div class="modal-body">
                 <div class="form-row">
-                    <label class="form-label" for="coupon_admin_coupon_key">Key <span class="sr-required-label">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_coupon_key', '쿠폰 식별값', $couponDefinitionHelp['key']['id'], '도움말 보기', true); ?>
                     <div class="form-field">
                         <input id="coupon_admin_coupon_key" type="text" name="coupon_key" class="form-control" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" data-admin-key-input data-admin-key-suggest-source="#coupon_admin_title" data-admin-key-suggest-fallback="coupon" data-overlay-focus required data-validation-message="영문 소문자로 시작하고 소문자, 숫자, 밑줄만 입력해 주세요.">
-                        <p class="form-help">관리자가 구분하기 위한 고유값입니다. 영문 소문자로 시작하고 소문자, 숫자, 밑줄만 사용합니다.</p>
+                        <p class="form-help">영문 소문자로 시작하고 영문 소문자, 숫자, 밑줄만 사용합니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
@@ -1108,17 +1140,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="coupon_admin_description">설명</label>
                     <div class="form-field">
                         <textarea id="coupon_admin_description" name="description" class="form-control" rows="3"></textarea>
+                        <p class="form-help">회원이 보유 쿠폰을 확인할 때 함께 보여줄 설명을 입력합니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="coupon_admin_coupon_type">혜택 유형 <span class="sr-required-label">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_coupon_type', '혜택 유형', $couponDefinitionHelp['benefit']['id'], '도움말 보기', true); ?>
                     <div class="form-field">
                         <select id="coupon_admin_coupon_type" name="coupon_type" class="form-select" required data-coupon-type-select data-validation-message="혜택 유형을 선택해 주세요.">
                             <?php foreach (sr_coupon_types() as $couponTypeOption => $couponTypeLabel) { ?>
                                 <option value="<?php echo sr_e((string) $couponTypeOption); ?>"><?php echo sr_e((string) $couponTypeLabel); ?></option>
                             <?php } ?>
                         </select>
-                        <p class="form-help">열람/이용권은 콘텐츠나 게시글 접근권으로 사용하고, 정액/정률 할인은 금액 할인 정책으로 저장합니다.</p>
+                        <p class="form-help">이용 금액 전체 처리, 정해진 금액 할인, 비율 할인 중 하나를 선택합니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-coupon-fixed-discount-field hidden>
@@ -1128,6 +1161,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="coupon_admin_discount_amount" type="number" name="discount_amount" class="form-control" min="1" max="999999999" step="1" aria-describedby="coupon_admin_discount_amount_unit" data-coupon-fixed-required-input data-validation-message="정액 할인 금액은 1 이상으로 입력해 주세요.">
                             <span id="coupon_admin_discount_amount_unit" class="input-group-text">원</span>
                         </div>
+                        <p class="form-help">결제 금액보다 크면 실제 결제 금액까지만 할인합니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-coupon-percent-discount-field hidden>
@@ -1137,37 +1171,39 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="coupon_admin_discount_percent" type="number" name="discount_percent" class="form-control" min="1" max="100" step="1" aria-describedby="coupon_admin_discount_percent_unit" data-coupon-percent-required-input data-validation-message="정률 할인율은 1부터 100 사이로 입력해 주세요.">
                             <span id="coupon_admin_discount_percent_unit" class="input-group-text">%</span>
                         </div>
-                        <p class="form-help">예: 10을 입력하면 10% 할인으로 저장합니다.</p>
+                        <p class="form-help">예: 10을 입력하면 결제 금액의 10%를 할인합니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="coupon_admin_target_type">사용처 <span class="sr-required-label">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_target_type', '사용처', $couponDefinitionHelp['target']['id'], '도움말 보기', true); ?>
                     <div class="form-field">
                         <select id="coupon_admin_target_type" name="target_type" class="form-select" required data-validation-message="사용처를 선택해 주세요.">
                             <?php foreach ($targetTypes as $targetType => $targetTypeLabel) { ?>
                                 <option value="<?php echo sr_e((string) $targetType); ?>"><?php echo sr_e((string) $targetTypeLabel); ?></option>
                             <?php } ?>
                         </select>
+                        <p class="form-help">쿠폰을 사용할 수 있는 화면이나 항목의 종류를 선택합니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="coupon_admin_target_id">대상 번호</label>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_target_id', '특정 대상 번호', $couponDefinitionHelp['target']['id'], '도움말 보기'); ?>
                     <div class="form-field">
                         <div class="admin-lookup-control">
                             <input id="coupon_admin_target_id" type="text" name="target_id" class="form-control form-input" maxlength="80">
                             <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($couponTargetLookupModalId); ?>" data-overlay="#<?php echo sr_e($couponTargetLookupModalId); ?>" data-overlay-stack="true" data-admin-reference-lookup-open data-coupon-target-search-button data-type-target="#coupon_admin_target_type" data-id-target="#coupon_admin_target_id"<?php echo $couponTargetSearchEnabled ? '' : ' disabled hidden'; ?>>검색</button>
                         </div>
-                        <p class="form-help">특정 콘텐츠나 게시글에만 쓰게 할 때 해당 번호를 입력합니다. 비워 두면 선택한 사용처 전체에 사용할 수 있습니다.</p>
+                        <p class="form-help">비워 두면 선택한 사용처의 모든 대상에 사용할 수 있습니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="coupon_admin_refundable_policy">환급 정책 <span class="sr-required-label">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_refundable_policy', '사용 취소·환급', $couponDefinitionHelp['refund']['id'], '도움말 보기', true); ?>
                     <div class="form-field">
                         <select id="coupon_admin_refundable_policy" name="refundable_policy" class="form-select" required data-validation-message="환급 정책을 선택해 주세요.">
                             <?php foreach ($refundablePolicies as $policy => $policyLabel) { ?>
                                 <option value="<?php echo sr_e((string) $policy); ?>"><?php echo sr_e((string) $policyLabel); ?></option>
                             <?php } ?>
                         </select>
+                        <p class="form-help">사용을 마친 쿠폰을 관리자가 취소할 수 있게 할지 정합니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
@@ -1178,31 +1214,35 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="coupon_admin_validity_policy">사용기간 정책 <span class="sr-required-label">(필수)</span></label>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_validity_policy', '사용 기간 방식', $couponDefinitionHelp['validity']['id'], '도움말 보기', true); ?>
                     <div class="form-field">
                         <select id="coupon_admin_validity_policy" name="validity_policy" class="form-select" required data-coupon-validity-policy data-validation-message="사용기간 정책을 선택해 주세요.">
                             <?php foreach ($validityPolicies as $policy => $policyLabel) { ?>
                                 <option value="<?php echo sr_e((string) $policy); ?>"><?php echo sr_e((string) $policyLabel); ?></option>
                             <?php } ?>
                         </select>
+                        <p class="form-help">모든 쿠폰에 같은 날짜를 쓰거나 지급일부터 일수를 계산할 수 있습니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-coupon-validity-fixed-range-field hidden>
                     <label class="form-label" for="coupon_admin_valid_from">사용 시작 <span class="sr-required-label" data-coupon-validity-range-required-label hidden>(필수)</span></label>
                     <div class="form-field">
                         <input id="coupon_admin_valid_from" type="datetime-local" name="valid_from" class="form-control" data-coupon-validity-range-required-input>
+                        <p class="form-help">이 시각 전에는 이미 지급된 쿠폰도 사용할 수 없습니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-coupon-validity-fixed-field hidden>
                     <label class="form-label" for="coupon_admin_valid_until">사용 만료 <span class="sr-required-label" data-coupon-validity-fixed-required-label hidden>(필수)</span></label>
                     <div class="form-field">
                         <input id="coupon_admin_valid_until" type="datetime-local" name="valid_until" class="form-control" data-coupon-validity-fixed-required-input>
+                        <p class="form-help">지급 시각과 관계없이 모든 쿠폰이 이 시각에 만료됩니다.</p>
                     </div>
                 </div>
                 <div class="form-row" data-coupon-validity-relative-field hidden>
-                    <label class="form-label" for="coupon_admin_validity_days">발급 후 사용일수 <span class="sr-required-label" data-coupon-validity-relative-required-label hidden>(필수)</span></label>
+                    <label class="form-label" for="coupon_admin_validity_days">발급 후 사용 기간 <span class="sr-required-label" data-coupon-validity-relative-required-label hidden>(필수)</span></label>
                     <div class="form-field">
                         <input id="coupon_admin_validity_days" type="number" name="validity_days" class="form-control" min="1" max="3650" step="1" data-coupon-validity-relative-required-input data-validation-message="발급 후 사용일수는 1부터 3650 사이로 입력해 주세요.">
+                        <p class="form-help">회원에게 지급한 시각부터 계산할 일수를 입력합니다.</p>
                     </div>
                 </div>
                 <input type="hidden" name="status" value="active">
@@ -1214,6 +1254,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </form>
     </div>
 </div>
+
+<?php foreach ($couponDefinitionHelp as $couponDefinitionHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $couponDefinitionHelpModal['id'], (string) $couponDefinitionHelpModal['title'], (string) $couponDefinitionHelpModal['body']); ?>
+<?php } ?>
 
 <script>
 (function () {

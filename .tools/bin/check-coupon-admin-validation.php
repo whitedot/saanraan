@@ -223,6 +223,20 @@ if (is_string($view)
 }
 if (is_string($view)
     && (
+        strpos($view, "'coupon-definition-help-benefit'") === false
+        || strpos($view, "'coupon-definition-help-target'") === false
+        || strpos($view, "'coupon-definition-help-refund'") === false
+        || strpos($view, "'coupon-definition-help-validity'") === false
+        || strpos($view, '할인액은 실제 결제 금액을 넘지 않습니다.') === false
+        || strpos($view, '현재 환급 가능은 열람/이용권에만 설정할 수 있습니다.') === false
+        || strpos($view, '발급 캠페인에서 지급 쿠폰의 만료일수나 고정 만료 시각을 따로 정하면') === false
+        || strpos($view, 'sr_admin_help_modal_html') === false
+    )
+) {
+    $errors[] = 'Coupon definition form must explain benefit calculation, target scope, refund limits, and validity precedence in operator help.';
+}
+if (is_string($view)
+    && (
         strpos($view, "value=\"issue_stopped\"") === false
         || strpos($view, '>지급 중지</button>') === false
         || strpos($view, '>사용 중지</button>') === false
