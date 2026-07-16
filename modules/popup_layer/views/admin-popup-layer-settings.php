@@ -90,7 +90,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_target_service_key', '기본 서비스', $popupLayerSettingsHelp['default_target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layer_settings_default_target_service_key', '기본 사용 서비스', $popupLayerSettingsHelp['default_target_option']['id'], $popupLayerHelpOpenLabel, true); ?>
             <div class="form-field">
                 <input type="hidden" name="popup_layer_default_target_option" value="<?php echo sr_e($popupLayerDefaultTargetOption); ?>" data-admin-target-option>
                 <select id="popup_layer_admin_popup_layer_settings_default_target_service_key" name="popup_layer_default_target_service_key" class="form-select" required data-admin-target-service>
@@ -102,7 +102,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row" data-admin-target-detail-row<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>>
-            <label class="form-label" for="popup_layer_admin_popup_layer_settings_default_target_detail_option"><?php echo sr_e('기본 노출위치'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
+            <label class="form-label" for="popup_layer_admin_popup_layer_settings_default_target_detail_option"><?php echo sr_e('기본 노출 위치'); ?> <span class="sr-required-label" data-admin-target-detail-required<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' hidden' : ''; ?>><?php echo sr_e('(필수)'); ?></span></label>
             <div class="form-field">
                 <select id="popup_layer_admin_popup_layer_settings_default_target_detail_option" name="popup_layer_default_target_detail_option" class="form-select" data-admin-target-detail<?php echo sr_popup_layer_is_public_target_option($popupLayerDefaultTargetOption) ? ' disabled' : ' required'; ?>>
                     <?php foreach ($availableTargets as $target) { ?>
