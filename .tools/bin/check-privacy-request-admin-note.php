@@ -62,6 +62,19 @@ $exportedNote = (string) ($export['privacy_request']['admin_note'] ?? '');
 sr_privacy_request_admin_note_check_assert($exportedNote === $sanitizedNote, 'Admin privacy request export must sanitize admin_note at export time.');
 sr_privacy_request_admin_note_check_assert(!isset($export['account_data']), 'Admin privacy request export fixture should not load account data when account_id is null.');
 
+$adminView = file_get_contents(SR_ROOT . '/modules/privacy/views/admin-privacy-requests.php');
+sr_privacy_request_admin_note_check_assert(
+    is_string($adminView)
+        && str_contains($adminView, "'privacy-request-help-record'")
+        && str_contains($adminView, "'privacy-request-help-handling'")
+        && str_contains($adminView, "'privacy-request-help-export'")
+        && str_contains($adminView, "'privacy-request-help-safe-text'")
+        && str_contains($adminView, '파일 생성은 실제 삭제·정정 같은 조치를 실행하거나 요청 상태와 완료 확인을 바꾸지 않습니다.')
+        && str_contains($adminView, '계정 ID 없이 요청자 정보만 입력하면 계정과 연결되지 않으며 본인확인이 완료되었다는 뜻도 아닙니다.')
+        && str_contains($adminView, 'sr_admin_help_modal_html'),
+    'Admin privacy request form must explain record-only actions, linked-account exports, completion checks, and safe text entry.'
+);
+
 $moduleExport = sr_privacy_export_sanitize_module_data([
     'visible' => 'ok',
     'nested' => [

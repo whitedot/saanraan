@@ -26,6 +26,41 @@ $privacyRequestCreateModalId = 'privacy-request-create-modal';
 $privacyRequestCreateOverlayClass = $privacyRequestCreateModalOpen
     ? 'modal-overlay modal-overlay-fade overlay overlay-open open'
     : 'modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0';
+$privacyRequestHelpOpenLabel = '도움말 보기';
+$privacyRequestHelpButtonHtml = static function (string $label, string $modalId) use ($privacyRequestHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $privacyRequestHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$privacyRequestHelp = [
+    'record' => [
+        'id' => 'privacy-request-help-record',
+        'title' => '요청 대응 기록 도움말',
+        'body' => '<p>이 폼은 이메일이나 전화 등 사이트 밖에서 받은 개인정보 요청을 관리자 대응 기록으로 추가합니다. 저장하면 접수 상태로 시작하며 회원에게 새 요청을 대신 제출하거나 실제 개인정보 처리를 실행하지 않습니다.</p>'
+            . '<p>회원 계정 ID를 연결하면 요청자 정보를 비워 둔 경우 회원 이메일을 기록하고, 대응 자료를 내려받을 때 연결 계정의 개인정보 사본도 함께 만듭니다. 계정 ID 없이 요청자 정보만 입력하면 계정과 연결되지 않으며 본인확인이 완료되었다는 뜻도 아닙니다.</p>'
+            . '<p>요청 유형은 접수 분류입니다. 정정, 삭제, 처리 제한, 처리 거부, 동의 철회는 데이터 소유 모듈에서 처리한 뒤 관리자 메모에 확인한 화면과 조치를 남기세요.</p>',
+    ],
+    'handling' => [
+        'id' => 'privacy-request-help-handling',
+        'title' => '상태와 완료 확인 도움말',
+        'body' => '<p>상태 변경은 요청 대응 이력만 저장합니다. 정정, 삭제, 처리 제한, 처리 거부, 동의 철회 같은 실제 조치를 자동 실행하지 않습니다.</p>'
+            . '<p>완료, 거절, 취소는 종결 상태이며 한 번 저장하면 다른 상태로 바꿀 수 없습니다. 종결할 때는 처리 근거와 결과를 관리자 메모에 남겨야 합니다.</p>'
+            . '<p>완료로 저장하려면 요청자 확인, 사본 자료 또는 실제 조치 결과 확인, 관리자 메모 기록을 모두 확인해야 합니다. 확인값은 저장 시 감사 로그에 남지만 실제 조치의 근거 자료를 대신하지는 않습니다.</p>',
+    ],
+    'export' => [
+        'id' => 'privacy-request-help-export',
+        'title' => '대응 자료 내려받기 도움말',
+        'body' => '<p>내려받는 JSON 파일에는 요청 유형과 상태, 요청자 정보, 요청 내용, 관리자 메모 등 대응 기록이 들어갑니다. 회원 계정 ID가 연결되어 있으면 각 모듈이 제공하는 해당 회원의 개인정보 사본도 함께 포함합니다.</p>'
+            . '<p>내려받기 전에 현재 관리자 비밀번호를 다시 확인하며, 반복 실패하면 잠시 제한될 수 있습니다. 파일 생성은 실제 삭제·정정 같은 조치를 실행하거나 요청 상태와 완료 확인을 바꾸지 않습니다.</p>'
+            . '<p>파일에는 개인정보가 포함될 수 있으므로 필요한 담당자에게만 전달하고 사용이 끝나면 운영 정책에 따라 안전하게 삭제하세요.</p>',
+    ],
+    'safe_text' => [
+        'id' => 'privacy-request-help-safe-text',
+        'title' => '기록할 내용 도움말',
+        'body' => '<p>요청자 정보와 요청 내용은 입력한 내용이 대응 자료에 포함될 수 있으므로 요청 취지와 처리에 필요한 최소 범위만 적으세요. 제3자의 개인정보, 주민등록번호, 원문 비밀번호, 인증 토큰이나 비밀키는 기록하지 마세요.</p>'
+            . '<p>관리자 메모는 저장할 때 이메일·전화번호·주민등록번호와 일부 비밀값 형태를 가리지만 모든 민감정보를 판별할 수 있는 것은 아닙니다. 자동 가림에 의존하지 말고 본인확인 방법, 확인한 화면, 조치 결과와 근거만 남기세요.</p>',
+    ],
+];
 $adminPageTitleUrl = sr_admin_page_title_reset_url(true, '/admin/privacy-requests');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -142,6 +177,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <form method="post" action="<?php echo sr_e(sr_url('/admin/privacy-requests/export')); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="id" value="<?php echo sr_e($requestId); ?>">
+                                <?php echo $privacyRequestHelpButtonHtml('대응 자료 내려받기', $privacyRequestHelp['export']['id']); ?>
                                 <label class="sr-only" for="privacy_export_password_<?php echo sr_e($requestId); ?>"><?php echo sr_e(sr_t('privacy::ui.admin.password.d9e14cef')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
                                 <input type="password" name="admin_password" id="privacy_export_password_<?php echo sr_e($requestId); ?>" class="form-input" autocomplete="current-password" required placeholder="<?php echo sr_e(sr_t('privacy::ui.admin.password.d9e14cef')); ?>">
                                 <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('privacy::ui.text.af6fa16d')); ?></button>
@@ -152,7 +188,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="request_id" value="<?php echo sr_e($requestId); ?>">
                                     <input type="hidden" name="status" value="<?php echo sr_e($requestStatus); ?>" data-privacy-status>
-                                    <p class="form-help">상태 변경은 요청 대응 이력만 저장합니다. 정정, 삭제, 처리 제한, 처리 거부, 동의 철회는 데이터 소유 모듈에서 처리한 뒤 메모에 근거를 남기세요.</p>
+                                    <div class="form-label form-label-help">
+                                        <?php echo $privacyRequestHelpButtonHtml('상태와 완료 확인', $privacyRequestHelp['handling']['id']); ?>
+                                        <span>상태와 완료 확인</span>
+                                    </div>
+                                    <p class="form-help">상태 변경은 요청 대응 이력만 저장하며 실제 개인정보 조치를 실행하지 않습니다.</p>
                                     <div class="admin-row-actions" role="group" aria-label="<?php echo sr_e(sr_t('privacy::ui.status.e10195a1')); ?>">
                                         <?php if (!in_array($requestStatus, sr_admin_privacy_request_terminal_statuses(), true)) { ?>
                                             <?php foreach ($allowedStatuses as $status) { ?>
@@ -184,6 +224,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                             <label for="modules_privacy_admin_privacy_requests_action_confirmed_<?php echo sr_e($requestId); ?>" class="btn btn-choice-light btn-group-end"><?php echo sr_e(sr_t('privacy::ui.admin.5a81e50f')); ?> <span class="sr-required-label" data-privacy-completed-required<?php echo $completedRequired ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
                                         </span>
                                     </div>
+                                    <p class="form-help">완료로 종결할 때는 세 확인 항목과 관리자 메모가 모두 필요합니다.</p>
                                     <button type="submit" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('privacy::ui.save.5fb92622')); ?></button>
                                 </form>
                             </details>
@@ -220,21 +261,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 <?php } ?>
                 <div class="form-row">
-                    <label class="form-label" for="privacy_create_account_id">계정 ID</label>
+                    <?php echo sr_admin_form_label_help_html('privacy_create_account_id', '연결할 회원 계정 ID', $privacyRequestHelp['record']['id'], $privacyRequestHelpOpenLabel); ?>
                     <div class="form-field">
                         <input id="privacy_create_account_id" type="number" name="account_id" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['account_id'] ?? '')); ?>" class="form-input" min="1" inputmode="numeric" data-privacy-create-account data-validation-message="계정 ID 또는 요청자 중 하나를 입력하세요."<?php echo $privacyRequestCreateErrors === [] ? ' data-overlay-focus' : ''; ?>>
-                        <small class="form-help">회원 계정과 연결할 때만 입력하세요.</small>
+                        <small class="form-help">회원과 연결하면 대응 자료에 해당 계정의 개인정보 사본도 포함합니다.</small>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="privacy_create_requester_snapshot">요청자</label>
+                    <?php echo sr_admin_form_label_help_html('privacy_create_requester_snapshot', '요청자 정보', $privacyRequestHelp['record']['id'], $privacyRequestHelpOpenLabel); ?>
                     <div class="form-field">
                         <input id="privacy_create_requester_snapshot" type="text" name="requester_snapshot" value="<?php echo sr_e((string) ($privacyRequestCreateDraft['requester_snapshot'] ?? '')); ?>" class="form-input" maxlength="255" autocomplete="off" data-privacy-create-requester data-validation-message="계정 ID 또는 요청자 중 하나를 입력하세요.">
-                        <small class="form-help">계정 ID가 없으면 이메일 또는 문의 식별값을 입력하세요.</small>
+                        <small class="form-help">계정 ID가 없으면 이메일 또는 문의 번호처럼 요청자를 구분할 값을 입력합니다.</small>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="privacy_create_request_type">요청 유형 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('privacy_create_request_type', '요청 유형', $privacyRequestHelp['record']['id'], $privacyRequestHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <select id="privacy_create_request_type" name="request_type" class="form-select" required data-validation-message="요청 유형을 선택하세요.">
                             <option value="">선택</option>
@@ -242,21 +283,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e($requestType); ?>"<?php echo (string) ($privacyRequestCreateDraft['request_type'] ?? '') === $requestType ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                             <?php } ?>
                         </select>
-                        <small class="form-help">요청 유형은 접수 분류입니다. 정정, 삭제, 처리 제한, 처리 거부, 동의 철회는 데이터 소유 모듈의 action을 자동 실행하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
+                        <small class="form-help">요청을 분류해 기록할 뿐 실제 정정·삭제 같은 조치는 자동 실행하지 않습니다.</small>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="privacy_create_request_message">요청 내용 <span class="sr-required-label"><?php echo sr_e(sr_t('privacy::ui.required.1f227c67')); ?></span></label>
+                    <?php echo sr_admin_form_label_help_html('privacy_create_request_message', '요청 내용', $privacyRequestHelp['safe_text']['id'], $privacyRequestHelpOpenLabel, true); ?>
                     <div class="form-field">
                         <textarea id="privacy_create_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required data-validation-message="요청 내용을 입력하세요."><?php echo sr_e((string) ($privacyRequestCreateDraft['request_message'] ?? '')); ?></textarea>
-                        <small class="form-help">외부 문의로 접수한 요청 취지와 확인해야 할 범위만 적으세요. 제3자 개인정보, 주민등록번호, 원문 비밀번호, 토큰은 넣지 마세요.</small>
+                        <small class="form-help">외부 문의로 접수한 요청 취지와 확인할 범위만 적으세요.</small>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label class="form-label" for="privacy_create_admin_note">관리자 메모</label>
+                    <?php echo sr_admin_form_label_help_html('privacy_create_admin_note', '관리자 메모', $privacyRequestHelp['safe_text']['id'], $privacyRequestHelpOpenLabel); ?>
                     <div class="form-field">
                         <textarea id="privacy_create_admin_note" name="admin_note" class="form-textarea" rows="3" maxlength="2000"><?php echo sr_e((string) ($privacyRequestCreateDraft['admin_note'] ?? '')); ?></textarea>
-                        <small class="form-help">본인 확인 경로와 처리 근거만 남기고 제3자 개인정보, 주민등록번호, 원문 연락처, 비밀번호, 토큰은 넣지 마세요.</small>
+                        <small class="form-help">본인확인 방법과 처리 근거·결과만 남기세요.</small>
                     </div>
                 </div>
             </div>
@@ -295,7 +336,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="<?php echo sr_e($requestType); ?>"<?php echo (string) ($privacyRequestCreateDraft['request_type'] ?? '') === $requestType ? ' selected' : ''; ?>><?php echo sr_e(sr_admin_code_label($requestType, 'privacy_request_type')); ?></option>
                         <?php } ?>
                     </select>
-                    <small class="form-help">요청 유형은 접수 분류입니다. 정정, 삭제, 처리 제한, 처리 거부, 동의 철회는 데이터 소유 모듈의 action을 자동 실행하지 않으므로 처리 메모에 확인한 화면과 조치를 남기세요.</small>
+                    <small class="form-help">요청 유형은 기록을 나누는 기준입니다. 정정·삭제 같은 실제 작업은 해당 데이터를 관리하는 화면에서 직접 처리하고 관리자 메모에 결과를 남기세요.</small>
                 </label>
             </div>
             <label for="privacy_create_nojs_request_message">
@@ -316,6 +357,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </noscript>
 
 <?php echo sr_admin_pagination_html($privacyRequestPagination, '개인정보 요청 대응 기록 목록 페이지'); ?>
+
+<?php foreach ($privacyRequestHelp as $privacyRequestHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $privacyRequestHelpModal['id'], (string) $privacyRequestHelpModal['title'], (string) $privacyRequestHelpModal['body']); ?>
+<?php } ?>
 
 <script>
 (function () {
