@@ -56,7 +56,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <a class="btn btn-sm btn-outline-secondary" href="<?php echo sr_e(sr_url('/robots.txt')); ?>" target="_blank" rel="noopener noreferrer"><?php echo sr_e(sr_t('seo::ui.text.0d512314')); ?></a>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('seo_admin_settings_robots_disallow_paths', sr_t('seo::ui.text.553ea40a'), $seoHelp['robots']['id'], $seoHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('seo_admin_settings_robots_disallow_paths', sr_t('seo::ui.text.553ea40a'), $seoHelp['robots']['id'], $seoHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <textarea id="seo_admin_settings_robots_disallow_paths" name="robots_disallow_paths" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) $settings['robots_disallow_paths']); ?></textarea>
                 <p class="form-help"><code>/</code>로 시작하는 사이트 내부 경로를 한 줄에 하나씩 입력합니다. 아래에서 저장될 robots.txt 내용을 미리 볼 수 있습니다.</p>

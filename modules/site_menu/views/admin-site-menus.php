@@ -274,7 +274,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
                     <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $itemMenuId); ?>">
                     <div class="form-row">
-                        <?php echo sr_admin_form_label_help_html($modalId . '_module', sr_t('site_menu::ui.text.06aff97f'), $siteMenuHelp['link']['id'], $siteMenuHelpOpenLabel); ?>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_module', sr_t('site_menu::ui.text.06aff97f'), $siteMenuHelp['link']['id'], $siteMenuHelpOpenLabel, false, true); ?>
                         <div class="form-field">
                             <select id="<?php echo sr_e($modalId); ?>_module" class="form-select" data-site-menu-module-select data-overlay-focus>
                                 <?php $siteMenuModuleOptions($selectedModuleKey); ?>
@@ -299,7 +299,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                         </div>
                     </div>
                     <div class="form-row">
-                        <?php echo sr_admin_form_label_help_html($modalId . '_parent_id', sr_t('site_menu::ui.text.6ab1927c'), $siteMenuHelp['structure']['id'], $siteMenuHelpOpenLabel); ?>
+                        <?php echo sr_admin_form_label_help_html($modalId . '_parent_id', sr_t('site_menu::ui.text.6ab1927c'), $siteMenuHelp['structure']['id'], $siteMenuHelpOpenLabel, false, true); ?>
                         <div class="form-field">
                             <select id="<?php echo sr_e($modalId); ?>_parent_id" name="parent_id" class="form-select">
                                 <?php $siteMenuParentOptions($itemMenuId, $itemParentId, $itemId); ?>

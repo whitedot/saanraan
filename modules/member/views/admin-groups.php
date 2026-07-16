@@ -212,7 +212,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
     <div class="form-row">
-        <?php echo sr_admin_form_label_help_html($definitionFieldId, sr_t('member::ui.text.7a1e6434'), $memberGroupHelp['rule_definition']['id'], $memberGroupHelpOpenLabel, true); ?>
+        <?php echo sr_admin_form_label_help_html($definitionFieldId, sr_t('member::ui.text.7a1e6434'), $memberGroupHelp['rule_definition']['id'], $memberGroupHelpOpenLabel, true, true); ?>
         <div class="form-field">
             <select id="<?php echo sr_e($definitionFieldId); ?>" name="definition_key" required data-member-rule-definition class="form-select">
                 <?php foreach ($ruleDefinitions as $definitionKey => $definition) { ?>
@@ -272,7 +272,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
     <div class="form-row">
-        <?php echo sr_admin_form_label_help_html($evaluationPolicyFieldId, sr_t('member::ui.text.c3054578'), $memberGroupHelp['evaluation_policy']['id'], $memberGroupHelpOpenLabel, true); ?>
+        <?php echo sr_admin_form_label_help_html($evaluationPolicyFieldId, sr_t('member::ui.text.c3054578'), $memberGroupHelp['evaluation_policy']['id'], $memberGroupHelpOpenLabel, true, true); ?>
         <div class="form-field">
             <select id="<?php echo sr_e($evaluationPolicyFieldId); ?>" name="evaluation_policy" class="form-select">
                 <?php foreach ($allowedEvaluationPolicies as $policy) { ?>

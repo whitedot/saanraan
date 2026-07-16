@@ -329,7 +329,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } else { ?>
                             <div class="form-row">
-                                <?php echo sr_admin_form_label_help_html($depositAdjustAccountInputId, sr_t('deposit::ui.member.900e04a5'), $depositHelp['member_hash']['id'], $depositHelpOpenLabel, true); ?>
+                                <?php echo sr_admin_form_label_help_html($depositAdjustAccountInputId, sr_t('deposit::ui.member.900e04a5'), $depositHelp['member_hash']['id'], $depositHelpOpenLabel, true, true); ?>
                                 <div class="form-field">
                                     <div class="admin-lookup-control">
                                         <input id="<?php echo sr_e($depositAdjustAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
@@ -339,7 +339,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } ?>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($depositAdjustFieldPrefix . '_transaction_type', sr_t('deposit::ui.text.3a7bc5ac'), $depositHelp['transaction_type']['id'], $depositHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($depositAdjustFieldPrefix . '_transaction_type', sr_t('deposit::ui.text.3a7bc5ac'), $depositHelp['transaction_type']['id'], $depositHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <select id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
                                     <?php foreach ($depositAdjustTransactionTypes as $type) { ?>
@@ -349,14 +349,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($depositAdjustFieldPrefix . '_amount', sr_t('deposit::ui.text.5c705e1a'), $depositHelp['amount']['id'], $depositHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($depositAdjustFieldPrefix . '_amount', sr_t('deposit::ui.text.5c705e1a'), $depositHelp['amount']['id'], $depositHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_amount" type="number" name="amount" step="1" required class="form-input" data-overlay-focus>
                                 <p class="form-help"><?php echo sr_e(sr_t('deposit::ui.active.2db1fd9d')); ?></p>
                             </div>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($depositAdjustFieldPrefix . '_reason', sr_t('deposit::ui.text.ab9442a2'), $depositHelp['reason']['id'], $depositHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($depositAdjustFieldPrefix . '_reason', sr_t('deposit::ui.text.ab9442a2'), $depositHelp['reason']['id'], $depositHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($depositAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                             </div>
@@ -414,14 +414,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <span class="admin-summary-meta"><?php echo sr_e(sr_t('deposit::ui.text.64d5a726')); ?> <strong><?php echo sr_e(number_format((int) $depositRefundTransaction['amount'])); ?> <?php echo sr_e(sr_t('deposit::ui.text.c19fd678')); ?></strong></span>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($depositRefundFieldPrefix . '_amount', sr_t('deposit::ui.text.a27af6c4'), $depositHelp['refund_amount']['id'], $depositHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($depositRefundFieldPrefix . '_amount', sr_t('deposit::ui.text.a27af6c4'), $depositHelp['refund_amount']['id'], $depositHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($depositRefundFieldPrefix); ?>_amount" type="number" name="amount" value="<?php echo sr_e((string) $depositRefundDefaultAmount); ?>" step="1" min="1" required class="form-input" data-overlay-focus>
                                 <p class="form-help"><?php echo sr_e(sr_t('deposit::ui.deposit.save.4f951908')); ?></p>
                             </div>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($depositRefundFieldPrefix . '_reason', sr_t('deposit::ui.text.ab9442a2'), $depositHelp['refund_reason']['id'], $depositHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($depositRefundFieldPrefix . '_reason', sr_t('deposit::ui.text.ab9442a2'), $depositHelp['refund_reason']['id'], $depositHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($depositRefundFieldPrefix); ?>_reason" type="text" name="reason" value="<?php echo sr_e(sr_t('deposit::ui.text.5b471750') . (string) $depositRefundTransactionId . sr_t('deposit::ui.text.0a4d3a11')); ?>" maxlength="255" required class="form-input form-control-full">
                                 <p class="form-help"><?php echo sr_e(sr_t('deposit::ui.id.0b5dbcb4')); ?> <?php echo sr_e($depositRefundReferenceId); ?></p>

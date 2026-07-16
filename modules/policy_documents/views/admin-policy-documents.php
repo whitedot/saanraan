@@ -232,7 +232,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
 
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('policy_document_initial_version_status', '첫 버전 상태', $policyDocumentHelp['status']['id'], $policyDocumentHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html('policy_document_initial_version_status', '첫 버전 상태', $policyDocumentHelp['status']['id'], $policyDocumentHelpOpenLabel, true, true); ?>
                     <div class="form-field">
                         <select id="policy_document_initial_version_status" class="form-select" name="version_status" required>
                             <option value="draft"><?php echo sr_e(sr_t('policy_documents::ui.status.draft')); ?></option>
@@ -243,7 +243,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
 
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('policy_document_effective_from', sr_t('policy_documents::ui.effective_from'), $policyDocumentHelp['effective']['id'], $policyDocumentHelpOpenLabel); ?>
+                    <?php echo sr_admin_form_label_help_html('policy_document_effective_from', sr_t('policy_documents::ui.effective_from'), $policyDocumentHelp['effective']['id'], $policyDocumentHelpOpenLabel, false, true); ?>
                     <div class="form-field">
                         <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from">
                         <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.effective_from.help')); ?></p>
@@ -337,7 +337,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
             <?php if (!$editingVersion) { ?>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('policy_document_status', '버전 상태', $policyDocumentHelp['status']['id'], $policyDocumentHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html('policy_document_status', '버전 상태', $policyDocumentHelp['status']['id'], $policyDocumentHelpOpenLabel, true, true); ?>
                     <div class="form-field">
                         <select id="policy_document_status" class="form-select" name="status" required>
                             <option value="draft"><?php echo sr_e(sr_t('policy_documents::ui.status.draft')); ?></option>
@@ -349,7 +349,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php } ?>
 
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('policy_document_effective_from', sr_t('policy_documents::ui.effective_from'), $policyDocumentHelp['effective']['id'], $policyDocumentHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('policy_document_effective_from', sr_t('policy_documents::ui.effective_from'), $policyDocumentHelp['effective']['id'], $policyDocumentHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <input id="policy_document_effective_from" class="form-input" type="datetime-local" name="effective_from" value="<?php echo sr_e(sr_datetime_local_value($policyDocumentVersionValue('effective_from'))); ?>">
                     <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.effective_from.help')); ?></p>

@@ -339,7 +339,7 @@ $quizSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_settings_default_quiz_mode', '기본 모드', $quizSettingsHelp['default_quiz_mode']['id'], $quizSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_quiz_mode', '기본 모드', $quizSettingsHelp['default_quiz_mode']['id'], $quizSettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <?php
                     $quizModeToggleOptions = [];
@@ -351,7 +351,7 @@ $quizSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_settings_default_scoring_model', '기본 채점 모델', $quizSettingsHelp['default_scoring_model']['id'], $quizSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_scoring_model', '기본 채점 모델', $quizSettingsHelp['default_scoring_model']['id'], $quizSettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <?php
                     $quizScoringToggleOptions = [];
@@ -381,7 +381,7 @@ $quizSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_settings_default_attempt_limit_policy', '기본 응시 제한', $quizSettingsHelp['default_attempt_limit_policy']['id'], $quizSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_attempt_limit_policy', '기본 응시 제한', $quizSettingsHelp['default_attempt_limit_policy']['id'], $quizSettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <?php
                     $quizAttemptPolicyToggleOptions = [];
@@ -497,7 +497,7 @@ $quizSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row" data-quiz-settings-reward-row data-quiz-settings-reward-policy-row>
-                <?php echo sr_admin_form_label_help_html('quiz_settings_default_reward_dedupe_scope', '기본 중복 지급 기준', $quizSettingsHelp['default_reward_dedupe_scope']['id'], $quizSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_settings_default_reward_dedupe_scope', '기본 중복 지급 기준', $quizSettingsHelp['default_reward_dedupe_scope']['id'], $quizSettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <?php
                     $quizRewardDedupeToggleOptions = [];

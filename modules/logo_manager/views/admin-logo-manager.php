@@ -154,7 +154,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-app-icon-copy-row>
-                    <?php echo sr_admin_form_label_help_html('logo_manager_also_use_as_app_icon', sr_t('logo_manager::ui.copy.app_icon.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel); ?>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_also_use_as_app_icon', sr_t('logo_manager::ui.copy.app_icon.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel, false, true); ?>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_also_use_as_app_icon">
                             <input id="logo_manager_also_use_as_app_icon" type="checkbox" name="also_use_as_app_icon" value="1" class="form-switch form-switch-light" data-logo-manager-app-icon-copy-switch>
@@ -164,7 +164,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-public-symbol-row>
-                    <?php echo sr_admin_form_label_help_html('logo_manager_use_as_public_symbol', sr_t('logo_manager::ui.public_symbol.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel); ?>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_use_as_public_symbol', sr_t('logo_manager::ui.public_symbol.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel, false, true); ?>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_use_as_public_symbol">
                             <input id="logo_manager_use_as_public_symbol" type="checkbox" name="use_as_public_symbol" value="1" class="form-switch form-switch-light" data-logo-manager-public-symbol-switch>
@@ -174,7 +174,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row" data-logo-manager-favicon-copy-row>
-                    <?php echo sr_admin_form_label_help_html('logo_manager_also_use_as_favicon', sr_t('logo_manager::ui.copy.favicon.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel); ?>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_also_use_as_favicon', sr_t('logo_manager::ui.copy.favicon.label'), $logoManagerHelp['copies']['id'], $logoManagerHelpOpenLabel, false, true); ?>
                     <div class="form-field">
                         <label class="form-check form-label" for="logo_manager_also_use_as_favicon">
                             <input id="logo_manager_also_use_as_favicon" type="checkbox" name="also_use_as_favicon" value="1" class="form-switch form-switch-light">
@@ -219,7 +219,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('logo_manager_starts_at', sr_t('logo_manager::ui.text.65bdaefd'), $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel); ?>
+                    <?php echo sr_admin_form_label_help_html('logo_manager_starts_at', sr_t('logo_manager::ui.text.65bdaefd'), $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel, false, true); ?>
                     <div class="form-field">
                         <input id="logo_manager_starts_at" type="datetime-local" name="starts_at" class="form-input">
                         <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>
@@ -528,7 +528,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row">
-                        <?php echo sr_admin_form_label_help_html('logo_manager_edit_starts_at_' . (string) (int) $logo['id'], sr_t('logo_manager::ui.text.65bdaefd'), $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel); ?>
+                        <?php echo sr_admin_form_label_help_html('logo_manager_edit_starts_at_' . (string) (int) $logo['id'], sr_t('logo_manager::ui.text.65bdaefd'), $logoManagerHelp['schedule']['id'], $logoManagerHelpOpenLabel, false, true); ?>
                         <div class="form-field">
                             <input id="logo_manager_edit_starts_at_<?php echo sr_e((string) (int) $logo['id']); ?>" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_logo_manager_admin_datetime_value($logo['starts_at'] ?? null)); ?>" class="form-input">
                             <small class="form-help"><?php echo sr_e(sr_t('logo_manager::ui.period.help')); ?></small>

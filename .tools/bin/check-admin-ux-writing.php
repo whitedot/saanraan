@@ -14,6 +14,8 @@ $requiredGuidePhrases = [
     'placeholder는 안내 문구의 대체물이 아니다',
     '한 모듈의 화면에서 다른 모듈의 기능을 비유로 들어 설명하지 않는다',
     '민감하거나 운영자 판단에 필요하지 않은 값은 토스트, alert, 도움말에 노출하지 않는다',
+    '마지막 `importantHelp` 인자를 명시적으로 켠 항목에만 `?`를 출력',
+    '대표 필드나 섹션 제목 한 곳에만 `?`를 둔다',
 ];
 
 $guidePath = $root . '/docs/admin-ui-guide.md';
@@ -140,6 +142,22 @@ if (is_string($toastHelper)) {
     }
 } else {
     $errors[] = '관리자 토스트 helper를 읽을 수 없습니다.';
+}
+
+$formHelperPath = $root . '/modules/admin/helpers/forms.php';
+$formHelper = is_file($formHelperPath) ? file_get_contents($formHelperPath) : false;
+if (!is_string($formHelper)) {
+    $errors[] = '관리자 폼 라벨 helper를 읽을 수 없습니다.';
+} else {
+    foreach ([
+        'bool $importantHelp = false',
+        'if (!$importantHelp)',
+        'return \'<label class="form-label"',
+    ] as $marker) {
+        if (!str_contains($formHelper, $marker)) {
+            $errors[] = '일반 라벨이 기본이고 중요한 도움말만 opt-in하는 계약이 빠졌습니다: ' . $marker;
+        }
+    }
 }
 
 if ($errors !== []) {

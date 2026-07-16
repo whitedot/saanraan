@@ -314,14 +314,14 @@ foreach ($policySlots as $assetExchangeNavSlot) {
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html($fieldPrefix . '_rounding_mode', '소수점 처리', $assetExchangeHelp['rounding']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html($fieldPrefix . '_rounding_mode', '소수점 처리', $assetExchangeHelp['rounding']['id'], $assetExchangeHelpOpenLabel, true, true); ?>
                     <div class="form-field">
                         <?php echo sr_admin_radio_toggle_group_html($fieldPrefix . '_rounding_mode', $policyFieldNamePrefix . '[rounding_mode]', $roundingModeLabels, (string) ($policy['rounding_mode'] ?? 'floor'), true); ?>
                         <p class="form-help">교환 지급액과 비율 수수료의 소수점을 정수로 처리하는 방식입니다.</p>
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html($fieldPrefix . '_fee_trigger', '수수료 적용', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html($fieldPrefix . '_fee_trigger', '수수료 적용', $assetExchangeHelp['fee']['id'], $assetExchangeHelpOpenLabel, true, true); ?>
                     <div class="form-field">
                         <select id="<?php echo sr_e($fieldPrefix); ?>_fee_trigger" name="<?php echo sr_e($policyFieldNamePrefix); ?>[fee_trigger]" class="form-select" required data-asset-exchange-fee-trigger>
                             <?php foreach ($feeTriggerLabels as $value => $label) { ?>

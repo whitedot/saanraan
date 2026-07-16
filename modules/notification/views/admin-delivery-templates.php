@@ -116,7 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="modal-body admin-form">
                     <div class="form-row">
-                        <?php echo sr_admin_form_label_help_html('delivery_template_subject_' . $fieldSuffix, '제목', $deliveryTemplateHelp['variables']['id'], $deliveryTemplateHelpOpenLabel, true); ?>
+                        <?php echo sr_admin_form_label_help_html('delivery_template_subject_' . $fieldSuffix, '제목', $deliveryTemplateHelp['variables']['id'], $deliveryTemplateHelpOpenLabel, true, true); ?>
                         <div class="form-field">
                             <input id="delivery_template_subject_<?php echo sr_e($fieldSuffix); ?>" type="text" name="subject_template" value="<?php echo sr_e((string) ($templateRow['subject_template'] ?? '')); ?>" maxlength="190" required class="form-input form-control-full" data-overlay-focus>
                             <small class="form-help">받는 사람의 메일함에 표시되는 제목입니다. 사용 가능한 변수를 넣을 수 있습니다.</small>

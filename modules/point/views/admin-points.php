@@ -357,7 +357,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } else { ?>
                             <div class="form-row">
-                                <?php echo sr_admin_form_label_help_html($pointAdjustAccountInputId, sr_t('point::ui.member.900e04a5'), $pointHelp['member_hash']['id'], $pointHelpOpenLabel, true); ?>
+                                <?php echo sr_admin_form_label_help_html($pointAdjustAccountInputId, sr_t('point::ui.member.900e04a5'), $pointHelp['member_hash']['id'], $pointHelpOpenLabel, true, true); ?>
                                 <div class="form-field">
                                     <div class="admin-lookup-control">
                                         <input id="<?php echo sr_e($pointAdjustAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e($accountIdentifierFilter); ?>" class="form-input" maxlength="80" required data-overlay-focus>
@@ -367,7 +367,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         <?php } ?>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_transaction_type', sr_t('point::ui.text.3a7bc5ac'), $pointHelp['transaction_type']['id'], $pointHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_transaction_type', sr_t('point::ui.text.3a7bc5ac'), $pointHelp['transaction_type']['id'], $pointHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <select id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_transaction_type" name="transaction_type" class="form-select">
                                     <?php foreach ($pointAdjustTransactionTypes as $type) { ?>
@@ -377,14 +377,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_amount', sr_t('point::ui.text.4a12f983'), $pointHelp['amount']['id'], $pointHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_amount', sr_t('point::ui.text.4a12f983'), $pointHelp['amount']['id'], $pointHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_amount" type="number" name="amount" step="1" required class="form-input" data-overlay-focus>
                                 <p class="form-help"><?php echo sr_e(sr_t('point::ui.active.d2de5076')); ?></p>
                             </div>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_reason', sr_t('point::ui.text.ab9442a2'), $pointHelp['reason']['id'], $pointHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($pointAdjustFieldPrefix . '_reason', sr_t('point::ui.text.ab9442a2'), $pointHelp['reason']['id'], $pointHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($pointAdjustFieldPrefix); ?>_reason" type="text" name="reason" maxlength="255" required class="form-input form-control-full">
                             </div>
@@ -453,14 +453,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_amount', sr_t('point::ui.text.42607c84'), $pointHelp['refund_amount']['id'], $pointHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_amount', sr_t('point::ui.text.42607c84'), $pointHelp['refund_amount']['id'], $pointHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_amount" type="number" name="amount" value="<?php echo sr_e((string) $pointRefundDefaultAmount); ?>" step="1" min="1" required class="form-input" data-overlay-focus>
                                 <p class="form-help"><?php echo sr_e(sr_t('point::ui.point.save.fcebf5f3')); ?></p>
                             </div>
                         </div>
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_reason', sr_t('point::ui.text.ab9442a2'), $pointHelp['refund_reason']['id'], $pointHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html($pointRefundFieldPrefix . '_reason', sr_t('point::ui.text.ab9442a2'), $pointHelp['refund_reason']['id'], $pointHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <input id="<?php echo sr_e($pointRefundFieldPrefix); ?>_reason" type="text" name="reason" value="<?php echo sr_e(sr_t('point::ui.text.5b471750') . (string) $pointRefundTransactionId . sr_t('point::ui.text.0a4d3a11')); ?>" maxlength="255" required class="form-input form-control-full">
                                 <p class="form-help"><?php echo sr_e(sr_t('point::ui.id.0b5dbcb4')); ?> <?php echo sr_e($pointRefundReferenceId); ?></p>

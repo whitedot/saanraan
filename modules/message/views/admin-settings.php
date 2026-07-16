@@ -93,7 +93,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2>발신/수신</h2>
         <div class="form-grid">
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('message_admin_send_policy', '발신 범위', $messageSettingsHelp['send_policy']['id'], $messageSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('message_admin_send_policy', '발신 범위', $messageSettingsHelp['send_policy']['id'], $messageSettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="message_admin_send_policy" name="send_policy" class="form-select" required data-message-policy="send">
                         <?php foreach ($messagePolicyOptions as $policyKey => $policyLabel) { ?>
@@ -111,7 +111,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('message_admin_receive_policy', '수신 범위', $messageSettingsHelp['receive_policy']['id'], $messageSettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('message_admin_receive_policy', '수신 범위', $messageSettingsHelp['receive_policy']['id'], $messageSettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="message_admin_receive_policy" name="receive_policy" class="form-select" required data-message-policy="receive">
                         <?php foreach ($messageReceivePolicyOptions as $policyKey => $policyLabel) { ?>

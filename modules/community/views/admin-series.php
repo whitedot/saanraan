@@ -128,20 +128,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th<?php echo sr_admin_sort_aria('title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('board_title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('게시판', 'board_title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('owner_display_name', $seriesSort); ?>><?php echo sr_admin_sort_header_html('소유자', 'owner_display_name', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>>
-                        <?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?>
-                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="커뮤니티 시리즈 상태 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySeriesHelp['status']['id']); ?>" data-overlay="#<?php echo sr_e($communitySeriesHelp['status']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    </th>
-                    <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>>
-                        <?php echo sr_admin_sort_header_html('공개 범위', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?>
-                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="커뮤니티 시리즈 공개 범위 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySeriesHelp['visibility']['id']); ?>" data-overlay="#<?php echo sr_e($communitySeriesHelp['visibility']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    </th>
+                    <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>><?php echo sr_admin_sort_header_html('공개 범위', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('active_item_count', $seriesSort); ?>><?php echo sr_admin_sort_header_html('글', 'active_item_count', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('updated_at', $seriesSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
-                    <th class="text-end">
-                        관리
-                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="운영 메모 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communitySeriesHelp['admin_note']['id']); ?>" data-overlay="#<?php echo sr_e($communitySeriesHelp['admin_note']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    </th>
+                    <th class="text-end">관리</th>
                 </tr>
             </thead>
             <tbody>

@@ -104,7 +104,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('identity_verification_require_https', '보안 연결만 허용', $identityVerificationHelp['require_https']['id'], $identityVerificationHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('identity_verification_require_https', '보안 연결만 허용', $identityVerificationHelp['require_https']['id'], $identityVerificationHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <label class="form-check form-label" for="identity_verification_require_https">
                     <input id="identity_verification_require_https" type="checkbox" name="require_https" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['require_https']) ? ' checked' : ''; ?>>
@@ -114,7 +114,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('identity_verification_use_birth_date', '확인된 생년월일 반영', $identityVerificationHelp['birth_date']['id'], $identityVerificationHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('identity_verification_use_birth_date', '확인된 생년월일 반영', $identityVerificationHelp['birth_date']['id'], $identityVerificationHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <label class="form-check form-label" for="identity_verification_use_birth_date">
                     <input id="identity_verification_use_birth_date" type="checkbox" name="use_birth_date" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['use_birth_date']) ? ' checked' : ''; ?>>

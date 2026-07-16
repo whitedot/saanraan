@@ -245,7 +245,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="modal-body admin-form">
                     <div class="form-row">
-                        <?php echo sr_admin_form_label_help_html('notification_template_title_' . $fieldSuffix, '제목', $notificationTemplateHelp['variables']['id'], $notificationTemplateHelpOpenLabel, true); ?>
+                        <?php echo sr_admin_form_label_help_html('notification_template_title_' . $fieldSuffix, '제목', $notificationTemplateHelp['variables']['id'], $notificationTemplateHelpOpenLabel, true, true); ?>
                         <div class="form-field">
                             <input id="notification_template_title_<?php echo sr_e($fieldSuffix); ?>" type="text" name="title_template" value="<?php echo sr_e((string) ($templateRow['title_template'] ?? '')); ?>" maxlength="<?php echo $rowType === 'delivery' ? '190' : '160'; ?>" required class="form-input form-control-full" data-overlay-focus>
                             <small class="form-help">알림 목록이나 메일함에 표시되는 제목입니다. 사용 가능한 변수를 넣을 수 있습니다.</small>

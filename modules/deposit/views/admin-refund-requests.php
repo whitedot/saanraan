@@ -86,12 +86,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <th>상태</th>
                     <th>요청 메모</th>
                     <th>처리 정보</th>
-                    <th class="text-end">
-                        <span class="form-label-help">
-                            <button type="button" class="admin-label-help-button" aria-label="환불 처리 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($depositRefundHelp['id']); ?>" data-overlay="#<?php echo sr_e($depositRefundHelp['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                            <span>처리</span>
-                        </span>
-                    </th>
+                    <th class="text-end">처리</th>
                 </tr>
             </thead>
             <tbody>
@@ -187,7 +182,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     현재 필터와 검색 조건에 맞는 대기 환불 신청 <?php echo sr_e(number_format($requestBatchPendingCount)); ?>건을 처리합니다. 한 번에 최대 <?php echo sr_e(number_format($requestBatchLimit)); ?>건까지 처리하며, 실행 시점에 신청 상태가 바뀌면 실제 처리 건수가 다를 수 있습니다.
                 </p>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('deposit-refund-batch-admin-note', '처리 메모', $depositRefundHelp['id'], '환불 처리 도움말 보기', true); ?>
+                    <?php echo sr_admin_form_label_help_html('deposit-refund-batch-admin-note', '처리 메모', $depositRefundHelp['id'], '환불 처리 도움말 보기', true, true); ?>
                     <div class="form-field">
                         <input id="deposit-refund-batch-admin-note" type="text" name="admin_note" maxlength="255" required class="form-input" placeholder="공통 외부 이체 확인 번호 또는 거부 사유">
                         <p class="form-help">모든 처리 대상에 같은 메모를 저장하며 회원에게도 표시합니다.</p>

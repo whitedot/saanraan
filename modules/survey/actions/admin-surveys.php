@@ -944,7 +944,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('survey_response_limit_policy', '응답 제한', $surveyHelp['response_limit']['id'], $surveyHelpOpenLabel); ?>
+                    <?php echo sr_admin_form_label_help_html('survey_response_limit_policy', '응답 제한', $surveyHelp['response_limit']['id'], $surveyHelpOpenLabel, false, true); ?>
                     <div class="form-field">
                         <select id="survey_response_limit_policy" name="response_limit_policy" class="form-select">
                             <?php foreach (sr_survey_response_limit_policies() as $limitPolicy): ?>
@@ -1264,7 +1264,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                         <div class="modal-body">
                             <div class="form-row">
-                                <?php echo sr_admin_form_label_help_html('question_type_' . (string) $index, '유형', $surveyHelp['question_type']['id'], $surveyHelpOpenLabel); ?>
+                                <?php echo sr_admin_form_label_help_html('question_type_' . (string) $index, '유형', $surveyHelp['question_type']['id'], $surveyHelpOpenLabel, false, true); ?>
                                 <div class="form-field">
                                     <select id="question_type_<?php echo sr_e((string) $index); ?>" name="question_type[]" class="form-select">
                                         <?php foreach (sr_survey_question_types() as $type): ?>

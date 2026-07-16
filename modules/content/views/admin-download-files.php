@@ -104,7 +104,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('content_download_file_asset_charge_policy', '차감 시점', $contentDownloadFileHelp['payment']['id'], $contentDownloadFileHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('content_download_file_asset_charge_policy', '차감 시점', $contentDownloadFileHelp['payment']['id'], $contentDownloadFileHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <select id="content_download_file_asset_charge_policy" name="new_content_file_asset_charge_policy" class="form-select">
                         <?php foreach (sr_content_asset_download_charge_policies() as $policyKey => $policyLabel) { ?>
@@ -117,10 +117,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <div class="form-label form-label-help">
-                    <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="차감 항목과 금액 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDownloadFileHelp['payment']['id']); ?>" data-overlay="#<?php echo sr_e($contentDownloadFileHelp['payment']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    <span>차감 항목과 금액</span>
-                </div>
+                <span class="form-label">차감 항목과 금액</span>
                 <div class="form-field">
                     <div class="admin-asset-setting-target" data-admin-asset-enable-target="#content_download_file_asset_download_enabled" data-admin-asset-enable-submit-check="always">
                         <?php echo sr_content_asset_grouped_amount_inputs_html('content_download_file_asset_amounts_grouped', 'new_content_file_asset_module', 'new_content_file_asset_download_amounts', $assetModuleOptions, $selectedAssetModules, $formValues['asset_download_amounts_json'] ?? '', (int) ($formValues['asset_download_amount'] ?? 0), '차감 금액', sr_t('content::ui.text.3e195cdd')); ?>
@@ -130,7 +127,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('content_download_file_asset_download_policy_set_ids', '회원 그룹별 금액 적용', $contentDownloadFileHelp['group_policy']['id'], $contentDownloadFileHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('content_download_file_asset_download_policy_set_ids', '회원 그룹별 금액 적용', $contentDownloadFileHelp['group_policy']['id'], $contentDownloadFileHelpOpenLabel, false, true); ?>
                 <div class="form-field admin-policy-set-field">
                     <?php echo sr_content_asset_policy_set_checkboxes_html('content_download_file_asset_download_policy_set_ids', 'new_content_file_asset_download_policy_set_ids', $assetPolicySets, sr_content_asset_policy_set_ids_with_legacy($formValues['asset_download_group_policies_json'] ?? '', (int) ($formValues['asset_download_policy_set_id'] ?? 0)), 'neutral', '', '#content_download_file_asset_amounts_grouped', $pdo); ?>
                     <small class="form-help">선택한 회원 그룹 규칙에 맞는 회원에게만 조정된 금액을 적용합니다.</small>

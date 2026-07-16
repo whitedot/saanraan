@@ -111,7 +111,7 @@ if ($memberOauthExternalProviders === []) {
     <section id="member-oauth-section-basic" class="card" data-admin-section-anchor>
         <h2>기본 설정</h2>
         <div class="form-row">
-            <span class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml('되돌아올 URL', $memberOauthHelp['callback']['id']); ?><span>되돌아올 URL</span></span>
+            <span class="form-label">되돌아올 URL</span>
             <div class="form-field">
                 <div class="form-actions">
                     <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
@@ -193,7 +193,7 @@ if ($memberOauthExternalProviders === []) {
                 </label>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <span class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 되돌아올 URL', $memberOauthHelp['callback']['id']); ?><span><?php echo sr_e('되돌아올 URL'); ?></span></span>
+                <span class="form-label"><?php echo sr_e('되돌아올 URL'); ?></span>
                 <div class="form-field">
                     <div class="form-actions">
                         <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
@@ -330,7 +330,7 @@ if ($memberOauthExternalProviders === []) {
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <div class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 로그인 버튼 순서', $memberOauthHelp['sort_order']['id']); ?><label for="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>"><?php echo sr_e('로그인 버튼 순서'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label></div>
+                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>"><?php echo sr_e('로그인 버튼 순서'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
                 <div class="form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>" type="number" name="<?php echo sr_e($sortOrderKey); ?>" min="-9999" max="9999" value="<?php echo sr_e((string) ((int) ($provider['sort_order'] ?? 0))); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
                     <p class="form-help">숫자가 작을수록 로그인 화면에서 먼저 표시됩니다.</p>

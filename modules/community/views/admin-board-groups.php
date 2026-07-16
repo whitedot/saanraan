@@ -374,10 +374,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php if ($communityBoardGroupsPage === 'edit') { ?>
                 <input type="hidden" name="group_id" value="<?php echo sr_e((string) $formBoardGroup['id']); ?>">
                 <div class="form-row">
-                    <div class="form-label form-label-help">
-                        <?php echo $communityBoardGroupHelpButtonHtml('식별값', $communityBoardGroupHelp['group_key']['id']); ?>
-                        <span>식별값</span>
-                    </div>
+                    <span class="form-label">식별값</span>
                     <div class="form-field">
                         <code><?php echo sr_e((string) $formBoardGroup['group_key']); ?></code>
                     </div>

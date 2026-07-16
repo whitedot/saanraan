@@ -274,12 +274,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <input type="hidden" name="group_id" value="<?php echo $editing ? sr_e((string) $editPageGroup['id']) : '0'; ?>">
             <div class="form-row">
                 <?php if ($editing) { ?>
-                    <div class="form-label form-label-help">
-                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="식별값 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentGroupHelp['key']['id']); ?>" data-overlay="#<?php echo sr_e($contentGroupHelp['key']['id']); ?>">
-                            <?php echo sr_material_icon_html('help'); ?>
-                        </button>
-                        <span>식별값</span>
-                    </div>
+                    <span class="form-label">식별값</span>
                 <?php } else { ?>
                     <?php echo sr_admin_form_label_help_html('content_admin_groups_group_key', '식별값', $contentGroupHelp['key']['id'], $contentGroupHelpOpenLabel, true); ?>
                 <?php } ?>

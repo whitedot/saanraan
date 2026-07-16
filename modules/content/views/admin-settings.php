@@ -211,7 +211,7 @@ $contentSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label form-label-help"><?php echo $contentSettingsHelpButtonHtml('일반 텍스트 URL 링크', $contentSettingsHelp['auto_link']['id']); ?><span>일반 텍스트 URL 링크</span></span>
+            <span class="form-label">일반 텍스트 URL 링크</span>
             <div class="form-field">
                 <div class="admin-content-url-link-switches">
                     <?php echo sr_admin_switch_html('content_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>
@@ -266,7 +266,7 @@ $contentSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label form-label-help"><?php echo $contentSettingsHelpButtonHtml('추가 메뉴', $contentSettingsHelp['menus']['id']); ?><span>추가 메뉴</span></span>
+            <span class="form-label">추가 메뉴</span>
             <div class="form-field">
                 <div class="admin-layout-menu-list" data-admin-layout-menu-list>
                     <div class="admin-layout-menu-header"<?php echo $contentLayoutExtraMenuItems === [] ? ' hidden' : ''; ?> aria-hidden="true" data-admin-layout-menu-header>
@@ -368,14 +368,14 @@ $contentSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('content_admin_settings_multi_asset_payment_enabled', '여러 포인트·금액 함께 결제', $contentSettingsHelp['multi_asset']['id'], $contentSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('content_admin_settings_multi_asset_payment_enabled', '여러 포인트·금액 함께 결제', $contentSettingsHelp['multi_asset']['id'], $contentSettingsHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_multi_asset_payment_enabled', 'multi_asset_payment_enabled', '1', !empty($settings['multi_asset_payment_enabled']), '허용'); ?>
                 <p class="form-help">한 건의 유료 열람이나 다운로드에 여러 포인트·금액 항목을 함께 쓸 수 있게 합니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('content_admin_settings_once_history_policy', '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpId, '설명 보기', true); ?>
+            <?php echo sr_admin_form_label_help_html('content_admin_settings_once_history_policy', '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpId, '설명 보기', true, true); ?>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_once_history_policy', 'once_history_policy', sr_content_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>
                 <p class="form-help">과금 방식을 최초 1회로 운영할 때 예전에 이용한 회원을 다시 결제시킬지 정합니다. 기존 원장 거래와 쿠폰 사용 로그는 자동 환불하거나 추가 차감하지 않습니다.</p>
@@ -423,7 +423,7 @@ $contentSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo $memberSubmissionEnabled ? '' : ' hidden'; ?>>
-            <?php echo sr_admin_form_label_help_html('content_admin_settings_member_submission_author_reward_enabled', '제출 회원 보상', $contentSettingsHelp['reward']['id'], $contentSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('content_admin_settings_member_submission_author_reward_enabled', '제출 회원 보상', $contentSettingsHelp['reward']['id'], $contentSettingsHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_member_submission_author_reward_enabled', 'member_submission_author_reward_enabled', '1', !empty($settings['member_submission_author_reward_enabled']), '지급'); ?>
                 <p class="form-help">제출본이 승인되어 공개될 때 제출 회원에게 한 번 지급합니다.</p>

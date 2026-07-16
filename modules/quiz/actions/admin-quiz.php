@@ -866,7 +866,7 @@ $quizSectionNavItems = [
         </div>
         <div class="form-grid">
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_mode', '모드', $quizHelp['mode']['id'], $quizHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_mode', '모드', $quizHelp['mode']['id'], $quizHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="quiz_mode" name="quiz_mode" class="form-select" required>
                         <?php foreach (sr_quiz_modes() as $quizMode) { ?>
@@ -877,7 +877,7 @@ $quizSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_scoring_model', '채점 모델', $quizHelp['scoring_model']['id'], $quizHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_scoring_model', '채점 모델', $quizHelp['scoring_model']['id'], $quizHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="quiz_scoring_model" name="scoring_model" class="form-select" required>
                         <?php foreach (sr_quiz_scoring_models() as $scoringModel) { ?>
@@ -1089,7 +1089,7 @@ $quizSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_attempt_limit_policy', '응시 제한', $quizHelp['attempt_limit']['id'], $quizHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_attempt_limit_policy', '응시 제한', $quizHelp['attempt_limit']['id'], $quizHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="quiz_attempt_limit_policy" name="attempt_limit_policy" class="form-select" required>
                         <?php foreach (sr_quiz_attempt_limit_policies() as $policy) { ?>
@@ -1245,7 +1245,7 @@ $quizSectionNavItems = [
                     <div class="modal-body">
                         <input type="hidden" name="question_uid[]" value="<?php echo sr_e($questionUid); ?>">
                         <div class="form-row">
-                            <?php echo sr_admin_form_label_help_html('quiz_question_type_' . (string) $questionIndex, '문제 유형', $quizHelp['question_type']['id'], $quizHelpOpenLabel, true); ?>
+                            <?php echo sr_admin_form_label_help_html('quiz_question_type_' . (string) $questionIndex, '문제 유형', $quizHelp['question_type']['id'], $quizHelpOpenLabel, true, true); ?>
                             <div class="form-field">
                                 <select id="quiz_question_type_<?php echo sr_e((string) $questionIndex); ?>" name="question_type[]" class="form-select" required>
                                     <?php foreach (sr_quiz_question_types() as $questionType) { ?>
@@ -1331,7 +1331,7 @@ $quizSectionNavItems = [
                 <div class="modal-body">
                     <input type="hidden" name="question_uid[]" value="<?php echo sr_e($newQuestionUid); ?>">
                     <div class="form-row">
-                        <?php echo sr_admin_form_label_help_html('quiz_question_type_new', '문제 유형', $quizHelp['question_type']['id'], $quizHelpOpenLabel, true); ?>
+                        <?php echo sr_admin_form_label_help_html('quiz_question_type_new', '문제 유형', $quizHelp['question_type']['id'], $quizHelpOpenLabel, true, true); ?>
                         <div class="form-field">
                             <select id="quiz_question_type_new" name="question_type[]" class="form-select">
                                 <?php foreach (sr_quiz_question_types() as $questionType) { ?>
@@ -1479,7 +1479,7 @@ $quizSectionNavItems = [
                 </div>
             </div>
             <div class="form-row" data-quiz-reward-policy-row>
-                <?php echo sr_admin_form_label_help_html('quiz_reward_dedupe_scope', '중복 지급 기준', $quizHelp['reward_dedupe']['id'], $quizHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_reward_dedupe_scope', '중복 지급 기준', $quizHelp['reward_dedupe']['id'], $quizHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <select id="quiz_reward_dedupe_scope" name="reward_dedupe_scope" class="form-select" data-quiz-reward-policy-control>
                         <?php foreach (sr_quiz_reward_dedupe_scopes() as $scope) { ?>

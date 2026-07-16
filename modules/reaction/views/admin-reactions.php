@@ -596,7 +596,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="modal-body">
                     <p class="admin-summary-meta">기존 사용 기록 <?php echo sr_e(number_format((int) ($definition['record_count'] ?? 0))); ?>개</p>
                     <div class="form-field">
-                        <?php echo sr_admin_form_label_help_html($cleanupModalId . '_policy', '처리 방식', $reactionHelp['cleanup']['id'], $reactionHelpOpenLabel); ?>
+                        <?php echo sr_admin_form_label_help_html($cleanupModalId . '_policy', '처리 방식', $reactionHelp['cleanup']['id'], $reactionHelpOpenLabel, false, true); ?>
                         <select id="<?php echo sr_e($cleanupModalId); ?>_policy" name="cleanup_policy" class="form-select">
                             <option value="keep_public_hidden">보관하고 공개 UI에서 숨김</option>
                             <option value="keep_admin_statistics">보관하고 관리자/통계에만 표시</option>

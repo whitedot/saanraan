@@ -667,7 +667,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <section id="community-board-section-policy" class="card" data-admin-section-anchor>
             <h2><?php echo sr_e(sr_t('community::ui.text.533748da')); ?></h2>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('community_admin_boards_read_policy', sr_t('community::ui.text.0b6c5dfd'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('community_admin_boards_read_policy', sr_t('community::ui.text.0b6c5dfd'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="community_admin_boards_read_policy" name="read_policy" class="form-select" data-community-policy="read">
                                             <?php foreach ($allowedReadPolicies as $policy) { ?>
@@ -757,7 +757,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('community_admin_boards_write_policy', sr_t('community::ui.text.4f05f6a8'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('community_admin_boards_write_policy', sr_t('community::ui.text.4f05f6a8'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="community_admin_boards_write_policy" name="write_policy" class="form-select" data-community-policy="write">
                                             <?php foreach ($allowedWritePolicies as $policy) { ?>
@@ -783,7 +783,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('community_admin_boards_comment_policy', sr_t('community::ui.text.0550e13c'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('community_admin_boards_comment_policy', sr_t('community::ui.text.0550e13c'), $communityBoardHelp['policy']['id'], $communityBoardHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <select id="community_admin_boards_comment_policy" name="comment_policy" class="form-select" data-community-policy="comment">
                                             <?php foreach ($allowedCommentPolicies as $policy) { ?>

@@ -153,7 +153,7 @@ $notificationSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('notification_admin_settings_email_transport', '이메일 발송 방식', $notificationSettingsHelp['email_method']['id'], $notificationSettingsHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('notification_admin_settings_email_transport', '이메일 발송 방식', $notificationSettingsHelp['email_method']['id'], $notificationSettingsHelpOpenLabel, true, true); ?>
             <div class="form-field">
                 <select id="notification_admin_settings_email_transport" name="email_transport" class="form-select" required data-notification-email-transport>
                     <?php foreach ($emailTransportOptions as $transportValue => $transportLabel) { ?>
@@ -187,7 +187,7 @@ $notificationSettingsSectionNavItems = [
         </div>
 
         <div class="form-row">
-            <div class="form-label form-label-help"><?php echo $notificationSettingsHelpButtonHtml('SMTP 서버 주소', $notificationSettingsHelp['email_method']['id']); ?><label for="notification_admin_settings_email_smtp_host">SMTP 서버 주소 <span class="sr-required-label" data-notification-smtp-host-required hidden>(필수)</span></label></div>
+            <label class="form-label" for="notification_admin_settings_email_smtp_host">SMTP 서버 주소 <span class="sr-required-label" data-notification-smtp-host-required hidden>(필수)</span></label>
             <div class="form-field">
                 <input id="notification_admin_settings_email_smtp_host" type="text" name="email_smtp_host" value="<?php echo sr_e((string) $settings['email_smtp_host']); ?>" maxlength="255" class="form-input form-control-full" autocomplete="off" data-notification-smtp-host>
             </div>
@@ -225,7 +225,7 @@ $notificationSettingsSectionNavItems = [
         </div>
 
         <div class="form-row">
-            <div class="form-label form-label-help"><?php echo $notificationSettingsHelpButtonHtml('메일 API 전송 URL', $notificationSettingsHelp['email_method']['id']); ?><label for="notification_admin_settings_email_http_api_endpoint">메일 API 전송 URL <span class="sr-required-label" data-notification-http-api-endpoint-required hidden>(필수)</span></label></div>
+            <label class="form-label" for="notification_admin_settings_email_http_api_endpoint">메일 API 전송 URL <span class="sr-required-label" data-notification-http-api-endpoint-required hidden>(필수)</span></label>
             <div class="form-field">
                 <input id="notification_admin_settings_email_http_api_endpoint" type="url" name="email_http_api_endpoint" value="<?php echo sr_e((string) $settings['email_http_api_endpoint']); ?>" maxlength="255" class="form-input form-control-full" placeholder="https://api.example.com/mail/send" data-notification-http-api-endpoint>
                 <small class="form-help">공개 HTTPS URL만 허용합니다.</small>
@@ -243,7 +243,7 @@ $notificationSettingsSectionNavItems = [
     <section id="notification-settings-section-external-push" class="card" data-admin-section-anchor>
         <h2>외부 알림 채널</h2>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('notification_admin_settings_external_push_enabled', '외부 알림 채널', $notificationSettingsHelp['external_channels']['id'], $notificationSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('notification_admin_settings_external_push_enabled', '외부 알림 채널', $notificationSettingsHelp['external_channels']['id'], $notificationSettingsHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('notification_admin_settings_external_push_enabled', 'external_push_enabled', '1', !empty($settings['external_push_enabled']), '사용', '', ' data-notification-external-push-enabled'); ?>
                 <small class="form-help">끄면 운영 알림 발송과 회원 연결을 모두 사용하지 않습니다.</small>
@@ -324,7 +324,7 @@ $notificationSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <div class="form-label form-label-help"><?php echo $notificationSettingsHelpButtonHtml('Telegram 봇 토큰', $notificationSettingsHelp['external_channels']['id']); ?><label for="notification_admin_settings_telegram_bot_token">Telegram 봇 토큰 <span class="sr-required-label" data-notification-telegram-token-required-label<?php echo $telegramTokenRequired ? '' : ' hidden'; ?>>(필수)</span></label></div>
+            <label class="form-label" for="notification_admin_settings_telegram_bot_token">Telegram 봇 토큰 <span class="sr-required-label" data-notification-telegram-token-required-label<?php echo $telegramTokenRequired ? '' : ' hidden'; ?>>(필수)</span></label>
             <div class="form-field">
                 <input id="notification_admin_settings_telegram_bot_token" type="password" name="telegram_bot_token" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['telegram_bot_token'])); ?>" class="form-input form-control-full" autocomplete="new-password"<?php echo $telegramTokenRequired && !$telegramTokenStored ? ' required' : ''; ?> data-notification-telegram-token data-notification-has-stored-secret="<?php echo $telegramTokenStored ? '1' : '0'; ?>">
                 <small class="form-help">비워두면 기존 저장값을 유지합니다.</small>
@@ -338,7 +338,7 @@ $notificationSettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('notification_admin_settings_external_push_failure_policy', '외부 알림 실패 처리', $notificationSettingsHelp['external_failure']['id'], $notificationSettingsHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('notification_admin_settings_external_push_failure_policy', '외부 알림 실패 처리', $notificationSettingsHelp['external_failure']['id'], $notificationSettingsHelpOpenLabel, true, true); ?>
             <div class="form-field">
                 <select id="notification_admin_settings_external_push_failure_policy" name="external_push_failure_policy" class="form-select" required>
                     <option value="retry"<?php echo (string) $settings['external_push_failure_policy'] === 'retry' ? ' selected' : ''; ?>>재시도 후 실패 보관</option>

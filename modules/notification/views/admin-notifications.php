@@ -451,7 +451,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="create">
                     <div class="form-row">
-                        <?php echo sr_admin_form_label_help_html('notification_admin_notifications_audience', sr_t('notification::ui.text.8c609deb'), $notificationCreateHelp['audience']['id'], $notificationCreateHelpOpenLabel, true); ?>
+                        <?php echo sr_admin_form_label_help_html('notification_admin_notifications_audience', sr_t('notification::ui.text.8c609deb'), $notificationCreateHelp['audience']['id'], $notificationCreateHelpOpenLabel, true, true); ?>
                         <div class="form-field">
                             <select id="notification_admin_notifications_audience" name="audience" class="form-select" required data-notification-audience data-overlay-focus>
                                 <?php foreach ($allowedAudiences as $audience) { ?>

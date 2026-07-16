@@ -287,7 +287,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('privacy_create_request_message', '요청 내용', $privacyRequestHelp['safe_text']['id'], $privacyRequestHelpOpenLabel, true); ?>
+                    <?php echo sr_admin_form_label_help_html('privacy_create_request_message', '요청 내용', $privacyRequestHelp['safe_text']['id'], $privacyRequestHelpOpenLabel, true, true); ?>
                     <div class="form-field">
                         <textarea id="privacy_create_request_message" name="request_message" class="form-textarea" rows="4" maxlength="2000" required data-validation-message="요청 내용을 입력하세요."><?php echo sr_e((string) ($privacyRequestCreateDraft['request_message'] ?? '')); ?></textarea>
                         <small class="form-help">외부 문의로 접수한 요청 취지와 확인할 범위만 적으세요.</small>

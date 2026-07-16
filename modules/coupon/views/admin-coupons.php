@@ -1196,7 +1196,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('coupon_admin_refundable_policy', '사용 취소·환급', $couponDefinitionHelp['refund']['id'], '도움말 보기', true); ?>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_refundable_policy', '사용 취소·환급', $couponDefinitionHelp['refund']['id'], '도움말 보기', true, true); ?>
                     <div class="form-field">
                         <select id="coupon_admin_refundable_policy" name="refundable_policy" class="form-select" required data-validation-message="환급 정책을 선택해 주세요.">
                             <?php foreach ($refundablePolicies as $policy => $policyLabel) { ?>
@@ -1214,7 +1214,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('coupon_admin_validity_policy', '사용 기간 방식', $couponDefinitionHelp['validity']['id'], '도움말 보기', true); ?>
+                    <?php echo sr_admin_form_label_help_html('coupon_admin_validity_policy', '사용 기간 방식', $couponDefinitionHelp['validity']['id'], '도움말 보기', true, true); ?>
                     <div class="form-field">
                         <select id="coupon_admin_validity_policy" name="validity_policy" class="form-select" required data-coupon-validity-policy data-validation-message="사용기간 정책을 선택해 주세요.">
                             <?php foreach ($validityPolicies as $policy => $policyLabel) { ?>

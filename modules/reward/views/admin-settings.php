@@ -142,7 +142,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('reward_identity_withdrawal_required', '출금 신청 본인확인', (string) $rewardSettingsHelp['identity_withdrawal_required']['id'], $rewardSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('reward_identity_withdrawal_required', '출금 신청 본인확인', (string) $rewardSettingsHelp['identity_withdrawal_required']['id'], $rewardSettingsHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', $rewardIdentityWithdrawalAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $rewardIdentityVerificationInputAttributes); ?>
                 <p class="form-help">켜면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>

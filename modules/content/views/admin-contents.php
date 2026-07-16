@@ -812,7 +812,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_charge_policy', sr_t('content::ui.text.86803f52'), $contentHelp['asset_charge_policy']['id'], $contentHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_charge_policy', sr_t('content::ui.text.86803f52'), $contentHelp['asset_charge_policy']['id'], $contentHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <select id="content_admin_contents_asset_charge_policy" name="asset_charge_policy" class="form-select">
                         <?php foreach (sr_content_asset_view_charge_policies() as $policyKey => $policyLabel) { ?>
@@ -882,7 +882,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_direction', sr_t('content::ui.text.af7873a8'), $contentHelp['asset_action_direction']['id'], $contentHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('content_admin_contents_asset_action_direction', sr_t('content::ui.text.af7873a8'), $contentHelp['asset_action_direction']['id'], $contentHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <select id="content_admin_contents_asset_action_direction" name="asset_action_direction" class="form-select" data-content-action-direction>
                                                 <?php foreach (sr_content_asset_action_directions() as $directionKey => $directionLabel) { ?>

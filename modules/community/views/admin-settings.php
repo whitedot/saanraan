@@ -353,7 +353,7 @@ $communitySettingsSectionNavItems = [
         <h2>신고 자동조치</h2>
         <div class="form-grid">
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('community_admin_settings_report_auto_action_enabled', '자동 임시 조치', $communitySettingsHelp['report_auto_action']['id'], $communitySettingsHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_report_auto_action_enabled', '자동 임시 조치', $communitySettingsHelp['report_auto_action']['id'], $communitySettingsHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_report_auto_action_enabled', 'report_auto_action_enabled', '1', !empty($settings['report_auto_action_enabled']), '사용'); ?>
                     <p class="form-help">신고자가 기준 수에 도달하면 먼저 숨기고 운영자 검토 대상으로 보냅니다.</p>
@@ -381,7 +381,7 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('community_admin_settings_account_guard_publication_hold_enabled', '반복 신고 작성자 게시 보류', $communitySettingsHelp['publication_hold']['id'], $communitySettingsHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_account_guard_publication_hold_enabled', '반복 신고 작성자 게시 보류', $communitySettingsHelp['publication_hold']['id'], $communitySettingsHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_account_guard_publication_hold_enabled', 'account_guard_publication_hold_enabled', '1', !empty($settings['account_guard_publication_hold_enabled']), '사용'); ?>
                     <p class="form-help">여러 게시글이 동시에 자동 숨김되면 작성자의 새 게시글을 검토 대기로 보냅니다.</p>
@@ -415,7 +415,7 @@ $communitySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('community_admin_settings_account_guard_confirmed_hold_enabled', '확정 조치 반복 게시 보류', $communitySettingsHelp['confirmed_hold']['id'], $communitySettingsHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_account_guard_confirmed_hold_enabled', '확정 조치 반복 게시 보류', $communitySettingsHelp['confirmed_hold']['id'], $communitySettingsHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_account_guard_confirmed_hold_enabled', 'account_guard_confirmed_hold_enabled', '1', !empty($settings['account_guard_confirmed_hold_enabled']), '사용'); ?>
                     <p class="form-help">운영자가 확정한 반복 조치만 계산해 새 게시글을 검토 대기로 보냅니다.</p>
@@ -601,14 +601,14 @@ $communitySettingsSectionNavItems = [
                 </div>
             <?php } ?>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('community_admin_settings_multi_asset_payment_enabled', '여러 포인트·금액 함께 결제', $communitySettingsHelp['multi_asset']['id'], $communitySettingsHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('community_admin_settings_multi_asset_payment_enabled', '여러 포인트·금액 함께 결제', $communitySettingsHelp['multi_asset']['id'], $communitySettingsHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('community_admin_settings_multi_asset_payment_enabled', 'multi_asset_payment_enabled', '1', !empty($settings['multi_asset_payment_enabled']), '허용'); ?>
                     <p class="form-help">한 건의 유료 열람이나 다운로드에 여러 포인트·금액 항목을 함께 쓸 수 있게 합니다.</p>
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('modules_community_admin_settings_once_history_policy', sr_t('community::ui.once_history_policy.label'), $communitySettingsHelp['once_history_policy']['id'], $communitySettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('modules_community_admin_settings_once_history_policy', 'once_history_policy', sr_community_once_history_policy_values(), (string) ($settings['once_history_policy'] ?? 'all_access'), true); ?>
                     <p class="form-help"><?php echo sr_e(sr_t('community::ui.once_history_policy.help')); ?></p>
@@ -716,7 +716,7 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml('썸네일 생성 기준', $communitySettingsHelp['thumbnail']['id']); ?><span>생성 기준 <span class="sr-required-label">(필수)</span></span></span>
+            <span class="form-label">생성 기준 <span class="sr-required-label">(필수)</span></span>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_thumbnail_criterion', 'thumbnail_criterion', ['width' => '너비 기준', 'bytes' => '용량 기준'], $thumbnailCriterionValue, true, ' data-community-thumbnail-criterion'); ?>
                 <p class="form-help">원본 너비와 파일 용량 중 썸네일을 만들 기준 하나를 선택합니다.</p>
@@ -784,7 +784,7 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml('추가 메뉴', $communitySettingsHelp['menus']['id']); ?><span>추가 메뉴</span></span>
+            <span class="form-label">추가 메뉴</span>
             <div class="form-field">
                 <div class="admin-layout-menu-list" data-admin-layout-menu-list>
                     <div class="admin-layout-menu-header"<?php echo $communityLayoutExtraMenuItems === [] ? ' hidden' : ''; ?> aria-hidden="true" data-admin-layout-menu-header>
@@ -864,7 +864,7 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
-            <span class="form-label form-label-help"><?php echo $communitySettingsHelpButtonHtml('일반 텍스트 URL 링크', $communitySettingsHelp['auto_link']['id']); ?><span>일반 텍스트 URL 링크</span></span>
+            <span class="form-label">일반 텍스트 URL 링크</span>
             <div class="form-field">
                 <div class="admin-community-url-link-switches">
                     <?php echo sr_admin_switch_html('community_admin_settings_plain_text_auto_link_urls', 'plain_text_auto_link_urls', '1', !empty($settings['plain_text_auto_link_urls']), '사용'); ?>

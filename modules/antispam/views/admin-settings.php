@@ -136,7 +136,7 @@ $antispamHelp = [
     <section id="antispam-section-challenge" class="card" data-admin-section-anchor>
         <h2>검증 방식</h2>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('antispam_admin_challenge_type', '검증 방식', $antispamHelp['challenge_type']['id'], $antispamHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('antispam_admin_challenge_type', '검증 방식', $antispamHelp['challenge_type']['id'], $antispamHelpOpenLabel, true, true); ?>
             <div class="form-field">
                 <select id="antispam_admin_challenge_type" name="challenge_type" class="form-select" required data-antispam-challenge-type-select>
                     <?php foreach ($challengeTypeOptions as $typeKey => $typeLabel) { ?>
@@ -204,7 +204,7 @@ $antispamHelp = [
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('antispam_admin_provider_failure_policy', '외부 검사 장애 시 처리', $antispamHelp['failure_policy']['id'], $antispamHelpOpenLabel, true); ?>
+            <?php echo sr_admin_form_label_help_html('antispam_admin_provider_failure_policy', '외부 검사 장애 시 처리', $antispamHelp['failure_policy']['id'], $antispamHelpOpenLabel, true, true); ?>
             <div class="form-field">
                 <select id="antispam_admin_provider_failure_policy" name="provider_failure_policy" class="form-select" required>
                     <option value="fail_closed"<?php echo (string) $settings['provider_failure_policy'] === 'fail_closed' ? ' selected' : ''; ?>>검증 실패</option>
@@ -214,7 +214,7 @@ $antispamHelp = [
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('antispam_admin_verify_remote_ip_enabled', '방문자 IP 전달', $antispamHelp['remote_ip']['id'], $antispamHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('antispam_admin_verify_remote_ip_enabled', '방문자 IP 전달', $antispamHelp['remote_ip']['id'], $antispamHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_verify_remote_ip_enabled">
                     <input id="antispam_admin_verify_remote_ip_enabled" type="checkbox" name="verify_remote_ip_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['verify_remote_ip_enabled']) ? ' checked' : ''; ?>>
@@ -224,7 +224,7 @@ $antispamHelp = [
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('antispam_admin_provider_action_check_enabled', '검사 목적 일치 확인', $antispamHelp['action_check']['id'], $antispamHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('antispam_admin_provider_action_check_enabled', '검사 목적 일치 확인', $antispamHelp['action_check']['id'], $antispamHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_provider_action_check_enabled">
                     <input id="antispam_admin_provider_action_check_enabled" type="checkbox" name="provider_action_check_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['provider_action_check_enabled']) ? ' checked' : ''; ?>>
@@ -234,7 +234,7 @@ $antispamHelp = [
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('antispam_admin_provider_hostname_check_enabled', '사이트 주소 일치 확인', $antispamHelp['hostname_check']['id'], $antispamHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('antispam_admin_provider_hostname_check_enabled', '사이트 주소 일치 확인', $antispamHelp['hostname_check']['id'], $antispamHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <label class="form-check form-label" for="antispam_admin_provider_hostname_check_enabled">
                     <input id="antispam_admin_provider_hostname_check_enabled" type="checkbox" name="provider_hostname_check_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['provider_hostname_check_enabled']) ? ' checked' : ''; ?>>

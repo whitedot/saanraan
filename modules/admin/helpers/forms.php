@@ -4,12 +4,23 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
 
-function sr_admin_form_label_help_html(string $forId, string $label, string $modalId, string $helpLabel = '설명 보기', bool $required = false): string
+function sr_admin_form_label_help_html(
+    string $forId,
+    string $label,
+    string $modalId,
+    string $helpLabel = '설명 보기',
+    bool $required = false,
+    bool $importantHelp = false
+): string
 {
     $forId = trim($forId);
     $modalId = trim($modalId);
     $helpLabel = trim($helpLabel) !== '' ? trim($helpLabel) : '설명 보기';
     $requiredHtml = $required ? ' <span class="sr-required-label">(필수)</span>' : '';
+
+    if (!$importantHelp) {
+        return '<label class="form-label" for="' . sr_e($forId) . '">' . sr_e($label) . $requiredHtml . '</label>';
+    }
 
     return '<div class="form-label form-label-help">'
         . '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $helpLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'

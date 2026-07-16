@@ -122,7 +122,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('deposit_identity_refund_required', '환불 신청 본인확인', (string) $depositSettingsHelp['identity_refund_required']['id'], $depositSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('deposit_identity_refund_required', '환불 신청 본인확인', (string) $depositSettingsHelp['identity_refund_required']['id'], $depositSettingsHelpOpenLabel, false, true); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('deposit_identity_refund_required', 'identity_refund_required', '1', $depositIdentityRefundAvailable && !empty($settings['identity_refund_required']), '사용', '', $depositIdentityVerificationInputAttributes); ?>
                 <p class="form-help">켜면 회원이 환불 신청을 제출할 때마다 본인확인을 요구합니다.</p>

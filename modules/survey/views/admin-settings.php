@@ -277,7 +277,7 @@ $surveySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_policy', '기본 응답 제한', $surveySettingsHelp['default_response_limit_policy']['id'], $surveySettingsHelpOpenLabel, true); ?>
+                <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_policy', '기본 응답 제한', $surveySettingsHelp['default_response_limit_policy']['id'], $surveySettingsHelpOpenLabel, true, true); ?>
                 <div class="form-field">
                     <?php
                     $surveyLimitPolicyToggleOptions = [];
@@ -346,7 +346,7 @@ $surveySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('survey_settings_consent_required', '참여 동의 필요', $surveySettingsHelp['default_consent_required']['id'], $surveySettingsHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('survey_settings_consent_required', '참여 동의 필요', $surveySettingsHelp['default_consent_required']['id'], $surveySettingsHelpOpenLabel, false, true); ?>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('survey_settings_consent_required', 'default_consent_required', '1', (int) ($settings['default_consent_required'] ?? 0) === 1, '적용'); ?>
                 </div>

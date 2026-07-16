@@ -152,19 +152,10 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                 <tr>
                     <th<?php echo sr_admin_sort_aria('series_key', $seriesSort); ?>><?php echo sr_admin_sort_header_html('식별값', 'series_key', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('title', $seriesSort); ?>><?php echo sr_admin_sort_header_html('제목', 'title', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>>
-                        <?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?>
-                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="시리즈 상태 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentSeriesHelp['status']['id']); ?>" data-overlay="#<?php echo sr_e($contentSeriesHelp['status']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    </th>
-                    <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>>
-                        <?php echo sr_admin_sort_header_html('공개 범위', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?>
-                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="공개 범위 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentSeriesHelp['visibility']['id']); ?>" data-overlay="#<?php echo sr_e($contentSeriesHelp['visibility']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    </th>
+                    <th<?php echo sr_admin_sort_aria('status', $seriesSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('visibility', $seriesSort); ?>><?php echo sr_admin_sort_header_html('공개 범위', 'visibility', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('active_item_count', $seriesSort); ?>><?php echo sr_admin_sort_header_html('회차', 'active_item_count', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('sort_order', $seriesSort); ?>>
-                        <?php echo sr_admin_sort_header_html('표시 순서', 'sort_order', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?>
-                        <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="표시 순서 도움말 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentSeriesHelp['sort_order']['id']); ?>" data-overlay="#<?php echo sr_e($contentSeriesHelp['sort_order']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    </th>
+                    <th<?php echo sr_admin_sort_aria('sort_order', $seriesSort); ?>><?php echo sr_admin_sort_header_html('표시 순서', 'sort_order', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('updated_at', $seriesSort); ?>><?php echo sr_admin_sort_header_html('수정일', 'updated_at', $seriesSort, $seriesSortOptions, $seriesDefaultSort); ?></th>
                     <th class="text-end">관리</th>
                 </tr>
