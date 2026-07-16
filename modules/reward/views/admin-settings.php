@@ -47,12 +47,37 @@ $rewardSettingsHelpBodyHtml = static function (array $paragraphs): string {
     return $html;
 };
 $rewardSettingsHelp = [
+    'usage' => [
+        'id' => 'reward-settings-help-usage-modal',
+        'title' => $rewardDisplayName . ' 기능 도움말',
+        'body_html' => $rewardSettingsHelpBodyHtml([
+            '끄면 ' . $rewardDisplayName . '을 새로 지급하거나 사용·환불·조정하는 거래를 만들 수 없습니다. 보상, 환전, 유료 쿠폰처럼 ' . $rewardDisplayName . '을 선택하는 다른 기능에서도 제외됩니다.',
+            '기존 잔액과 거래 내역은 삭제하지 않습니다. 기능을 다시 켜면 저장되어 있던 잔액과 거래 내역을 이어서 사용합니다.',
+        ]),
+    ],
+    'expiration' => [
+        'id' => 'reward-settings-help-expiration-modal',
+        'title' => '기본 유효기간 도움말',
+        'body_html' => $rewardSettingsHelpBodyHtml([
+            '별도 만료일을 지정하지 않은 새 지급 거래에 적용할 기본 유효기간입니다. 이미 지급된 ' . $rewardDisplayName . '의 만료일은 바뀌지 않습니다.',
+            '0을 입력하면 새 지급 ' . $rewardDisplayName . '에 만료일을 두지 않습니다. 1일부터 3,650일까지 설정할 수 있습니다.',
+            '기한이 지난 잔여 ' . $rewardDisplayName . '은 해당 회원이 ' . $rewardDisplayName . ' 화면을 열거나 다음 거래를 처리할 때 차감됩니다.',
+        ]),
+    ],
     'withdrawal_requests_enabled' => [
         'id' => 'reward-settings-help-withdrawal-requests-enabled-modal',
-        'title' => '출금 신청 사용',
+        'title' => '출금 신청 기능 도움말',
         'body_html' => $rewardSettingsHelpBodyHtml([
-            '회원 화면에서 적립금 출금 신청 폼을 열지 여부를 정합니다.',
-            '사용하지 않으면 회원 화면의 신청 폼을 숨기고 직접 신청 POST도 서버에서 거부합니다.',
+            '회원 화면에서 적립금 출금 신청을 받을지 정합니다.',
+            '끄면 회원 화면의 신청 입력란을 숨기며, 화면 주소로 직접 신청을 보내도 서버에서 거부합니다. 접수된 기존 신청 내역은 삭제하지 않습니다.',
+        ]),
+    ],
+    'identity_withdrawal_required' => [
+        'id' => 'reward-settings-help-identity-withdrawal-required-modal',
+        'title' => '출금 신청 본인확인 도움말',
+        'body_html' => $rewardSettingsHelpBodyHtml([
+            '회원이 출금 신청을 제출하기 전에 본인확인을 완료하도록 요구합니다. 확인 결과는 신청 한 건을 접수한 뒤 사용 완료 처리하므로 다음 신청에는 다시 확인해야 합니다.',
+            '본인확인 모듈이 켜져 있고 적립금 출금 신청 용도를 지원하는 제공자가 준비되어 있을 때만 사용할 수 있습니다.',
         ]),
     ],
     'withdrawal_allowed_group_keys' => [
@@ -75,10 +100,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <h2>기본 사용</h2>
         <?php echo sr_csrf_field(); ?>
         <div class="form-row">
-            <label class="form-label" for="reward_usage_enabled"><?php echo sr_e($rewardDisplayName); ?> 사용 여부</label>
+            <?php echo sr_admin_form_label_help_html('reward_usage_enabled', $rewardDisplayName . ' 기능', (string) $rewardSettingsHelp['usage']['id'], $rewardSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('reward_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
-                <p class="form-help">사용하지 않으면 보상, 환전, 쿠폰 유료 발급 등 <?php echo sr_e($rewardDisplayName); ?>을 선택하거나 새 거래를 만드는 사용처에서 제외됩니다.</p>
+                <p class="form-help">끄면 새 <?php echo sr_e($rewardDisplayName); ?> 거래와 보상·환전·유료 쿠폰 등 <?php echo sr_e($rewardDisplayName); ?>을 사용하는 기능을 중단합니다.</p>
             </div>
         </div>
         <div class="form-row">
@@ -96,13 +121,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="reward_default_expiration_days">유효기간</label>
+            <?php echo sr_admin_form_label_help_html('reward_default_expiration_days', '기본 유효기간', (string) $rewardSettingsHelp['expiration']['id'], $rewardSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <div class="input-group admin-input-unit">
                     <input id="reward_default_expiration_days" type="number" name="default_expiration_days" value="<?php echo sr_e($rewardDefaultExpirationDays); ?>" class="form-input" min="0" max="3650" step="1">
                     <span class="input-group-text">일</span>
                 </div>
-                <p class="form-help">새 지급 거래에 적용할 유효기간 일수입니다. 0이면 적립금 만료를 사용하지 않습니다.</p>
+                <p class="form-help">새로 지급하는 <?php echo sr_e($rewardDisplayName); ?>에 적용합니다. 0이면 만료일을 두지 않습니다.</p>
             </div>
         </div>
     </section>
@@ -110,17 +135,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <section class="card">
         <h2>출금 신청</h2>
         <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('reward_withdrawal_requests_enabled', '출금 신청 사용', (string) $rewardSettingsHelp['withdrawal_requests_enabled']['id'], $rewardSettingsHelpOpenLabel); ?>
+            <?php echo sr_admin_form_label_help_html('reward_withdrawal_requests_enabled', '출금 신청 기능', (string) $rewardSettingsHelp['withdrawal_requests_enabled']['id'], $rewardSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('reward_withdrawal_requests_enabled', 'withdrawal_requests_enabled', '1', $withdrawalRequestsEnabled, '사용', '', ' data-reward-withdrawal-enabled'); ?>
-                <p class="form-help">사용하지 않으면 회원 화면에서 적립금 출금 신청 폼을 숨기고 직접 신청 POST도 거부합니다.</p>
+                <p class="form-help">끄면 회원 화면에서 출금 신청을 받지 않습니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="reward_identity_withdrawal_required">출금 신청 본인확인</label>
+            <?php echo sr_admin_form_label_help_html('reward_identity_withdrawal_required', '출금 신청 본인확인', (string) $rewardSettingsHelp['identity_withdrawal_required']['id'], $rewardSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('reward_identity_withdrawal_required', 'identity_withdrawal_required', '1', $rewardIdentityWithdrawalAvailable && !empty($settings['identity_withdrawal_required']), '사용', '', $rewardIdentityVerificationInputAttributes); ?>
-                <p class="form-help">사용하면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>
+                <p class="form-help">켜면 회원이 출금 신청을 제출할 때마다 본인확인을 요구합니다.</p>
                 <?php if (!$rewardIdentityWithdrawalAvailable) { ?>
                     <p id="reward-settings-identity-unavailable" class="form-help form-help-warning">
                         <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 적립금 출금 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
