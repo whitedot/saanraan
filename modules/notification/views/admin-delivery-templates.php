@@ -1,12 +1,34 @@
 <?php
 
 $adminPageTitle = '발송 템플릿 관리';
-$adminPageSubtitle = '회원 인증 메일과 정책 고지처럼 모듈이 소유한 transactional email 기본 문구의 사용자 수정값을 관리합니다.';
+$adminPageSubtitle = '회원 인증과 정책 고지처럼 시스템이 자동으로 보내는 메일 문구를 관리합니다.';
 $adminContainerClass = 'admin-page-delivery-templates';
 $deliveryTemplateRows = isset($deliveryTemplateRows) && is_array($deliveryTemplateRows) ? $deliveryTemplateRows : [];
 $deliveryTemplateSortOptions = isset($deliveryTemplateSortOptions) && is_array($deliveryTemplateSortOptions) ? $deliveryTemplateSortOptions : [];
 $deliveryTemplateDefaultSort = isset($deliveryTemplateDefaultSort) && is_array($deliveryTemplateDefaultSort) ? $deliveryTemplateDefaultSort : sr_admin_sort_default('label', 'asc');
 $deliveryTemplateSort = isset($deliveryTemplateSort) && is_array($deliveryTemplateSort) ? $deliveryTemplateSort : $deliveryTemplateDefaultSort;
+$deliveryTemplateHelpOpenLabel = '도움말 보기';
+$deliveryTemplateHelp = [
+    'variables' => [
+        'id' => 'delivery-template-variables-help',
+        'title' => '메일 문구와 변수 도움말',
+        'body' => '<p><code>{verification_url}</code>처럼 중괄호로 표시된 값은 메일을 보낼 때 실제 회원 정보나 주소로 바뀝니다. 변수 버튼을 누르면 본문에서 선택한 위치에 추가됩니다.</p>'
+            . '<p>‘필수’로 표시된 변수는 제목, 본문, 연결 주소 중 한 곳 이상에 남겨야 합니다. 목록에 없는 변수를 입력하거나 필수 변수를 모두 지우면 저장할 수 없습니다.</p>'
+            . '<p>본문을 수정할 수 없는 템플릿은 제공 모듈이 본문을 관리합니다. 이 화면에서는 제목과 허용된 다른 항목만 바꿀 수 있습니다.</p>',
+    ],
+    'link' => [
+        'id' => 'delivery-template-link-help',
+        'title' => '연결 주소 도움말',
+        'body' => '<p>연결 주소는 이 템플릿을 사용하는 기능이 별도 주소를 지원할 때 전달하는 값입니다. 자동 메일 본문에 이 주소가 저절로 붙지는 않습니다.</p>'
+            . '<p>받는 사람이 메일에서 주소를 확인해야 한다면 본문에도 해당 주소 변수를 넣으세요. 사용 가능한 변수만 입력할 수 있습니다.</p>',
+    ],
+    'status' => [
+        'id' => 'delivery-template-status-help',
+        'title' => '상태와 기본값 복원 도움말',
+        'body' => '<p>상태를 ‘중지’로 저장하면 이 템플릿을 사용하는 새 메일을 보내지 않습니다.</p>'
+            . '<p>‘기본값 복원’은 운영자가 저장한 제목, 본문, 연결 주소, 상태를 모두 지우고 제공 모듈의 현재 기본값을 다시 사용합니다. 이후 모듈 업데이트로 기본 문구가 바뀌면 그 변경도 적용됩니다.</p>',
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -22,8 +44,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <thead>
                 <tr>
                     <th<?php echo sr_admin_sort_aria('label', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('템플릿', 'label', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('module', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('소유 모듈', 'module', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
-                    <th<?php echo sr_admin_sort_aria('source', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('수정값', 'source', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('module', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('제공 모듈', 'module', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
+                    <th<?php echo sr_admin_sort_aria('source', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('문구 출처', 'source', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
                     <th<?php echo sr_admin_sort_aria('status', $deliveryTemplateSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $deliveryTemplateSort, $deliveryTemplateSortOptions, $deliveryTemplateDefaultSort); ?></th>
                     <th class="admin-table-actions-cell">관리</th>
                 </tr>
@@ -94,15 +116,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
                 <div class="modal-body admin-form">
                     <div class="form-row">
-                        <label class="form-label" for="delivery_template_subject_<?php echo sr_e($fieldSuffix); ?>">제목 <span class="sr-required-label">(필수)</span></label>
+                        <?php echo sr_admin_form_label_help_html('delivery_template_subject_' . $fieldSuffix, '제목', $deliveryTemplateHelp['variables']['id'], $deliveryTemplateHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <input id="delivery_template_subject_<?php echo sr_e($fieldSuffix); ?>" type="text" name="subject_template" value="<?php echo sr_e((string) ($templateRow['subject_template'] ?? '')); ?>" maxlength="190" required class="form-input form-control-full" data-overlay-focus>
+                            <small class="form-help">받는 사람의 메일함에 표시되는 제목입니다. 사용 가능한 변수를 넣을 수 있습니다.</small>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="<?php echo sr_e($bodyFieldId); ?>">본문<?php echo $bodyEditable ? ' <span class="sr-required-label">(필수)</span>' : ''; ?></label>
+                        <?php echo sr_admin_form_label_help_html($bodyFieldId, '본문', $deliveryTemplateHelp['variables']['id'], $deliveryTemplateHelpOpenLabel, $bodyEditable); ?>
                         <div class="form-field">
                             <textarea id="<?php echo sr_e($bodyFieldId); ?>" name="body_template" rows="8" maxlength="5000" class="form-textarea form-control-full"<?php echo $bodyEditable ? ' required' : ' readonly'; ?>><?php echo sr_e((string) ($templateRow['body_template'] ?? '')); ?></textarea>
+                            <small class="form-help"><?php echo $bodyEditable ? '변수 버튼을 누르면 본문의 현재 커서 위치에 추가됩니다.' : '본문은 제공 모듈이 관리하므로 여기서 변경할 수 없습니다.'; ?></small>
                             <?php if ($variables !== []) { ?>
                                 <div class="badge-list admin-delivery-template-variable-list" aria-label="본문 변수" data-delivery-template-variable-list>
                                     <?php foreach ($variables as $name => $variableLabel) { ?>
@@ -117,9 +141,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="delivery_template_link_<?php echo sr_e($fieldSuffix); ?>">연결 주소</label>
+                        <?php echo sr_admin_form_label_help_html('delivery_template_link_' . $fieldSuffix, '연결 주소', $deliveryTemplateHelp['link']['id'], $deliveryTemplateHelpOpenLabel); ?>
                         <div class="form-field">
                             <input id="delivery_template_link_<?php echo sr_e($fieldSuffix); ?>" type="text" name="link_template" value="<?php echo sr_e((string) ($templateRow['link_template'] ?? '')); ?>" maxlength="255" class="form-input form-control-full">
+                            <small class="form-help">메일 본문에 자동으로 붙는 주소가 아닙니다. 본문에 보여야 하면 본문에도 주소 변수를 넣으세요.</small>
                         </div>
                     </div>
                     <?php if ($showChannelSelector) { ?>
@@ -143,12 +168,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     <?php } ?>
                     <div class="form-row">
-                        <label class="form-label" for="delivery_template_status_<?php echo sr_e($fieldSuffix); ?>">상태</label>
+                        <?php echo sr_admin_form_label_help_html('delivery_template_status_' . $fieldSuffix, '상태', $deliveryTemplateHelp['status']['id'], $deliveryTemplateHelpOpenLabel); ?>
                         <div class="form-field">
                             <select id="delivery_template_status_<?php echo sr_e($fieldSuffix); ?>" name="status" class="form-select">
                                 <option value="active"<?php echo $status === 'active' ? ' selected' : ''; ?>>사용</option>
                                 <option value="inactive"<?php echo $status === 'inactive' ? ' selected' : ''; ?>>중지</option>
                             </select>
+                            <small class="form-help">중지하면 이 템플릿을 사용하는 새 메일을 보내지 않습니다.</small>
                         </div>
                     </div>
                 </div>
@@ -160,6 +186,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </div>
     </div>
+<?php } ?>
+
+<?php foreach ($deliveryTemplateHelp as $deliveryTemplateHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $deliveryTemplateHelpModal['id'], (string) $deliveryTemplateHelpModal['title'], (string) $deliveryTemplateHelpModal['body']); ?>
 <?php } ?>
 
 <script>
