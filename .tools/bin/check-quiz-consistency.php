@@ -133,7 +133,17 @@ function sr_quiz_check_schema(): void
         "'item' => '단독'",
         "'group' => '그룹'",
         "'all' => '전체'",
+        "\$quizScopeRadioHtml('status'",
+        "\$quizScopeRadioHtml('scoring_model'",
+        "\$quizScopeRadioHtml('comments_enabled'",
+        "\$quizScopeRadioHtml('secret_comments_enabled'",
         'source_comment_extra_fields_json',
+    ]);
+    sr_quiz_check_file_not_contains('modules/quiz/actions/admin-quiz.php', [
+        "\$quizScopeRadioHtml('publication'",
+        "\$quizScopeRadioHtml('scoring'",
+        "\$quizScopeRadioHtml('comments'",
+        "\$quizScopeRadioHtml('reactions'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/updates/2026.06.012.sql', [
         'ALTER TABLE sr_quiz_sets',

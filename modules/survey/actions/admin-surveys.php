@@ -360,10 +360,31 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'reward_enabled' => 0,
     ];
     $surveyGroups = sr_survey_groups($pdo);
+    $storedSettingSources = $mode === 'edit' && (int) ($values['id'] ?? 0) > 0
+        ? sr_survey_setting_sources($pdo, (int) $values['id'])
+        : [];
+    $legacySettingSourceKeys = [
+        'skin_key' => 'display',
+        'public_listed' => 'display',
+        'robots_policy' => 'display',
+        'status' => 'publication',
+        'starts_at' => 'publication',
+        'ends_at' => 'publication',
+        'login_required' => 'participation',
+        'anonymous_allowed' => 'participation',
+        'member_group_keys' => 'participation',
+        'response_limit' => 'participation',
+        'comments_enabled' => 'comments',
+        'secret_comments_enabled' => 'comments',
+        'reaction_preset_key' => 'reactions',
+        'reaction_comment_preset_key' => 'reactions',
+        'consent_required' => 'consent',
+        'consent_text' => 'consent',
+        'privacy_notice' => 'consent',
+    ];
     foreach (array_keys(sr_survey_group_setting_bundles()) as $settingKey) {
-        $values['source_' . $settingKey] = $mode === 'edit' && (int) ($values['id'] ?? 0) > 0
-            ? sr_survey_setting_source($pdo, (int) $values['id'], $settingKey)
-            : 'item';
+        $legacyKey = (string) ($legacySettingSourceKeys[$settingKey] ?? '');
+        $values['source_' . $settingKey] = sr_survey_setting_scope((string) ($storedSettingSources[$settingKey] ?? ($legacyKey !== '' ? ($storedSettingSources[$legacyKey] ?? 'item') : 'item')));
     }
     $surveyScopeRadioHtml = static function (string $settingKey, string $selected): string {
         $selected = sr_survey_setting_scope($selected);
@@ -594,6 +615,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php endforeach; ?>
                         </select>
                         <p class="form-help">설문 상세, 응답, 완료 화면에 사용할 출력 방식을 고릅니다.</p>
+                        <?php echo $surveyScopeRadioHtml('skin_key', (string) ($values['source_skin_key'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -601,78 +623,91 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <textarea id="survey_research_purpose" name="research_purpose" class="form-textarea"><?php echo sr_e((string) ($values['research_purpose'] ?? '')); ?></textarea>
                         <p class="form-help">공개 화면과 응답 스냅샷에 남길 설문 목적입니다.</p>
+                        <?php echo $surveyScopeRadioHtml('research_purpose', (string) ($values['source_research_purpose'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_target_population">대상자</label>
                     <div class="form-field">
                         <textarea id="survey_target_population" name="target_population" class="form-textarea"><?php echo sr_e((string) ($values['target_population'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('target_population', (string) ($values['source_target_population'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_recruitment_method">모집 방법</label>
                     <div class="form-field">
                         <textarea id="survey_recruitment_method" name="recruitment_method" class="form-textarea"><?php echo sr_e((string) ($values['recruitment_method'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('recruitment_method', (string) ($values['source_recruitment_method'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_project_brief">프로젝트 개요</label>
                     <div class="form-field">
                         <textarea id="survey_project_brief" name="project_brief" class="form-textarea"><?php echo sr_e((string) ($values['project_brief'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('project_brief', (string) ($values['source_project_brief'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_sponsor_name">의뢰/후원</label>
                     <div class="form-field">
                         <input id="survey_sponsor_name" type="text" name="sponsor_name" value="<?php echo sr_e((string) ($values['sponsor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                        <?php echo $surveyScopeRadioHtml('sponsor_name', (string) ($values['source_sponsor_name'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_research_region">조사 지역</label>
                     <div class="form-field">
                         <input id="survey_research_region" type="text" name="research_region" value="<?php echo sr_e((string) ($values['research_region'] ?? '')); ?>" class="form-input" maxlength="120">
+                        <?php echo $surveyScopeRadioHtml('research_region', (string) ($values['source_research_region'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_research_language">조사 언어</label>
                     <div class="form-field">
                         <input id="survey_research_language" type="text" name="research_language" value="<?php echo sr_e((string) ($values['research_language'] ?? '')); ?>" class="form-input" maxlength="60">
+                        <?php echo $surveyScopeRadioHtml('research_language', (string) ($values['source_research_language'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_fieldwork_method">실사 방식</label>
                     <div class="form-field">
                         <input id="survey_fieldwork_method" type="text" name="fieldwork_method" value="<?php echo sr_e((string) ($values['fieldwork_method'] ?? '')); ?>" class="form-input" maxlength="120">
+                        <?php echo $surveyScopeRadioHtml('fieldwork_method', (string) ($values['source_fieldwork_method'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_sample_method">표본 추출</label>
                     <div class="form-field">
                         <input id="survey_sample_method" type="text" name="sample_method" value="<?php echo sr_e((string) ($values['sample_method'] ?? '')); ?>" class="form-input" maxlength="190">
+                        <?php echo $surveyScopeRadioHtml('sample_method', (string) ($values['source_sample_method'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_target_sample_size">목표 표본 수</label>
                     <div class="form-field">
                         <input id="survey_target_sample_size" type="number" name="target_sample_size" value="<?php echo sr_e((string) ($values['target_sample_size'] ?? '')); ?>" class="form-input" min="0">
+                        <?php echo $surveyScopeRadioHtml('target_sample_size', (string) ($values['source_target_sample_size'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_sample_frame">표본틀</label>
                     <div class="form-field">
                         <textarea id="survey_sample_frame" name="sample_frame" class="form-textarea"><?php echo sr_e((string) ($values['sample_frame'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('sample_frame', (string) ($values['source_sample_frame'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_quota_policy">쿼터/마감 기준</label>
                     <div class="form-field">
                         <textarea id="survey_quota_policy" name="quota_policy" class="form-textarea"><?php echo sr_e((string) ($values['quota_policy'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('quota_policy', (string) ($values['source_quota_policy'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_response_rate_basis">응답률 산정 기준</label>
                     <div class="form-field">
                         <textarea id="survey_response_rate_basis" name="response_rate_basis" class="form-textarea"><?php echo sr_e((string) ($values['response_rate_basis'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('response_rate_basis', (string) ($values['source_response_rate_basis'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -680,18 +715,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <input id="survey_estimated_minutes" type="number" name="estimated_minutes" value="<?php echo sr_e((string) ($values['estimated_minutes'] ?? '')); ?>" class="form-input" min="0" max="10080">
                         <p class="form-help">분 단위로 입력합니다.</p>
+                        <?php echo $surveyScopeRadioHtml('estimated_minutes', (string) ($values['source_estimated_minutes'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_organizer_name">주관자</label>
                     <div class="form-field">
                         <input id="survey_organizer_name" type="text" name="organizer_name" value="<?php echo sr_e((string) ($values['organizer_name'] ?? '')); ?>" class="form-input" maxlength="120">
+                        <?php echo $surveyScopeRadioHtml('organizer_name', (string) ($values['source_organizer_name'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_contact_text">문의처</label>
                     <div class="form-field">
                         <input id="survey_contact_text" type="text" name="contact_text" value="<?php echo sr_e((string) ($values['contact_text'] ?? '')); ?>" class="form-input" maxlength="190">
+                        <?php echo $surveyScopeRadioHtml('contact_text', (string) ($values['source_contact_text'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -702,19 +740,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_status_label($status)); ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <?php echo $surveyScopeRadioHtml('status', (string) ($values['source_status'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_starts_at">공개 시작일시</label>
                     <div class="form-field">
                         <input id="survey_starts_at" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['starts_at'] ?? '')); ?>" class="form-input">
+                        <?php echo $surveyScopeRadioHtml('starts_at', (string) ($values['source_starts_at'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_ends_at">공개 종료일시</label>
                     <div class="form-field">
                         <input id="survey_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_survey_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
-                        <?php echo $surveyScopeRadioHtml('publication', (string) ($values['source_publication'] ?? 'item')); ?>
+                        <?php echo $surveyScopeRadioHtml('ends_at', (string) ($values['source_ends_at'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -725,6 +765,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             필수
                         </label>
                         <p class="form-help">보상 설문은 로그인 필요 상태에서만 저장됩니다.</p>
+                        <?php echo $surveyScopeRadioHtml('login_required', (string) ($values['source_login_required'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -734,6 +775,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="survey_anonymous_allowed" type="checkbox" name="anonymous_allowed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['anonymous_allowed'] ?? 0) === 1 ? ' checked' : ''; ?>>
                             허용
                         </label>
+                        <?php echo $surveyScopeRadioHtml('anonymous_allowed', (string) ($values['source_anonymous_allowed'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -743,6 +785,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="survey_public_listed" type="checkbox" name="public_listed" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['public_listed'] ?? 1) === 1 ? ' checked' : ''; ?>>
                             노출
                         </label>
+                        <?php echo $surveyScopeRadioHtml('public_listed', (string) ($values['source_public_listed'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -750,21 +793,28 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="form-field">
                         <?php echo sr_admin_member_group_key_badge_select_html('survey_member_group_keys', 'member_group_keys', $selectedMemberGroupKeys, $surveyMemberGroupsForAdmin); ?>
                         <p class="form-help">선택하면 해당 그룹에 속한 로그인 회원만 참여할 수 있습니다.</p>
+                        <?php echo $surveyScopeRadioHtml('member_group_keys', (string) ($values['source_member_group_keys'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
-                    <?php echo sr_admin_form_label_help_html('survey_comments_enabled', '댓글', $surveyHelp['comments']['id'], $surveyHelpOpenLabel); ?>
+                    <?php echo sr_admin_form_label_help_html('survey_comments_enabled', '댓글 사용', $surveyHelp['comments']['id'], $surveyHelpOpenLabel); ?>
                     <div class="form-field">
                         <label class="form-check form-label" for="survey_comments_enabled">
                             <input id="survey_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                             사용
                         </label>
+                        <p class="form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
+                        <?php echo $surveyScopeRadioHtml('comments_enabled', (string) ($values['source_comments_enabled'] ?? 'item')); ?>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">비밀 댓글</span>
+                    <div class="form-field">
                         <label class="form-check form-label" for="survey_secret_comments_enabled">
                             <input id="survey_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                             비밀 댓글 허용
                         </label>
-                        <p class="form-help">활성화하면 공개 설문 화면에 로그인 회원용 댓글 목록과 작성 폼을 표시합니다.</p>
-                        <?php echo $surveyScopeRadioHtml('comments', (string) ($values['source_comments'] ?? 'item')); ?>
+                        <?php echo $surveyScopeRadioHtml('secret_comments_enabled', (string) ($values['source_secret_comments_enabled'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -776,6 +826,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php endforeach; ?>
                         </select>
                         <p class="form-help">비워두면 설문 환경설정의 프리셋을 사용합니다.</p>
+                        <?php echo $surveyScopeRadioHtml('reaction_preset_key', (string) ($values['source_reaction_preset_key'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -787,7 +838,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php endforeach; ?>
                         </select>
                         <p class="form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용합니다.</p>
-                        <?php echo $surveyScopeRadioHtml('reactions', (string) ($values['source_reactions'] ?? 'item')); ?>
+                        <?php echo $surveyScopeRadioHtml('reaction_comment_preset_key', (string) ($values['source_reaction_comment_preset_key'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -798,13 +849,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e($limitPolicy); ?>"<?php echo (string) ($values['response_limit_policy'] ?? 'per_survey_once') === $limitPolicy ? ' selected' : ''; ?>><?php echo sr_e(sr_survey_response_limit_policy_label($limitPolicy)); ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <p class="form-help">제한 기간은 이 응답 제한 설정과 함께 적용됩니다.</p>
+                        <?php echo $surveyScopeRadioHtml('response_limit', (string) ($values['source_response_limit'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_response_limit_period_seconds">제한 기간</label>
                     <div class="form-field">
                         <input id="survey_response_limit_period_seconds" type="number" name="response_limit_period_seconds" value="<?php echo sr_e((string) ($values['response_limit_period_seconds'] ?? '')); ?>" class="form-input" min="0">
-                        <?php echo $surveyScopeRadioHtml('participation', (string) ($values['source_participation'] ?? 'item')); ?>
                         <p class="form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
                     </div>
                 </div>
@@ -816,7 +868,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="index"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'index' ? ' selected' : ''; ?>>색인 허용</option>
                             <option value="noindex"<?php echo (string) ($values['robots_policy'] ?? 'auto') === 'noindex' ? ' selected' : ''; ?>>색인 제외</option>
                         </select>
-                        <?php echo $surveyScopeRadioHtml('display', (string) ($values['source_display'] ?? 'item')); ?>
+                        <?php echo $surveyScopeRadioHtml('robots_policy', (string) ($values['source_robots_policy'] ?? 'item')); ?>
                     </div>
                 </div>
             </div>
@@ -828,66 +880,77 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <label class="form-label" for="survey_analysis_plan">분석 계획</label>
                     <div class="form-field">
                         <textarea id="survey_analysis_plan" name="analysis_plan" class="form-textarea"><?php echo sr_e((string) ($values['analysis_plan'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('analysis_plan', (string) ($values['source_analysis_plan'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_weighting_policy">가중치 기준</label>
                     <div class="form-field">
                         <textarea id="survey_weighting_policy" name="weighting_policy" class="form-textarea"><?php echo sr_e((string) ($values['weighting_policy'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('weighting_policy', (string) ($values['source_weighting_policy'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_margin_error_note">오차/한계</label>
                     <div class="form-field">
                         <textarea id="survey_margin_error_note" name="margin_error_note" class="form-textarea"><?php echo sr_e((string) ($values['margin_error_note'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('margin_error_note', (string) ($values['source_margin_error_note'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_methodology_disclosure">방법론 공표 문구</label>
                     <div class="form-field">
                         <textarea id="survey_methodology_disclosure" name="methodology_disclosure" class="form-textarea"><?php echo sr_e((string) ($values['methodology_disclosure'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('methodology_disclosure', (string) ($values['source_methodology_disclosure'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_ethics_note">윤리 검토</label>
                     <div class="form-field">
                         <textarea id="survey_ethics_note" name="ethics_note" class="form-textarea"><?php echo sr_e((string) ($values['ethics_note'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('ethics_note', (string) ($values['source_ethics_note'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_sensitive_data_policy">민감정보 기준</label>
                     <div class="form-field">
                         <textarea id="survey_sensitive_data_policy" name="sensitive_data_policy" class="form-textarea"><?php echo sr_e((string) ($values['sensitive_data_policy'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('sensitive_data_policy', (string) ($values['source_sensitive_data_policy'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_recontact_policy">재연락 기준</label>
                     <div class="form-field">
                         <textarea id="survey_recontact_policy" name="recontact_policy" class="form-textarea"><?php echo sr_e((string) ($values['recontact_policy'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('recontact_policy', (string) ($values['source_recontact_policy'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_withdrawal_policy">철회 기준</label>
                     <div class="form-field">
                         <textarea id="survey_withdrawal_policy" name="withdrawal_policy" class="form-textarea"><?php echo sr_e((string) ($values['withdrawal_policy'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('withdrawal_policy', (string) ($values['source_withdrawal_policy'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_vendor_name">외부 패널/벤더</label>
                     <div class="form-field">
                         <input id="survey_vendor_name" type="text" name="vendor_name" value="<?php echo sr_e((string) ($values['vendor_name'] ?? '')); ?>" class="form-input" maxlength="190">
+                        <?php echo $surveyScopeRadioHtml('vendor_name', (string) ($values['source_vendor_name'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_external_channel_policy">외부 채널 기준</label>
                     <div class="form-field">
                         <textarea id="survey_external_channel_policy" name="external_channel_policy" class="form-textarea"><?php echo sr_e((string) ($values['external_channel_policy'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('external_channel_policy', (string) ($values['source_external_channel_policy'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_invite_token_policy">초대 토큰 기준</label>
                     <div class="form-field">
                         <textarea id="survey_invite_token_policy" name="invite_token_policy" class="form-textarea"><?php echo sr_e((string) ($values['invite_token_policy'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('invite_token_policy', (string) ($values['source_invite_token_policy'] ?? 'item')); ?>
                     </div>
                 </div>
             </div>
@@ -938,19 +1001,21 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <input id="survey_consent_required" type="checkbox" name="consent_required" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['consent_required'] ?? 0) === 1 ? ' checked' : ''; ?>>
                             필수
                         </label>
+                        <?php echo $surveyScopeRadioHtml('consent_required', (string) ($values['source_consent_required'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_consent_text">동의 문구</label>
                     <div class="form-field">
                         <textarea id="survey_consent_text" name="consent_text" class="form-textarea"><?php echo sr_e((string) ($values['consent_text'] ?? '')); ?></textarea>
+                        <?php echo $surveyScopeRadioHtml('consent_text', (string) ($values['source_consent_text'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
                     <label class="form-label" for="survey_privacy_notice">개인정보 안내</label>
                     <div class="form-field">
                         <textarea id="survey_privacy_notice" name="privacy_notice" class="form-textarea"><?php echo sr_e((string) ($values['privacy_notice'] ?? '')); ?></textarea>
-                        <?php echo $surveyScopeRadioHtml('consent', (string) ($values['source_consent'] ?? 'item')); ?>
+                        <?php echo $surveyScopeRadioHtml('privacy_notice', (string) ($values['source_privacy_notice'] ?? 'item')); ?>
                     </div>
                 </div>
             </div>
@@ -975,7 +1040,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <option value="ledger_asset"<?php echo $policyProvider === 'ledger_asset' ? ' selected' : ''; ?>>포인트/금액</option>
                             <option value="coupon"<?php echo $policyProvider === 'coupon' ? ' selected' : ''; ?>>쿠폰</option>
                         </select>
-                        <?php echo $surveyScopeRadioHtml('reward', (string) ($values['source_reward'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">
@@ -1016,6 +1080,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </select>
                     </div>
                 </div>
+            </div>
+            <div class="admin-setting-source-line admin-setting-source-line-end">
+                <p class="form-help">보상 사용 여부와 지급 정책을 함께 적용합니다.</p>
+                <?php echo $surveyScopeRadioHtml('reward', (string) ($values['source_reward'] ?? 'item')); ?>
             </div>
         </section>
         <?php echo sr_admin_comment_extra_fields_editor_html(

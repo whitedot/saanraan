@@ -127,25 +127,41 @@ function sr_quiz_setting_scope(string $scope): string
 function sr_quiz_group_setting_bundles(): array
 {
     return [
-        'display' => ['skin_key'],
-        'publication' => ['status', 'starts_at', 'ends_at'],
-        'scoring' => ['quiz_mode', 'scoring_model', 'pass_score'],
-        'attempt' => ['attempt_limit_policy', 'attempt_limit_period_seconds', 'member_group_keys_json'],
-        'comments' => ['comments_enabled', 'secret_comments_enabled'],
-        'reactions' => ['reaction_preset_key', 'reaction_comment_preset_key'],
+        'skin_key' => ['skin_key'],
+        'status' => ['status'],
+        'quiz_mode' => ['quiz_mode'],
+        'scoring_model' => ['scoring_model'],
+        'pass_score' => ['pass_score'],
+        'starts_at' => ['starts_at'],
+        'ends_at' => ['ends_at'],
+        'attempt_limit' => ['attempt_limit_policy', 'attempt_limit_period_seconds'],
+        'member_group_keys' => ['member_group_keys_json'],
+        'comments_enabled' => ['comments_enabled'],
+        'secret_comments_enabled' => ['secret_comments_enabled'],
+        'reaction_preset_key' => ['reaction_preset_key'],
+        'reaction_comment_preset_key' => ['reaction_comment_preset_key'],
         'comment_extra_fields_json' => ['comment_extra_fields_json'],
         'reward' => ['reward_enabled'],
     ];
 }
 
-function sr_quiz_setting_source(PDO $pdo, int $quizId, string $settingKey): string
+function sr_quiz_setting_sources(PDO $pdo, int $quizId): array
 {
     if ($quizId < 1 || !sr_quiz_setting_sources_table_exists($pdo)) {
-        return 'item';
+        return [];
     }
-    $stmt = $pdo->prepare('SELECT source FROM sr_quiz_setting_sources WHERE quiz_id = :quiz_id AND setting_key = :setting_key LIMIT 1');
-    $stmt->execute(['quiz_id' => $quizId, 'setting_key' => $settingKey]);
-    return sr_quiz_setting_scope((string) ($stmt->fetchColumn() ?: 'item'));
+    $stmt = $pdo->prepare('SELECT setting_key, source FROM sr_quiz_setting_sources WHERE quiz_id = :quiz_id');
+    $stmt->execute(['quiz_id' => $quizId]);
+    $sources = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $sources[(string) ($row['setting_key'] ?? '')] = sr_quiz_setting_scope((string) ($row['source'] ?? 'item'));
+    }
+    return $sources;
+}
+
+function sr_quiz_setting_source(PDO $pdo, int $quizId, string $settingKey): string
+{
+    return sr_quiz_setting_scope((string) (sr_quiz_setting_sources($pdo, $quizId)[$settingKey] ?? 'item'));
 }
 
 function sr_quiz_set_setting_source(PDO $pdo, int $quizId, string $settingKey, string $source): void

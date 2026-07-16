@@ -165,8 +165,27 @@ foreach (['CREATE TABLE IF NOT EXISTS sr_survey_groups', 'CREATE TABLE IF NOT EX
 foreach (["'GET /admin/surveys/groups'", "'POST /admin/surveys/groups'"] as $needle) {
     sr_survey_check_contains('modules/survey/paths.php', $needle, 'Survey group admin routes must be registered');
 }
-foreach (["'item' => '단독'", "'group' => '그룹'", "'all' => '전체'", 'source_comment_extra_fields_json'] as $needle) {
+foreach ([
+    "'item' => '단독'",
+    "'group' => '그룹'",
+    "'all' => '전체'",
+    "\$surveyScopeRadioHtml('research_purpose'",
+    "\$surveyScopeRadioHtml('status'",
+    "\$surveyScopeRadioHtml('comments_enabled'",
+    "\$surveyScopeRadioHtml('consent_required'",
+    'source_comment_extra_fields_json',
+] as $needle) {
     sr_survey_check_contains('modules/survey/actions/admin-surveys.php', $needle, 'Survey setting scope UI must expose item, group, and all');
+}
+foreach ([
+    "\$surveyScopeRadioHtml('display'",
+    "\$surveyScopeRadioHtml('publication'",
+    "\$surveyScopeRadioHtml('participation'",
+    "\$surveyScopeRadioHtml('comments'",
+    "\$surveyScopeRadioHtml('reactions'",
+    "\$surveyScopeRadioHtml('consent'",
+] as $needle) {
+    sr_survey_check_not_contains('modules/survey/actions/admin-surveys.php', $needle, 'Survey scope UI must use setting-level controls instead of legacy bundles');
 }
 foreach (['ALTER TABLE sr_survey_forms', 'ADD COLUMN skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
     sr_survey_check_contains(

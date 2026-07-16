@@ -112,25 +112,72 @@ function sr_survey_setting_scope(string $scope): string
 function sr_survey_group_setting_bundles(): array
 {
     return [
-        'display' => ['skin_key', 'public_listed', 'robots_policy'],
-        'publication' => ['status', 'starts_at', 'ends_at'],
-        'participation' => ['anonymous_allowed', 'login_required', 'response_limit_policy', 'response_limit_period_seconds', 'member_group_keys_json'],
-        'consent' => ['consent_required', 'consent_text', 'privacy_notice'],
-        'comments' => ['comments_enabled', 'secret_comments_enabled'],
-        'reactions' => ['reaction_preset_key', 'reaction_comment_preset_key'],
+        'skin_key' => ['skin_key'],
+        'research_purpose' => ['research_purpose'],
+        'target_population' => ['target_population'],
+        'recruitment_method' => ['recruitment_method'],
+        'project_brief' => ['project_brief'],
+        'sponsor_name' => ['sponsor_name'],
+        'research_region' => ['research_region'],
+        'research_language' => ['research_language'],
+        'fieldwork_method' => ['fieldwork_method'],
+        'sample_method' => ['sample_method'],
+        'target_sample_size' => ['target_sample_size'],
+        'sample_frame' => ['sample_frame'],
+        'quota_policy' => ['quota_policy'],
+        'response_rate_basis' => ['response_rate_basis'],
+        'estimated_minutes' => ['estimated_minutes'],
+        'organizer_name' => ['organizer_name'],
+        'contact_text' => ['contact_text'],
+        'public_listed' => ['public_listed'],
+        'robots_policy' => ['robots_policy'],
+        'status' => ['status'],
+        'starts_at' => ['starts_at'],
+        'ends_at' => ['ends_at'],
+        'login_required' => ['login_required'],
+        'anonymous_allowed' => ['anonymous_allowed'],
+        'member_group_keys' => ['member_group_keys_json'],
+        'response_limit' => ['response_limit_policy', 'response_limit_period_seconds'],
+        'analysis_plan' => ['analysis_plan'],
+        'weighting_policy' => ['weighting_policy'],
+        'margin_error_note' => ['margin_error_note'],
+        'methodology_disclosure' => ['methodology_disclosure'],
+        'ethics_note' => ['ethics_note'],
+        'sensitive_data_policy' => ['sensitive_data_policy'],
+        'recontact_policy' => ['recontact_policy'],
+        'withdrawal_policy' => ['withdrawal_policy'],
+        'vendor_name' => ['vendor_name'],
+        'external_channel_policy' => ['external_channel_policy'],
+        'invite_token_policy' => ['invite_token_policy'],
+        'consent_required' => ['consent_required'],
+        'consent_text' => ['consent_text'],
+        'privacy_notice' => ['privacy_notice'],
+        'comments_enabled' => ['comments_enabled'],
+        'secret_comments_enabled' => ['secret_comments_enabled'],
+        'reaction_preset_key' => ['reaction_preset_key'],
+        'reaction_comment_preset_key' => ['reaction_comment_preset_key'],
         'comment_extra_fields_json' => ['comment_extra_fields_json'],
         'reward' => ['reward_enabled'],
     ];
 }
 
-function sr_survey_setting_source(PDO $pdo, int $surveyId, string $settingKey): string
+function sr_survey_setting_sources(PDO $pdo, int $surveyId): array
 {
     if ($surveyId < 1 || !sr_survey_setting_sources_table_exists($pdo)) {
-        return 'item';
+        return [];
     }
-    $stmt = $pdo->prepare('SELECT source FROM sr_survey_setting_sources WHERE survey_id = :survey_id AND setting_key = :setting_key LIMIT 1');
-    $stmt->execute(['survey_id' => $surveyId, 'setting_key' => $settingKey]);
-    return sr_survey_setting_scope((string) ($stmt->fetchColumn() ?: 'item'));
+    $stmt = $pdo->prepare('SELECT setting_key, source FROM sr_survey_setting_sources WHERE survey_id = :survey_id');
+    $stmt->execute(['survey_id' => $surveyId]);
+    $sources = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $sources[(string) ($row['setting_key'] ?? '')] = sr_survey_setting_scope((string) ($row['source'] ?? 'item'));
+    }
+    return $sources;
+}
+
+function sr_survey_setting_source(PDO $pdo, int $surveyId, string $settingKey): string
+{
+    return sr_survey_setting_scope((string) (sr_survey_setting_sources($pdo, $surveyId)[$settingKey] ?? 'item'));
 }
 
 function sr_survey_set_setting_source(PDO $pdo, int $surveyId, string $settingKey, string $source): void

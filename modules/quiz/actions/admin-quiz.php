@@ -799,7 +799,7 @@ $quizSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">퀴즈 상세, 응시, 결과 화면에 사용할 출력 템플릿 묶음을 고릅니다.</p>
-                    <?php echo $quizScopeRadioHtml('display', (string) ($values['source_display'] ?? 'item')); ?>
+                    <?php echo $quizScopeRadioHtml('skin_key', (string) ($values['source_skin_key'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -810,6 +810,7 @@ $quizSectionNavItems = [
                             <option value="<?php echo sr_e($status); ?>"<?php echo (string) ($values['status'] ?? '') === $status ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_status_label($status)); ?></option>
                         <?php } ?>
                     </select>
+                    <?php echo $quizScopeRadioHtml('status', (string) ($values['source_status'] ?? 'item')); ?>
                 </div>
             </div>
         </div>
@@ -828,6 +829,7 @@ $quizSectionNavItems = [
                             <option value="<?php echo sr_e($quizMode); ?>"<?php echo (string) ($values['quiz_mode'] ?? 'scored') === $quizMode ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_mode_label($quizMode)); ?></option>
                         <?php } ?>
                     </select>
+                    <?php echo $quizScopeRadioHtml('quiz_mode', (string) ($values['source_quiz_mode'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -838,13 +840,14 @@ $quizSectionNavItems = [
                             <option value="<?php echo sr_e($scoringModel); ?>"<?php echo (string) ($values['scoring_model'] ?? 'correct_answer') === $scoringModel ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_scoring_model_label($scoringModel)); ?></option>
                         <?php } ?>
                     </select>
+                    <?php echo $quizScopeRadioHtml('scoring_model', (string) ($values['source_scoring_model'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="quiz_pass_score">통과 점수</label>
                 <div class="form-field">
                     <input id="quiz_pass_score" type="number" name="pass_score" value="<?php echo sr_e((string) ($values['pass_score'] ?? '')); ?>" class="form-input" min="0" step="1">
-                    <?php echo $quizScopeRadioHtml('scoring', (string) ($values['source_scoring'] ?? 'item')); ?>
+                    <?php echo $quizScopeRadioHtml('pass_score', (string) ($values['source_pass_score'] ?? 'item')); ?>
                 </div>
             </div>
         </div>
@@ -1031,13 +1034,14 @@ $quizSectionNavItems = [
                 <label class="form-label" for="quiz_starts_at">공개 시작일시</label>
                 <div class="form-field">
                     <input id="quiz_starts_at" type="datetime-local" name="starts_at" value="<?php echo sr_e(sr_quiz_datetime_local_value($values['starts_at'] ?? '')); ?>" class="form-input">
+                    <?php echo $quizScopeRadioHtml('starts_at', (string) ($values['source_starts_at'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
                 <label class="form-label" for="quiz_ends_at">공개 종료일시</label>
                 <div class="form-field">
                     <input id="quiz_ends_at" type="datetime-local" name="ends_at" value="<?php echo sr_e(sr_quiz_datetime_local_value($values['ends_at'] ?? '')); ?>" class="form-input">
-                    <?php echo $quizScopeRadioHtml('publication', (string) ($values['source_publication'] ?? 'item')); ?>
+                    <?php echo $quizScopeRadioHtml('ends_at', (string) ($values['source_ends_at'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -1048,6 +1052,8 @@ $quizSectionNavItems = [
                             <option value="<?php echo sr_e($policy); ?>"<?php echo (string) ($values['attempt_limit_policy'] ?? 'unlimited') === $policy ? ' selected' : ''; ?>><?php echo sr_e(sr_quiz_attempt_limit_policy_label($policy)); ?></option>
                         <?php } ?>
                     </select>
+                    <?php echo $quizScopeRadioHtml('attempt_limit', (string) ($values['source_attempt_limit'] ?? 'item')); ?>
+                    <p class="form-help">기간당 1회일 때는 제한 기간도 같은 범위로 적용합니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -1062,22 +1068,28 @@ $quizSectionNavItems = [
                 <div class="form-field">
                     <?php echo sr_admin_member_group_key_badge_select_html('quiz_member_group_keys', 'member_group_keys', sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), $memberGroups); ?>
                     <p class="form-help">선택하지 않으면 로그인 회원 전체가 응시할 수 있습니다.</p>
-                    <?php echo $quizScopeRadioHtml('attempt', (string) ($values['source_attempt'] ?? 'item')); ?>
+                    <?php echo $quizScopeRadioHtml('member_group_keys', (string) ($values['source_member_group_keys'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('quiz_comments_enabled', '댓글', $quizHelp['comments']['id'], $quizHelpOpenLabel); ?>
+                <?php echo sr_admin_form_label_help_html('quiz_comments_enabled', '댓글 사용', $quizHelp['comments']['id'], $quizHelpOpenLabel); ?>
                 <div class="form-field">
                     <label class="form-check form-label" for="quiz_comments_enabled">
                         <input id="quiz_comments_enabled" type="checkbox" name="comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         사용
                     </label>
+                    <p class="form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
+                    <?php echo $quizScopeRadioHtml('comments_enabled', (string) ($values['source_comments_enabled'] ?? 'item')); ?>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="quiz_secret_comments_enabled">비밀 댓글</label>
+                <div class="form-field">
                     <label class="form-check form-label" for="quiz_secret_comments_enabled">
                         <input id="quiz_secret_comments_enabled" type="checkbox" name="secret_comments_enabled" value="1" class="form-switch form-switch-light"<?php echo (int) ($values['secret_comments_enabled'] ?? 0) === 1 ? ' checked' : ''; ?>>
                         허용
                     </label>
-                    <p class="form-help">활성화하면 공개 퀴즈 화면에 댓글 목록과 작성 폼을 표시합니다.</p>
-                    <?php echo $quizScopeRadioHtml('comments', (string) ($values['source_comments'] ?? 'item')); ?>
+                    <?php echo $quizScopeRadioHtml('secret_comments_enabled', (string) ($values['source_secret_comments_enabled'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -1089,6 +1101,7 @@ $quizSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">비워두면 퀴즈 환경설정의 프리셋을 사용합니다.</p>
+                    <?php echo $quizScopeRadioHtml('reaction_preset_key', (string) ($values['source_reaction_preset_key'] ?? 'item')); ?>
                 </div>
             </div>
             <div class="form-row">
@@ -1100,7 +1113,7 @@ $quizSectionNavItems = [
                         <?php } ?>
                     </select>
                     <p class="form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용합니다.</p>
-                    <?php echo $quizScopeRadioHtml('reactions', (string) ($values['source_reactions'] ?? 'item')); ?>
+                    <?php echo $quizScopeRadioHtml('reaction_comment_preset_key', (string) ($values['source_reaction_comment_preset_key'] ?? 'item')); ?>
                 </div>
             </div>
         </div>

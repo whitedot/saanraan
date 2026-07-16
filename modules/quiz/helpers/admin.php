@@ -57,12 +57,19 @@ function sr_quiz_default_admin_values(?array $settings = null): array
                 'choices' => $defaultChoices,
             ],
         ],
-        'source_display' => 'item',
-        'source_publication' => 'item',
-        'source_scoring' => 'item',
-        'source_attempt' => 'item',
-        'source_comments' => 'item',
-        'source_reactions' => 'item',
+        'source_skin_key' => 'item',
+        'source_status' => 'item',
+        'source_quiz_mode' => 'item',
+        'source_scoring_model' => 'item',
+        'source_pass_score' => 'item',
+        'source_starts_at' => 'item',
+        'source_ends_at' => 'item',
+        'source_attempt_limit' => 'item',
+        'source_member_group_keys' => 'item',
+        'source_comments_enabled' => 'item',
+        'source_secret_comments_enabled' => 'item',
+        'source_reaction_preset_key' => 'item',
+        'source_reaction_comment_preset_key' => 'item',
         'source_comment_extra_fields_json' => 'item',
         'source_reward' => 'item',
     ];
@@ -114,6 +121,12 @@ function sr_quiz_admin_values_from_row(array $quiz): array
             'choices' => $choices,
         ];
     }
+    $settingSources = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO
+        ? sr_quiz_setting_sources($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0))
+        : [];
+    $settingSource = static function (string $settingKey, string $legacyKey = '') use ($settingSources): string {
+        return sr_quiz_setting_scope((string) ($settingSources[$settingKey] ?? ($legacyKey !== '' ? ($settingSources[$legacyKey] ?? 'item') : 'item')));
+    };
 
     return [
         'id' => (int) ($quiz['id'] ?? 0),
@@ -147,14 +160,21 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'community_source_ids' => implode("\n", $communitySourceIds),
         'result_rules' => implode("\n", $resultRules),
         'questions' => $questions === [] ? sr_quiz_default_admin_values()['questions'] : $questions,
-        'source_display' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'display') : 'item',
-        'source_publication' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'publication') : 'item',
-        'source_scoring' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'scoring') : 'item',
-        'source_attempt' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'attempt') : 'item',
-        'source_comments' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'comments') : 'item',
-        'source_reactions' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'reactions') : 'item',
-        'source_comment_extra_fields_json' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'comment_extra_fields_json') : 'item',
-        'source_reward' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? sr_quiz_setting_source($GLOBALS['pdo'], (int) ($quiz['id'] ?? 0), 'reward') : 'item',
+        'source_skin_key' => $settingSource('skin_key', 'display'),
+        'source_status' => $settingSource('status', 'publication'),
+        'source_quiz_mode' => $settingSource('quiz_mode', 'scoring'),
+        'source_scoring_model' => $settingSource('scoring_model', 'scoring'),
+        'source_pass_score' => $settingSource('pass_score', 'scoring'),
+        'source_starts_at' => $settingSource('starts_at', 'publication'),
+        'source_ends_at' => $settingSource('ends_at', 'publication'),
+        'source_attempt_limit' => $settingSource('attempt_limit', 'attempt'),
+        'source_member_group_keys' => $settingSource('member_group_keys', 'attempt'),
+        'source_comments_enabled' => $settingSource('comments_enabled', 'comments'),
+        'source_secret_comments_enabled' => $settingSource('secret_comments_enabled', 'comments'),
+        'source_reaction_preset_key' => $settingSource('reaction_preset_key', 'reactions'),
+        'source_reaction_comment_preset_key' => $settingSource('reaction_comment_preset_key', 'reactions'),
+        'source_comment_extra_fields_json' => $settingSource('comment_extra_fields_json'),
+        'source_reward' => $settingSource('reward'),
     ];
 }
 
@@ -304,12 +324,19 @@ function sr_quiz_admin_values_from_post(): array
         'community_source_ids' => sr_quiz_clean_text(sr_post_string('community_source_ids', 1000), 1000),
         'result_rules' => sr_quiz_clean_text($resultRuleLines === [] ? sr_post_string('result_rules', 4000) : implode("\n", $resultRuleLines), 4000),
         'questions' => $questions,
-        'source_display' => sr_quiz_setting_scope(sr_post_string('source_display', 20)),
-        'source_publication' => sr_quiz_setting_scope(sr_post_string('source_publication', 20)),
-        'source_scoring' => sr_quiz_setting_scope(sr_post_string('source_scoring', 20)),
-        'source_attempt' => sr_quiz_setting_scope(sr_post_string('source_attempt', 20)),
-        'source_comments' => sr_quiz_setting_scope(sr_post_string('source_comments', 20)),
-        'source_reactions' => sr_quiz_setting_scope(sr_post_string('source_reactions', 20)),
+        'source_skin_key' => sr_quiz_setting_scope(sr_post_string('source_skin_key', 20)),
+        'source_status' => sr_quiz_setting_scope(sr_post_string('source_status', 20)),
+        'source_quiz_mode' => sr_quiz_setting_scope(sr_post_string('source_quiz_mode', 20)),
+        'source_scoring_model' => sr_quiz_setting_scope(sr_post_string('source_scoring_model', 20)),
+        'source_pass_score' => sr_quiz_setting_scope(sr_post_string('source_pass_score', 20)),
+        'source_starts_at' => sr_quiz_setting_scope(sr_post_string('source_starts_at', 20)),
+        'source_ends_at' => sr_quiz_setting_scope(sr_post_string('source_ends_at', 20)),
+        'source_attempt_limit' => sr_quiz_setting_scope(sr_post_string('source_attempt_limit', 20)),
+        'source_member_group_keys' => sr_quiz_setting_scope(sr_post_string('source_member_group_keys', 20)),
+        'source_comments_enabled' => sr_quiz_setting_scope(sr_post_string('source_comments_enabled', 20)),
+        'source_secret_comments_enabled' => sr_quiz_setting_scope(sr_post_string('source_secret_comments_enabled', 20)),
+        'source_reaction_preset_key' => sr_quiz_setting_scope(sr_post_string('source_reaction_preset_key', 20)),
+        'source_reaction_comment_preset_key' => sr_quiz_setting_scope(sr_post_string('source_reaction_comment_preset_key', 20)),
         'source_comment_extra_fields_json' => sr_quiz_setting_scope(sr_post_string('source_comment_extra_fields_json', 20)),
         'source_reward' => sr_quiz_setting_scope(sr_post_string('source_reward', 20)),
     ];
