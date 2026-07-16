@@ -971,6 +971,12 @@ sr_community_release_file_contains('modules/community/views/admin-board-copy.php
     '복사본은 범위와 관계없이 항상 ‘사용 중지’ 상태로 만들어지므로',
     '시리즈 복사를 선택하지 않으면 게시글만 복사되고 시리즈 연결은 만들어지지 않습니다.',
 ], 'Community board copy operator guidance');
+sr_community_release_file_contains('modules/community/views/admin-board-copy-jobs.php', [
+    '화면을 닫아도 자동으로 끝까지 진행되지 않습니다.',
+    '‘재시도 준비’는 실패한 항목만 다시 처리할 수 있는 상태로 바꾸며',
+    '원본 게시판은 그대로 두고, 이 작업이 만든 대상 게시판과 복사한 데이터·파일을 삭제합니다.',
+    "'completed' => '복사가 끝났습니다. 대상 게시판은 사용 중지 상태로 남습니다.'",
+], 'Community board copy job operator guidance');
 sr_community_release_file_contains('modules/community/actions/admin-board-groups.php', [
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'view')",
     "sr_admin_require_permission(\$pdo, (int) \$account['id'], '/admin/community/board-groups', 'edit')",
