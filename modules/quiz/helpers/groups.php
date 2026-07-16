@@ -54,6 +54,52 @@ function sr_quiz_groups(PDO $pdo, bool $enabledOnly = false): array
     )->fetchAll();
 }
 
+function sr_quiz_admin_group_count(PDO $pdo): int
+{
+    if (!sr_quiz_groups_table_exists($pdo)) {
+        return 0;
+    }
+
+    $row = $pdo->query('SELECT COUNT(*) AS count_value FROM sr_quiz_groups')->fetch();
+    return is_array($row) ? (int) ($row['count_value'] ?? 0) : 0;
+}
+
+function sr_quiz_admin_group_sort_options(): array
+{
+    return [
+        'group_key' => ['columns' => ['g.group_key', 'g.id']],
+        'title' => ['columns' => ['g.title', 'g.id']],
+        'status' => ['columns' => ['g.status', 'g.id']],
+        'item_count' => ['columns' => ['item_count', 'g.id']],
+        'sort_order' => ['columns' => ['g.sort_order', 'g.id']],
+    ];
+}
+
+function sr_quiz_admin_group_default_sort(): array
+{
+    return sr_admin_sort_default('sort_order', 'asc');
+}
+
+function sr_quiz_admin_groups(PDO $pdo, int $limit, int $offset, array $sort): array
+{
+    if (!sr_quiz_groups_table_exists($pdo)) {
+        return [];
+    }
+
+    $sql = 'SELECT g.*, COUNT(q.id) AS item_count
+            FROM sr_quiz_groups g
+            LEFT JOIN sr_quiz_sets q ON q.quiz_group_id = g.id AND q.deleted_at IS NULL
+            GROUP BY g.id, g.group_key, g.title, g.description, g.status, g.sort_order, g.created_at, g.updated_at'
+        . sr_admin_sort_order_sql(sr_quiz_admin_group_sort_options(), $sort, sr_quiz_admin_group_default_sort())
+        . ' LIMIT :limit_value OFFSET :offset_value';
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue('limit_value', max(1, min(1000, $limit)), PDO::PARAM_INT);
+    $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
 function sr_quiz_group_by_id(PDO $pdo, int $groupId): ?array
 {
     if ($groupId < 1) {

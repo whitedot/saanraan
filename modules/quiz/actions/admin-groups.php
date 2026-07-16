@@ -65,20 +65,88 @@ if (!is_array($formValues)) {
 if ($mode === 'edit' && !is_array($formValues)) {
     sr_render_error(404, '퀴즈 그룹을 찾을 수 없습니다.');
 }
-$groups = $mode === 'list' ? sr_quiz_groups($pdo) : [];
+$groupSortOptions = sr_quiz_admin_group_sort_options();
+$groupDefaultSort = sr_quiz_admin_group_default_sort();
+$groupSort = sr_admin_sort_from_request($groupSortOptions, $groupDefaultSort);
+$groupPagination = $mode === 'list'
+    ? sr_admin_pagination_from_total($pdo, sr_quiz_admin_group_count($pdo))
+    : sr_admin_pagination_meta(0, 1, 1);
+$groups = $mode === 'list'
+    ? sr_quiz_admin_groups($pdo, (int) $groupPagination['per_page'], sr_admin_pagination_offset($groupPagination), $groupSort)
+    : [];
 $adminPageTitle = $mode === 'list' ? '퀴즈 그룹 관리' : ($mode === 'edit' ? '퀴즈 그룹 수정' : '퀴즈 그룹 등록');
 $adminPageTitleUrl = sr_admin_page_title_reset_url($mode === 'list', '/admin/quiz/groups');
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 echo sr_admin_feedback_toasts((string) ($flashResult['notice'] ?? ''), (array) ($flashResult['errors'] ?? []));
 ?>
 <?php if ($mode === 'list') { ?>
-    <section class="card admin-list-card">
-        <div class="card-header"><h2 class="card-title">퀴즈 그룹</h2><div class="card-actions"><a href="<?php echo sr_e(sr_url('/admin/quiz/groups?mode=new')); ?>" class="btn btn-sm btn-outline-secondary">그룹 등록</a></div></div>
-        <div class="table-wrapper"><table class="table table-list"><thead><tr><th>Key</th><th>그룹명</th><th>상태</th><th>퀴즈 수</th><th>순서</th><th>작업</th></tr></thead><tbody>
-        <?php if ($groups === []) { ?><tr><td colspan="6" class="table-empty">등록된 퀴즈 그룹이 없습니다.</td></tr><?php } ?>
-        <?php foreach ($groups as $group) { ?><tr><td><?php echo sr_e((string) $group['group_key']); ?></td><td><?php echo sr_e((string) $group['title']); ?></td><td><?php echo sr_e((string) $group['status']); ?></td><td><?php echo sr_e((string) (int) $group['item_count']); ?></td><td><?php echo sr_e((string) (int) $group['sort_order']); ?></td><td><a href="<?php echo sr_e(sr_url('/admin/quiz/groups?mode=edit&id=' . (string) (int) $group['id'])); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a></td></tr><?php } ?>
-        </tbody></table></div>
+    <section class="card admin-list-card admin-list-form">
+        <div class="card-header">
+            <h2 class="card-title">퀴즈 그룹 목록</h2>
+            <div class="card-actions">
+                <a href="<?php echo sr_e(sr_url('/admin/quiz/groups?mode=new')); ?>" class="btn btn-sm btn-outline-secondary">그룹 등록</a>
+            </div>
+        </div>
+        <div class="admin-list-summary-row">
+            <?php if (empty($groupSort['is_default'])) { ?>
+                <a href="<?php echo sr_e(sr_admin_sort_url($groupSortOptions, $groupDefaultSort)); ?>" class="btn btn-sm btn-icon btn-outline-danger admin-sort-reset" aria-label="퀴즈 그룹 목록 기본 정렬로 초기화" title="기본 정렬로 초기화"><?php echo sr_material_icon_html('restart_alt'); ?></a>
+            <?php } ?>
+            <?php echo sr_admin_pagination_summary_html($groupPagination); ?>
+        </div>
+        <div class="table-wrapper">
+            <table class="table table-list admin-quiz-group-table">
+                <caption class="sr-only">퀴즈 그룹 목록</caption>
+                <thead>
+                    <tr>
+                        <th<?php echo sr_admin_sort_aria('group_key', $groupSort); ?>><?php echo sr_admin_sort_header_html('식별값', 'group_key', $groupSort, $groupSortOptions, $groupDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('title', $groupSort); ?>><?php echo sr_admin_sort_header_html('그룹명', 'title', $groupSort, $groupSortOptions, $groupDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('status', $groupSort); ?>><?php echo sr_admin_sort_header_html('상태', 'status', $groupSort, $groupSortOptions, $groupDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('item_count', $groupSort); ?>><?php echo sr_admin_sort_header_html('퀴즈 수', 'item_count', $groupSort, $groupSortOptions, $groupDefaultSort); ?></th>
+                        <th<?php echo sr_admin_sort_aria('sort_order', $groupSort); ?>><?php echo sr_admin_sort_header_html('순서', 'sort_order', $groupSort, $groupSortOptions, $groupDefaultSort); ?></th>
+                        <th class="text-end">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($groups === []) { ?>
+                        <tr>
+                            <td colspan="6" class="admin-empty-state">등록된 퀴즈 그룹이 없습니다.</td>
+                        </tr>
+                    <?php } ?>
+                    <?php foreach ($groups as $group) { ?>
+                        <?php
+                        $groupStatus = (string) ($group['status'] ?? '');
+                        $groupStatusClass = match ($groupStatus) {
+                            'enabled' => 'is-success',
+                            'disabled' => 'is-warning',
+                            default => 'is-danger',
+                        };
+                        ?>
+                        <tr>
+                            <td class="admin-table-nowrap"><code><?php echo sr_e((string) ($group['group_key'] ?? '')); ?></code></td>
+                            <td class="admin-table-break"><?php echo sr_e((string) ($group['title'] ?? '')); ?></td>
+                            <td class="admin-table-nowrap"><span class="badge-status <?php echo sr_e($groupStatusClass); ?>"><?php echo sr_e(sr_admin_code_label($groupStatus, 'content_status')); ?></span></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($group['item_count'] ?? 0))); ?></td>
+                            <td class="admin-table-nowrap"><?php echo sr_e(number_format((int) ($group['sort_order'] ?? 0))); ?></td>
+                            <td class="admin-table-actions-cell">
+                                <div class="admin-row-actions">
+                                    <a href="<?php echo sr_e(sr_url('/admin/quiz/groups?mode=edit&id=' . rawurlencode((string) (int) ($group['id'] ?? 0)))); ?>" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="퀴즈 그룹 수정" title="수정"><?php echo sr_material_icon_html('edit'); ?></a>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+        <div class="admin-icon-button-legend" aria-label="아이콘 버튼 설명">
+            <span class="admin-icon-button-legend-item"><?php echo sr_material_icon_html('edit'); ?> 수정</span>
+        </div>
+        <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(sr_quiz_group_statuses(), 'content_status'), [
+            'enabled' => '현재 운영하는 그룹으로 구분합니다.',
+            'disabled' => '그룹 운영을 잠시 중지한 상태로 구분하며 소속 퀴즈의 상태는 바꾸지 않습니다.',
+            'archived' => '더 이상 운영하지 않는 그룹을 삭제하지 않고 기록으로 보관합니다.',
+        ], '퀴즈 그룹 상태 설명'); ?>
     </section>
+    <?php echo sr_admin_pagination_html($groupPagination, '퀴즈 그룹 목록 페이지'); ?>
 <?php } else { ?>
     <form method="post" action="<?php echo sr_e(sr_url('/admin/quiz/groups')); ?>" class="admin-form ui-form-theme">
         <?php echo sr_csrf_field(); ?><input type="hidden" name="intent" value="save"><input type="hidden" name="group_id" value="<?php echo sr_e((string) (int) ($formValues['id'] ?? 0)); ?>">

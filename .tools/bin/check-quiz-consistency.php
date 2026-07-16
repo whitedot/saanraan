@@ -239,6 +239,30 @@ function sr_quiz_check_paths_and_admin(): void
         '/admin/quiz/attempts',
         '/admin/quiz/comments',
     ]);
+    sr_quiz_check_file_contains('modules/quiz/helpers/groups.php', [
+        'function sr_quiz_admin_group_count',
+        'function sr_quiz_admin_group_sort_options',
+        'function sr_quiz_admin_group_default_sort',
+        'function sr_quiz_admin_groups',
+        'LIMIT :limit_value OFFSET :offset_value',
+    ]);
+    sr_quiz_check_file_contains('modules/quiz/actions/admin-groups.php', [
+        'admin-list-card admin-list-form',
+        'sr_admin_pagination_summary_html($groupPagination)',
+        "sr_admin_sort_header_html('식별값'",
+        '<th class="text-end">관리</th>',
+        'class="admin-empty-state"',
+        'class="badge-status <?php echo sr_e($groupStatusClass); ?>"',
+        'class="admin-table-actions-cell"',
+        'class="admin-row-actions"',
+        'class="admin-icon-button-legend"',
+        "sr_admin_pagination_html(\$groupPagination, '퀴즈 그룹 목록 페이지')",
+    ]);
+    sr_quiz_check_file_not_contains('modules/quiz/actions/admin-groups.php', [
+        '<th>Key</th>',
+        '<th>작업</th>',
+        'class="table-empty"',
+    ]);
     sr_quiz_check_file_contains('modules/quiz/skins/basic/view.php', [
         'rawurldecode($quizKey)',
         'sr_quiz_key_is_valid($quizKey)',
