@@ -411,7 +411,7 @@ if (sr_request_method() === 'POST') {
             $errors[] = '알림 대상을 선택하세요.';
         }
         if ($audience === 'account' && $accountId <= 0) {
-            $errors[] = '회원 공개 해시를 입력하세요.';
+            $errors[] = '대상 회원을 선택하세요.';
         }
         if ($audience === 'account' && $accountId > 0) {
             $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');

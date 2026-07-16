@@ -52,6 +52,27 @@ $adminPageTitleUrl = sr_admin_page_title_reset_url($notificationAdminPage === 'd
     . sr_admin_page_title_reset_url($notificationAdminPage !== 'deliveries', '/admin/notifications');
 $notificationAdminEditorKey = 'textarea';
 $notificationEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $notificationAdminEditorKey, 'admin_basic') : '';
+$notificationCreateHelpOpenLabel = '도움말 보기';
+$notificationCreateHelp = [
+    'audience' => [
+        'id' => 'notification-create-audience-help',
+        'title' => '알림 대상 도움말',
+        'body' => '<p>‘개별 회원’은 선택한 회원 한 명에게만 알림을 등록합니다. 회원 검색으로 대상을 고르거나 회원 공개 해시를 직접 입력하세요.</p>'
+            . '<p>‘전체 회원’ 사이트 알림은 삭제하기 전까지 모든 회원의 알림 목록에 표시되며, 등록한 뒤에 가입한 회원에게도 보일 수 있습니다. 이메일은 등록 시점에 수신 가능한 활성 회원을 대상으로 발송 작업을 만듭니다.</p>',
+    ],
+    'link' => [
+        'id' => 'notification-create-link-help',
+        'title' => '알림 연결 주소 도움말',
+        'body' => '<p>회원이 알림을 눌렀을 때 이동할 화면을 입력합니다. 사이트 안 주소는 <code>/</code>로 시작하는 경로를, 외부 주소는 <code>http://</code> 또는 <code>https://</code>로 시작하는 전체 주소를 입력하세요.</p>'
+            . '<p>비워 두면 알림 제목과 내용만 표시하고, 누르더라도 별도 화면으로 이동하지 않습니다.</p>',
+    ],
+    'channels' => [
+        'id' => 'notification-create-channels-help',
+        'title' => '알림 방법 도움말',
+        'body' => '<p>‘사이트’는 회원이 로그인했을 때 보는 알림 목록에 등록합니다. 개별 회원이 사이트의 외부 푸시 알림을 연결해 두었다면 해당 푸시 알림도 함께 등록될 수 있습니다.</p>'
+            . '<p>‘이메일’을 선택하면 회원 정보의 이메일 주소로 보낼 발송 작업을 만듭니다. 알림 등록과 실제 이메일 발송은 다른 단계이며, 발송 작업은 ‘알림 발송 작업’ 화면에서 상태를 확인할 수 있습니다.</p>',
+    ],
+];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
 
@@ -430,7 +451,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="intent" value="create">
                     <div class="form-row">
-                        <label class="form-label" for="notification_admin_notifications_audience"><?php echo sr_e(sr_t('notification::ui.text.8c609deb')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
+                        <?php echo sr_admin_form_label_help_html('notification_admin_notifications_audience', sr_t('notification::ui.text.8c609deb'), $notificationCreateHelp['audience']['id'], $notificationCreateHelpOpenLabel, true); ?>
                         <div class="form-field">
                             <select id="notification_admin_notifications_audience" name="audience" class="form-select" required data-notification-audience data-overlay-focus>
                                 <?php foreach ($allowedAudiences as $audience) { ?>
@@ -440,34 +461,41 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         </div>
                     </div>
                     <div class="form-row" data-notification-account-row<?php echo $notificationCreateAudience === 'account' ? '' : ' hidden'; ?>>
-                        <label class="form-label" for="<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e(sr_t('notification::ui.member.900e04a5')); ?> <span class="sr-required-label" data-notification-account-required<?php echo (string) ($notificationCreateValues['audience'] ?? '') === 'account' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
+                        <label class="form-label" for="<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e('대상 회원'); ?> <span class="sr-required-label" data-notification-account-required<?php echo (string) ($notificationCreateValues['audience'] ?? '') === 'account' ? '' : ' hidden'; ?>><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
                         <div class="form-field">
                             <div class="admin-lookup-control">
                                 <input id="<?php echo sr_e($notificationCreateAccountInputId); ?>" type="text" name="account_identifier" value="<?php echo sr_e((string) ($notificationCreateValues['account_identifier'] ?? '')); ?>" maxlength="80" class="form-input" data-notification-account-identifier<?php echo (string) ($notificationCreateValues['audience'] ?? '') === 'account' ? ' required' : ''; ?>>
                                 <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-overlay="#<?php echo sr_e($notificationCreateMemberLookupModalId); ?>" data-admin-member-lookup-open data-target="#<?php echo sr_e($notificationCreateAccountInputId); ?>"><?php echo sr_e(sr_t('notification::ui.member.search.f7a330b0')); ?></button>
                             </div>
+                            <small class="form-help"><?php echo sr_e('회원 검색으로 대상을 선택하세요. 회원 공개 해시를 직접 입력해도 됩니다.'); ?></small>
                         </div>
                     </div>
                     <div class="form-row">
                         <label class="form-label" for="notification_admin_notifications_title"><?php echo sr_e(sr_t('notification::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></label>
                         <div class="form-field">
                             <input id="notification_admin_notifications_title" type="text" name="title" value="<?php echo sr_e((string) ($notificationCreateValues['title'] ?? '')); ?>" maxlength="160" required class="form-input form-control-full">
+                            <small class="form-help"><?php echo sr_e('알림 목록과 이메일 제목에 표시됩니다.'); ?></small>
                         </div>
                     </div>
                     <div class="form-row">
                         <label class="form-label" for="notification_admin_notifications_body_text"><?php echo sr_e(sr_t('notification::ui.text.cb0f2404')); ?></label>
                         <div class="form-field">
                             <textarea id="notification_admin_notifications_body_text" name="body_text" maxlength="5000" class="form-textarea"<?php echo $notificationEditorAttributes; ?>><?php echo sr_e((string) ($notificationCreateValues['body_text'] ?? '')); ?></textarea>
+                            <small class="form-help"><?php echo sr_e('알림의 상세 내용입니다. 비워 두면 제목만 표시합니다.'); ?></small>
                         </div>
                     </div>
                     <div class="form-row">
-                        <label class="form-label" for="notification_admin_notifications_link_url"><?php echo sr_e(sr_t('notification::ui.url.f7ca9b13')); ?></label>
+                        <?php echo sr_admin_form_label_help_html('notification_admin_notifications_link_url', sr_t('notification::ui.url.f7ca9b13'), $notificationCreateHelp['link']['id'], $notificationCreateHelpOpenLabel); ?>
                         <div class="form-field">
                             <input id="notification_admin_notifications_link_url" type="text" name="link_url" value="<?php echo sr_e((string) ($notificationCreateValues['link_url'] ?? '')); ?>" maxlength="255" class="form-input form-control-full" placeholder="<?php echo sr_e(sr_t('notification::ui.path.https.example.com.a67f0fa1')); ?>">
+                            <small class="form-help"><?php echo sr_e('알림을 눌렀을 때 이동할 사이트 경로나 외부 주소입니다.'); ?></small>
                         </div>
                     </div>
                     <div class="form-row">
-                        <span class="form-label"><?php echo sr_e(sr_t('notification::ui.text.a391a59a')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></span>
+                        <div class="form-label form-label-help">
+                            <button type="button" class="admin-label-help-button" aria-label="<?php echo sr_e($notificationCreateHelpOpenLabel); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($notificationCreateHelp['channels']['id']); ?>" data-overlay="#<?php echo sr_e($notificationCreateHelp['channels']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
+                            <span><?php echo sr_e('알림 방법'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('notification::ui.required.1f227c67')); ?></span></span>
+                        </div>
                         <div class="form-field">
                             <div class="admin-check-list">
                                 <?php foreach ($allowedCreateChannels as $channel) { ?>
@@ -478,7 +506,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     </label>
                                 <?php } ?>
                             </div>
-                            <small class="form-help"><?php echo sr_e(sr_t('notification::ui.notification.create.notification.email.active.d3635deb')); ?></small>
+                            <small class="form-help"><?php echo sr_e('이메일은 바로 보내지 않고 수신자별 발송 작업을 만듭니다.'); ?></small>
                         </div>
                     </div>
                 </div>
@@ -489,6 +517,9 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         </div>
     </div>
+    <?php foreach ($notificationCreateHelp as $notificationCreateHelpModal) { ?>
+        <?php echo sr_admin_help_modal_html((string) $notificationCreateHelpModal['id'], (string) $notificationCreateHelpModal['title'], (string) $notificationCreateHelpModal['body']); ?>
+    <?php } ?>
     <?php
     $assetAdjustLookup = [
         'field_prefix' => $notificationCreateMemberLookupPrefix,

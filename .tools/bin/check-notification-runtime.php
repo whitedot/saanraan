@@ -1065,6 +1065,15 @@ sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAct
 sr_notification_runtime_assert(is_string($adminView) && str_contains($adminView, 'sr_notification_delivery_status_transition($deliveryStatus, $status)'), 'notification delivery admin view must only render allowed transition buttons.');
 sr_notification_runtime_assert(is_string($adminView) && str_contains($adminView, '알림 발송 작업 목록 페이지') && !str_contains($adminView, '이메일 발송 작업'), 'notification delivery admin view must label shared delivery jobs as notification delivery jobs.');
 sr_notification_runtime_assert(
+    is_string($adminView)
+        && str_contains($adminView, '등록한 뒤에 가입한 회원에게도 보일 수 있습니다.')
+        && str_contains($adminView, '이메일은 등록 시점에 수신 가능한 활성 회원을 대상으로 발송 작업을 만듭니다.')
+        && str_contains($adminView, '알림 등록과 실제 이메일 발송은 다른 단계이며')
+        && str_contains($adminView, '회원 검색으로 대상을 선택하세요.'),
+    'notification create form must explain audience lifetime, queued email delivery, and member selection.'
+);
+sr_notification_runtime_assert(is_string($adminAction) && str_contains($adminAction, "\$errors[] = '대상 회원을 선택하세요.';"), 'notification create validation must use the operator-facing member selection wording.');
+sr_notification_runtime_assert(
     is_string($notificationDeliveryHelpers)
         && str_contains($notificationDeliveryHelpers, 'function sr_notification_claim_delivery(')
         && str_contains($notificationDeliveryHelpers, 'function sr_notification_process_delivery(')
