@@ -1,6 +1,6 @@
 <?php
 
-$adminPageTitle = '회원 OAuth 설정';
+$adminPageTitle = '외부 로그인 설정';
 $adminPageSubtitle = '';
 $callbackUrl = sr_absolute_url($site ?? [], '/oauth/callback');
 $memberOauthProfileExtraFieldDefinitions = is_array($profileExtraFieldDefinitions ?? null) ? $profileExtraFieldDefinitions : [];
@@ -8,6 +8,63 @@ $memberOauthProfileSyncTargets = sr_member_oauth_profile_sync_targets($memberOau
 $memberOauthProfileSettingsUrl = sr_url('/admin/member-settings#member-settings-section-profile');
 $memberOauthCanEditProfileSettings = is_array($account ?? null)
     && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/member-settings', 'edit');
+$memberOauthHelpOpenLabel = '도움말 보기';
+$memberOauthHelpButtonHtml = static function (string $label, string $modalId) use ($memberOauthHelpOpenLabel): string {
+    return '<button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="' . sr_e($label . ' ' . $memberOauthHelpOpenLabel) . '" aria-haspopup="dialog" aria-expanded="false" aria-controls="' . sr_e($modalId) . '" data-overlay="#' . sr_e($modalId) . '">'
+        . sr_material_icon_html('help')
+        . '</button>';
+};
+$memberOauthHelp = [
+    'callback' => [
+        'id' => 'member-oauth-help-callback',
+        'title' => '되돌아올 URL 도움말',
+        'body' => '<p>외부 로그인 서비스가 인증을 마친 뒤 회원을 다시 이 사이트로 보낼 주소입니다. 이 화면에 표시된 값을 제공자 관리 화면의 Redirect URI 또는 Callback URL 항목에 그대로 등록하세요.</p>'
+            . '<p>사이트 기본 URL이 바뀌면 이 주소도 바뀝니다. 도메인이나 HTTPS 설정을 변경한 뒤에는 모든 제공자 관리 화면의 등록값도 함께 수정해야 로그인이 계속 동작합니다.</p>',
+    ],
+    'mock' => [
+        'id' => 'member-oauth-help-mock',
+        'title' => '테스트 로그인 도움말',
+        'body' => '<p>실제 외부 서비스 인증 없이 고정된 테스트 회원 정보로 로그인과 신규 가입 흐름을 확인하는 기능입니다.</p>'
+            . '<p>로그인 화면을 볼 수 있는 사람이라면 이 버튼을 사용할 수 있으므로 운영 사이트에서는 반드시 끄세요. Google, Kakao 같은 실제 제공자 연결을 시험하는 기능은 아닙니다.</p>',
+    ],
+    'state_ttl' => [
+        'id' => 'member-oauth-help-state-ttl',
+        'title' => '외부 로그인 대기 시간 도움말',
+        'body' => '<p>회원이 외부 로그인이나 계정 연결을 시작한 뒤 제공자 인증을 마치고 돌아올 때까지 요청을 유효하게 둘 시간입니다.</p>'
+            . '<p>시간이 지나면 이전 요청은 사용할 수 없으며 로그인을 처음부터 다시 시작해야 합니다. 60초부터 3,600초까지 입력합니다.</p>',
+    ],
+    'completion_ttl' => [
+        'id' => 'member-oauth-help-completion-ttl',
+        'title' => '신규 가입 완료 시간 도움말',
+        'body' => '<p>외부 인증에는 성공했지만 아직 사이트 가입 약관 확인과 필수 입력을 끝내지 않은 신규 회원의 가입 정보를 유지할 시간입니다.</p>'
+            . '<p>시간이 지나면 임시 가입 정보를 사용할 수 없으며 외부 로그인을 다시 시작해야 합니다. 60초부터 3,600초까지 입력합니다.</p>',
+    ],
+    'credentials' => [
+        'id' => 'member-oauth-help-credentials',
+        'title' => '외부 로그인 연결 정보 도움말',
+        'body' => '<p>클라이언트 ID와 클라이언트 비밀값은 외부 로그인 제공자의 앱 관리 화면에서 발급받는 연결 정보입니다. 위 되돌아올 URL을 등록한 같은 앱의 값을 사용하세요.</p>'
+            . '<p>클라이언트 비밀값은 외부에 공개하면 안 되는 값입니다. 이미 저장된 경우 입력란을 비워 두면 기존 값을 유지하며, 변경할 때만 새 값을 입력하세요.</p>',
+    ],
+    'scope' => [
+        'id' => 'member-oauth-help-scope',
+        'title' => '가져올 정보 권한 도움말',
+        'body' => '<p>외부 로그인 서비스에 요청할 회원 정보 권한입니다. 제공자 문서에서는 Scope라고 부릅니다.</p>'
+            . '<p>기본 항목은 로그인과 필수 회원 정보에 필요해 삭제할 수 없습니다. 항목을 추가하면 제공자 앱 관리 화면에서 같은 권한을 허용하거나 별도 심사를 받아야 할 수 있습니다.</p>',
+    ],
+    'profile_sync' => [
+        'id' => 'member-oauth-help-profile-sync',
+        'title' => '회원 정보 가져오기 도움말',
+        'body' => '<p>외부 계정을 연결하거나 해당 제공자로 로그인할 때, 외부 서비스가 돌려준 값 중 어떤 값을 사이트 회원 정보에 반영할지 정합니다.</p>'
+            . '<p>이름은 사이트 형식에 맞는 값만 갱신합니다. 이메일은 제공자가 확인된 이메일이라고 응답하고 다른 회원이 사용하지 않을 때만 갱신합니다. 그 밖의 값은 회원 환경설정에 같은 선택 프로필 항목이 있을 때만 저장합니다.</p>'
+            . '<p>가져올 값 위치는 제공자 응답에서 값을 찾는 경로이며 제공자 문서에서는 Claim path라고 부릅니다. 잘못 지정하면 해당 회원 정보가 갱신되지 않습니다.</p>',
+    ],
+    'sort_order' => [
+        'id' => 'member-oauth-help-sort-order',
+        'title' => '로그인 버튼 순서 도움말',
+        'body' => '<p>로그인 화면에 외부 로그인 버튼이 여러 개 있을 때 표시할 순서를 정하는 숫자입니다. 숫자가 작을수록 먼저 표시됩니다.</p>'
+            . '<p>같은 숫자를 입력한 제공자는 제공자 키 순서로 정렬됩니다.</p>',
+    ],
+];
 $memberOauthExternalProviders = [];
 $memberOauthClaimPathOptionsByProvider = [];
 foreach ($providers as $provider) {
@@ -37,7 +94,7 @@ if ($memberOauthExternalProviders === []) {
     $memberOauthSectionNavItems['member-oauth-section-providers-empty'] = '외부 제공자';
 }
 ?>
-<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="회원 OAuth 설정 섹션">
+<nav class="sticky-tabs anchor-tabs tab-nav-justified" aria-label="외부 로그인 설정 섹션">
     <?php $memberOauthSectionNavIndex = 0; ?>
     <?php foreach ($memberOauthSectionNavItems as $memberOauthSectionId => $memberOauthSectionLabel) { ?>
         <a href="#<?php echo sr_e((string) $memberOauthSectionId); ?>" class="tab-trigger-underline-justified<?php echo $memberOauthSectionNavIndex === 0 ? ' active' : ''; ?>"<?php echo $memberOauthSectionNavIndex === 0 ? ' aria-current="location"' : ''; ?>>
@@ -54,7 +111,7 @@ if ($memberOauthExternalProviders === []) {
     <section id="member-oauth-section-basic" class="card" data-admin-section-anchor>
         <h2>기본 설정</h2>
         <div class="form-row">
-            <span class="form-label">되돌아올 URL</span>
+            <span class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml('되돌아올 URL', $memberOauthHelp['callback']['id']); ?><span>되돌아올 URL</span></span>
             <div class="form-field">
                 <div class="form-actions">
                     <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
@@ -63,16 +120,17 @@ if ($memberOauthExternalProviders === []) {
                         <span><?php echo sr_e('복사'); ?></span>
                     </button>
                 </div>
-                <p class="form-help">외부 OAuth/OIDC 제공자 콘솔에 등록할 redirect URI입니다. 공개 기준 URL이 바뀌면 이 값도 함께 바뀝니다.</p>
+                <p class="form-help">외부 로그인 서비스 관리 화면의 Redirect URI 또는 Callback URL 항목에 등록합니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="member_oauth_mock_enabled"><?php echo sr_e('테스트 로그인'); ?></label>
+            <?php echo sr_admin_form_label_help_html('member_oauth_mock_enabled', '테스트 로그인', $memberOauthHelp['mock']['id'], $memberOauthHelpOpenLabel); ?>
             <div class="form-field">
                 <label class="form-check form-label" for="member_oauth_mock_enabled">
                     <input id="member_oauth_mock_enabled" type="checkbox" name="mock_enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['mock_enabled']) ? ' checked' : ''; ?>>
                     <?php echo sr_admin_choice_label_html('사용'); ?>
                 </label>
+                <p class="form-help">외부 인증 없이 로그인 흐름을 확인합니다. 운영 사이트에서는 끄세요.</p>
             </div>
         </div>
         <div class="form-row">
@@ -83,23 +141,23 @@ if ($memberOauthExternalProviders === []) {
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="member_oauth_state_ttl_seconds"><?php echo sr_e('로그인 확인값 유효 시간'); ?> <span class="sr-required-label">(필수)</span></label>
+            <?php echo sr_admin_form_label_help_html('member_oauth_state_ttl_seconds', '외부 로그인 대기 시간', $memberOauthHelp['state_ttl']['id'], $memberOauthHelpOpenLabel, true); ?>
             <div class="form-field">
                 <div class="input-group admin-input-unit">
                     <input id="member_oauth_state_ttl_seconds" type="number" name="state_ttl_seconds" min="60" max="3600" value="<?php echo sr_e((string) $settings['state_ttl_seconds']); ?>" required class="form-input">
                     <span class="input-group-text">초</span>
                 </div>
-                <p class="form-help">외부 로그인 또는 계정 연결 응답을 기다리는 시간입니다.</p>
+                <p class="form-help">외부 로그인 또는 계정 연결을 시작한 뒤 인증 결과를 기다릴 시간입니다.</p>
             </div>
         </div>
         <div class="form-row">
-            <label class="form-label" for="member_oauth_completion_ttl_seconds"><?php echo sr_e('가입 완료 유효 시간'); ?> <span class="sr-required-label">(필수)</span></label>
+            <?php echo sr_admin_form_label_help_html('member_oauth_completion_ttl_seconds', '신규 가입 완료 시간', $memberOauthHelp['completion_ttl']['id'], $memberOauthHelpOpenLabel, true); ?>
             <div class="form-field">
                 <div class="input-group admin-input-unit">
                     <input id="member_oauth_completion_ttl_seconds" type="number" name="completion_ttl_seconds" min="60" max="3600" value="<?php echo sr_e((string) $settings['completion_ttl_seconds']); ?>" required class="form-input">
                     <span class="input-group-text">초</span>
                 </div>
-                <p class="form-help">외부 로그인 신규 가입 완료 절차를 유지하는 시간입니다.</p>
+                <p class="form-help">외부 인증 뒤 약관 확인과 필수 입력을 마칠 수 있는 시간입니다.</p>
             </div>
         </div>
     </section>
@@ -135,7 +193,7 @@ if ($memberOauthExternalProviders === []) {
                 </label>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <span class="form-label"><?php echo sr_e('되돌아올 URL'); ?></span>
+                <span class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 되돌아올 URL', $memberOauthHelp['callback']['id']); ?><span><?php echo sr_e('되돌아올 URL'); ?></span></span>
                 <div class="form-field">
                     <div class="form-actions">
                         <p class="admin-form-static"><?php echo sr_e($callbackUrl); ?></p>
@@ -144,7 +202,7 @@ if ($memberOauthExternalProviders === []) {
                             <span><?php echo sr_e('복사'); ?></span>
                         </button>
                     </div>
-                    <p class="form-help">외부 OAuth/OIDC 제공자 콘솔의 redirect URI 또는 callback URL 항목에 같은 값을 등록합니다. 클라이언트 ID와 비밀값은 같은 콘솔의 앱 자격 증명 화면에서 발급받습니다.</p>
+                    <p class="form-help">외부 로그인 서비스 관리 화면에 이 주소와 아래 연결 정보를 등록합니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
@@ -154,27 +212,28 @@ if ($memberOauthExternalProviders === []) {
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>"><?php echo sr_e('클라이언트 ID'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
+                <div class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 클라이언트 ID', $memberOauthHelp['credentials']['id']); ?><label for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>"><?php echo sr_e('클라이언트 ID'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label></div>
                 <div class="form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_id'); ?>" type="text" name="<?php echo sr_e($clientIdKey); ?>" maxlength="255" value="<?php echo sr_e((string) ($provider['client_id'] ?? '')); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input form-control-full" autocomplete="off" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
-                    <p class="form-help">사용을 켠 제공자는 클라이언트 ID가 있어야 로그인 화면에 노출할 수 있습니다.</p>
+                    <p class="form-help">외부 로그인 앱에서 발급한 공개 식별값입니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('클라이언트 비밀값'); ?> <span class="sr-required-label"<?php echo $providerSecretRequired ? '' : ' hidden'; ?> data-oauth-required-secret-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
+                <div class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 클라이언트 비밀값', $memberOauthHelp['credentials']['id']); ?><label for="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>"><?php echo sr_e('클라이언트 비밀값'); ?> <span class="sr-required-label"<?php echo $providerSecretRequired ? '' : ' hidden'; ?> data-oauth-required-secret-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label></div>
                 <div class="form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_client_secret'); ?>" type="password" name="<?php echo sr_e($secretKey); ?>" maxlength="512" value="" placeholder="<?php echo sr_e(sr_member_oauth_secret_display((string) ($provider['client_secret'] ?? ''))); ?>"<?php echo $providerSecretRequired ? ' required' : ''; ?> class="form-input form-control-full" autocomplete="new-password" data-oauth-secret-provider="<?php echo sr_e($providerKey); ?>" data-oauth-has-stored-secret="<?php echo $providerHasStoredSecret ? '1' : '0'; ?>">
+                    <p class="form-help">이미 저장된 값은 비워 두면 유지합니다. 변경할 때만 입력하세요.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <span class="form-label"><?php echo sr_e('권한 범위'); ?></span>
+                <span class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 가져올 정보 권한', $memberOauthHelp['scope']['id']); ?><span><?php echo sr_e('가져올 정보 권한'); ?></span></span>
                 <div class="form-field">
                     <div data-oauth-scope-list="<?php echo sr_e($providerKey); ?>" data-oauth-scope-name="<?php echo sr_e($scopeKey); ?>" data-oauth-required-scopes="<?php echo sr_e(implode("\n", $requiredScopeItems)); ?>">
                         <?php foreach ($scopeItems as $scopeIndex => $scopeItem) { ?>
                             <?php $scopeRequired = isset($requiredScopeItemMap[$scopeItem]); ?>
                             <div class="member-oauth-repeat-row" data-oauth-scope-row<?php echo $scopeRequired ? ' data-oauth-required-scope-row' : ''; ?>>
-                                <input type="text" name="<?php echo sr_e($scopeKey); ?>[]" maxlength="120" value="<?php echo sr_e($scopeItem); ?>" class="form-input" aria-label="<?php echo sr_e('권한 범위 항목'); ?>"<?php echo $scopeRequired ? ' readonly' : ''; ?>>
-                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e($scopeRequired ? '기본 권한 범위는 삭제할 수 없습니다.' : '권한 범위 항목 삭제'); ?>" aria-label="<?php echo sr_e($scopeRequired ? '기본 권한 범위는 삭제할 수 없습니다.' : '권한 범위 항목 삭제'); ?>"<?php echo $scopeRequired ? ' disabled aria-disabled="true"' : ''; ?>>
+                                <input type="text" name="<?php echo sr_e($scopeKey); ?>[]" maxlength="120" value="<?php echo sr_e($scopeItem); ?>" class="form-input" aria-label="<?php echo sr_e('가져올 정보 권한 항목'); ?>"<?php echo $scopeRequired ? ' readonly' : ''; ?>>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e($scopeRequired ? '기본 권한은 삭제할 수 없습니다.' : '정보 권한 항목 삭제'); ?>" aria-label="<?php echo sr_e($scopeRequired ? '기본 권한은 삭제할 수 없습니다.' : '정보 권한 항목 삭제'); ?>"<?php echo $scopeRequired ? ' disabled aria-disabled="true"' : ''; ?>>
                                     <?php echo sr_material_icon_html('delete'); ?>
                                 </button>
                             </div>
@@ -183,14 +242,14 @@ if ($memberOauthExternalProviders === []) {
                     <div class="form-actions">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-oauth-add-scope="<?php echo sr_e($providerKey); ?>">
                             <?php echo sr_material_icon_html('add'); ?>
-                            <span><?php echo sr_e('권한 범위 추가'); ?></span>
+                            <span><?php echo sr_e('정보 권한 추가'); ?></span>
                         </button>
                     </div>
-                    <p class="form-help">기본 권한 범위는 제공자 연결에 필요한 항목이라 삭제할 수 없습니다. 추가 권한 범위는 제공자 콘솔에서 별도 설정이 필요할 수 있습니다.</p>
+                    <p class="form-help">기본 항목은 로그인에 필요해 삭제할 수 없습니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <span class="form-label"><?php echo sr_e('프로필 동기화'); ?></span>
+                <span class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 회원 정보 가져오기', $memberOauthHelp['profile_sync']['id']); ?><span><?php echo sr_e('회원 정보 가져오기'); ?></span></span>
                 <div class="form-field">
                     <?php if ($memberOauthProfileExtraFieldDefinitions === []) { ?>
                         <div class="alert alert-warning">
@@ -207,9 +266,9 @@ if ($memberOauthExternalProviders === []) {
                     <?php } ?>
                     <div data-oauth-profile-sync-list="<?php echo sr_e($providerKey); ?>" data-oauth-profile-sync-name="<?php echo sr_e($profileSyncKey); ?>">
                         <div class="member-oauth-sync-header" aria-hidden="true">
-                            <span><?php echo sr_e('회원 필드'); ?></span>
-                            <span><?php echo sr_e('권한 범위'); ?></span>
-                            <span><?php echo sr_e('프로필 값 경로'); ?></span>
+                            <span><?php echo sr_e('저장할 회원 항목'); ?></span>
+                            <span><?php echo sr_e('필요 권한'); ?></span>
+                            <span><?php echo sr_e('가져올 값 위치'); ?></span>
                             <span><?php echo sr_e('동작'); ?></span>
                         </div>
                         <?php foreach ($profileSyncRules as $profileSyncIndex => $profileSyncRule) { ?>
@@ -220,35 +279,35 @@ if ($memberOauthExternalProviders === []) {
                                     <input type="hidden" name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][target]" value="<?php echo sr_e($profileSyncTarget); ?>" data-oauth-profile-sync-target-hidden>
                                     <span class="admin-form-static member-oauth-sync-target-static"><?php echo sr_e((string) ($memberOauthProfileSyncTargets[$profileSyncTarget] ?? $profileSyncTarget)); ?></span>
                                 <?php } else { ?>
-                                    <select name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][target]" class="form-select" aria-label="<?php echo sr_e('회원 필드'); ?>" data-oauth-profile-sync-target-select>
+                                    <select name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][target]" class="form-select" aria-label="<?php echo sr_e('저장할 회원 항목'); ?>" data-oauth-profile-sync-target-select>
                                         <?php foreach ($memberOauthProfileSyncTargets as $syncTarget => $syncLabel) { ?>
                                             <option value="<?php echo sr_e((string) $syncTarget); ?>"<?php echo $profileSyncTarget === (string) $syncTarget ? ' selected' : ''; ?>><?php echo sr_e((string) $syncLabel); ?></option>
                                         <?php } ?>
                                     </select>
                                 <?php } ?>
-                                <select name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][scope]" class="form-select" data-oauth-profile-sync-scope-select aria-label="<?php echo sr_e('권한 범위'); ?>">
-                                    <option value=""><?php echo sr_e('권한 범위 선택 안 함'); ?></option>
+                                <select name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][scope]" class="form-select" data-oauth-profile-sync-scope-select aria-label="<?php echo sr_e('필요 권한'); ?>">
+                                    <option value=""><?php echo sr_e('필요 권한 없음'); ?></option>
                                     <?php foreach ($scopeItems as $syncScopeItem) { ?>
                                         <option value="<?php echo sr_e($syncScopeItem); ?>"<?php echo (string) ($profileSyncRule['scope'] ?? '') === $syncScopeItem ? ' selected' : ''; ?>><?php echo sr_e($syncScopeItem); ?></option>
                                     <?php } ?>
                                 </select>
                                 <?php $profileSyncClaim = (string) ($profileSyncRule['claim'] ?? ''); ?>
                                 <?php $profileSyncCustomClaim = $profileSyncClaim !== '' && !in_array($profileSyncClaim, $claimPathOptions, true); ?>
-                                <select class="form-select" data-oauth-profile-sync-claim-select aria-label="<?php echo sr_e('프로필 값 경로 선택'); ?>">
-                                    <option value=""><?php echo sr_e('프로필 값 선택'); ?></option>
+                                <select class="form-select" data-oauth-profile-sync-claim-select aria-label="<?php echo sr_e('가져올 값 위치 선택'); ?>">
+                                    <option value=""><?php echo sr_e('가져올 값 선택'); ?></option>
                                     <?php foreach ($claimPathOptions as $claimPathOption) { ?>
                                         <option value="<?php echo sr_e($claimPathOption); ?>"<?php echo $profileSyncClaim === $claimPathOption ? ' selected' : ''; ?>><?php echo sr_e($claimPathOption); ?></option>
                                     <?php } ?>
                                     <option value="__custom__"<?php echo $profileSyncCustomClaim ? ' selected' : ''; ?>><?php echo sr_e('직접 입력'); ?></option>
                                 </select>
                                 <input type="hidden" name="<?php echo sr_e($profileSyncKey); ?>[<?php echo sr_e((string) $profileSyncIndex); ?>][claim]" value="<?php echo sr_e($profileSyncClaim); ?>" data-oauth-profile-sync-claim-value>
-                                <input type="text" maxlength="120" value="<?php echo sr_e($profileSyncCustomClaim ? $profileSyncClaim : ''); ?>" class="form-input" aria-label="<?php echo sr_e('프로필 값 경로 직접 입력'); ?>" data-oauth-profile-sync-claim-custom<?php echo $profileSyncCustomClaim ? '' : ' hidden'; ?>>
+                                <input type="text" maxlength="120" value="<?php echo sr_e($profileSyncCustomClaim ? $profileSyncClaim : ''); ?>" class="form-input" aria-label="<?php echo sr_e('가져올 값 위치 직접 입력'); ?>" data-oauth-profile-sync-claim-custom<?php echo $profileSyncCustomClaim ? '' : ' hidden'; ?>>
                                 <?php if ($profileSyncLocked) { ?>
-                                    <span class="btn btn-sm btn-icon btn-solid-light member-oauth-repeat-locked" aria-label="<?php echo sr_e('필수 동기화 항목'); ?>" title="<?php echo sr_e('필수 동기화 항목'); ?>" aria-disabled="true">
+                                    <span class="btn btn-sm btn-icon btn-solid-light member-oauth-repeat-locked" aria-label="<?php echo sr_e('필수 회원 정보 항목'); ?>" title="<?php echo sr_e('필수 회원 정보 항목'); ?>" aria-disabled="true">
                                         <?php echo sr_material_icon_html('lock'); ?>
                                     </span>
                                 <?php } else { ?>
-                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e('동기화 항목 삭제'); ?>" aria-label="<?php echo sr_e('동기화 항목 삭제'); ?>">
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger member-oauth-repeat-delete" data-oauth-remove-row title="<?php echo sr_e('회원 정보 항목 삭제'); ?>" aria-label="<?php echo sr_e('회원 정보 항목 삭제'); ?>">
                                         <?php echo sr_material_icon_html('delete'); ?>
                                     </button>
                                 <?php } ?>
@@ -258,7 +317,7 @@ if ($memberOauthExternalProviders === []) {
                     <div class="form-actions">
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-oauth-add-profile-sync="<?php echo sr_e($providerKey); ?>">
                             <?php echo sr_material_icon_html('add'); ?>
-                            <span><?php echo sr_e('동기화 항목 추가'); ?></span>
+                            <span><?php echo sr_e('회원 정보 항목 추가'); ?></span>
                         </button>
                         <?php if ($memberOauthCanEditProfileSettings) { ?>
                             <a class="btn btn-sm btn-solid-light" href="<?php echo sr_e($memberOauthProfileSettingsUrl); ?>" target="_blank" rel="noopener noreferrer">
@@ -267,13 +326,14 @@ if ($memberOauthExternalProviders === []) {
                             </a>
                         <?php } ?>
                     </div>
-                    <p class="form-help">이메일과 이름은 회원 기본 필드에 반영하고, 그 외 항목은 회원 설정에 정의된 선택 프로필 항목에만 저장합니다. 권한 범위를 보내지 않는 제공자는 선택 안 함이 정상일 수 있으며, 필요한 프로필 권한은 제공자 콘솔에서 별도로 허용해야 할 수 있습니다.</p>
+                    <p class="form-help">외부 계정을 연결하거나 로그인할 때 선택한 값을 사이트 회원 정보에 반영합니다.</p>
                 </div>
             </div>
             <div class="form-row" data-oauth-provider-field-row="<?php echo sr_e($providerKey); ?>"<?php echo $providerEnabled ? '' : ' hidden'; ?>>
-                <label class="form-label" for="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>"><?php echo sr_e('정렬 순서'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label>
+                <div class="form-label form-label-help"><?php echo $memberOauthHelpButtonHtml($providerLabel . ' 로그인 버튼 순서', $memberOauthHelp['sort_order']['id']); ?><label for="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>"><?php echo sr_e('로그인 버튼 순서'); ?> <span class="sr-required-label"<?php echo $providerEnabled ? '' : ' hidden'; ?> data-oauth-required-for="<?php echo sr_e($providerKey); ?>">(필수)</span></label></div>
                 <div class="form-field">
                     <input id="<?php echo sr_e('member_oauth_' . $providerKey . '_sort_order'); ?>" type="number" name="<?php echo sr_e($sortOrderKey); ?>" min="-9999" max="9999" value="<?php echo sr_e((string) ((int) ($provider['sort_order'] ?? 0))); ?>"<?php echo $providerEnabled ? ' required' : ''; ?> class="form-input" data-oauth-required-provider="<?php echo sr_e($providerKey); ?>">
+                    <p class="form-help">숫자가 작을수록 로그인 화면에서 먼저 표시됩니다.</p>
                 </div>
             </div>
         </section>
@@ -288,9 +348,9 @@ if ($memberOauthExternalProviders === []) {
                 <span class="form-label"><?php echo sr_e('진행 순서'); ?></span>
                 <div class="form-field">
                     <ol class="form-help">
-                        <li><?php echo sr_e('Google, Kakao, Naver, GitHub, Apple ID 같은 제공자 플러그인을 설치하고 활성화합니다.'); ?></li>
+                        <li><?php echo sr_e('Google, Kakao, Naver, GitHub, Apple ID 같은 외부 로그인 제공자 모듈을 설치하고 활성화합니다.'); ?></li>
                         <li><?php echo sr_e('이 화면에 생긴 제공자 카드에서 사용을 켜고 클라이언트 ID를 저장합니다.'); ?></li>
-                        <li><?php echo sr_e('되돌아올 URL을 외부 OAuth/OIDC 제공자 콘솔에 등록하고 로그인 화면 버튼 상태를 확인합니다.'); ?></li>
+                        <li><?php echo sr_e('되돌아올 URL을 외부 로그인 서비스 관리 화면에 등록하고 로그인 버튼을 확인합니다.'); ?></li>
                     </ol>
                 </div>
             </div>
@@ -298,7 +358,7 @@ if ($memberOauthExternalProviders === []) {
                 <span class="form-label"><?php echo sr_e('권장 후보'); ?></span>
                 <div class="form-field">
                     <p class="admin-form-static"><?php echo sr_e('Google, Kakao, Naver, GitHub, Apple ID'); ?></p>
-                    <p class="form-help">제공자 플러그인이 필요한 연결 정보를 제공하면 이 화면에 설정 카드가 표시됩니다. 기본 제공 플러그인은 Google, Kakao, Naver, GitHub, Apple ID 연결 정보를 포함합니다.</p>
+                    <p class="form-help">제공자 모듈을 활성화하면 이 화면에 해당 서비스의 설정 카드가 표시됩니다.</p>
                 </div>
             </div>
         </section>
@@ -306,7 +366,7 @@ if ($memberOauthExternalProviders === []) {
             <div class="card-header">
                 <h2 class="card-title"><?php echo sr_e('외부 제공자'); ?></h2>
             </div>
-            <p class="admin-empty-state"><?php echo sr_e('설치된 외부 OAuth 제공자 계약이 없습니다. 회원 OAuth 제공자 플러그인을 설치/활성화하면 Google, Kakao, Naver, GitHub, Apple ID 설정 카드가 표시됩니다.'); ?></p>
+            <p class="admin-empty-state"><?php echo sr_e('활성화된 외부 로그인 제공자 모듈이 없습니다. 제공자 모듈을 설치하고 활성화하면 이 화면에 설정 카드가 표시됩니다.'); ?></p>
             <div class="form-actions">
                 <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/modules')); ?>"><?php echo sr_e('모듈 화면으로 이동'); ?></a>
             </div>
@@ -323,6 +383,9 @@ if ($memberOauthExternalProviders === []) {
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('저장'); ?></button>
     </div>
 </form>
+<?php foreach ($memberOauthHelp as $memberOauthHelpModal) { ?>
+    <?php echo sr_admin_help_modal_html((string) $memberOauthHelpModal['id'], (string) $memberOauthHelpModal['title'], (string) $memberOauthHelpModal['body']); ?>
+<?php } ?>
 <script type="application/json" data-oauth-profile-sync-targets><?php echo sr_js_json_encode($memberOauthProfileSyncTargets); ?></script>
 <script type="application/json" data-oauth-profile-sync-claims><?php echo sr_js_json_encode($memberOauthClaimPathOptionsByProvider); ?></script>
 <script>
@@ -388,7 +451,7 @@ function srMemberOauthSyncAddProfileButtons() {
         srMemberOauthSyncProfileTargetOptions(list);
         button.disabled = disabled;
         button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
-        button.title = disabled ? '추가할 수 있는 동기화 항목이 없습니다.' : '';
+        button.title = disabled ? '추가할 수 있는 회원 정보 항목이 없습니다.' : '';
     });
 }
 function srMemberOauthRenumberProfileSync(list) {
@@ -442,10 +505,10 @@ function srMemberOauthCreateClaimControls(providerKey) {
     var select = document.createElement('select');
     select.className = 'form-select';
     select.setAttribute('data-oauth-profile-sync-claim-select', '');
-    select.setAttribute('aria-label', '프로필 값 경로 선택');
+    select.setAttribute('aria-label', '가져올 값 위치 선택');
     var empty = document.createElement('option');
     empty.value = '';
-    empty.textContent = '프로필 값 선택';
+    empty.textContent = '가져올 값 선택';
     select.appendChild(empty);
     srMemberOauthClaimOptions(providerKey).forEach(function (claimPath) {
         var option = document.createElement('option');
@@ -465,7 +528,7 @@ function srMemberOauthCreateClaimControls(providerKey) {
     custom.maxLength = 120;
     custom.className = 'form-input';
     custom.hidden = true;
-    custom.setAttribute('aria-label', '프로필 값 경로 직접 입력');
+    custom.setAttribute('aria-label', '가져올 값 위치 직접 입력');
     custom.setAttribute('data-oauth-profile-sync-claim-custom', '');
     fragment.appendChild(select);
     fragment.appendChild(hidden);
@@ -503,7 +566,7 @@ function srMemberOauthSyncScopeSelectOptions(providerKey) {
         select.innerHTML = '';
         var empty = document.createElement('option');
         empty.value = '';
-        empty.textContent = '권한 범위 선택 안 함';
+        empty.textContent = '필요 권한 없음';
         select.appendChild(empty);
         items.forEach(function (item) {
             var option = document.createElement('option');
@@ -562,9 +625,9 @@ document.querySelectorAll('[data-oauth-add-scope]').forEach(function (button) {
         input.name = baseName + '[]';
         input.maxLength = 120;
         input.className = 'form-input';
-        input.setAttribute('aria-label', '권한 범위 항목');
+        input.setAttribute('aria-label', '가져올 정보 권한 항목');
         row.appendChild(input);
-        row.appendChild(srMemberOauthCreateButton('delete', '권한 범위 항목 삭제', 'data-oauth-remove-row'));
+        row.appendChild(srMemberOauthCreateButton('delete', '정보 권한 항목 삭제', 'data-oauth-remove-row'));
         list.appendChild(row);
         input.addEventListener('input', function () {
             srMemberOauthSyncScopeSelectOptions(providerKey);
@@ -609,11 +672,11 @@ document.querySelectorAll('[data-oauth-add-profile-sync]').forEach(function (but
         var scopeSelect = document.createElement('select');
         scopeSelect.className = 'form-select';
         scopeSelect.setAttribute('data-oauth-profile-sync-scope-select', '');
-        scopeSelect.setAttribute('aria-label', '권한 범위');
+        scopeSelect.setAttribute('aria-label', '필요 권한');
         row.appendChild(select);
         row.appendChild(scopeSelect);
         row.appendChild(srMemberOauthCreateClaimControls(providerKey));
-        row.appendChild(srMemberOauthCreateButton('delete', '동기화 항목 삭제', 'data-oauth-remove-row'));
+        row.appendChild(srMemberOauthCreateButton('delete', '회원 정보 항목 삭제', 'data-oauth-remove-row'));
         list.appendChild(row);
         srMemberOauthRenumberProfileSync(list);
         srMemberOauthSyncScopeSelectOptions(providerKey);
