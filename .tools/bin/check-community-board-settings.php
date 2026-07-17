@@ -795,7 +795,25 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
 ], 'community board sidebar menu public title');
 sr_check_community_board_settings_contains('modules/community/theme/basic/home-summary-aside.php', [
     'board-sidebar-menu.php',
+    "'point_key' => 'community.sidebar.summary'",
+    "'slot_key' => 'after_latest_comments'",
 ], 'community board sidebar menu above summary');
+foreach ([
+    'modules/community/theme/basic/home.php',
+    'modules/community/theme/basic/group.php',
+    'modules/community/theme/basic/list.php',
+    'modules/community/theme/basic/post.php',
+    'modules/community/theme/basic/form.php',
+    'modules/community/skins/basic/list.php',
+    'modules/community/skins/basic/view.php',
+    'modules/community/skins/basic/form.php',
+] as $communitySummarySlotView) {
+    sr_check_community_board_settings_contains($communitySummarySlotView, [
+        "'output_slots'",
+        "'point_key' => 'community.sidebar.summary'",
+        "'slot_key' => 'after_latest_comments'",
+    ], 'community summary sidebar output slot asset context');
+}
 sr_check_community_board_settings_contains('modules/community/theme/basic/board-sidebar-menu.php', [
     "\$communityBoardSidebarMenuTitle",
     "sr_e(\$communityBoardSidebarMenuTitle)",

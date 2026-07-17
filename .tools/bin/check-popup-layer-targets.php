@@ -83,6 +83,7 @@ $expectedTargets = [
     'content|content.view|before_content',
     'member|member.login|before_form',
     'member|member.register|before_form',
+    'community|community.sidebar.summary|after_latest_comments',
     'community|community.board.list|before_list',
     'community|community.post.view|before_content',
     'community|community.post.form|before_form',
@@ -96,6 +97,7 @@ $expectedBannerTargets = [
     'core|site.layout|before_layout',
     'core|site.layout|after_layout',
     'content|content.view|before_content',
+    'community|community.sidebar.summary|after_latest_comments',
     'community|community.post.view|after_comments',
 ];
 
@@ -115,6 +117,13 @@ foreach ([sr_banner_public_target_option_value(), 'core', 'content', 'community'
 $bannerContentTarget = $bannerTargetValues['content|content.view|before_content'] ?? null;
 if (!is_array($bannerContentTarget) || sr_banner_target_service_key($bannerContentTarget) !== 'content') {
     $errors[] = 'banner content target must map to content service.';
+}
+
+$bannerCommunitySidebarTarget = $bannerTargetValues['community|community.sidebar.summary|after_latest_comments'] ?? null;
+if (!is_array($bannerCommunitySidebarTarget)
+    || (string) ($bannerCommunitySidebarTarget['placement_kind'] ?? '') !== 'sidebar'
+    || sr_banner_target_admin_label($bannerCommunitySidebarTarget) !== '커뮤니티 사이드바 - 최신댓글 아래') {
+    $errors[] = 'banner community summary sidebar target metadata mismatch.';
 }
 
 $bannerNormalized = sr_banner_normalize_posted_target_option(

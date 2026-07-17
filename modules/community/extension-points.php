@@ -2,6 +2,20 @@
 
 return [
     [
+        'point_key' => 'community.sidebar.summary',
+        'label' => sr_t('community::contract.extension.sidebar_summary'),
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'after_latest_comments',
+                'label' => sr_t('community::contract.slot.after_latest_comments'),
+                'kind' => 'content',
+                'banner_kind' => 'sidebar',
+            ],
+        ],
+    ],
+    [
         'point_key' => 'community.board.list',
         'label' => sr_t('community::contract.extension.board_list'),
         'surface' => 'public',

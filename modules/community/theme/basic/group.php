@@ -22,6 +22,9 @@ $communityLayoutContext = sr_community_public_layout_context($communityLayoutSet
         'banner' => '/modules/banner/assets/module.css',
         'popup_layer' => '/modules/popup_layer/assets/module.css',
     ]),
+    'output_slots' => [
+        ['module_key' => 'community', 'point_key' => 'community.sidebar.summary', 'slot_key' => 'after_latest_comments'],
+    ],
 ]);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;

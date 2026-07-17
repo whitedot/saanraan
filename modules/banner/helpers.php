@@ -365,6 +365,7 @@ function sr_banner_target_admin_label(array $target): string
         'quiz.layout' => '퀴즈·테스트 레이아웃',
         'survey.layout' => '설문·여론조사 레이아웃',
         'content.view' => '콘텐츠 상세',
+        'community.sidebar.summary' => '커뮤니티 사이드바',
         'community.board.list' => '게시판 목록',
         'community.post.view' => '게시글 보기',
         'community.post.form' => '게시글 작성',
@@ -381,6 +382,7 @@ function sr_banner_target_admin_label(array $target): string
         'after_list' => '목록 아래',
         'before_comments' => '댓글 위',
         'after_comments' => '댓글 아래',
+        'after_latest_comments' => '최신댓글 아래',
         'before_form' => '폼 위',
         'after_form' => '폼 아래',
     ];

@@ -86,6 +86,12 @@
         </div>
     </section>
 
+    <?php echo sr_render_output_slot($pdo, [
+        'module_key' => 'community',
+        'point_key' => 'community.sidebar.summary',
+        'slot_key' => 'after_latest_comments',
+    ]); ?>
+
     <?php if (!empty($communitySeriesSupported)) { ?>
         <section class="community-home-aside-section" aria-labelledby="community_home_series_title">
             <div class="community-home-aside-body">
