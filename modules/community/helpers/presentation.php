@@ -465,14 +465,7 @@ function sr_community_home_latest_post_sections_from_board_posts(array $boards, 
         ];
 
         if ($hasPublicGroup) {
-            $normalizedGroupTitle = preg_replace('/\s+/u', ' ', $groupTitle);
-            $normalizedGroupTitle = is_string($normalizedGroupTitle) ? trim($normalizedGroupTitle) : $groupTitle;
-            if (function_exists('mb_strtolower')) {
-                $normalizedGroupTitle = mb_strtolower($normalizedGroupTitle, 'UTF-8');
-            } else {
-                $normalizedGroupTitle = strtolower($normalizedGroupTitle);
-            }
-            $groupSectionKey = $normalizedGroupTitle !== '' ? 'title:' . $normalizedGroupTitle : 'key:' . $groupKey;
+            $groupSectionKey = 'id:' . (string) $groupId;
             if (!isset($groupSections[$groupSectionKey])) {
                 $groupSections[$groupSectionKey] = [
                     'is_grouped' => true,

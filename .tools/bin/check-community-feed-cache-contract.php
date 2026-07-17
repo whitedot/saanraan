@@ -408,13 +408,17 @@ $latestPostSections = sr_community_home_latest_post_sections_from_board_posts([
     3 => [['id' => 301, 'board_id' => 3]],
     4 => [['id' => 401, 'board_id' => 4]],
 ]);
-sr_check_community_feed_cache_contract_assert(count($latestPostSections) === 2, 'home latest post sections must merge the same visible group title and keep ungrouped boards separate.');
+sr_check_community_feed_cache_contract_assert(count($latestPostSections) === 3, 'home latest post sections must keep distinct group ids separate even when their visible titles match.');
 sr_check_community_feed_cache_contract_assert(!empty($latestPostSections[0]['is_grouped']), 'home latest post group section must remain grouped when the section contains multiple boards.');
+sr_check_community_feed_cache_contract_assert((int) ($latestPostSections[0]['group_id'] ?? 0) === 10, 'home latest post sections must preserve the canonical board group id.');
 sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[0]['group_title'] ?? '') === '일반', 'home latest post sections must preserve the visible board group title.');
-sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[0]['group_key'] ?? '') === 'general', 'merged group title sections must preserve the first active group key as the title link.');
-sr_check_community_feed_cache_contract_assert(count($latestPostSections[0]['boards'] ?? []) === 3, 'home latest post group section must contain every board sharing the visible group title.');
-sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[1]['group_key'] ?? '') === '', 'ungrouped board latest section must not expose a group key.');
-sr_check_community_feed_cache_contract_assert((int) ($latestPostSections[1]['boards'][0]['posts'][0]['id'] ?? 0) === 301, 'ungrouped board latest section must preserve its posts.');
+sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[0]['group_key'] ?? '') === 'general', 'home latest post sections must preserve the matching group key as the title link.');
+sr_check_community_feed_cache_contract_assert(count($latestPostSections[0]['boards'] ?? []) === 2, 'home latest post group section must contain only boards belonging to the same group id.');
+sr_check_community_feed_cache_contract_assert((int) ($latestPostSections[1]['group_id'] ?? 0) === 11, 'same-title board groups must render as separate home sections.');
+sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[1]['group_key'] ?? '') === 'general_alt', 'same-title board groups must keep their own detail link.');
+sr_check_community_feed_cache_contract_assert(count($latestPostSections[1]['boards'] ?? []) === 1, 'same-title board groups must not absorb boards from another group id.');
+sr_check_community_feed_cache_contract_assert((string) ($latestPostSections[2]['group_key'] ?? '') === '', 'ungrouped board latest section must not expose a group key.');
+sr_check_community_feed_cache_contract_assert((int) ($latestPostSections[2]['boards'][0]['posts'][0]['id'] ?? 0) === 301, 'ungrouped board latest section must preserve its posts.');
 
 sr_check_community_feed_cache_contract_contains('modules/community/helpers/feed-cache.php', [
     "'baseline' => 'everyone_discoverable_public_boards'",
