@@ -58,7 +58,7 @@
                         $commentExcerptAllowed = empty($comment['is_secret'])
                             && empty($comment['post_is_secret'])
                             && !empty($homeExcerptAllowedByBoardId[(int) ($comment['board_id'] ?? 0)]);
-                        $commentExcerpt = $commentExcerptAllowed ? sr_community_body_excerpt((string) ($comment['body_text'] ?? ''), 'plain', 50) : '';
+                        $commentExcerpt = $commentExcerptAllowed ? sr_community_home_latest_comment_excerpt((string) ($comment['body_text'] ?? ''), 50) : '';
                         $commentAuthorLabel = sr_community_author_label_from_row($comment, $config, false, $memberSettings, $pdo);
                         $commentPostTitle = trim((string) ($comment['post_title'] ?? ''));
                         ?>

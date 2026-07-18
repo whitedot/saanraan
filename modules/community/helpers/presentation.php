@@ -518,6 +518,15 @@ function sr_community_home_latest_post_sections(PDO $pdo, array $boards, array $
     return sr_community_home_latest_post_sections_from_board_posts($boards, $postsByBoardId);
 }
 
+function sr_community_home_latest_comment_excerpt(string $bodyText, int $length = 50): string
+{
+    $decodedBodyText = html_entity_decode($bodyText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $plainText = preg_replace('/<[^>]*>/', ' ', $decodedBodyText);
+    $plainText = strip_tags(is_string($plainText) ? $plainText : $decodedBodyText);
+
+    return sr_community_body_excerpt($plainText, 'plain', $length);
+}
+
 function sr_community_home_latest_comment_snapshots_from_rows(array $rows, array $homeExcerptAllowedByBoardId): array
 {
     $snapshots = [];
@@ -539,7 +548,7 @@ function sr_community_home_latest_comment_snapshots_from_rows(array $rows, array
             'author_display_name' => sr_clean_single_line((string) ($comment['author_public_name_snapshot'] ?? ''), 120),
             'guest_author_name' => sr_clean_single_line((string) ($comment['guest_author_name'] ?? ''), 120),
             'author_account_status' => sr_clean_single_line((string) ($comment['author_account_status'] ?? ''), 30),
-            'body_excerpt' => $excerptAllowed ? sr_community_body_excerpt((string) ($comment['body_text'] ?? ''), 'plain', 50) : '',
+            'body_excerpt' => $excerptAllowed ? sr_community_home_latest_comment_excerpt((string) ($comment['body_text'] ?? ''), 50) : '',
             'post_title' => sr_clean_single_line((string) ($comment['post_title'] ?? ''), 160),
             'is_secret' => !empty($comment['is_secret']) ? 1 : 0,
             'post_is_secret' => !empty($comment['post_is_secret']) ? 1 : 0,

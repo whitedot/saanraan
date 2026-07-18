@@ -845,6 +845,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
 ], 'community board sidebar menu public title');
 sr_check_community_board_settings_contains('modules/community/theme/basic/home-summary-aside.php', [
     'board-sidebar-menu.php',
+    'sr_community_home_latest_comment_excerpt',
     "'point_key' => 'community.sidebar.summary'",
     "'slot_key' => 'after_latest_comments'",
 ], 'community board sidebar menu above summary');
@@ -918,6 +919,9 @@ if (sr_community_body_plain_length('<p>안녕<br>하세요</p>', 'html') !== 6) 
 }
 if (sr_community_body_excerpt('abcdef', 'plain', 3) !== 'abc...') {
     sr_check_community_board_settings_error('community body excerpt truncation failed.');
+}
+if (sr_community_home_latest_comment_excerpt('<p>본문</p><ul><li>항목</li></ul>', 50) !== '본문 항목') {
+    sr_check_community_board_settings_error('community latest comment excerpt tag removal failed.');
 }
 if (sr_community_board_sidebar_menu_type('none') !== 'none'
     || sr_community_board_sidebar_menu_type('same_group') !== 'same_group'
