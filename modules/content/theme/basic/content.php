@@ -403,7 +403,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <label for="<?php echo sr_e($contentCommentEditId); ?>">댓글 수정</label>
+                                                            <label for="<?php echo sr_e($contentCommentEditId); ?>">내용</label>
                                                             <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
                                                             <?php if (!empty($contentSecretCommentsEnabled) || (int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
                                                                 <label class="content-comment-secret-toggle">

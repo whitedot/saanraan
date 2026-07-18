@@ -103,6 +103,7 @@ foreach ([
     $assert(is_string($view) && substr_count($view, 'id="community_report_comment_modal"') === 1, $viewFile . ' must render one shared comment report modal.');
     $assert(is_string($view) && str_contains($view, 'data-community-comment-reply data-comment-id='), $viewFile . ' member reply buttons must pass the parent target to the shared modal.');
     $assert(is_string($view) && str_contains($view, 'data-community-comment-edit data-comment-id='), $viewFile . ' edit buttons must pass the target to the shared modal.');
+    $assert(is_string($view) && str_contains($view, "sr_t('community::ui.text.cb0f2404')"), $viewFile . ' edit modal body field must use the concise content label.');
     $assert(is_string($view) && str_contains($view, 'data-community-comment-report data-comment-id='), $viewFile . ' report buttons must pass the target to the shared modal.');
     $assert(is_string($view) && substr_count($view, 'class="modal-dialog community-comment-editor-dialog"') === 3, $viewFile . ' reply and edit dialogs must use the bounded editor modal layout.');
     $assert(is_string($view) && substr_count($view, 'class="community-comment-editor-field"') === 3, $viewFile . ' reply and edit body controls must use the editor field layout.');

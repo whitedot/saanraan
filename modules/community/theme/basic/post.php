@@ -792,7 +792,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                 <div class="modal-body">
                                     <p class="community-comment-editor-field">
                                         <label for="community_comment_edit_body">
-                                            <span><?php echo sr_e(sr_t('community::ui.edit.4275a1f5')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
+                                            <span><?php echo sr_e(sr_t('community::ui.text.cb0f2404')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                                             <textarea id="community_comment_edit_body" name="body_text" rows="3" cols="60"<?php echo $communityCommentEditorRequiredAttribute; ?> class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" data-community-comment-edit-body<?php echo $communityCommentEditorAttributes; ?>></textarea>
                                         </label>
                                     </p>
