@@ -536,21 +536,31 @@ function sr_plain_text_html(string $value, bool $linkUrls = false, bool $openLin
 function sr_rich_text_allowed_html_tags(): array
 {
     return [
-        'p' => [],
+        'p' => ['style'],
         'br' => [],
         'strong' => [],
         'em' => [],
         'u' => [],
         's' => [],
+        'span' => ['style'],
         'blockquote' => [],
         'ul' => [],
         'ol' => [],
         'li' => [],
         'a' => ['href'],
-        'h1' => [],
-        'h2' => [],
-        'h3' => [],
+        'h1' => ['style'],
+        'h2' => ['style'],
+        'h3' => ['style'],
         'img' => ['src', 'alt', 'width', 'height'],
+        'figure' => ['class'],
+        'figcaption' => [],
+        'table' => [],
+        'thead' => [],
+        'tbody' => [],
+        'tr' => [],
+        'th' => ['colspan', 'rowspan'],
+        'td' => ['colspan', 'rowspan'],
+        'hr' => [],
     ];
 }
 
@@ -641,8 +651,10 @@ function sr_rich_text_purifier_config(): HTMLPurifier_Config
     $config->set('Core.Encoding', 'UTF-8');
     $config->set('HTML.Doctype', 'HTML 4.01 Transitional');
     $config->set('HTML.DefinitionID', 'saanraan-rich-text');
-    $config->set('HTML.DefinitionRev', 2);
-    $config->set('HTML.Allowed', 'p,br,strong,em,u,s,blockquote,ul,ol,li,a[href|rel],h1,h2,h3,img[src|alt|width|height]');
+    $config->set('HTML.DefinitionRev', 3);
+    $config->set('HTML.Allowed', 'p[style],br,strong,em,u,s,span[style],blockquote,ul,ol,li,a[href|rel],h1[style],h2[style],h3[style],img[src|alt|width|height],figure[class],figcaption,table,thead,tbody,tr,th[colspan|rowspan],td[colspan|rowspan],hr');
+    $config->set('Attr.AllowedClasses', ['image', 'table']);
+    $config->set('CSS.AllowedProperties', ['color', 'background-color', 'font-size', 'text-align', 'margin-left']);
     $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
     $config->set('HTML.Nofollow', true);
     $config->set('HTML.TargetBlank', false);
@@ -652,6 +664,12 @@ function sr_rich_text_purifier_config(): HTMLPurifier_Config
         $config->set('Cache.SerializerPath', $cacheDir);
     } else {
         $config->set('Cache.DefinitionImpl', null);
+    }
+
+    $definition = $config->maybeGetRawHTMLDefinition();
+    if ($definition instanceof HTMLPurifier_HTMLDefinition) {
+        $definition->addElement('figure', 'Block', 'Flow', 'Common', ['class' => 'Class']);
+        $definition->addElement('figcaption', 'Block', 'Flow', 'Common');
     }
 
     return $config;
@@ -801,12 +819,15 @@ function sr_sanitize_rich_text_html_node(DOMNode $node): string
         return $children;
     }
 
-    if ($tagName === 'br') {
-        return '<br>';
+    if ($tagName === 'br' || $tagName === 'hr') {
+        return '<' . $tagName . '>';
     }
 
     $attributes = sr_sanitize_rich_text_html_attributes($node, $tagName, $allowedTags[$tagName]);
     if ($tagName === 'a' && $attributes === '') {
+        return $children;
+    }
+    if (($tagName === 'span' || $tagName === 'figure') && $attributes === '') {
         return $children;
     }
     if ($tagName === 'img') {
@@ -838,6 +859,20 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
             }
         } elseif ($attributeName === 'alt') {
             $value = function_exists('mb_substr') ? mb_substr($value, 0, 160) : substr($value, 0, 160);
+        } elseif ($attributeName === 'class' && $tagName === 'figure') {
+            $value = sr_sanitize_rich_text_html_class($value, ['image', 'table']);
+            if ($value === '') {
+                continue;
+            }
+        } elseif ($attributeName === 'colspan' || $attributeName === 'rowspan') {
+            if (!in_array($tagName, ['th', 'td'], true) || preg_match('/\A[1-9][0-9]?\z/', $value) !== 1) {
+                continue;
+            }
+        } elseif ($attributeName === 'style') {
+            $value = sr_sanitize_rich_text_html_style($value, $tagName);
+            if ($value === '') {
+                continue;
+            }
         } else {
             continue;
         }
@@ -850,6 +885,68 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
     }
 
     return $attributes;
+}
+
+function sr_sanitize_rich_text_html_class(string $value, array $allowedClasses): string
+{
+    $allowed = array_fill_keys($allowedClasses, true);
+    $classes = [];
+    foreach (preg_split('/\s+/', trim($value)) ?: [] as $className) {
+        if (isset($allowed[$className])) {
+            $classes[$className] = true;
+        }
+    }
+
+    return implode(' ', array_keys($classes));
+}
+
+function sr_sanitize_rich_text_html_style(string $value, string $tagName): string
+{
+    $allowedByTag = [
+        'p' => ['text-align', 'margin-left'],
+        'h1' => ['text-align', 'margin-left'],
+        'h2' => ['text-align', 'margin-left'],
+        'h3' => ['text-align', 'margin-left'],
+        'span' => ['color', 'background-color', 'font-size'],
+    ];
+    $allowedProperties = $allowedByTag[$tagName] ?? [];
+    if ($allowedProperties === []) {
+        return '';
+    }
+
+    $declarations = [];
+    foreach (explode(';', $value) as $declaration) {
+        $parts = explode(':', $declaration, 2);
+        if (count($parts) !== 2) {
+            continue;
+        }
+        $property = strtolower(trim($parts[0]));
+        $propertyValue = strtolower(trim($parts[1]));
+        if (!in_array($property, $allowedProperties, true)) {
+            continue;
+        }
+
+        $isAllowed = match ($property) {
+            'text-align' => in_array($propertyValue, ['left', 'center', 'right', 'justify'], true),
+            'margin-left' => in_array($propertyValue, ['40px', '80px', '120px', '160px', '200px'], true),
+            'font-size' => in_array($propertyValue, ['12px', '14px', '18px', '24px', '32px'], true),
+            'color' => in_array($propertyValue, ['#111827', '#6b7280', '#b91c1c', '#a16207', '#15803d', '#1d4ed8', '#7e22ce'], true),
+            'background-color' => in_array($propertyValue, ['#f3f4f6', '#fee2e2', '#fef3c7', '#dcfce7', '#dbeafe', '#f3e8ff'], true),
+            default => false,
+        };
+        if ($isAllowed) {
+            $declarations[$property] = $propertyValue;
+        }
+    }
+
+    $style = '';
+    foreach ($allowedProperties as $property) {
+        if (isset($declarations[$property])) {
+            $style .= $property . ':' . $declarations[$property] . ';';
+        }
+    }
+
+    return $style;
 }
 
 function sr_body_text_html(array $record, bool $linkPlainUrls = false, ?PDO $pdo = null, string $markdownMode = 'full', bool $openPlainLinksInNewTab = false): string
@@ -885,7 +982,10 @@ function sr_body_editor_stylesheets(string $bodyFormat, string $bodyEditorKey = 
         return ['/assets/editor-md.css'];
     }
     if ($bodyFormat === 'html' && sr_editor_normalize_key($bodyEditorKey) === 'ckeditor') {
-        return ['/assets/editor-ck.css'];
+        return [
+            '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
+            '/modules/ckeditor/assets/saanraan-ckeditor.css',
+        ];
     }
 
     return [];

@@ -12,12 +12,26 @@
   --sr-ckeditor-body-border: var(--sr-editor-body-border, var(--sr-ckeditor-ui-border));
   --sr-ckeditor-hover: color-mix(in oklab, var(--sr-ckeditor-ui-text) 8%, var(--sr-ckeditor-ui-surface));
   --sr-ckeditor-active: color-mix(in oklab, var(--color-primary, #0a74ff) 16%, var(--sr-ckeditor-ui-surface));
+  --sr-rich-text-color-black: #111827;
+  --sr-rich-text-color-gray: #6b7280;
+  --sr-rich-text-color-red: #b91c1c;
+  --sr-rich-text-color-orange: #a16207;
+  --sr-rich-text-color-green: #15803d;
+  --sr-rich-text-color-blue: #1d4ed8;
+  --sr-rich-text-color-purple: #7e22ce;
+  --sr-rich-text-background-gray: #f3f4f6;
+  --sr-rich-text-background-red: #fee2e2;
+  --sr-rich-text-background-yellow: #fef3c7;
+  --sr-rich-text-background-green: #dcfce7;
+  --sr-rich-text-background-blue: #dbeafe;
+  --sr-rich-text-background-purple: #f3e8ff;
   --ck-color-base-background: var(--sr-ckeditor-ui-surface);
   --ck-color-base-foreground: var(--sr-ckeditor-ui-surface-muted);
   --ck-color-base-border: var(--sr-ckeditor-ui-border);
   --ck-color-base-action: var(--color-primary, #0a74ff);
   --ck-color-base-focus: var(--color-primary, #0a74ff);
   --ck-color-base-text: var(--sr-ckeditor-ui-text);
+  --ck-color-text: var(--sr-ckeditor-ui-text);
   --ck-color-focus-border: var(--color-primary, #0a74ff);
   --ck-color-focus-outer-shadow: var(--color-primary-ring, #0a74ff33);
   --ck-color-button-default-background: transparent;
@@ -40,7 +54,19 @@
   --ck-color-input-disabled-border: var(--sr-ckeditor-ui-border-soft);
   --ck-color-input-disabled-text: var(--sr-ckeditor-ui-muted);
   --ck-color-split-button-hover-background: var(--sr-ckeditor-hover);
+  --ck-color-toolbar-background: var(--sr-ckeditor-ui-surface);
+  --ck-color-toolbar-border: var(--sr-ckeditor-ui-border);
+  --ck-color-panel-background: var(--sr-ckeditor-ui-surface);
+  --ck-color-panel-border: var(--sr-ckeditor-ui-border);
+  --ck-color-engine-placeholder-text: var(--sr-ckeditor-ui-muted);
   max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.sr-ckeditor :is(.ck-editor, .ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar) {
+  max-width: 100%;
+  min-width: 0;
 }
 
 .sr-ckeditor[data-sr-editor-body-theme="content.basic"],
@@ -75,35 +101,16 @@
   min-height: 22rem;
 }
 
-.sr-ckeditor :is(.ck-toolbar, .ck-editor__top .ck-sticky-panel .ck-sticky-panel__content, .ck-dropdown__panel, .ck-list) {
-  background: var(--sr-ckeditor-ui-surface);
-  border-color: var(--sr-ckeditor-ui-border);
-  color: var(--sr-ckeditor-ui-text);
-}
-
-.sr-ckeditor :is(.ck-button, .ck-dropdown__button, .ck-toolbar__separator, .ck-label) {
-  color: var(--sr-ckeditor-ui-text);
-}
-
-.sr-ckeditor :is(.ck-button.ck-disabled, .ck-button:disabled, .ck-label) {
-  color: var(--sr-ckeditor-ui-muted);
-}
-
-.sr-ckeditor :is(.ck-button:not(.ck-disabled):hover, .ck-button:not(.ck-disabled):focus, .ck-list__item .ck-button:hover) {
-  background: var(--sr-ckeditor-hover);
-}
-
-.sr-ckeditor :is(.ck-button.ck-on, .ck-list__item .ck-button.ck-on) {
-  background: var(--sr-ckeditor-active);
-  color: var(--sr-ckeditor-ui-text);
-}
-
 .sr-ckeditor .ck-content {
   background: var(--sr-ckeditor-body-surface);
   box-sizing: border-box;
   color: var(--sr-ckeditor-body-text);
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.sr-ckeditor .ck-placeholder::before {
+  color: var(--sr-ckeditor-body-muted);
 }
 
 .sr-ckeditor:not([data-sr-editor-output]) .ck-content {
@@ -210,6 +217,20 @@
   border-color: var(--sr-ckeditor-body-border);
 }
 
+.sr-ckeditor .ck-content [style^="color:#111827"] { color: var(--sr-rich-text-color-black) !important; }
+.sr-ckeditor .ck-content [style^="color:#6b7280"] { color: var(--sr-rich-text-color-gray) !important; }
+.sr-ckeditor .ck-content [style^="color:#b91c1c"] { color: var(--sr-rich-text-color-red) !important; }
+.sr-ckeditor .ck-content [style^="color:#a16207"] { color: var(--sr-rich-text-color-orange) !important; }
+.sr-ckeditor .ck-content [style^="color:#15803d"] { color: var(--sr-rich-text-color-green) !important; }
+.sr-ckeditor .ck-content [style^="color:#1d4ed8"] { color: var(--sr-rich-text-color-blue) !important; }
+.sr-ckeditor .ck-content [style^="color:#7e22ce"] { color: var(--sr-rich-text-color-purple) !important; }
+.sr-ckeditor .ck-content [style*="background-color:#f3f4f6"] { background-color: var(--sr-rich-text-background-gray) !important; }
+.sr-ckeditor .ck-content [style*="background-color:#fee2e2"] { background-color: var(--sr-rich-text-background-red) !important; }
+.sr-ckeditor .ck-content [style*="background-color:#fef3c7"] { background-color: var(--sr-rich-text-background-yellow) !important; }
+.sr-ckeditor .ck-content [style*="background-color:#dcfce7"] { background-color: var(--sr-rich-text-background-green) !important; }
+.sr-ckeditor .ck-content [style*="background-color:#dbeafe"] { background-color: var(--sr-rich-text-background-blue) !important; }
+.sr-ckeditor .ck-content [style*="background-color:#f3e8ff"] { background-color: var(--sr-rich-text-background-purple) !important; }
+
 .sr-ckeditor .ck-source-editing-area textarea {
   background: var(--sr-ckeditor-body-surface);
   color: var(--sr-ckeditor-body-text);
@@ -222,8 +243,39 @@
   color: var(--sr-ckeditor-ui-muted);
 }
 
-:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor {
+:is([data-theme="dark"], [data-color-scheme="dark"], [data-color-scheme="system"]) .sr-ckeditor {
   --sr-ckeditor-hover: color-mix(in oklab, var(--sr-ckeditor-ui-text) 12%, var(--sr-ckeditor-ui-surface));
   --sr-ckeditor-active: color-mix(in oklab, var(--color-primary, #0a74ff) 24%, var(--sr-ckeditor-ui-surface));
   --ck-color-focus-outer-shadow: var(--color-primary-ring, #0a74ff4d);
+  --sr-rich-text-color-black: #f3f4f6;
+  --sr-rich-text-color-gray: #d1d5db;
+  --sr-rich-text-color-red: #fca5a5;
+  --sr-rich-text-color-orange: #fcd34d;
+  --sr-rich-text-color-green: #86efac;
+  --sr-rich-text-color-blue: #93c5fd;
+  --sr-rich-text-color-purple: #d8b4fe;
+  --sr-rich-text-background-gray: #374151;
+  --sr-rich-text-background-red: #7f1d1d;
+  --sr-rich-text-background-yellow: #78350f;
+  --sr-rich-text-background-green: #14532d;
+  --sr-rich-text-background-blue: #1e3a8a;
+  --sr-rich-text-background-purple: #581c87;
+}
+
+@media (prefers-color-scheme: light) {
+  [data-color-scheme="system"] .sr-ckeditor {
+    --sr-rich-text-color-black: #111827;
+    --sr-rich-text-color-gray: #6b7280;
+    --sr-rich-text-color-red: #b91c1c;
+    --sr-rich-text-color-orange: #a16207;
+    --sr-rich-text-color-green: #15803d;
+    --sr-rich-text-color-blue: #1d4ed8;
+    --sr-rich-text-color-purple: #7e22ce;
+    --sr-rich-text-background-gray: #f3f4f6;
+    --sr-rich-text-background-red: #fee2e2;
+    --sr-rich-text-background-yellow: #fef3c7;
+    --sr-rich-text-background-green: #dcfce7;
+    --sr-rich-text-background-blue: #dbeafe;
+    --sr-rich-text-background-purple: #f3e8ff;
+  }
 }

@@ -12,6 +12,7 @@ if (!defined('SR_ROOT')) {
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/admin/helpers.php';
 require_once $root . '/modules/content/helpers.php';
+require_once $root . '/modules/ckeditor/helpers.php';
 require_once $root . '/modules/popup_layer/helpers/body-files.php';
 
 $errors = [];
@@ -211,6 +212,7 @@ function sr_ckeditor_assets_editor_contract_pdo(): PDO
     $pdo = new PDO('sqlite::memory:');
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+    $pdo->exec('CREATE TABLE sr_module_settings (module_id INTEGER NOT NULL, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL)');
     $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('ckeditor', 'enabled')");
 
     return $pdo;
@@ -251,6 +253,23 @@ foreach ($ckeditorVendorHashes as $file => $expectedHash) {
 sr_ckeditor_assets_node_syntax_check('modules/ckeditor/assets/saanraan-ckeditor.js');
 sr_ckeditor_assets_check_content_body_file_access_fixture();
 $ckeditorContractPdo = sr_ckeditor_assets_editor_contract_pdo();
+sr_ckeditor_assets_assert(
+    array_keys(sr_ckeditor_toolbar_presets()) === ['standard'],
+    'CKEditor must expose one clear standard toolbar preset.'
+);
+sr_ckeditor_assets_assert(
+    sr_ckeditor_effective_toolbar_preset($ckeditorContractPdo, 'content_basic') === 'standard'
+        && sr_ckeditor_effective_toolbar_preset($ckeditorContractPdo, 'community_post_basic') === 'standard'
+        && sr_ckeditor_effective_toolbar_preset($ckeditorContractPdo, 'admin_basic') === 'standard',
+    'Legacy CKEditor toolbar preset keys must normalize to the standard preset.'
+);
+$standardToolbar = sr_ckeditor_toolbar_presets()['standard']['items'] ?? [];
+foreach (['insertImage', 'fontSize', 'fontColor', 'fontBackgroundColor', 'alignment', 'insertTable', 'horizontalLine', 'removeFormat', 'indent'] as $toolbarItem) {
+    sr_ckeditor_assets_assert(in_array($toolbarItem, $standardToolbar, true), 'CKEditor standard toolbar item is missing: ' . $toolbarItem);
+}
+foreach (['findAndReplace', 'selectAll'] as $excludedToolbarItem) {
+    sr_ckeditor_assets_assert(!in_array($excludedToolbarItem, $standardToolbar, true), 'CKEditor standard toolbar must exclude: ' . $excludedToolbarItem);
+}
 sr_ckeditor_assets_assert(
     sr_content_body_format_for_editor($ckeditorContractPdo, 'ckeditor', '') === 'html',
     'Content CKEditor selection should save html body_format without relying on a posted hidden field.'
@@ -307,6 +326,33 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.js
     "document.documentElement.classList.add('sr-ckeditor-unavailable')",
     "data.append('csrf_token', upload.csrfToken)",
     "data.append('upload_token', upload.uploadToken)",
+    "'FontSize'",
+    "'Alignment'",
+    "'TableToolbar'",
+    "'ImageInsertViaUrl'",
+    "integrations: upload ? ['upload', 'url'] : ['url']",
+    'shouldNotGroupWhenFull: true',
+    "contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'toggleTableCaption']",
+]);
+
+sr_ckeditor_assets_forbid_markers('modules/ckeditor/assets/saanraan-ckeditor.js', [
+    "'FindAndReplace'",
+    "'SelectAll'",
+    "'findAndReplace'",
+    "'selectAll'",
+]);
+
+sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.css', [
+    '--sr-rich-text-color-red',
+    'min-width: 0;',
+    'max-width: 100%;',
+    '.ck-sticky-panel__content',
+    '--ck-color-toolbar-background:',
+    '--ck-color-panel-background:',
+    '[style^="color:#b91c1c"]',
+    '[style*="background-color:#fee2e2"]',
+    '[data-color-scheme="dark"]',
+    '[data-color-scheme="system"]',
 ]);
 
 sr_ckeditor_assets_require_markers('modules/content/views/admin-contents.php', [
@@ -447,8 +493,7 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.cs
     'data-sr-editor-body-theme="community.basic"',
     '--sr-editor-body-text',
     '.ck-editor__editable_inline',
-    '.sr-ckeditor :is(.ck-toolbar, .ck-editor__top .ck-sticky-panel .ck-sticky-panel__content, .ck-dropdown__panel, .ck-list)',
-    '.sr-ckeditor :is(.ck-button.ck-on, .ck-list__item .ck-button.ck-on)',
+    '--ck-color-button-on-background:',
     'background: var(--sr-ckeditor-body-surface)',
     '.sr-ckeditor .ck-content :where(ul)',
     'list-style: disc outside',
@@ -474,7 +519,8 @@ sr_ckeditor_assets_require_markers('assets/editor-ck.css', [
 sr_ckeditor_assets_require_markers('core/helpers/output.php', [
     'function sr_body_editor_stylesheets',
     'sr_editor_normalize_key($bodyEditorKey) === \'ckeditor\'',
-    "'/assets/editor-ck.css'",
+    "'/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'",
+    "'/modules/ckeditor/assets/saanraan-ckeditor.css'",
 ]);
 
 sr_ckeditor_assets_require_markers('modules/content/helpers.php', [
@@ -489,11 +535,32 @@ sr_ckeditor_assets_require_markers('modules/markdown_editor/assets/editor.js', [
 
 sr_ckeditor_assets_require_markers('modules/community/helpers/posts.php', [
     '$bodyFormat = sr_community_post_body_format($pdo, $post, $settings)',
+    'function sr_community_post_body_editor_key(',
+    'sr_community_ckeditor_public_body_html($html, $themeKey)',
     'sr_body_editor_stylesheets($bodyFormat, $postEditorKey)',
 ]);
 
-sr_ckeditor_assets_assert(sr_body_editor_stylesheets('html', 'html') === [], 'Direct HTML bodies should not load editor-ck.css.');
-sr_ckeditor_assets_assert(sr_body_editor_stylesheets('html', 'ckeditor') === ['/assets/editor-ck.css'], 'CKEditor HTML bodies should load editor-ck.css.');
+sr_ckeditor_assets_require_markers('modules/community/helpers/posts-comments.php', [
+    "\$editorKey === 'ckeditor'",
+    'sr_community_ckeditor_public_body_html($html, $themeKey)',
+    'sr_body_editor_stylesheets($bodyFormat, $editorKey)',
+]);
+
+sr_ckeditor_assets_require_markers('modules/community/helpers/post-body-settings.php', [
+    'function sr_community_ckeditor_public_body_html(',
+    'data-sr-editor-output',
+    'data-sr-editor-body-theme="community.',
+    'class="ck-content"',
+]);
+
+sr_ckeditor_assets_assert(sr_body_editor_stylesheets('html', 'html') === [], 'Direct HTML bodies should not load CKEditor stylesheets.');
+sr_ckeditor_assets_assert(
+    sr_body_editor_stylesheets('html', 'ckeditor') === [
+        '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
+        '/modules/ckeditor/assets/saanraan-ckeditor.css',
+    ],
+    'CKEditor HTML bodies should load the official editor content stylesheet and project token bridge.'
+);
 
 foreach ([
     'modules/content/theme/basic/assets/module.css',

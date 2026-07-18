@@ -104,7 +104,7 @@ function sr_content_default_settings(): array
 {
     return [
         'editor' => 'textarea',
-        'editor_toolbar_preset' => 'content_basic',
+        'editor_toolbar_preset' => 'standard',
         'external_embed_enabled' => true,
         'internal_embed_enabled' => true,
         'plain_text_auto_link_urls' => false,
@@ -305,15 +305,15 @@ function sr_content_toolbar_preset_key(string $value): string
 {
     $value = trim($value);
     if ($value === '') {
-        return 'content_basic';
+        return 'standard';
     }
 
     if (function_exists('sr_ckeditor_toolbar_presets')) {
         $presets = sr_ckeditor_toolbar_presets();
-        return isset($presets[$value]) ? $value : 'content_basic';
+        return isset($presets[$value]) ? $value : 'standard';
     }
 
-    return preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $value) === 1 ? $value : 'content_basic';
+    return preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $value) === 1 ? $value : 'standard';
 }
 
 function sr_content_toolbar_preset_options(): array
@@ -329,7 +329,7 @@ function sr_content_toolbar_preset_options(): array
     }
 
     return [
-        'content_basic' => '콘텐츠 본문 기본',
+        'standard' => '일반 편집 도구',
     ];
 }
 
@@ -342,7 +342,7 @@ function sr_content_settings(PDO $pdo): array
     }
     $settings = array_merge(sr_content_default_settings(), $storedSettings);
     $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
-    $settings['editor_toolbar_preset'] = sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic'));
+    $settings['editor_toolbar_preset'] = sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'standard'));
     $settings['external_embed_enabled'] = sr_content_bool_setting($settings['external_embed_enabled'] ?? true);
     $settings['internal_embed_enabled'] = sr_content_bool_setting($settings['internal_embed_enabled'] ?? true);
     unset($settings['embed_enabled']);
@@ -601,7 +601,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
 
     $rows = [
         ['editor', sr_editor_effective_key($pdo, (string) ($settings['editor'] ?? 'textarea')), 'string'],
-        ['editor_toolbar_preset', sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic')), 'string'],
+        ['editor_toolbar_preset', sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'standard')), 'string'],
         ['external_embed_enabled', !empty($settings['external_embed_enabled']) ? '1' : '0', 'bool'],
         ['internal_embed_enabled', !empty($settings['internal_embed_enabled']) ? '1' : '0', 'bool'],
         ['plain_text_auto_link_urls', !empty($settings['plain_text_auto_link_urls']) ? '1' : '0', 'bool'],
@@ -692,7 +692,7 @@ function sr_content_editor_toolbar_preset(PDO $pdo): string
 {
     $settings = sr_content_settings($pdo);
     sr_editor_effective_key($pdo, (string) $settings['editor']);
-    return sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'content_basic'));
+    return sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'standard'));
 }
 
 function sr_content_html_body_enabled(PDO $pdo): bool
@@ -786,12 +786,7 @@ function sr_content_body_embed_stylesheets(array $page, ?array $settings = null,
     $effectiveEditorKey = $pdo instanceof PDO
         ? sr_content_effective_editor_key($pdo, $page)
         : sr_content_item_editor_key((string) ($page['editor_key'] ?? 'textarea'));
-    $editorStylesheets = $effectiveBodyFormat === 'html' && $effectiveEditorKey === 'ckeditor'
-        ? [
-            '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
-            '/modules/ckeditor/assets/saanraan-ckeditor.css',
-        ]
-        : sr_body_editor_stylesheets($effectiveBodyFormat, $effectiveEditorKey);
+    $editorStylesheets = sr_body_editor_stylesheets($effectiveBodyFormat, $effectiveEditorKey);
 
     if (!$pdo instanceof PDO) {
         return $editorStylesheets;

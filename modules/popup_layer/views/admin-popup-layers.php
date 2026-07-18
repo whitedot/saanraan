@@ -659,7 +659,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
-    <?php echo sr_editor_assets_html($pdo, $popupLayerEditorKey, 'admin_basic'); ?>
+    <?php echo sr_editor_assets_html($pdo, $popupLayerEditorKey, 'standard'); ?>
     <script>
     (function () {
         var form = document.querySelector('[data-admin-subject-form]');

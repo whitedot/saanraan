@@ -72,6 +72,23 @@
   function editorConfig(ckeditor, textarea) {
     var toolbar = Array.isArray(config.toolbar) ? config.toolbar : ['undo', 'redo', '|', 'bold', 'italic'];
     var upload = uploadConfig(textarea);
+    var textColors = [
+      { color: '#111827', label: '검정' },
+      { color: '#6b7280', label: '회색' },
+      { color: '#b91c1c', label: '빨강' },
+      { color: '#a16207', label: '주황' },
+      { color: '#15803d', label: '녹색' },
+      { color: '#1d4ed8', label: '파랑' },
+      { color: '#7e22ce', label: '보라' }
+    ];
+    var backgroundColors = [
+      { color: '#f3f4f6', label: '회색 배경' },
+      { color: '#fee2e2', label: '빨간 배경' },
+      { color: '#fef3c7', label: '노란 배경' },
+      { color: '#dcfce7', label: '녹색 배경' },
+      { color: '#dbeafe', label: '파란 배경' },
+      { color: '#f3e8ff', label: '보라 배경' }
+    ];
     var pluginNames = [
       'Essentials',
       'Paragraph',
@@ -80,18 +97,29 @@
       'Italic',
       'Underline',
       'Strikethrough',
+      'FontSize',
+      'FontColor',
+      'FontBackgroundColor',
+      'Alignment',
+      'Indent',
+      'IndentBlock',
       'Link',
       'List',
       'BlockQuote',
+      'HorizontalLine',
+      'RemoveFormat',
+      'Table',
+      'TableToolbar',
+      'TableCaption',
       'Image',
       'ImageBlock',
       'ImageInline',
       'ImageInsert',
+      'ImageInsertViaUrl',
       'ImageUpload',
       'ImageToolbar',
       'ImageCaption',
-      'ImageStyle',
-      'ImageResize',
+      'ImageTextAlternative',
       'FileRepository',
       'GeneralHtmlSupport'
     ];
@@ -106,18 +134,40 @@
     var editorOptions = {
       licenseKey: config.licenseKey || 'GPL',
       plugins: plugins,
-      toolbar: toolbar,
+      toolbar: {
+        items: toolbar,
+        shouldNotGroupWhenFull: true
+      },
+      fontSize: {
+        options: [12, 14, 'default', 18, 24, 32],
+        supportAllValues: false
+      },
+      fontColor: {
+        colors: textColors,
+        columns: 4
+      },
+      fontBackgroundColor: {
+        colors: backgroundColors,
+        columns: 3
+      },
       link: {
         addTargetToExternalLinks: true,
         defaultProtocol: 'https://'
+      },
+      image: {
+        toolbar: ['imageTextAlternative', 'toggleImageCaption'],
+        insert: {
+          integrations: upload ? ['upload', 'url'] : ['url'],
+          type: 'auto'
+        }
+      },
+      table: {
+        contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'toggleTableCaption']
       }
     };
 
     if (upload && upload.url && ckeditor.FileRepository) {
       editorOptions.extraPlugins = [saanraanUploadAdapterPlugin(upload)];
-      editorOptions.image = {
-        toolbar: ['imageTextAlternative', 'toggleImageCaption', '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side']
-      };
     }
 
     return editorOptions;

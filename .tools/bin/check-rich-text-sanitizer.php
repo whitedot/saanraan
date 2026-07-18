@@ -120,22 +120,26 @@ function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): vo
 {
     $ckeditorHtml = '<h1 class="ck-heading_heading1">큰 제목</h1>'
         . '<h2 class="ck-heading_heading2">제목</h2>'
-        . '<p class="ck-paragraph"><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s></p>'
+        . '<p class="ck-paragraph" style="text-align:center;margin-left:40px"><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s> <span style="font-size:18px;color:#b91c1c;background-color:#fee2e2">강조</span></p>'
         . '<blockquote class="ck-blockquote"><p>인용</p></blockquote>'
         . '<ul class="ck-list"><li data-list-item-id="a">하나</li><li>둘</li></ul>'
         . '<ol><li>첫째</li></ol>'
         . '<p><a href="https://example.com" target="_blank" rel="bookmark">링크</a></p>'
-        . '<p><img class="image" src="https://example.com/body.png" alt="이미지" width="640" height="480" style="width:100%"></p>';
+        . '<figure class="image"><img src="https://example.com/body.png" alt="이미지" width="640" height="480"><figcaption>이미지 설명</figcaption></figure>'
+        . '<figure class="table"><table><thead><tr><th colspan="2">제목</th></tr></thead><tbody><tr><td rowspan="2">내용</td><td>값</td></tr></tbody></table><figcaption>표 설명</figcaption></figure>'
+        . '<hr>';
 
     $output = $sanitize($ckeditorHtml);
     $expected = '<h1>큰 제목</h1>'
         . '<h2>제목</h2>'
-        . '<p><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s></p>'
+        . '<p style="text-align:center;margin-left:40px;"><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s> <span style="color:#b91c1c;background-color:#fee2e2;font-size:18px;">강조</span></p>'
         . '<blockquote><p>인용</p></blockquote>'
         . '<ul><li>하나</li><li>둘</li></ul>'
         . '<ol><li>첫째</li></ol>'
         . '<p><a href="https://example.com" rel="nofollow noopener noreferrer">링크</a></p>'
-        . '<p><img src="https://example.com/body.png" alt="이미지" width="640" height="480"></p>';
+        . '<figure class="image"><img src="https://example.com/body.png" alt="이미지" width="640" height="480"><figcaption>이미지 설명</figcaption></figure>'
+        . '<figure class="table"><table><thead><tr><th colspan="2">제목</th></tr></thead><tbody><tr><td rowspan="2">내용</td><td>값</td></tr></tbody></table><figcaption>표 설명</figcaption></figure>'
+        . '<hr>';
 
     sr_sanitizer_check_assert($output === $expected, $label . ' CKEditor fixture output mismatch: ' . $output);
     sr_sanitizer_check_not_contains($output, [
@@ -147,8 +151,7 @@ function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): vo
         'data-list-item-id',
         'target=',
         'rel="bookmark"',
-        'class=',
-        'style=',
+        'style="width:100%"',
     ], $label . ' CKEditor fixture attribute filtering');
 }
 
@@ -354,7 +357,7 @@ function sr_sanitizer_check_rich_text_module_flow_markers(): void
 
 function sr_sanitizer_check_purifier_direct_case(): void
 {
-    $input = '<p style="color:red">Purifier <script>alert(1)</script><a href="javascript:alert(1)" target="_blank" onclick="bad()">bad</a>'
+    $input = '<p style="position:fixed">Purifier <script>alert(1)</script><a href="javascript:alert(1)" target="_blank" onclick="bad()">bad</a>'
         . '<a href="/content/example?x=1" rel="bookmark" target="_blank">internal</a>'
         . '<a href="https://example.com/body" rel="bookmark" target="_blank">external</a>'
         . '<img src="data:image/svg+xml;base64,PHN2Zy8+" alt="bad">'

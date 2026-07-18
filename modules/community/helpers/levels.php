@@ -67,7 +67,7 @@ function sr_community_default_settings(): array
         'draft_max_count_per_account' => (int) ($settings['draft_max_count_per_account'] ?? 20),
         'post_editor' => is_string($settings['post_editor'] ?? null) ? (string) $settings['post_editor'] : 'textarea',
         'comment_editor' => is_string($settings['comment_editor'] ?? null) ? (string) $settings['comment_editor'] : 'textarea',
-        'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'community_post_basic',
+        'post_toolbar_preset' => is_string($settings['post_toolbar_preset'] ?? null) ? (string) $settings['post_toolbar_preset'] : 'standard',
         'post_body_min_length' => sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0),
         'post_body_max_length' => sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0),
         'external_embed_enabled' => (bool) ($settings['external_embed_enabled'] ?? $settings['embed_enabled'] ?? true),
@@ -276,7 +276,7 @@ function sr_community_normalize_settings(array $settings, ?array $site = null, ?
     $settings['draft_max_count_per_account'] = sr_community_draft_max_count_per_account($settings);
     $settings['post_editor'] = sr_editor_normalize_key((string) ($settings['post_editor'] ?? 'textarea'));
     $settings['comment_editor'] = sr_editor_normalize_key((string) ($settings['comment_editor'] ?? 'textarea'));
-    $settings['post_toolbar_preset'] = sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
+    $settings['post_toolbar_preset'] = sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'standard'));
     $settings['post_body_min_length'] = sr_community_post_body_length_setting($settings['post_body_min_length'] ?? 0);
     $settings['post_body_max_length'] = sr_community_post_body_length_setting($settings['post_body_max_length'] ?? 0);
     $settings['external_embed_enabled'] = sr_community_bool_setting($settings['external_embed_enabled'] ?? true);
@@ -679,15 +679,15 @@ function sr_community_post_toolbar_preset_key(string $value): string
 {
     $value = trim($value);
     if ($value === '') {
-        return 'community_post_basic';
+        return 'standard';
     }
 
     if (function_exists('sr_ckeditor_toolbar_presets')) {
         $presets = sr_ckeditor_toolbar_presets();
-        return isset($presets[$value]) ? $value : 'community_post_basic';
+        return isset($presets[$value]) ? $value : 'standard';
     }
 
-    return preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $value) === 1 ? $value : 'community_post_basic';
+    return preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $value) === 1 ? $value : 'standard';
 }
 
 function sr_community_post_toolbar_preset_options(): array
@@ -703,7 +703,7 @@ function sr_community_post_toolbar_preset_options(): array
     }
 
     return [
-        'community_post_basic' => '커뮤니티 게시글 기본',
+        'standard' => '일반 편집 도구',
     ];
 }
 
@@ -711,7 +711,7 @@ function sr_community_post_toolbar_preset(PDO $pdo, ?array $settings = null): st
 {
     $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
     sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea'));
-    return sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'community_post_basic'));
+    return sr_community_post_toolbar_preset_key((string) ($settings['post_toolbar_preset'] ?? 'standard'));
 }
 
 function sr_community_group_keys_from_setting(mixed $value): array

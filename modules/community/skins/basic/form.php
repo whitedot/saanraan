@@ -21,7 +21,7 @@ if ($isGuestAuthorForm) {
 $secretPostsEnabled = !empty($secretPostsEnabled);
 $communityEditorKey = !$isGuestAuthorForm && $pdo instanceof PDO ? sr_community_effective_post_editor($pdo, $board, $settings) : 'textarea';
 $ckeditorEnabled = $communityEditorKey === 'ckeditor';
-$communityEditorToolbarPreset = $pdo instanceof PDO ? sr_community_post_toolbar_preset($pdo, $settings) : 'community_post_basic';
+$communityEditorToolbarPreset = $pdo instanceof PDO ? sr_community_post_toolbar_preset($pdo, $settings) : 'standard';
 $editorPostId = isset($postIdField) && is_int($postIdField) ? $postIdField : 0;
 $communityEditorAttributes = !$isGuestAuthorForm && $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $communityEditorKey, $communityEditorToolbarPreset) : '';
 if ($ckeditorEnabled) {

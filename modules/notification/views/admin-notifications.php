@@ -51,7 +51,7 @@ $deliveryHasSearch = $selectedDeliveryChannels !== [] || $selectedDeliveryStatus
 $adminPageTitleUrl = sr_admin_page_title_reset_url($notificationAdminPage === 'deliveries', '/admin/notification-deliveries')
     . sr_admin_page_title_reset_url($notificationAdminPage !== 'deliveries', '/admin/notifications');
 $notificationAdminEditorKey = 'textarea';
-$notificationEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $notificationAdminEditorKey, 'admin_basic') : '';
+$notificationEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $notificationAdminEditorKey, 'standard') : '';
 $notificationCreateHelpOpenLabel = '도움말 보기';
 $notificationCreateHelp = [
     'audience' => [
@@ -579,7 +579,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         syncRequiredState();
     })();
     </script>
-    <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $notificationAdminEditorKey, 'admin_basic') : ''; ?>
+    <?php echo $pdo instanceof PDO ? sr_editor_assets_html($pdo, $notificationAdminEditorKey, 'standard') : ''; ?>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

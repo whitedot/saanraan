@@ -935,7 +935,7 @@ $communitySettingsSectionNavItems = [
             <div class="form-field">
                 <select id="community_admin_settings_post_toolbar_preset" name="post_toolbar_preset" class="form-select" required>
                     <?php foreach ($toolbarPresetOptions as $presetKey => $presetLabel) { ?>
-                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic') === (string) $presetKey ? ' selected' : ''; ?>>
+                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['post_toolbar_preset'] ?? 'standard') === (string) $presetKey ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) $presetLabel); ?>
                         </option>
                     <?php } ?>

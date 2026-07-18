@@ -87,7 +87,7 @@ if (!isset($contentEditorOptions[$contentEditorStoredKey])) {
     $contentEditorStoredKey = $contentEditorFallbackKey;
 }
 $contentEditorKey = $pdo instanceof PDO ? sr_editor_effective_key($pdo, $contentEditorStoredKey) : 'textarea';
-$contentEditorToolbarPreset = $pdo instanceof PDO ? sr_content_editor_toolbar_preset($pdo) : 'content_basic';
+$contentEditorToolbarPreset = $pdo instanceof PDO ? sr_content_editor_toolbar_preset($pdo) : 'standard';
 $contentEditorAttributes = $pdo instanceof PDO ? sr_editor_textarea_attributes($pdo, $contentEditorKey, $contentEditorToolbarPreset) : '';
 $contentThemeKey = $pdo instanceof PDO ? sr_content_theme_key((string) (sr_content_settings($pdo)['theme_key'] ?? 'basic')) : 'basic';
 if ($contentEditorAttributes !== '' && $contentEditorKey === 'ckeditor') {
@@ -1168,7 +1168,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
                 if (config.editor && config.editor !== 'textarea') {
                     textarea.dataset.srEditor = config.editor;
-                    textarea.dataset.srEditorPreset = config.preset || 'content_basic';
+                    textarea.dataset.srEditorPreset = config.preset || 'standard';
                     textarea.dataset.srEditorFormatName = 'body_format';
                     textarea.dataset.srEditorFormatValue = config.format || 'plain';
                 }

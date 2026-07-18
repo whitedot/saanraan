@@ -23,7 +23,7 @@ return [
     ],
     'settings' => [
         'editor' => 'textarea',
-        'editor_toolbar_preset' => 'content_basic',
+        'editor_toolbar_preset' => 'standard',
         'external_embed_enabled' => true,
         'internal_embed_enabled' => true,
         'plain_text_auto_link_urls' => false,

@@ -43,7 +43,14 @@ function sr_community_comment_body_html(PDO $pdo, array $comment, array $board, 
     $bodyText = (string) ($comment['body_text'] ?? '');
     $bodyFormat = sr_community_comment_body_format($pdo, $board, $settings);
     if ($bodyFormat === 'html') {
-        return sr_community_sanitize_post_html($bodyText);
+        $html = sr_community_sanitize_post_html($bodyText);
+        $editorKey = sr_community_effective_comment_editor($pdo, $board, $settings);
+        if ($editorKey === 'ckeditor') {
+            $themeKey = (string) (($settings ?? [])['theme_key'] ?? 'basic');
+            return sr_community_ckeditor_public_body_html($html, $themeKey);
+        }
+
+        return $html;
     }
     if ($bodyFormat === 'markdown') {
         $rendered = sr_markdown_render($pdo, $bodyText, 'full');

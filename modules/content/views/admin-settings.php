@@ -235,7 +235,7 @@ $contentSettingsSectionNavItems = [
             <div class="form-field">
                 <select id="content_admin_settings_editor_toolbar_preset" name="editor_toolbar_preset" class="form-select" required>
                     <?php foreach ($toolbarPresetOptions as $presetKey => $presetLabel) { ?>
-                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['editor_toolbar_preset'] ?? 'content_basic') === (string) $presetKey ? ' selected' : ''; ?>>
+                        <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($settings['editor_toolbar_preset'] ?? 'standard') === (string) $presetKey ? ' selected' : ''; ?>>
                             <?php echo sr_e((string) $presetLabel); ?>
                         </option>
                     <?php } ?>

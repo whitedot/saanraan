@@ -255,7 +255,7 @@ Markdown Editor 플러그인은 `php .tools/bin/check-markdown-editor-runtime.ph
 
 표·체크 목록·코드 블록 문법은 선택 옵션 없이 항상 렌더링되어야 한다. 표 fixture는 헤더·구분선·복수 본문 행을 하나의 `<table>`로 묶고 구분선 행을 출력하지 않으며 콜론 정렬을 각 `<th>`·`<td>`에 반영하는지 확인한다. 공개 콘텐츠·커뮤니티 화면에서는 마크다운 제목 색이 화면 모듈 규칙에 덮이지 않고, 일반 본문·제목은 사이트 기본 글꼴을 상속해야 한다. `기본`을 저장하면 사용자 CSS를 보존하면서 번들 원본이 공개 출력되어야 하며, 범위를 벗어난 selector, 외부 URL, at-rule, `</style` 종료 문자열은 거부되어야 한다.
 
-설치 DB 없이 브라우저 asset 로딩과 upload adapter request contract만 확인할 때는 로컬 dev-router를 띄운 뒤 다음 Playwright smoke를 실행한다. 이 명령은 `.tools/browser-qa/tests/ckeditor-browser-smoke.spec.js`를 실행하며, self-hosted CKEditor JS/CSS와 산란 loader를 실제 브라우저에서 로드하고, 초기화 성공 시 `body_format=html` hidden input이 붙는지와 번들 로딩 실패 시 textarea fallback이 유지되는지를 확인한다. 또한 mock upload endpoint로 CKEditor upload adapter가 이미지 field, `csrf_token`, `upload_token`, 커뮤니티 개인정보 동의 field를 multipart 요청에 포함하고, 서버 성공/오류 JSON을 올바르게 처리하는지 확인한다. 실제 업로드 action 권한, 저장 HTML sanitizer, 임시/저장 후 본문 이미지 접근은 설치 DB가 있는 CKEditor smoke에서 별도로 확인한다.
+설치 DB 없이 브라우저 asset 로딩과 upload adapter request contract만 확인할 때는 로컬 dev-router를 띄운 뒤 다음 Playwright smoke를 실행한다. 이 명령은 `.tools/browser-qa/tests/ckeditor-browser-smoke.spec.js`를 실행하며, self-hosted CKEditor JS/CSS와 산란 loader를 실제 브라우저에서 로드하고, 초기화 성공 시 `body_format=html` hidden input이 붙는지와 번들 로딩 실패 시 textarea fallback이 유지되는지를 확인한다. 360px viewport fixture에서는 전체 선택과 찾기/바꾸기 플러그인이 로드되지 않고, 넘치는 툴바 항목이 여러 줄로 접히며 이미지 삽입 버튼이 보이고 에디터와 툴바가 viewport를 밀어내지 않는지도 확인한다. 또한 mock upload endpoint로 CKEditor upload adapter가 이미지 field, `csrf_token`, `upload_token`, 커뮤니티 개인정보 동의 field를 multipart 요청에 포함하고, 서버 성공/오류 JSON을 올바르게 처리하는지 확인한다. 실제 업로드 action 권한, 저장 HTML sanitizer, 임시/저장 후 본문 이미지 접근은 설치 DB가 있는 CKEditor smoke에서 별도로 확인한다.
 
 최초 실행에서는 `npm ci --prefix .tools/browser-qa`와 `.tools/browser-qa/node_modules/.bin/playwright install chromium`으로 잠금 파일 기준 패키지와 번들 Chromium을 준비한다. 기본 프로젝트는 이 번들 브라우저를 사용한다. 시스템 Chrome과 별도로 비교할 때만 `SR_BROWSER_QA_CHROMIUM_CHANNEL=chrome`을 지정한다.
 
@@ -328,7 +328,7 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /assets/layout.css 정적 파일 응답과 공통 공개 layout header/main/footer 확인
 /assets/module.css 정적 파일 응답과 초기 공개 화면 스타일 확인
 /assets/editor-md.css 정적 파일 응답과 Markdown 본문 reset 확인
-/assets/editor-ck.css 정적 파일 응답과 CKEditor 본문 reset 확인
+/modules/ckeditor/vendor/ckeditor5/ckeditor5.css 및 /modules/ckeditor/assets/saanraan-ckeditor.css 정적 파일 응답과 CKEditor 편집 영역·콘텐츠 상세·커뮤니티 게시글·댓글의 공통 `.ck-content` 표현 확인
 /assets/public-layout.js 정적 파일 응답과 공통 공개 layout 스크롤 header 동작 기준 확인
 /assets/common.css 정적 파일 응답과 공개 UI kit scope 및 홈 화면 primitive 확인
 /assets/ui-kit-layout.css 정적 파일 응답과 `/ui-kit` 미리보기 helper 확인

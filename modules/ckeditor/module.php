@@ -32,6 +32,6 @@ return [
         'asset_mode' => 'self_hosted',
         'cdn_version' => '48.3.0',
         'license_key' => 'GPL',
-        'toolbar_preset' => 'community_post_basic',
+        'toolbar_preset' => 'standard',
     ],
 ];

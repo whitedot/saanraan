@@ -65,7 +65,7 @@ if ($policyDocumentCkeditorAvailable) {
     $policyDocumentBodyEditorOptions['ckeditor'] = sr_t('policy_documents::ui.body_mode.ckeditor');
 }
 $policyDocumentCkeditorAttributes = $policyDocumentCkeditorAvailable && isset($pdo) && $pdo instanceof PDO
-    ? sr_editor_textarea_attributes($pdo, 'ckeditor', 'admin_basic', 'body_editor_format')
+    ? sr_editor_textarea_attributes($pdo, 'ckeditor', 'standard', 'body_editor_format')
     : '';
 $policyDocumentVersionsByDocumentId = [];
 foreach ($versions as $policyDocumentVersionRow) {
@@ -769,6 +769,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </script>
 <?php } ?>
 <?php if ($policyDocumentAdminPage === 'form' && $policyDocumentCkeditorAvailable && isset($pdo) && $pdo instanceof PDO) { ?>
-    <?php echo sr_editor_assets_html($pdo, 'ckeditor', 'admin_basic'); ?>
+    <?php echo sr_editor_assets_html($pdo, 'ckeditor', 'standard'); ?>
 <?php } ?>
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

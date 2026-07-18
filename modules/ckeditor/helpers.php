@@ -8,7 +8,7 @@ function sr_ckeditor_default_settings(): array
         'asset_mode' => 'self_hosted',
         'cdn_version' => '48.3.0',
         'license_key' => 'GPL',
-        'toolbar_preset' => 'community_post_basic',
+        'toolbar_preset' => 'standard',
     ];
 }
 
@@ -22,7 +22,7 @@ function sr_ckeditor_settings(PDO $pdo): array
     $settings['license_key'] = sr_ckeditor_clean_license_key((string) $settings['license_key']);
     $settings['toolbar_preset'] = isset(sr_ckeditor_toolbar_presets()[(string) $settings['toolbar_preset']])
         ? (string) $settings['toolbar_preset']
-        : 'community_post_basic';
+        : 'standard';
 
     return $settings;
 }
@@ -48,22 +48,41 @@ function sr_ckeditor_clean_license_key(string $value): string
 
 function sr_ckeditor_toolbar_presets(): array
 {
+    $standardItems = [
+        'undo',
+        'redo',
+        '|',
+        'insertImage',
+        'link',
+        'insertTable',
+        '|',
+        'heading',
+        'fontSize',
+        '|',
+        'bold',
+        'italic',
+        'underline',
+        'strikethrough',
+        '|',
+        'fontColor',
+        'fontBackgroundColor',
+        'removeFormat',
+        '|',
+        'alignment',
+        '|',
+        'horizontalLine',
+        'blockQuote',
+        '|',
+        'bulletedList',
+        'numberedList',
+        'outdent',
+        'indent',
+    ];
+
     return [
-        'default' => [
-            'label' => '기본',
-            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
-        ],
-        'admin_basic' => [
-            'label' => '관리자 화면 기본',
-            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
-        ],
-        'content_basic' => [
-            'label' => '콘텐츠 본문 기본',
-            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'uploadImage', 'bulletedList', 'numberedList', 'blockQuote'],
-        ],
-        'community_post_basic' => [
-            'label' => '커뮤니티 게시글 기본',
-            'items' => ['undo', 'redo', '|', 'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', '|', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
+        'standard' => [
+            'label' => '일반 편집 도구',
+            'items' => $standardItems,
         ],
     ];
 }
@@ -126,7 +145,7 @@ function sr_ckeditor_effective_toolbar_preset(PDO $pdo, string $presetKey = 'def
         $presetKey = (string) $settings['toolbar_preset'];
     }
 
-    return isset($presets[$presetKey]) ? $presetKey : 'community_post_basic';
+    return isset($presets[$presetKey]) ? $presetKey : 'standard';
 }
 
 function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'default'): array
@@ -134,7 +153,7 @@ function sr_ckeditor_public_config(PDO $pdo, string $presetKey = 'default'): arr
     $settings = sr_ckeditor_settings($pdo);
     $presets = sr_ckeditor_toolbar_presets();
     $effectivePresetKey = sr_ckeditor_effective_toolbar_preset($pdo, $presetKey);
-    $preset = $presets[$effectivePresetKey] ?? $presets['community_post_basic'];
+    $preset = $presets[$effectivePresetKey] ?? $presets['standard'];
     $assetMode = (string) $settings['asset_mode'];
     $cdnVersion = (string) $settings['cdn_version'];
 

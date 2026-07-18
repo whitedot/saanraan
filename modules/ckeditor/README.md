@@ -27,4 +27,10 @@ CDN 모드는 관리자 사이드바의 `플러그인 > CKEditor > 설정`에서
 
 CKEditor 초기화가 성공한 경우에만 form에 `body_format=html`이 추가된다. 에셋 로딩에 실패하거나 플러그인이 비활성화되면 기존 textarea가 그대로 제출되고 화면 소유 모듈은 `plain` 형식으로 저장한다.
 
+기본 `standard` 툴바는 일반적인 웹 문서 편집 범위인 제목, 글자 크기와 제한된 색상, 기본 강조, 정렬, 링크, 이미지 삽입, 표, 가로선, 인용, 목록, 들여쓰기, 서식 제거를 제공한다. 전체 선택과 찾기/바꾸기는 툴바에 제공하지 않는다. 이전 설정에 저장된 `content_basic`, `community_post_basic`, `admin_basic` 값은 설정 조회 시 `standard`로 정규화한다. 이미지 버튼은 모든 CKEditor 화면에 표시하고 URL 삽입을 제공한다. 화면 소유 모듈이 upload endpoint를 넘긴 경우 같은 이미지 삽입 메뉴에 로컬 파일 업로드도 함께 제공한다. 이미지 도구는 대체 텍스트와 캡션을 제공하고, 표 도구는 행·열·셀 병합과 캡션을 제공한다.
+
+툴바는 `shouldNotGroupWhenFull: true`를 명시해 더보기 버튼에 의존하지 않고 화면 폭이 부족할 때 여러 줄로 접힌다. 에디터 UI의 구조, 간격, 모서리와 그림자는 vendored CKEditor 5 공식 `ckeditor5.css`를 그대로 사용한다. 플러그인 stylesheet는 에디터와 툴바의 `min-width: 0`, `max-width: 100%` 경계, 프로젝트 라이트·다크 토큰 연결과 저장 본문 출력 호환 스타일만 추가한다. 콘텐츠 상세와 커뮤니티 게시글·댓글의 CKEditor 저장 본문도 `.sr-ckeditor[data-sr-editor-output] .ck-content` 구조와 이 두 stylesheet를 그대로 사용한다. 따라서 표, 목록, 정렬, 들여쓰기, 글자 크기·색상, 이미지 정렬·캡션처럼 에디터에서 추가된 표현이 공개 본문에서도 같은 공식 content style 규칙을 따른다. 직접 HTML 에디터의 저장 본문에는 이 CKEditor 전용 스타일을 적용하지 않는다.
+
+글자 크기, 글자색, 배경색, 정렬, 들여쓰기, 이미지 캡션, 표 출력은 공통 rich text sanitizer가 허용하는 제한된 값과 구조만 저장된다. 에디터 설정을 넓힐 때는 `docs/rich-text-sanitizer-policy.md`, 공개 본문 스타일, sanitizer fixture를 함께 갱신해야 한다.
+
 콘텐츠, 커뮤니티, 팝업레이어 모듈은 각자 필요한 textarea에서 본문 이미지 upload endpoint를 `data-sr-editor-upload-*` 속성으로 넘긴다. CKEditor 플러그인은 adapter 연결만 담당하고, 업로드 권한, CSRF, 저장소 key, 파일 상태, 프록시 접근 정책은 화면 소유 모듈이 소유한다. 관리자 공통 에디터 설정은 upload endpoint를 자동으로 붙이지 않으며, 설정형 rich textarea가 필요하면 해당 설정을 소유한 모듈이 안정적인 subject key와 삭제 정책을 먼저 정의해야 한다.

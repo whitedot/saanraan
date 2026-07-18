@@ -333,7 +333,7 @@ if (sr_request_method() === 'POST') {
         }
         if ($postToolbarPresetInput !== $postToolbarPreset || !array_key_exists($postToolbarPreset, $toolbarPresetOptions)) {
             $errors[] = '게시글 툴바 구성 값이 올바르지 않습니다.';
-            $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic');
+            $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'standard');
         }
         if ($postBodyMinLength === null) {
             $errors[] = '게시글 본문 최소 길이가 올바르지 않습니다.';

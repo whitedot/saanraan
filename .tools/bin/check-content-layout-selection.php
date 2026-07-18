@@ -163,8 +163,7 @@ $assert(!str_contains($ckeditorHtml, '/assets/editor-ck.css'), 'No-layout CKEdit
 $contentHelpers = $read('modules/content/helpers.php');
 $assert(str_contains($contentHelpers, 'function sr_content_public_body_html('), 'Content helpers must expose one shared public body renderer for every layout mode.');
 $assert(str_contains($contentHelpers, 'data-sr-editor-output'), 'Shared content body renderer must identify public output separately from editor input UI.');
-$assert(str_contains($contentHelpers, "'/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'"), 'Shared content body assets must load the bundled CKEditor stylesheet.');
-$assert(str_contains($contentHelpers, "'/modules/ckeditor/assets/saanraan-ckeditor.css'"), 'Shared content body assets must load the project CKEditor theme stylesheet.');
+$assert(str_contains($contentHelpers, 'sr_body_editor_stylesheets($effectiveBodyFormat, $effectiveEditorKey)'), 'Shared content body assets must use the common CKEditor stylesheet contract.');
 $ckeditorThemeStyles = $read('modules/ckeditor/assets/saanraan-ckeditor.css');
 $ckeditorVendorStyles = $read('modules/ckeditor/vendor/ckeditor5/ckeditor5.css');
 $assert(str_contains($ckeditorThemeStyles, '.sr-ckeditor[data-sr-editor-output] .ck-content'), 'Public CKEditor output must have a scoped background override.');
@@ -185,7 +184,13 @@ $hiddenTitleBody = strstr($hiddenTitleHtml, '<body>');
 $assert(is_string($hiddenTitleBody) && !str_contains($hiddenTitleBody, '화면에 나오지 않을 요약'), 'No-layout renderer must not expose the content summary in the document body.');
 $assert(str_contains($editableHtml, 'admin/content/edit?id=1'), 'No-layout renderer must expose the resolved content edit URL.');
 $assert(!str_contains($hiddenTitleHtml, 'class="btn btn-sm btn-outline-default content-edit-link"'), 'No-layout renderer must hide the edit link when no edit URL was resolved.');
-$assert(sr_body_editor_stylesheets('html', 'ckeditor') === ['/assets/editor-ck.css'], 'CKEditor content must load the editor body stylesheet.');
+$assert(
+    sr_body_editor_stylesheets('html', 'ckeditor') === [
+        '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
+        '/modules/ckeditor/assets/saanraan-ckeditor.css',
+    ],
+    'CKEditor content must load the official editor content stylesheet and project token bridge.'
+);
 $assert(sr_body_editor_stylesheets('markdown', 'markdown_editor') === ['/assets/editor-md.css'], 'Markdown content must load the Markdown editor stylesheet.');
 
 $renderNoLayoutConfirmation = static function (string $themeKey = 'basic') use ($root): string {

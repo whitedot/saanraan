@@ -34,6 +34,10 @@ async function writeCkeditorFixture(page, overrides = {}, textareaOverrides = {}
 <head>
   <meta charset="utf-8">
   <title>CKEditor browser smoke</title>
+  <style>
+    [data-color-scheme="light"] { --sr-surface: #ffffff; --sr-surface-muted: #f4f6f8; --sr-text: #172033; --sr-muted: #5f6b7a; --sr-border: #d9e0e8; --sr-border-soft: #e8edf2; }
+    [data-color-scheme="dark"] { --sr-surface: #171a21; --sr-surface-muted: #20242d; --sr-text: #f4f6f8; --sr-muted: #aeb7c4; --sr-border: #343b47; --sr-border-soft: #2b313c; }
+  </style>
   <script id="sr-ckeditor-config" type="application/json">${scriptSafeJson(config)}</script>
 </head>
 <body>
@@ -80,6 +84,54 @@ test.describe('CKEditor browser smoke', () => {
     ]));
   });
 
+  test('standard toolbar excludes selection utilities and wraps narrow overflow with image insertion visible', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 720 });
+    await writeCkeditorFixture(page, {
+      toolbar: [
+        'undo', 'redo', '|', 'insertImage', 'link', 'insertTable', '|', 'heading', 'fontSize', '|',
+        'bold', 'italic', 'underline', 'strikethrough', '|',
+        'fontColor', 'fontBackgroundColor', 'removeFormat', '|',
+        'alignment', '|', 'horizontalLine', 'blockQuote', '|',
+        'bulletedList', 'numberedList', 'outdent', 'indent',
+      ],
+    });
+    await page.waitForFunction(() => {
+      const textarea = document.querySelector('textarea[data-sr-editor="ckeditor"]');
+      return textarea && textarea.dataset.srEditorReady === '1' && window.srCkeditorInstances && window.srCkeditorInstances.body;
+    }, null, { timeout: 20000 });
+
+    const toolbarState = await page.evaluate(() => {
+      const editor = window.srCkeditorInstances.body;
+      const container = document.querySelector('.sr-ckeditor');
+      const toolbar = document.querySelector('.ck-toolbar');
+      const imageButton = Array.from(toolbar.querySelectorAll('button')).find((button) => {
+        const label = [button.getAttribute('aria-label'), button.getAttribute('data-cke-tooltip-text'), button.textContent].join(' ');
+        return /image|이미지/i.test(label);
+      });
+      return {
+        hasFindAndReplace: editor.plugins.has('FindAndReplace'),
+        hasSelectAll: editor.plugins.has('SelectAll'),
+        hasImageInsertViaUrl: editor.plugins.has('ImageInsertViaUrl'),
+        shouldNotGroupWhenFull: editor.config.get('toolbar.shouldNotGroupWhenFull'),
+        groupedDropdownCount: toolbar.querySelectorAll('.ck-toolbar__grouped-dropdown').length,
+        imageButtonVisible: Boolean(imageButton && imageButton.getBoundingClientRect().width > 0),
+        containerFitsViewport: container.getBoundingClientRect().right <= document.documentElement.clientWidth,
+        toolbarFitsContainer: toolbar.scrollWidth <= container.clientWidth,
+      };
+    });
+
+    expect(toolbarState).toEqual({
+      hasFindAndReplace: false,
+      hasSelectAll: false,
+      hasImageInsertViaUrl: true,
+      shouldNotGroupWhenFull: true,
+      groupedDropdownCount: 0,
+      imageButtonVisible: true,
+      containerFitsViewport: true,
+      toolbarFitsContainer: true,
+    });
+  });
+
   test('missing CKEditor bundle keeps textarea fallback and does not mark html format', async ({ page }) => {
     await writeCkeditorFixture(page, {
       selfHostedScriptUrl: '/modules/ckeditor/vendor/ckeditor5/missing-fixture.js',
@@ -89,6 +141,43 @@ test.describe('CKEditor browser smoke', () => {
     await expect(page.locator('textarea[data-sr-editor="ckeditor"]')).toHaveCount(1);
     await expect(page.locator('input[name="body_format"][data-sr-editor-format="ckeditor"]')).toHaveCount(0);
     expect(await page.locator('textarea[data-sr-editor="ckeditor"]').evaluate((textarea) => textarea.dataset.srEditorReady || '')).not.toBe('1');
+  });
+
+  test('official editor theme follows project light and dark tokens', async ({ page }) => {
+    await writeCkeditorFixture(page);
+    await page.waitForFunction(() => {
+      const textarea = document.querySelector('textarea[data-sr-editor="ckeditor"]');
+      return textarea && textarea.dataset.srEditorReady === '1';
+    }, null, { timeout: 20000 });
+
+    const styles = await page.evaluate(async () => {
+      const read = async (scheme) => {
+        document.documentElement.dataset.colorScheme = scheme;
+        const editable = document.querySelector('.ck-editor__editable_inline');
+        editable.focus();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const toolbar = getComputedStyle(document.querySelector('.ck-toolbar'));
+        const content = getComputedStyle(editable);
+        return {
+          toolbarBackground: toolbar.backgroundColor,
+          contentBackground: content.backgroundColor,
+          contentColor: content.color,
+          borderRadius: content.borderRadius,
+          focusShadow: content.boxShadow,
+        };
+      };
+
+      return { light: await read('light'), dark: await read('dark') };
+    });
+
+    expect(styles.light.toolbarBackground).not.toBe('rgba(0, 0, 0, 0)');
+    expect(styles.dark.toolbarBackground).not.toBe('rgba(0, 0, 0, 0)');
+    expect(styles.light.toolbarBackground).not.toBe(styles.dark.toolbarBackground);
+    expect(styles.light.contentColor).not.toBe(styles.dark.contentColor);
+    expect(styles.light.borderRadius).not.toBe('0px');
+    expect(styles.dark.borderRadius).not.toBe('0px');
+    expect(styles.light.focusShadow).not.toBe('none');
+    expect(styles.dark.focusShadow).not.toBe('none');
   });
 
   test('upload adapter sends image, csrf, upload token, and consent fields', async ({ page }) => {

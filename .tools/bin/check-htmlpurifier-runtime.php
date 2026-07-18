@@ -43,8 +43,10 @@ $config = sr_rich_text_purifier_config();
 sr_htmlpurifier_runtime_assert(strtolower((string) $config->get('Core.Encoding')) === 'utf-8', 'Purifier config must use UTF-8.');
 sr_htmlpurifier_runtime_assert($config->get('HTML.Doctype') === 'HTML 4.01 Transitional', 'Purifier config doctype must remain explicit.');
 sr_htmlpurifier_runtime_assert((string) $config->get('HTML.DefinitionID') === 'saanraan-rich-text', 'Purifier config must use the saanraan rich text definition ID.');
-sr_htmlpurifier_runtime_assert((int) $config->get('HTML.DefinitionRev') === 2, 'Purifier config definition revision must track rich text allowlist changes.');
+sr_htmlpurifier_runtime_assert((int) $config->get('HTML.DefinitionRev') === 3, 'Purifier config definition revision must track rich text allowlist changes.');
 sr_htmlpurifier_runtime_assert(str_contains((string) $config->get('HTML.Allowed'), 'h1'), 'Purifier config must allow CKEditor heading 1 output.');
+sr_htmlpurifier_runtime_assert(str_contains((string) $config->get('HTML.Allowed'), 'figure[class]'), 'Purifier config must allow constrained CKEditor figure output.');
+sr_htmlpurifier_runtime_assert(str_contains((string) $config->get('HTML.Allowed'), 'table'), 'Purifier config must allow CKEditor table output.');
 sr_htmlpurifier_runtime_assert(!str_contains((string) $config->get('HTML.Allowed'), 'data-sr-url-embed'), 'Purifier config must not allow embed marker attributes.');
 sr_htmlpurifier_runtime_assert($config->get('URI.AllowedSchemes') === ['http' => true, 'https' => true], 'Purifier config must allow only http and https schemes.');
 sr_htmlpurifier_runtime_assert($config->get('HTML.Nofollow') === true, 'Purifier config must enable HTML.Nofollow.');
@@ -71,6 +73,15 @@ $headingPayload = '<h1 class="ck-heading_heading1">큰 제목</h1><ul class="ck-
 $headingSanitized = sr_sanitize_rich_text_html($headingPayload);
 sr_htmlpurifier_runtime_assert(str_contains($headingSanitized, '<h1>큰 제목</h1>'), 'Purifier-backed sanitizer output must preserve CKEditor heading 1 semantics.');
 sr_htmlpurifier_runtime_assert(str_contains($headingSanitized, '<ul><li>항목</li></ul>'), 'Purifier-backed sanitizer output must preserve CKEditor list semantics.');
+
+$standardPayload = '<p style="text-align:center;margin-left:40px"><span style="font-size:18px;color:#b91c1c;background-color:#fee2e2">강조</span></p>'
+    . '<figure class="image"><img src="https://example.com/body.png" alt="이미지"><figcaption>설명</figcaption></figure>'
+    . '<figure class="table"><table><tbody><tr><td colspan="2">표</td></tr></tbody></table></figure><hr>';
+$standardSanitized = sr_sanitize_rich_text_html($standardPayload);
+sr_htmlpurifier_runtime_assert(str_contains($standardSanitized, '<p style="text-align:center;margin-left:40px;">'), 'Purifier-backed sanitizer output must preserve constrained alignment and indentation.');
+sr_htmlpurifier_runtime_assert(str_contains($standardSanitized, '<span style="color:#b91c1c;background-color:#fee2e2;font-size:18px;">강조</span>'), 'Purifier-backed sanitizer output must preserve configured font styles.');
+sr_htmlpurifier_runtime_assert(str_contains($standardSanitized, '<figure class="image"><img src="https://example.com/body.png" alt="이미지"><figcaption>설명</figcaption></figure>'), 'Purifier-backed sanitizer output must preserve CKEditor image captions.');
+sr_htmlpurifier_runtime_assert(str_contains($standardSanitized, '<figure class="table"><table><tbody><tr><td colspan="2">표</td></tr></tbody></table></figure><hr>'), 'Purifier-backed sanitizer output must preserve CKEditor tables and horizontal rules.');
 
 if ($errors !== []) {
     fwrite(STDERR, "HTML Purifier runtime checks failed:\n");
