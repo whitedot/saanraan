@@ -544,8 +544,8 @@ sr_output_helper_assert(
     'Optional public layout view lookup should include enabled module layout contracts when PDO is provided.'
 );
 sr_output_helper_assert(
-    sr_public_layout_file('community.basic', $layoutPdo, false, 'sample') === $root . '/modules/community/theme/sample/layout.php',
-    'Public layout file lookup should resolve the selected provider theme layout shell before the basic fallback.'
+    sr_public_layout_file('community.basic', $layoutPdo, false, 'missing_theme') === $root . '/modules/community/theme/basic/layout.php',
+    'Public layout file lookup should fall back to the basic provider layout when the selected theme does not exist.'
 );
 $GLOBALS['sr_public_layout_options_runtime_cache'] = [];
 sr_clear_module_registry_cache();

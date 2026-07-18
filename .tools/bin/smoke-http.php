@@ -526,14 +526,6 @@ $checks = [
         ],
     ],
     [
-        'label' => 'site sample view theme stylesheet',
-        'path' => '/assets/theme/sample.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.example-site-theme',
-        ],
-    ],
-    [
         'label' => 'public layout script',
         'path' => '/assets/public-layout.js',
         'allowed_statuses' => [200],
@@ -565,14 +557,6 @@ $checks = [
         'allowed_statuses' => [200],
         'must_contain' => [
             '.admin-ui-kit-samples',
-        ],
-    ],
-    [
-        'label' => 'content sample view theme stylesheet',
-        'path' => '/modules/content/theme/sample/assets/theme.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.example-content-theme',
         ],
     ],
     [
@@ -610,14 +594,6 @@ $checks = [
         ],
     ],
     [
-        'label' => 'community sample view theme stylesheet',
-        'path' => '/modules/community/theme/sample/assets/theme.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.example-community-theme',
-        ],
-    ],
-    [
         'label' => 'community theme UI kit layout stylesheet',
         'path' => '/modules/community/theme/basic/assets/ui-kit-layout.css',
         'allowed_statuses' => [200],
@@ -636,14 +612,6 @@ $checks = [
         ],
     ],
     [
-        'label' => 'quiz sample view theme stylesheet',
-        'path' => '/modules/quiz/theme/sample/assets/theme.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.example-quiz-theme',
-        ],
-    ],
-    [
         'label' => 'survey theme layout stylesheet',
         'path' => '/modules/survey/theme/basic/assets/layout.css',
         'allowed_statuses' => [200],
@@ -651,14 +619,6 @@ $checks = [
             '.survey-layout-header',
             '.survey-layout-main',
             '.survey-layout-footer',
-        ],
-    ],
-    [
-        'label' => 'survey sample view theme stylesheet',
-        'path' => '/modules/survey/theme/sample/assets/theme.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.example-survey-theme',
         ],
     ],
     [

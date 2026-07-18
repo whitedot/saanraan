@@ -298,8 +298,7 @@ function sr_quiz_check_paths_and_admin(): void
         "\$context['consumer_domain'] = 'quiz';",
         "'/modules/quiz/assets/module.js'",
         'sr_quiz_optional_option_key_from_post',
-        "'card' => '카드형'",
-        "'focus' => '집중형'",
+        "'basic' => '기본형'",
         'attempt_limit_policy',
         'sr_quiz_admin_reward_grants_for_attempts',
         'a.result_snapshot_json',
@@ -462,16 +461,6 @@ function sr_quiz_check_paths_and_admin(): void
         'content-quiz-link',
         'content-quiz-links',
     ]);
-    foreach ([
-        'modules/content/theme/sample/assets/theme.css',
-        'modules/community/theme/sample/assets/theme.css',
-        'modules/quiz/theme/sample/assets/theme.css',
-        'modules/survey/theme/sample/assets/theme.css',
-    ] as $sampleThemeCss) {
-        sr_quiz_check_file_not_contains($sampleThemeCss, [
-            'content-quiz-link',
-        ]);
-    }
     sr_quiz_check_file_not_contains('modules/quiz/helpers.php', [
         'function sr_quiz_content_quizzes',
     ]);
@@ -573,7 +562,6 @@ function sr_quiz_check_submission_prg(): void
 
     foreach ([
         'modules/quiz/theme/basic/view.php',
-        'modules/quiz/theme/sample/view.php',
         'modules/quiz/skins/basic/view.php',
     ] as $viewFile) {
         sr_quiz_check_file_contains($viewFile, [

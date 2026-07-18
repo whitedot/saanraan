@@ -379,10 +379,7 @@ sr_ckeditor_assets_require_markers('modules/community/skins/basic/form.php', [
     'sr_community_body_file_upload_token()',
 ]);
 
-foreach ([
-    'modules/community/theme/basic/form.php',
-    'modules/community/theme/sample/form.php',
-] as $communityThemeForm) {
+foreach (['modules/community/theme/basic/form.php'] as $communityThemeForm) {
     sr_ckeditor_assets_require_markers($communityThemeForm, [
         'data-sr-editor-body-theme="community.',
         'sr_community_theme_key((string) ($settings[\'theme_key\'] ?? \'basic\'))',
@@ -447,7 +444,7 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.cs
     '--ck-color-button-default-hover-background: var(--sr-ckeditor-hover)',
     ':is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor',
     'data-sr-editor-body-theme="content.basic"',
-    'data-sr-editor-body-theme="community.sample"',
+    'data-sr-editor-body-theme="community.basic"',
     '--sr-editor-body-text',
     '.ck-editor__editable_inline',
     '.sr-ckeditor :is(.ck-toolbar, .ck-editor__top .ck-sticky-panel .ck-sticky-panel__content, .ck-dropdown__panel, .ck-list)',
@@ -500,9 +497,7 @@ sr_ckeditor_assets_assert(sr_body_editor_stylesheets('html', 'ckeditor') === ['/
 
 foreach ([
     'modules/content/theme/basic/assets/module.css',
-    'modules/content/theme/sample/assets/module.css',
     'modules/community/theme/basic/assets/module.css',
-    'modules/community/theme/sample/assets/module.css',
 ] as $bodyStylesheet) {
     sr_ckeditor_assets_forbid_markers($bodyStylesheet, [
         ':where(ul)',
@@ -510,14 +505,6 @@ foreach ([
         'font-size: inherit',
     ]);
 }
-
-sr_ckeditor_assets_require_markers('modules/content/theme/sample/content.php', [
-    'class="example-content-body content-body"',
-]);
-
-sr_ckeditor_assets_require_markers('modules/community/theme/sample/post.php', [
-    'class="example-community-body community-post-body"',
-]);
 
 sr_ckeditor_assets_require_markers('docs/module-guide.md', [
     '--sr-editor-body-surface',

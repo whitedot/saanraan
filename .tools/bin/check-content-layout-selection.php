@@ -33,7 +33,7 @@ $assert(!sr_content_layout_disabled('content.basic'), 'A registered content layo
 
 $orderedLayoutContext = sr_content_public_layout_context([
     'layout_key' => 'content.basic',
-    'theme_key' => 'sample',
+    'theme_key' => 'basic',
 ], [
     'stylesheets' => [
         '/modules/ckeditor/vendor/ckeditor5/ckeditor5.css',
@@ -41,13 +41,11 @@ $orderedLayoutContext = sr_content_public_layout_context([
     ],
 ]);
 $orderedStylesheets = is_array($orderedLayoutContext['stylesheets'] ?? null) ? $orderedLayoutContext['stylesheets'] : [];
-$moduleStylesheetIndex = array_search('/modules/content/theme/sample/assets/module.css', $orderedStylesheets, true);
+$moduleStylesheetIndex = array_search('/modules/content/theme/basic/assets/module.css', $orderedStylesheets, true);
 $ckeditorStylesheetIndex = array_search('/modules/ckeditor/vendor/ckeditor5/ckeditor5.css', $orderedStylesheets, true);
 $ckeditorThemeStylesheetIndex = array_search('/modules/ckeditor/assets/saanraan-ckeditor.css', $orderedStylesheets, true);
-$viewThemeStylesheetIndex = array_search('/modules/content/theme/sample/assets/theme.css', $orderedStylesheets, true);
 $assert(is_int($moduleStylesheetIndex) && is_int($ckeditorStylesheetIndex) && $moduleStylesheetIndex < $ckeditorStylesheetIndex, 'Content module styles must load before CKEditor content styles.');
 $assert(is_int($ckeditorStylesheetIndex) && is_int($ckeditorThemeStylesheetIndex) && $ckeditorStylesheetIndex < $ckeditorThemeStylesheetIndex, 'Bundled CKEditor styles must load before the project CKEditor theme.');
-$assert(is_int($ckeditorThemeStylesheetIndex) && is_int($viewThemeStylesheetIndex) && $ckeditorThemeStylesheetIndex < $viewThemeStylesheetIndex, 'Content view theme overrides must load after CKEditor content styles.');
 
 $adminView = $read('modules/content/views/admin-contents.php');
 $assert(str_contains($adminView, 'sr_content_no_layout_key()'), 'Content admin layout select must expose the no-layout option.');
@@ -72,7 +70,6 @@ $assert(str_contains($viewAction, "'/account/content?id='"), 'Content view actio
 foreach ([
     'modules/content/views/content.php',
     'modules/content/theme/basic/content.php',
-    'modules/content/theme/sample/content.php',
 ] as $contentPublicViewFile) {
     $contentPublicView = $read($contentPublicViewFile);
     $assert(str_contains($contentPublicView, "include SR_ROOT . '/modules/content/views/content-edit-link.php';"), $contentPublicViewFile . ' must render the shared content edit link.');
@@ -241,10 +238,10 @@ $assert(substr_count($confirmationHtml, 'name="asset_exchange_confirm" value="1"
 $assert(substr_count($confirmationHtml, 'name="asset_request_token" value="request-token"') === 2, 'No-layout coupon and default forms must both preserve the request token.');
 $assert(str_contains($confirmationHtml, 'name="coupon_issue_id" value="7"'), 'No-layout paid confirmation must preserve coupon selection.');
 $assert(!str_contains($confirmationHtml, '확인 전 비공개 본문'), 'No-layout paid confirmation must not expose the protected body before access is granted.');
-$sampleConfirmationHtml = $renderNoLayoutConfirmation('sample');
-$assert(str_contains($sampleConfirmationHtml, '/modules/content/theme/sample/assets/common.css'), 'No-layout paid confirmation must load the selected sample theme common stylesheet.');
-$assert(str_contains($sampleConfirmationHtml, '/modules/content/theme/sample/assets/module.css'), 'No-layout paid confirmation must load the selected sample theme module stylesheet.');
-$assert(str_contains($sampleConfirmationHtml, '/modules/content/theme/sample/assets/theme.css'), 'No-layout paid confirmation must load the selected sample theme override stylesheet.');
+$missingThemeConfirmationHtml = $renderNoLayoutConfirmation('missing_theme');
+$assert(str_contains($missingThemeConfirmationHtml, '/modules/content/theme/basic/assets/common.css'), 'No-layout paid confirmation must fall back to the basic common stylesheet when the selected theme does not exist.');
+$assert(str_contains($missingThemeConfirmationHtml, '/modules/content/theme/basic/assets/module.css'), 'No-layout paid confirmation must fall back to the basic module stylesheet when the selected theme does not exist.');
+$assert(!str_contains($missingThemeConfirmationHtml, '/theme/missing_theme/'), 'No-layout paid confirmation must not expose assets for a theme that does not exist.');
 
 $installSql = $read('modules/content/install.sql');
 $updateSql = $read('modules/content/updates/2026.07.006.sql');

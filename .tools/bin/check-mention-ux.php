@@ -73,13 +73,9 @@ sr_mention_check_assert(is_string($mentionJs) && str_contains($mentionJs, "scrol
 foreach ([
     '/layouts/public/basic/layout.php',
     '/modules/content/theme/basic/layout.php',
-    '/modules/content/theme/sample/layout.php',
     '/modules/community/theme/basic/layout.php',
-    '/modules/community/theme/sample/layout.php',
     '/modules/quiz/theme/basic/layout.php',
-    '/modules/quiz/theme/sample/layout.php',
     '/modules/survey/theme/basic/layout.php',
-    '/modules/survey/theme/sample/layout.php',
 ] as $layoutPath) {
     $layout = file_get_contents($root . $layoutPath);
     sr_mention_check_assert(is_string($layout) && !str_contains($layout, '/assets/mention-input.js'), 'public layout should not load mention input on every screen: ' . $layoutPath);
@@ -93,7 +89,6 @@ foreach ([
 foreach ([
     '/modules/community/skins/basic/list.php',
     '/modules/community/theme/basic/list.php',
-    '/modules/community/theme/sample/list.php',
 ] as $listViewPath) {
     $listView = file_get_contents($root . $listViewPath);
     sr_mention_check_assert(is_string($listView) && !str_contains($listView, '/assets/mention-input.js'), 'community list should not request mention input: ' . $listViewPath);
@@ -104,7 +99,6 @@ foreach ([
 foreach ([
     '/modules/community/skins/basic/view.php',
     '/modules/community/theme/basic/post.php',
-    '/modules/community/theme/sample/post.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => is_array(\$account ?? null) ? ['/assets/mention-input.js'] : []"), 'community post view should request mention input only for a signed-in account: ' . $viewPath);
@@ -113,7 +107,6 @@ foreach ([
 foreach ([
     '/modules/content/views/content.php',
     '/modules/content/theme/basic/content.php',
-    '/modules/content/theme/sample/content.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => is_array(\$account ?? null) && !empty(\$pageAccess['allowed']) ? ['/assets/mention-input.js'] : []"), 'content view should request mention input only when a signed-in account can view the content: ' . $viewPath);

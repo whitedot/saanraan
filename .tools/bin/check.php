@@ -1229,27 +1229,27 @@ function sr_check_module_public_ui_kit_stylesheets(): void
 
     $modulePublicTargetViews = [
         'content' => [
-            'content.home' => ['modules/content/views/home.php', 'modules/content/theme/basic/home.php', 'modules/content/theme/sample/home.php'],
-            'content.group' => ['modules/content/views/group.php', 'modules/content/theme/basic/group.php', 'modules/content/theme/sample/group.php'],
-            'content.view' => ['modules/content/views/content.php', 'modules/content/theme/basic/content.php', 'modules/content/theme/sample/content.php'],
+            'content.home' => ['modules/content/views/home.php', 'modules/content/theme/basic/home.php'],
+            'content.group' => ['modules/content/views/group.php', 'modules/content/theme/basic/group.php'],
+            'content.view' => ['modules/content/views/content.php', 'modules/content/theme/basic/content.php'],
         ],
         'community' => [
-            'community.home' => ['modules/community/theme/basic/home.php', 'modules/community/theme/sample/home.php'],
-            'community.group' => ['modules/community/views/group.php', 'modules/community/theme/basic/group.php', 'modules/community/theme/sample/group.php'],
-            'community.list' => ['modules/community/skins/basic/list.php', 'modules/community/theme/basic/list.php', 'modules/community/theme/sample/list.php'],
-            'community.post' => ['modules/community/skins/basic/view.php', 'modules/community/theme/basic/post.php', 'modules/community/theme/sample/post.php'],
-            'community.form' => ['modules/community/skins/basic/form.php', 'modules/community/theme/basic/form.php', 'modules/community/theme/sample/form.php'],
-            'community.search' => ['modules/community/views/search.php', 'modules/community/theme/basic/search.php', 'modules/community/theme/sample/search.php'],
+            'community.home' => ['modules/community/theme/basic/home.php'],
+            'community.group' => ['modules/community/views/group.php', 'modules/community/theme/basic/group.php'],
+            'community.list' => ['modules/community/skins/basic/list.php', 'modules/community/theme/basic/list.php'],
+            'community.post' => ['modules/community/skins/basic/view.php', 'modules/community/theme/basic/post.php'],
+            'community.form' => ['modules/community/skins/basic/form.php', 'modules/community/theme/basic/form.php'],
+            'community.search' => ['modules/community/views/search.php', 'modules/community/theme/basic/search.php'],
         ],
         'quiz' => [
-            'quiz.home' => ['modules/quiz/skins/basic/home.php', 'modules/quiz/theme/basic/home.php', 'modules/quiz/theme/sample/home.php'],
-            'quiz.view' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php', 'modules/quiz/theme/sample/view.php'],
-            'quiz.result' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php', 'modules/quiz/theme/sample/view.php'],
+            'quiz.home' => ['modules/quiz/skins/basic/home.php', 'modules/quiz/theme/basic/home.php'],
+            'quiz.view' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php'],
+            'quiz.result' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php'],
         ],
         'survey' => [
-            'survey.home' => ['modules/survey/skins/basic/home.php', 'modules/survey/theme/basic/home.php', 'modules/survey/theme/sample/home.php'],
-            'survey.view' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php', 'modules/survey/theme/sample/view.php'],
-            'survey.complete' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php', 'modules/survey/theme/sample/view.php'],
+            'survey.home' => ['modules/survey/skins/basic/home.php', 'modules/survey/theme/basic/home.php'],
+            'survey.view' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php'],
+            'survey.complete' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php'],
         ],
     ];
     $publicModuleLayoutTargets = ['site'];
@@ -1387,7 +1387,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
                 }
             }
         }
-        foreach (['basic', 'sample'] as $moduleThemeKey) {
+        foreach (['basic'] as $moduleThemeKey) {
             $moduleUiKitView = 'modules/' . $moduleKey . '/theme/' . $moduleThemeKey . '/ui-kit.php';
             $moduleUiKitViewSource = is_file($moduleUiKitView) ? file_get_contents($moduleUiKitView) : false;
             if (!is_string($moduleUiKitViewSource)) {
@@ -1522,7 +1522,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         'quiz' => 'Quiz',
         'survey' => 'Survey',
     ] as $moduleKey => $moduleName) {
-        foreach (['basic', 'sample'] as $themeKey) {
+        foreach (['basic'] as $themeKey) {
             $layoutFile = 'modules/' . $moduleKey . '/theme/' . $themeKey . '/layout.php';
             $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
             if (!is_string($layoutSource)) {

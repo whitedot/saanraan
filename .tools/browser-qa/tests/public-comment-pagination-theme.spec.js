@@ -4,11 +4,8 @@ const { test, expect } = require('@playwright/test');
 const root = path.resolve(__dirname, '../../..');
 const fixtures = [
   ['content basic', 'content-comments-pagination', 'modules/content/theme/basic/assets/module.css'],
-  ['content sample', 'content-comments-pagination', 'modules/content/theme/sample/assets/module.css'],
   ['quiz basic', 'quiz-comments-pagination', 'modules/quiz/theme/basic/assets/module.css'],
-  ['quiz sample', 'quiz-comments-pagination', 'modules/quiz/theme/sample/assets/module.css'],
   ['survey basic', 'survey-comments-pagination', 'modules/survey/theme/basic/assets/module.css'],
-  ['survey sample', 'survey-comments-pagination', 'modules/survey/theme/sample/assets/module.css'],
 ];
 
 for (const [name, className, stylesheet] of fixtures) {

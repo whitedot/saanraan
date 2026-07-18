@@ -408,8 +408,6 @@ function sr_quiz_skin_option_definitions(): array
     $definitions = [];
     foreach ([
         'basic' => '기본형',
-        'card' => '카드형',
-        'focus' => '집중형',
     ] as $skinKey => $label) {
         $views = [];
         foreach (sr_quiz_skin_views() as $view) {

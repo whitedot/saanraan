@@ -91,19 +91,14 @@ foreach (['content', 'quiz', 'survey'] as $moduleKey) {
 $sourceChecks = [
     'modules/content/actions/view.php' => 'sr_content_comment_page(',
     'modules/quiz/theme/basic/view.php' => 'sr_quiz_comment_page(',
-    'modules/quiz/theme/sample/view.php' => 'sr_quiz_comment_page(',
     'modules/quiz/skins/basic/view.php' => 'sr_quiz_comment_page(',
     'modules/survey/theme/basic/view.php' => 'sr_survey_comment_page(',
-    'modules/survey/theme/sample/view.php' => 'sr_survey_comment_page(',
     'modules/survey/skins/basic/view.php' => 'sr_survey_comment_page(',
     'modules/content/theme/basic/content.php' => 'sr_public_pagination_html($contentCommentPage',
-    'modules/content/theme/sample/content.php' => 'sr_public_pagination_html($contentCommentPage',
     'modules/content/views/content.php' => 'sr_public_pagination_html($contentCommentPage',
     'modules/quiz/theme/basic/view.php#pagination' => 'sr_public_pagination_html($quizCommentPage',
-    'modules/quiz/theme/sample/view.php#pagination' => 'sr_public_pagination_html($quizCommentPage',
     'modules/quiz/skins/basic/view.php#pagination' => 'sr_public_pagination_html($quizCommentPage',
     'modules/survey/theme/basic/view.php#pagination' => 'sr_public_pagination_html($surveyCommentPage',
-    'modules/survey/theme/sample/view.php#pagination' => 'sr_public_pagination_html($surveyCommentPage',
     'modules/survey/skins/basic/view.php#pagination' => 'sr_public_pagination_html($surveyCommentPage',
 ];
 foreach ($sourceChecks as $sourceKey => $marker) {

@@ -39,9 +39,7 @@ foreach ([
 }
 foreach ([
     'modules/quiz/theme/basic/home.php' => "sr_public_pagination_html(\$quizListPagination, '/quiz'",
-    'modules/quiz/theme/sample/home.php' => "sr_public_pagination_html(\$quizListPagination, '/quiz'",
     'modules/survey/theme/basic/home.php' => "sr_public_pagination_html(\$surveyListPagination, '/survey'",
-    'modules/survey/theme/sample/home.php' => "sr_public_pagination_html(\$surveyListPagination, '/survey'",
     'modules/coupon/views/coupons.php' => "sr_public_pagination_html(\$couponCampaignPagination, '/coupons'",
 ] as $file => $marker) {
     $assert(str_contains($source($file), $marker), $file . ' must render public full-list navigation.');

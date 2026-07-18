@@ -48,7 +48,7 @@ rich text sanitizer payload 회귀 점검
 
 현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`, URL 임베드 계약 구조·모듈별 외부/내부 gate·Markdown wrapper 밖 임베드 경계는 `.tools/bin/check-url-embed-contracts.php`가 확인하며 모두 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
 
-공개 레이아웃/테마/스킨 설정을 바꾼 경우 사이트 설정의 공개 화면 테마는 `core/views/theme/{theme_key}/home.php`를 가진 내부 초기화면 테마만 저장할 수 있어야 하며, 공개 레이아웃 선택지는 레이아웃만 저장해야 한다. 콘텐츠/커뮤니티/퀴즈/설문 환경설정의 공개 테마 선택지는 각 모듈의 `theme/{theme_key}` 필수 view 세트가 있는 키만 저장할 수 있어야 한다. `basic` 테마는 배포판 기본 view를 `modules/{module}/theme/basic`에서 렌더링하고, `sample` 테마를 선택하면 콘텐츠 `/content`, `/content/group?key=...`, `/content/{slug}`, 커뮤니티 `/community`, `/community/group?key=...`, `/community/board?key=...`, `/community/post?id=...`, `/community/write?key=...`, `/community/search`, 퀴즈 `/quiz`, `/quiz/{quiz_key}`, 설문 `/survey`, `/survey/{survey_key}` 공개 화면의 body DOM에 `data-example-theme-view` marker가 나타나야 한다. 모듈 UI-KIT 미리보기 `/content/ui-kit`, `/community/ui-kit`, `/quiz/ui-kit`, `/survey/ui-kit`은 선택 theme의 `ui-kit.php`에서 렌더링되어 `data-theme-ui-kit-view` marker와 선택 theme의 `assets/common.css`, `assets/ui-kit-layout.css`를 가져야 한다. 각 모듈 관리자 화면은 공개 테마 선택으로 바뀌지 않아야 한다. 스킨과 테마는 별도 선택값이며, 내부 theme view가 없는 경우에만 기존 community/quiz/survey skin view가 fallback으로 사용되어야 한다. 현재 화면 target을 지원하지 않는 레이아웃은 공개 렌더링에서 `common.basic`으로 fallback해야 하며, 모듈 환경설정의 레이아웃 선택지는 해당 모듈 필수 target 전체를 지원하는 option만 저장할 수 있어야 한다.
+공개 레이아웃/테마/스킨 설정을 바꾼 경우 사이트 설정의 공개 화면 테마는 `core/views/theme/{theme_key}/home.php`를 가진 내부 초기화면 테마만 저장할 수 있어야 하며, 공개 레이아웃 선택지는 레이아웃만 저장해야 한다. 콘텐츠/커뮤니티/퀴즈/설문 환경설정의 공개 테마 선택지는 각 모듈의 `theme/{theme_key}` 필수 view 세트가 있는 키만 저장할 수 있어야 한다. 배포판에는 `basic` 테마와 `basic` 스킨만 포함하며, 각 공개 화면은 `modules/{module}/theme/basic`의 view와 asset을 사용해야 한다. 저장된 테마 또는 스킨 디렉터리와 필수 view가 없으면 `basic`으로 fallback하고 존재하지 않는 key의 asset URL을 출력하지 않아야 한다. 별도로 설치한 유효한 테마를 선택한 경우 콘텐츠 `/content`, `/content/group?key=...`, `/content/{slug}`, 커뮤니티 `/community`, `/community/group?key=...`, `/community/board?key=...`, `/community/post?id=...`, `/community/write?key=...`, `/community/search`, 퀴즈 `/quiz`, `/quiz/{quiz_key}`, 설문 `/survey`, `/survey/{survey_key}` 공개 화면이 선택한 theme view와 asset을 사용해야 한다. 모듈 UI-KIT 미리보기 `/content/ui-kit`, `/community/ui-kit`, `/quiz/ui-kit`, `/survey/ui-kit`은 선택 theme의 `ui-kit.php`에서 렌더링되어 `data-theme-ui-kit-view` marker와 선택 theme의 `assets/common.css`, `assets/ui-kit-layout.css`를 가져야 한다. 각 모듈 관리자 화면은 공개 테마 선택으로 바뀌지 않아야 한다. 스킨과 테마는 별도 선택값이며, 내부 theme view가 없는 경우에만 기존 community/quiz/survey skin view가 fallback으로 사용되어야 한다. 현재 화면 target을 지원하지 않는 레이아웃은 공개 렌더링에서 `common.basic`으로 fallback해야 하며, 모듈 환경설정의 레이아웃 선택지는 해당 모듈 필수 target 전체를 지원하는 option만 저장할 수 있어야 한다.
 
 퀴즈/설문 공개 스킨 설정을 바꾼 경우 `/admin/quiz/settings`, `/admin/surveys/settings`의 기본값과 개별 퀴즈/설문 수정 화면의 `skin_key`가 허용 목록 값으로만 저장되는지 확인한다. 개별 값이 비어 있으면 환경설정 기본값을 상속하고, 값이 있으면 상세/응시/응답/완료 화면에서 개별값이 우선해야 한다. `/quiz`, `/quiz/{quiz_key}`, `/survey`, `/survey/{survey_key}`는 선택 스킨의 `home`/`view` 본문을 공개 레이아웃 안에서 렌더링해야 하며, 결과/완료 화면의 보상 지급 안내가 유지되어야 한다. 잘못된 legacy `skin_key`나 누락된 스킨 view는 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file이 남는지 확인한다.
 
@@ -328,7 +328,6 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /assets/module.css 정적 파일 응답과 초기 공개 화면 스타일 확인
 /assets/editor-md.css 정적 파일 응답과 Markdown 본문 reset 확인
 /assets/editor-ck.css 정적 파일 응답과 CKEditor 본문 reset 확인
-/assets/theme/sample.css 정적 파일 응답과 초기화면 sample theme 스타일 확인
 /assets/public-layout.js 정적 파일 응답과 공통 공개 layout 스크롤 header 동작 기준 확인
 /assets/common.css 정적 파일 응답과 공개 UI kit scope 및 홈 화면 primitive 확인
 /assets/ui-kit-layout.css 정적 파일 응답과 `/ui-kit` 미리보기 helper 확인
@@ -338,19 +337,15 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /modules/community/theme/basic/assets/module.css 정적 파일 응답과 커뮤니티 화면 wrapper 확인
 /modules/community/theme/basic/assets/common.css 정적 파일 응답과 커뮤니티 UI kit primitive 확인
 /modules/community/theme/basic/assets/ui-kit-layout.css 정적 파일 응답과 커뮤니티 UI kit 미리보기 helper 확인
-/modules/content/theme/sample/assets/theme.css 정적 파일 응답과 콘텐츠 sample theme 스타일 확인
 /modules/content/assets/layout.js 정적 파일 응답과 콘텐츠 layout 스크롤 header 동작 기준 확인
 /modules/content/assets/module.js 정적 파일 응답과 콘텐츠 화면 전용 JavaScript 분리 기준 확인
-/modules/community/theme/sample/assets/theme.css 정적 파일 응답과 커뮤니티 sample theme 스타일 확인
 /modules/community/assets/layout.js 정적 파일 응답과 커뮤니티 layout 스크롤 header 동작 기준 확인
 /modules/community/assets/module.js 정적 파일 응답과 커뮤니티 화면 전용 JavaScript 분리 기준 확인
 /modules/member/skins/basic/skin.css 정적 파일 응답과 회원 basic skin CSS 공개 경로 확인
 /modules/quiz/theme/basic/assets/layout.css 정적 파일 응답과 퀴즈 공개 layout shell 확인
-/modules/quiz/theme/sample/assets/theme.css 정적 파일 응답과 퀴즈 sample theme 스타일 확인
 /modules/quiz/assets/layout.js 정적 파일 응답과 퀴즈 layout 스크롤 header 동작 기준 확인
 /modules/quiz/assets/module.js 정적 파일 응답과 퀴즈 화면 전용 JavaScript 분리 기준 확인
 /modules/survey/theme/basic/assets/layout.css 정적 파일 응답과 설문 공개 layout shell 확인
-/modules/survey/theme/sample/assets/theme.css 정적 파일 응답과 설문 sample theme 스타일 확인
 /modules/survey/assets/layout.js 정적 파일 응답과 설문 layout 스크롤 header 동작 기준 확인
 /modules/survey/assets/module.js 정적 파일 응답과 설문 화면 전용 JavaScript 분리 기준 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인

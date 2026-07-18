@@ -166,7 +166,6 @@ sr_community_comment_pagination_assert(str_contains((string) $threadIndexUpdate,
 foreach ([
     'modules/community/skins/basic/view.php',
     'modules/community/theme/basic/post.php',
-    'modules/community/theme/sample/post.php',
 ] as $viewFile) {
     $view = file_get_contents($root . '/' . $viewFile);
     sr_community_comment_pagination_assert(is_string($view) && str_contains($view, 'sr_community_comment_pagination_html('), $viewFile . ' must render numeric comment pagination.');

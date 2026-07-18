@@ -740,9 +740,7 @@ sr_markdown_editor_check_assert(
 );
 $publicBodyThemeStylesheets = [
     SR_ROOT . '/modules/content/theme/basic/assets/module.css' => '.content-body > :is(h1, h2, h3, h4, h5, h6)',
-    SR_ROOT . '/modules/content/theme/sample/assets/module.css' => '.content-body > :is(h1, h2, h3, h4, h5, h6)',
     SR_ROOT . '/modules/community/theme/basic/assets/module.css' => '.community-post-body > :is(h1, h2, h3, h4, h5, h6)',
-    SR_ROOT . '/modules/community/theme/sample/assets/module.css' => '.community-post-body > :is(h1, h2, h3, h4, h5, h6)',
 ];
 $publicBodyThemeSelectorsValid = true;
 foreach ($publicBodyThemeStylesheets as $path => $directHeadingSelector) {

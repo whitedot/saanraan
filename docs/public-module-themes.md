@@ -49,7 +49,7 @@ modules/{module_key}/theme/{theme_key}/assets/module.css
 modules/{module_key}/theme/{theme_key}/assets/theme.css
 ```
 
-`theme_key`는 lowercase letters, digits, `_`만 사용하는 로컬 key다. `basic`은 배포판 기본 theme이며, 기존 `default` 값은 호환을 위해 `basic`으로 해석한다. `sample`은 DOM과 스타일 차이를 확인하기 위한 샘플 theme다.
+`theme_key`는 lowercase letters, digits, `_`만 사용하는 로컬 key다. 배포판에는 `basic` theme만 포함하며, 기존 `default` 값은 호환을 위해 `basic`으로 해석한다. 선택한 theme이 실제 theme 디렉터리와 필수 view를 제공하지 않으면 공개 렌더링에서 `basic`으로 fallback한다.
 
 ## 책임 경계
 

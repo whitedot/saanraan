@@ -1872,10 +1872,6 @@ function sr_view_theme_label(string $themeKey): string
     if ($themeKey === 'basic') {
         return '기본 테마';
     }
-    if ($themeKey === 'sample') {
-        return '샘플 테마';
-    }
-
     return str_replace('_', ' ', $themeKey);
 }
 

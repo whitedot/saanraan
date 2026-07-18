@@ -101,6 +101,30 @@ function sr_skin_theme_check_file_missing(string $path, string $label): void
     }
 }
 
+function sr_skin_theme_check_path_missing(string $path, string $label): void
+{
+    global $root, $errors;
+    $fullPath = $root . '/' . $path;
+    if (is_file($fullPath)) {
+        $errors[] = $label . ' path must not exist: ' . $path;
+        return;
+    }
+
+    if (!is_dir($fullPath)) {
+        return;
+    }
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($fullPath, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $entry) {
+        if ($entry->isFile()) {
+            $errors[] = $label . ' path must not contain files: ' . $path;
+            return;
+        }
+    }
+}
+
 function sr_skin_theme_check_admin_theme_material_icons(): void
 {
     global $errors;
@@ -599,41 +623,12 @@ foreach ([
     'modules/survey/theme/basic/view.php',
     'modules/survey/theme/basic/complete.php',
     'modules/survey/theme/basic/ui-kit.php',
-    'core/views/theme/sample/home.php',
-    'modules/content/theme/sample/home.php',
-    'modules/content/theme/sample/group.php',
-    'modules/content/theme/sample/content.php',
-    'modules/content/theme/sample/search.php',
-    'modules/content/theme/sample/ui-kit.php',
-    'modules/community/theme/sample/home.php',
-    'modules/community/theme/sample/group.php',
-    'modules/community/theme/sample/list.php',
-    'modules/community/theme/sample/post.php',
-    'modules/community/theme/sample/form.php',
-    'modules/community/theme/sample/search.php',
-    'modules/community/theme/sample/ui-kit.php',
-    'modules/quiz/theme/sample/home.php',
-    'modules/quiz/theme/sample/view.php',
-    'modules/quiz/theme/sample/result.php',
-    'modules/quiz/theme/sample/ui-kit.php',
-    'modules/survey/theme/sample/home.php',
-    'modules/survey/theme/sample/view.php',
-    'modules/survey/theme/sample/complete.php',
-    'modules/survey/theme/sample/ui-kit.php',
-    'assets/theme/sample.css',
     'modules/content/theme/basic/layout.php',
     'modules/content/theme/basic/assets/reset.css',
     'modules/content/theme/basic/assets/common.css',
     'modules/content/theme/basic/assets/ui-kit-layout.css',
     'modules/content/theme/basic/assets/layout.css',
     'modules/content/theme/basic/assets/module.css',
-    'modules/content/theme/sample/layout.php',
-    'modules/content/theme/sample/assets/reset.css',
-    'modules/content/theme/sample/assets/common.css',
-    'modules/content/theme/sample/assets/ui-kit-layout.css',
-    'modules/content/theme/sample/assets/layout.css',
-    'modules/content/theme/sample/assets/module.css',
-    'modules/content/theme/sample/assets/theme.css',
     'modules/community/theme/basic/layout.php',
     'modules/community/theme/basic/home.php',
     'modules/community/theme/basic/assets/reset.css',
@@ -641,13 +636,6 @@ foreach ([
     'modules/community/theme/basic/assets/ui-kit-layout.css',
     'modules/community/theme/basic/assets/layout.css',
     'modules/community/theme/basic/assets/module.css',
-    'modules/community/theme/sample/layout.php',
-    'modules/community/theme/sample/assets/reset.css',
-    'modules/community/theme/sample/assets/common.css',
-    'modules/community/theme/sample/assets/ui-kit-layout.css',
-    'modules/community/theme/sample/assets/layout.css',
-    'modules/community/theme/sample/assets/module.css',
-    'modules/community/theme/sample/assets/theme.css',
     'modules/quiz/theme/basic/layout.php',
     'modules/quiz/theme/basic/assets/reset.css',
     'modules/quiz/theme/basic/assets/common.css',
@@ -655,30 +643,32 @@ foreach ([
     'modules/quiz/theme/basic/assets/layout.css',
     'modules/quiz/theme/basic/assets/module.css',
     'modules/quiz/theme/basic/assets/skin.css',
-    'modules/quiz/theme/sample/layout.php',
-    'modules/quiz/theme/sample/assets/reset.css',
-    'modules/quiz/theme/sample/assets/common.css',
-    'modules/quiz/theme/sample/assets/ui-kit-layout.css',
-    'modules/quiz/theme/sample/assets/layout.css',
-    'modules/quiz/theme/sample/assets/module.css',
-    'modules/quiz/theme/sample/assets/skin.css',
-    'modules/quiz/theme/sample/assets/theme.css',
     'modules/survey/theme/basic/layout.php',
     'modules/survey/theme/basic/assets/reset.css',
     'modules/survey/theme/basic/assets/common.css',
     'modules/survey/theme/basic/assets/ui-kit-layout.css',
     'modules/survey/theme/basic/assets/layout.css',
     'modules/survey/theme/basic/assets/module.css',
-    'modules/survey/theme/sample/layout.php',
-    'modules/survey/theme/sample/assets/reset.css',
-    'modules/survey/theme/sample/assets/common.css',
-    'modules/survey/theme/sample/assets/ui-kit-layout.css',
-    'modules/survey/theme/sample/assets/layout.css',
-    'modules/survey/theme/sample/assets/module.css',
-    'modules/survey/theme/sample/assets/theme.css',
 ] as $themeFile) {
     sr_skin_theme_check_file_exists($themeFile, 'Local public view theme');
 }
+
+foreach ([
+    'assets/theme/sample.css',
+    'core/views/theme/sample',
+    'modules/content/theme/sample',
+    'modules/community/theme/sample',
+    'modules/quiz/theme/sample',
+    'modules/survey/theme/sample',
+    'modules/quiz/skins/card',
+    'modules/quiz/skins/focus',
+] as $removedBundledThemePath) {
+    sr_skin_theme_check_path_missing($removedBundledThemePath, 'Removed bundled sample theme or alias skin');
+}
+
+sr_skin_theme_check_not_contains('docs/smoke-test.md', [
+    '`sample` 테마를 선택하면',
+], 'Public theme smoke documentation');
 
 sr_skin_theme_check_contains([
     'modules/content/actions/home.php',
@@ -792,7 +782,7 @@ foreach ([
         'module' => 'modules/content/module.php',
         'action' => 'modules/content/actions/admin-settings.php',
         'view' => 'modules/content/views/admin-settings.php',
-        'layouts' => ['modules/content/theme/basic/layout.php', 'modules/content/theme/sample/layout.php'],
+        'layouts' => ['modules/content/theme/basic/layout.php'],
         'switch_id' => 'content_admin_settings_business_info_visible',
         'post_marker' => "sr_post_string('business_info_visible', 1) === '1'",
         'helper_default_marker' => "'business_info_visible' => true",
@@ -802,7 +792,7 @@ foreach ([
         'module' => 'modules/community/module.php',
         'action' => 'modules/community/actions/admin-settings.php',
         'view' => 'modules/community/views/admin-settings.php',
-        'layouts' => ['modules/community/theme/basic/layout.php', 'modules/community/theme/sample/layout.php'],
+        'layouts' => ['modules/community/theme/basic/layout.php'],
         'switch_id' => 'community_admin_settings_business_info_visible',
         'post_marker' => "\$_POST['business_info_visible'] ?? ''",
         'helper_default_marker' => "'business_info_visible' => (bool)",
@@ -812,7 +802,7 @@ foreach ([
         'module' => 'modules/quiz/module.php',
         'action' => 'modules/quiz/helpers.php',
         'view' => 'modules/quiz/views/admin-settings.php',
-        'layouts' => ['modules/quiz/theme/basic/layout.php', 'modules/quiz/theme/sample/layout.php'],
+        'layouts' => ['modules/quiz/theme/basic/layout.php'],
         'switch_id' => 'quiz_settings_business_info_visible',
         'post_marker' => "\$_POST['business_info_visible'] ?? ''",
         'helper_default_marker' => "'business_info_visible' => true",
@@ -822,7 +812,7 @@ foreach ([
         'module' => 'modules/survey/module.php',
         'action' => 'modules/survey/helpers.php',
         'view' => 'modules/survey/views/admin-settings.php',
-        'layouts' => ['modules/survey/theme/basic/layout.php', 'modules/survey/theme/sample/layout.php'],
+        'layouts' => ['modules/survey/theme/basic/layout.php'],
         'switch_id' => 'survey_settings_business_info_visible',
         'post_marker' => "\$_POST['business_info_visible'] ?? ''",
         'helper_default_marker' => "'business_info_visible' => true",
@@ -1006,13 +996,9 @@ sr_skin_theme_check_contains(['assets/common.css', 'modules/admin/assets/common.
 $publicCommonStylesheetPaths = [
     'assets/common.css',
     'modules/content/theme/basic/assets/common.css',
-    'modules/content/theme/sample/assets/common.css',
     'modules/community/theme/basic/assets/common.css',
-    'modules/community/theme/sample/assets/common.css',
     'modules/quiz/theme/basic/assets/common.css',
-    'modules/quiz/theme/sample/assets/common.css',
     'modules/survey/theme/basic/assets/common.css',
-    'modules/survey/theme/sample/assets/common.css',
 ];
 sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
     '.card{border:1px solid var(--sr-border,var(--color-default-300));',
@@ -1028,13 +1014,9 @@ sr_skin_theme_check_contains([
     'assets/common.css',
     'modules/admin/assets/common.css',
     'modules/content/theme/basic/assets/common.css',
-    'modules/content/theme/sample/assets/common.css',
     'modules/community/theme/basic/assets/common.css',
-    'modules/community/theme/sample/assets/common.css',
     'modules/quiz/theme/basic/assets/common.css',
-    'modules/quiz/theme/sample/assets/common.css',
     'modules/survey/theme/basic/assets/common.css',
-    'modules/survey/theme/sample/assets/common.css',
 ], [
     '--modal-viewport-gap:clamp(',
     'box-sizing:border-box',
@@ -1045,13 +1027,9 @@ sr_skin_theme_check_contains([
     'assets/common.css',
     'modules/admin/assets/common.css',
     'modules/content/theme/basic/assets/common.css',
-    'modules/content/theme/sample/assets/common.css',
     'modules/community/theme/basic/assets/common.css',
-    'modules/community/theme/sample/assets/common.css',
     'modules/quiz/theme/basic/assets/common.css',
-    'modules/quiz/theme/sample/assets/common.css',
     'modules/survey/theme/basic/assets/common.css',
-    'modules/survey/theme/sample/assets/common.css',
 ], [
     '.modal-dialog,.modal-dialog-bottom,.modal-dialog-center{width:calc(100% - calc(var(--spacing) * 6))',
     '.modal-dialog-sm{width:calc(100% - calc(var(--spacing) * 6))',
