@@ -13,7 +13,12 @@ $seo = [
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentGroupAccount = sr_member_current_account($pdo);
-$contentGroupLayoutContext = ['consumer_target' => 'content.group'];
+$contentGroupLayoutContext = [
+    'consumer_target' => 'content.group',
+    'output_slots' => [
+        ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
+    ],
+];
 if (isset($pageGroupLayoutKey) && is_string($pageGroupLayoutKey) && $pageGroupLayoutKey !== '') {
     $contentGroupLayoutContext['layout_key'] = $pageGroupLayoutKey;
 }
@@ -73,23 +78,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             </div>
         </section>
 
-        <aside class="content-group-aside" aria-label="<?php echo sr_e('콘텐츠 추천'); ?>">
-            <section>
-                <h2><?php echo sr_e('Staff Picks'); ?></h2>
-                <?php foreach (array_slice($groupContents ?? [], 0, 3) as $pickedContent) { ?>
-                    <?php $pickedSlug = (string) ($pickedContent['slug'] ?? ''); ?>
-                    <?php if (!sr_content_slug_is_valid($pickedSlug)) { ?>
-                        <?php continue; ?>
-                    <?php } ?>
-                    <?php $pickedContentAccess = sr_content_entry_access_context($pdo, $pickedContent, is_array($contentGroupAccount) ? $contentGroupAccount : null, 'group_pick_' . (string) (int) ($pickedContent['id'] ?? 0)); ?>
-                    <article class="content-group-pick">
-                        <p><?php echo sr_e('In ' . (string) ($pageGroup['title'] ?? 'Content')); ?></p>
-                        <h3><a<?php echo sr_content_entry_link_attributes($pickedContentAccess); ?>><?php echo sr_e((string) ($pickedContent['title'] ?? $pickedSlug)); ?></a></h3>
-                        <?php echo sr_content_entry_access_modal($pdo, $pickedContent, $pickedContentAccess); ?>
-                    </article>
-                <?php } ?>
-            </section>
-        </aside>
+        <?php $contentSidebarSubject = ['group_key' => (string) ($pageGroup['group_key'] ?? '')]; ?>
+        <?php include SR_ROOT . '/modules/content/theme/basic/sidebar.php'; ?>
     </div>
 </main>
 <?php sr_public_layout_end(); ?>

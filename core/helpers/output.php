@@ -2583,7 +2583,7 @@ function sr_public_layout_health_warnings(PDO $pdo, ?array $site = null): array
 function sr_public_layout_module_setting_targets(string $moduleKey): array
 {
     return [
-        'content' => ['content.home', 'content.group', 'content.view', 'content.search'],
+        'content' => ['content.home', 'content.group', 'content.view', 'content.form', 'content.search'],
         'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
         'quiz' => ['quiz.home', 'quiz.list', 'quiz.view', 'quiz.result'],
         'survey' => ['survey.home', 'survey.list', 'survey.view', 'survey.complete'],

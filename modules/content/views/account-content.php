@@ -6,9 +6,17 @@ $formSubmission = array_merge(
     is_array($editingSubmission ?? null) ? $editingSubmission : [],
     is_array($contentSubmissionFormValues ?? null) ? $contentSubmissionFormValues : []
 );
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
+$contentLayoutSettings = sr_content_settings($pdo);
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
+    'consumer_target' => 'content.form',
+    'output_slots' => [
+        ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
+    ],
+]));
 ?>
 <main class="ui-page">
+    <div class="content-screen-frame">
+        <div class="content-screen-main">
     <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
     <?php echo sr_public_feedback_toasts('content', $notice, $errors); ?>
 
@@ -74,5 +82,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
         </div>
         <?php echo sr_public_pagination_html($contentSubmissionPagination, $contentSubmissionPaginationBasePath, '콘텐츠 제출 내역 페이지', 'page', 'content-submission-history'); ?>
     </section>
+        </div>
+        <?php $contentSidebarSubject = []; ?>
+        <?php include SR_ROOT . '/modules/content/theme/basic/sidebar.php'; ?>
+    </div>
 </main>
 <?php sr_public_layout_end(); ?>

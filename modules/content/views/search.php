@@ -14,9 +14,14 @@ $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayou
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.search',
     'layout_key' => (string) ($contentSearchLayoutKey ?? ''),
+    'output_slots' => [
+        ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
+    ],
 ]));
 ?>
 <main class="content-search-screen">
+    <div class="content-screen-frame">
+        <div class="content-screen-main">
     <h1><?php echo sr_e('콘텐츠 검색'); ?></h1>
 
     <form class="content-search-page-form" method="get" action="<?php echo sr_e(sr_url('/content/search')); ?>">
@@ -82,5 +87,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <?php } ?>
         </nav>
     <?php } ?>
+        </div>
+        <?php $contentSidebarSubject = []; ?>
+        <?php include SR_ROOT . '/modules/content/theme/basic/sidebar.php'; ?>
+    </div>
 </main>
 <?php sr_public_layout_end(); ?>

@@ -1232,6 +1232,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             'content.home' => ['modules/content/views/home.php', 'modules/content/theme/basic/home.php'],
             'content.group' => ['modules/content/views/group.php', 'modules/content/theme/basic/group.php'],
             'content.view' => ['modules/content/views/content.php', 'modules/content/theme/basic/content.php'],
+            'content.form' => ['modules/content/views/account-content.php'],
         ],
         'community' => [
             'community.home' => ['modules/community/theme/basic/home.php'],
@@ -1921,6 +1922,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-domain-list-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-selector-current-values.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-public-service-list-pagination.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-public-module-sidebars.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-asset-history-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-milestone-28-currency-policy.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-i18n-contract.php'));

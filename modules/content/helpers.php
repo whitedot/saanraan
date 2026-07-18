@@ -15,6 +15,7 @@ require_once SR_ROOT . '/modules/content/helpers/body-files.php';
 require_once SR_ROOT . '/modules/content/helpers/files.php';
 require_once SR_ROOT . '/modules/content/helpers/series.php';
 require_once SR_ROOT . '/modules/content/helpers/comments.php';
+require_once SR_ROOT . '/modules/content/helpers/sidebar.php';
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/core/helpers/url-embed.php';
 
@@ -117,6 +118,11 @@ function sr_content_default_settings(): array
         'theme_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_extra_menu_keys_json' => [],
+        'sidebar_enabled' => true,
+        'sidebar_menu_type' => 'groups',
+        'sidebar_site_menu_key' => '',
+        'sidebar_popular_limit' => 5,
+        'sidebar_comments_limit' => 5,
         'business_info_visible' => true,
         'series_enabled' => true,
         'member_submission_enabled' => false,
@@ -334,6 +340,25 @@ function sr_content_toolbar_preset_options(): array
     ];
 }
 
+function sr_content_sidebar_menu_type_options(bool $siteMenuAvailable = true): array
+{
+    $options = [
+        'groups' => '콘텐츠 그룹',
+        'none' => '메뉴 표시 안 함',
+    ];
+    if ($siteMenuAvailable) {
+        $options['site_menu'] = '사이트 메뉴';
+    }
+
+    return $options;
+}
+
+function sr_content_sidebar_menu_type(string $value): string
+{
+    $value = strtolower(trim($value));
+    return array_key_exists($value, sr_content_sidebar_menu_type_options()) ? $value : 'groups';
+}
+
 function sr_content_settings(PDO $pdo): array
 {
     $storedSettings = sr_module_settings($pdo, 'content');
@@ -365,6 +390,11 @@ function sr_content_settings(PDO $pdo): array
         $settings[$settingKey] = sr_content_clean_layout_menu_key((string) ($settings[$settingKey] ?? ''));
     }
     $settings['layout_extra_menu_keys_json'] = sr_content_layout_extra_menu_items_from_settings($settings);
+    $settings['sidebar_enabled'] = sr_content_bool_setting($settings['sidebar_enabled'] ?? true);
+    $settings['sidebar_menu_type'] = sr_content_sidebar_menu_type((string) ($settings['sidebar_menu_type'] ?? 'groups'));
+    $settings['sidebar_site_menu_key'] = sr_content_clean_layout_menu_key((string) ($settings['sidebar_site_menu_key'] ?? ''));
+    $settings['sidebar_popular_limit'] = max(1, min(10, (int) ($settings['sidebar_popular_limit'] ?? 5)));
+    $settings['sidebar_comments_limit'] = max(1, min(10, (int) ($settings['sidebar_comments_limit'] ?? 5)));
     $settings['business_info_visible'] = sr_content_bool_setting($settings['business_info_visible'] ?? true);
     $settings['series_enabled'] = sr_content_bool_setting($settings['series_enabled'] ?? true);
     $settings['member_submission_enabled'] = sr_content_bool_setting($settings['member_submission_enabled'] ?? false);
@@ -398,7 +428,7 @@ function sr_content_comment_editor_key(PDO $pdo, ?array $settings = null): strin
 
 function sr_content_layout_required_targets(): array
 {
-    return ['content.home', 'content.group', 'content.view', 'content.search'];
+    return ['content.home', 'content.group', 'content.view', 'content.form', 'content.search'];
 }
 
 function sr_content_no_layout_key(): string
@@ -627,6 +657,11 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
         ['theme_key', sr_content_theme_key((string) ($settings['theme_key'] ?? 'basic')), 'string'],
         ['layout_primary_menu_key', sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header')), 'string'],
         ['layout_extra_menu_keys_json', sr_content_layout_extra_menu_keys_json($settings['layout_extra_menu_keys_json'] ?? []), 'json'],
+        ['sidebar_enabled', !empty($settings['sidebar_enabled']) ? '1' : '0', 'bool'],
+        ['sidebar_menu_type', sr_content_sidebar_menu_type((string) ($settings['sidebar_menu_type'] ?? 'groups')), 'string'],
+        ['sidebar_site_menu_key', sr_content_clean_layout_menu_key((string) ($settings['sidebar_site_menu_key'] ?? '')), 'string'],
+        ['sidebar_popular_limit', (string) max(1, min(10, (int) ($settings['sidebar_popular_limit'] ?? 5))), 'integer'],
+        ['sidebar_comments_limit', (string) max(1, min(10, (int) ($settings['sidebar_comments_limit'] ?? 5))), 'integer'],
         ['business_info_visible', !empty($settings['business_info_visible']) ? '1' : '0', 'bool'],
         ['series_enabled', !empty($settings['series_enabled']) ? '1' : '0', 'bool'],
         ['member_submission_enabled', !empty($settings['member_submission_enabled']) ? '1' : '0', 'bool'],

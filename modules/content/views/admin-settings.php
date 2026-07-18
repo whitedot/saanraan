@@ -351,6 +351,45 @@ $contentSettingsSectionNavItems = [
                 <p class="form-help">사이트 설정에 저장된 사업자 정보 중 값이 있는 항목을 콘텐츠 공개 레이아웃 푸터에 표시합니다.</p>
             </div>
         </div>
+        <div class="form-row">
+            <span class="form-label">콘텐츠 사이드</span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('content_admin_settings_sidebar_enabled', 'sidebar_enabled', '1', !empty($settings['sidebar_enabled']), '사용'); ?>
+                <p class="form-help">콘텐츠 메인을 제외한 그룹·검색 목록, 콘텐츠 읽기, 회원 콘텐츠 작성 화면에 사이드를 표시합니다.</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="content_admin_settings_sidebar_menu_type">사이드 메뉴 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_sidebar_menu_type', 'sidebar_menu_type', $contentSidebarMenuTypeOptions, (string) ($settings['sidebar_menu_type'] ?? 'groups'), true); ?>
+                <p class="form-help">사이드 첫 영역에 표시할 탐색 메뉴를 정합니다.</p>
+            </div>
+        </div>
+        <?php if ($siteMenuOptions !== []) { ?>
+            <?php $contentSidebarUsesSiteMenu = (string) ($settings['sidebar_menu_type'] ?? 'groups') === 'site_menu'; ?>
+            <div class="form-row" data-content-sidebar-site-menu-row<?php echo $contentSidebarUsesSiteMenu ? '' : ' hidden'; ?>>
+                <label class="form-label" for="content_admin_settings_sidebar_site_menu_key">사이드 사이트 메뉴 <span class="sr-required-label" data-content-sidebar-site-menu-required-label<?php echo $contentSidebarUsesSiteMenu ? '' : ' hidden'; ?>>(필수)</span></label>
+                <div class="form-field">
+                    <select id="content_admin_settings_sidebar_site_menu_key" name="sidebar_site_menu_key" class="form-select"<?php echo $contentSidebarUsesSiteMenu ? ' required' : ' disabled'; ?>>
+                        <option value="">선택 안 함</option>
+                        <?php foreach ($siteMenuOptions as $menuKey => $menuOption) { ?>
+                            <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo (string) ($settings['sidebar_site_menu_key'] ?? '') === (string) $menuKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($menuOption['label'] ?? $menuKey)); ?></option>
+                        <?php } ?>
+                    </select>
+                    <p class="form-help">사이드 메뉴에서 사이트 메뉴를 선택한 경우 사용합니다.</p>
+                </div>
+            </div>
+        <?php } ?>
+        <div class="form-row">
+            <span class="form-label">사이드 표시 개수</span>
+            <div class="form-field">
+                <div class="admin-inline-fields">
+                    <label>인기 콘텐츠 <input type="number" name="sidebar_popular_limit" value="<?php echo sr_e((string) ($settings['sidebar_popular_limit'] ?? 5)); ?>" min="1" max="10" class="form-input" required></label>
+                    <label>최신댓글 <input type="number" name="sidebar_comments_limit" value="<?php echo sr_e((string) ($settings['sidebar_comments_limit'] ?? 5)); ?>" min="1" max="10" class="form-input" required></label>
+                </div>
+                <p class="form-help">각 영역에 표시할 항목 수를 1~10개로 정합니다.</p>
+            </div>
+        </div>
     </section>
 
     <section id="content-settings-section-series" class="card" data-admin-section-anchor>
@@ -540,6 +579,35 @@ $contentSettingsSectionNavItems = [
 <?php echo sr_admin_help_modal_html($contentOnceHistoryPolicyHelpId, '기존 이용자 재결제 기준', $contentOnceHistoryPolicyHelpBody); ?>
 <?php foreach ($contentSettingsHelp as $contentSettingsHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $contentSettingsHelpModal['id'], (string) $contentSettingsHelpModal['title'], (string) $contentSettingsHelpModal['body']); ?>
+<?php } ?>
+
+<?php if ($siteMenuOptions !== []) { ?>
+    <script>
+    (function () {
+        'use strict';
+        var form = document.getElementById('content-settings-form');
+        var row = form ? form.querySelector('[data-content-sidebar-site-menu-row]') : null;
+        var select = document.getElementById('content_admin_settings_sidebar_site_menu_key');
+        var requiredLabel = row ? row.querySelector('[data-content-sidebar-site-menu-required-label]') : null;
+        if (!form || !row || !select) {
+            return;
+        }
+        var sync = function () {
+            var selected = form.querySelector('input[name="sidebar_menu_type"]:checked');
+            var active = !!selected && selected.value === 'site_menu';
+            row.hidden = !active;
+            select.disabled = !active;
+            select.required = active;
+            if (requiredLabel) {
+                requiredLabel.hidden = !active;
+            }
+        };
+        form.querySelectorAll('input[name="sidebar_menu_type"]').forEach(function (input) {
+            input.addEventListener('change', sync);
+        });
+        sync();
+    }());
+    </script>
 <?php } ?>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

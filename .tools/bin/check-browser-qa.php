@@ -124,6 +124,15 @@ sr_browser_qa_require_markers('.tools/browser-qa/tests/admin-module-reference-th
     "itemFlexBasis).toBe('100%')",
 ]);
 
+sr_browser_qa_require_markers('.tools/browser-qa/tests/public-module-sidebar-theme.spec.js', [
+    "test.describe('public module sidebar theme'",
+    'getComputedStyle',
+    "scheme: 'light'",
+    "scheme: 'dark'",
+    'content-sidebar',
+    'moves below the main column on narrow screens',
+]);
+
 sr_browser_qa_require_markers('docs/smoke-test.md', [
     'npm --prefix .tools/browser-qa run test:ckeditor',
     'ckeditor-browser-smoke.spec.js',
@@ -146,6 +155,7 @@ foreach ([
     '.tools/browser-qa/tests/ckeditor-browser-smoke.spec.js',
     '.tools/browser-qa/tests/admin-form-draft-theme.spec.js',
     '.tools/browser-qa/tests/admin-module-reference-theme.spec.js',
+    '.tools/browser-qa/tests/public-module-sidebar-theme.spec.js',
 ] as $jsFile) {
     sr_browser_qa_node_check($jsFile);
 }

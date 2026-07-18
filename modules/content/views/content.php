@@ -66,10 +66,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'before_content'],
         ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'after_content'],
+        ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
 ]));
 ?>
 <main class="content-page content-page-basic">
+    <div class="content-screen-frame">
+        <div class="content-screen-main">
     <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>
         <?php echo sr_popup_layer_render_public_layer($pdo, (int) ($page['popup_layer_id'] ?? 0)); ?>
     <?php } ?>
@@ -506,6 +509,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     <?php if (function_exists('sr_banner_render_public_banner') && sr_module_enabled($pdo, 'banner')) { ?>
         <?php echo sr_banner_render_public_banner($pdo, (int) ($page['banner_after_content_id'] ?? 0)); ?>
     <?php } ?>
+        </div>
+        <?php $contentSidebarSubject = $page; ?>
+        <?php include SR_ROOT . '/modules/content/theme/basic/sidebar.php'; ?>
+    </div>
 </main>
 <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
     <?php echo sr_editor_assets_html($pdo, $contentCommentEditorKey, $contentCommentToolbarPreset); ?>

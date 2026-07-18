@@ -15,6 +15,19 @@ return [
         ],
     ],
     [
+        'point_key' => 'content.sidebar.summary',
+        'label' => '콘텐츠 사이드 요약',
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'after_summary',
+                'label' => '요약 뒤',
+                'kind' => 'content',
+            ],
+        ],
+    ],
+    [
         'point_key' => 'content.view',
         'label' => sr_t('content::contract.extension.content_view'),
         'surface' => 'public',

@@ -52,6 +52,7 @@ if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_men
     require_once SR_ROOT . '/modules/site_menu/helpers.php';
     $siteMenuOptions = sr_site_menu_options($pdo);
 }
+$contentSidebarMenuTypeOptions = sr_content_sidebar_menu_type_options($siteMenuOptions !== []);
 
 if (sr_request_method() === 'POST') {
     sr_admin_require_permission($pdo, (int) $account['id'], '/admin/content/settings', 'edit');
@@ -85,6 +86,9 @@ if (sr_request_method() === 'POST') {
     $postedReactionCommentPresetInput = sr_post_string('reaction_comment_preset_key', 80);
     $postedCommentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
     $postedThemeKey = sr_view_theme_post_key(sr_post_string('theme_key', 80));
+    $postedSidebarMenuTypeInput = sr_post_string('sidebar_menu_type', 30);
+    $postedSidebarPopularLimit = sr_admin_post_int_in_range('sidebar_popular_limit', 1, 10);
+    $postedSidebarCommentsLimit = sr_admin_post_int_in_range('sidebar_comments_limit', 1, 10);
     $postedSettings = [
         'editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedEditorInput)),
         'editor_toolbar_preset' => $postedToolbarPreset,
@@ -100,6 +104,11 @@ if (sr_request_method() === 'POST') {
         'theme_key' => $postedThemeKey,
         'layout_primary_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_extra_menu_keys_json' => sr_content_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []),
+        'sidebar_enabled' => sr_post_string('sidebar_enabled', 1) === '1',
+        'sidebar_menu_type' => sr_content_sidebar_menu_type($postedSidebarMenuTypeInput),
+        'sidebar_site_menu_key' => sr_content_clean_layout_menu_key(sr_post_string('sidebar_site_menu_key', 60)),
+        'sidebar_popular_limit' => $postedSidebarPopularLimit ?? 5,
+        'sidebar_comments_limit' => $postedSidebarCommentsLimit ?? 5,
         'business_info_visible' => sr_post_string('business_info_visible', 1) === '1',
         'series_enabled' => sr_post_string('series_enabled', 1) === '1',
         'member_submission_enabled' => sr_post_string('member_submission_enabled', 1) === '1',
@@ -159,6 +168,16 @@ if (sr_request_method() === 'POST') {
             $errors[] = '레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
             break;
         }
+    }
+    if ($postedSidebarMenuTypeInput !== (string) $postedSettings['sidebar_menu_type']
+        || !isset($contentSidebarMenuTypeOptions[(string) $postedSettings['sidebar_menu_type']])) {
+        $errors[] = '콘텐츠 사이드 메뉴 유형이 올바르지 않습니다.';
+    } elseif ((string) $postedSettings['sidebar_menu_type'] === 'site_menu'
+        && ((string) $postedSettings['sidebar_site_menu_key'] === '' || !isset($siteMenuOptions[(string) $postedSettings['sidebar_site_menu_key']])) ) {
+        $errors[] = '콘텐츠 사이드에 표시할 사이트 메뉴를 선택하세요.';
+    }
+    if ($postedSidebarPopularLimit === null || $postedSidebarCommentsLimit === null) {
+        $errors[] = '콘텐츠 사이드 표시 개수는 1~10 사이로 입력하세요.';
     }
     if ((string) $postedSettings['member_submission_author_reward_asset_module'] !== '') {
         if (!isset($assetModuleOptions[(string) $postedSettings['member_submission_author_reward_asset_module']])) {
@@ -221,7 +240,7 @@ $adminFormDraft = sr_admin_form_draft_with_state(
 if (is_array($adminFormDraft)) {
     $contentDraftBooleanKeys = [
         'external_embed_enabled', 'internal_embed_enabled', 'plain_text_auto_link_urls', 'plain_text_auto_link_new_tab',
-        'secret_comments_enabled', 'business_info_visible', 'series_enabled', 'member_submission_enabled',
+        'secret_comments_enabled', 'sidebar_enabled', 'business_info_visible', 'series_enabled', 'member_submission_enabled',
         'identity_content_view_required', 'identity_content_view_adult_required', 'identity_author_application_required',
         'identity_author_application_adult_required', 'member_submission_default_review_required',
         'member_submission_author_reward_enabled', 'multi_asset_payment_enabled', 'reaction_enabled',
