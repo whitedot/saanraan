@@ -374,6 +374,7 @@ function sr_quiz_default_settings(): array
         'business_info_visible' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_editor' => 'textarea',
         'comment_extra_fields_json' => '[]',
         'public_list_limit' => 50,
     ];
@@ -708,6 +709,7 @@ function sr_quiz_normalize_settings(array $settings): array
     $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
     $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
     $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_quiz_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
+    $normalized['comment_editor'] = sr_editor_normalize_key((string) ($normalized['comment_editor'] ?? 'textarea'));
     $normalized['comment_extra_fields_json'] = is_string($normalized['comment_extra_fields_json'] ?? null) ? (string) $normalized['comment_extra_fields_json'] : sr_comment_extra_field_definitions_json($normalized['comment_extra_fields_json'] ?? []);
     $normalized['public_list_limit'] = max(1, min(100, (int) $normalized['public_list_limit']));
 
@@ -717,6 +719,7 @@ function sr_quiz_normalize_settings(array $settings): array
 function sr_quiz_settings(PDO $pdo): array
 {
     $settings = sr_quiz_normalize_settings(sr_module_settings($pdo, 'quiz'));
+    $settings['comment_editor'] = sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
     if (!isset(sr_quiz_layout_options($pdo)[$settings['layout_key']])) {
         $settings['layout_key'] = sr_quiz_fallback_layout_key($pdo, null);
     }
@@ -725,6 +728,12 @@ function sr_quiz_settings(PDO $pdo): array
     }
 
     return $settings;
+}
+
+function sr_quiz_comment_editor_key(PDO $pdo, ?array $settings = null): string
+{
+    $settings = is_array($settings) ? $settings : sr_quiz_settings($pdo);
+    return sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
 }
 
 function sr_quiz_settings_from_post(): array
@@ -760,6 +769,7 @@ function sr_quiz_settings_from_post(): array
         'business_info_visible' => ($_POST['business_info_visible'] ?? '') === '1',
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_preset_key', 80), 80),
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
+        'comment_editor' => sr_editor_normalize_key(sr_post_string('comment_editor', 30)),
         'comment_extra_fields_json' => sr_post_string_without_truncation('comment_extra_fields_json', 20000),
         'public_list_limit' => sr_post_string('public_list_limit', 20),
     ]);
@@ -777,6 +787,9 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
 {
     $errors = [];
     $errors = array_merge($errors, sr_comment_extra_field_definition_errors($settings['comment_extra_fields_json'] ?? '[]'));
+    if (!array_key_exists((string) ($settings['comment_editor'] ?? ''), sr_editor_options($pdo))) {
+        $errors[] = '댓글 에디터 값이 올바르지 않습니다.';
+    }
     if (!isset(sr_quiz_layout_options($pdo)[(string) ($settings['layout_key'] ?? '')])) {
         $errors[] = '퀴즈 공개 레이아웃 값이 올바르지 않습니다.';
     }

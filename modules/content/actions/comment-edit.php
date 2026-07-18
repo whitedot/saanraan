@@ -26,8 +26,9 @@ if (!sr_content_account_can_edit_comment($comment, $account)) {
     sr_render_error(403, '댓글을 수정할 권한이 없습니다.');
 }
 
-$values = sr_content_comment_input_values();
-if (empty(sr_content_settings($pdo)['secret_comments_enabled'])) {
+$contentSettings = sr_content_settings($pdo);
+$values = sr_content_comment_input_values($pdo, $contentSettings);
+if (empty($contentSettings['secret_comments_enabled'])) {
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
 }
 $errors = sr_content_validate_comment_input($values);

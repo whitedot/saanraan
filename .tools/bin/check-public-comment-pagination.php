@@ -107,6 +107,24 @@ foreach ($sourceChecks as $sourceKey => $marker) {
     $assert(is_string($contents) && str_contains($contents, $marker), $file . ' must use public comment pagination marker: ' . $marker);
 }
 
+foreach ([
+    'modules/content/theme/basic/content.php',
+    'modules/content/views/content.php',
+    'modules/quiz/theme/basic/view.php',
+    'modules/quiz/skins/basic/view.php',
+    'modules/survey/theme/basic/view.php',
+    'modules/survey/skins/basic/view.php',
+] as $commentViewPath) {
+    $contents = file_get_contents($root . '/' . $commentViewPath);
+    $assert(
+        is_string($contents)
+            && str_contains($contents, "'compact_edges' => true")
+            && str_contains($contents, "'link_class' => 'btn btn-ghost-default'")
+            && str_contains($contents, "'current_class' => 'btn btn-solid-primary'"),
+        $commentViewPath . ' must render the community-style compact numeric pagination surface.'
+    );
+}
+
 foreach (['content', 'quiz', 'survey'] as $moduleKey) {
     $action = file_get_contents($root . '/modules/' . $moduleKey . '/actions/comment.php');
     $assert(

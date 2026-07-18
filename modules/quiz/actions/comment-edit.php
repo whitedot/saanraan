@@ -26,7 +26,8 @@ if (!sr_quiz_account_can_edit_comment($comment, $account)) {
     sr_render_error(403, '댓글을 수정할 권한이 없습니다.');
 }
 
-$values = sr_quiz_comment_input_values();
+$quizSettings = sr_quiz_settings($pdo);
+$values = sr_quiz_comment_input_values($pdo, $quizSettings);
 if ((int) ($quiz['secret_comments_enabled'] ?? 0) !== 1) {
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;
 }

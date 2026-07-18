@@ -73,6 +73,7 @@ if (sr_request_method() === 'POST') {
     }
 
     $postedEditorInput = sr_post_string('editor', 30);
+    $postedCommentEditorInput = sr_post_string('comment_editor', 30);
     $postedToolbarPresetInput = sr_post_string('editor_toolbar_preset', 80);
     $postedToolbarPreset = sr_content_toolbar_preset_key($postedToolbarPresetInput);
     $postedOnceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
@@ -87,6 +88,7 @@ if (sr_request_method() === 'POST') {
     $postedSettings = [
         'editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedEditorInput)),
         'editor_toolbar_preset' => $postedToolbarPreset,
+        'comment_editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedCommentEditorInput)),
         'external_embed_enabled' => sr_post_string('external_embed_enabled', 1) === '1',
         'internal_embed_enabled' => sr_post_string('internal_embed_enabled', 1) === '1',
         'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
@@ -119,6 +121,9 @@ if (sr_request_method() === 'POST') {
 
     if ($postedEditorInput !== (string) $postedSettings['editor'] || !array_key_exists((string) $postedSettings['editor'], $editorOptions)) {
         $errors[] = '본문 에디터 값이 올바르지 않습니다.';
+    }
+    if ($postedCommentEditorInput !== (string) $postedSettings['comment_editor'] || !array_key_exists((string) $postedSettings['comment_editor'], $editorOptions)) {
+        $errors[] = '댓글 에디터 값이 올바르지 않습니다.';
     }
     if ($postedToolbarPresetInput !== (string) $postedSettings['editor_toolbar_preset'] || !array_key_exists((string) $postedSettings['editor_toolbar_preset'], $toolbarPresetOptions)) {
         $errors[] = '툴바 구성 값이 올바르지 않습니다.';

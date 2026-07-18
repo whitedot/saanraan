@@ -219,6 +219,18 @@ function sr_sanitizer_check_body_text_helper_case(): void
         '&lt;strong&gt;plain&lt;/strong&gt;',
         '<a href="https://example.com/path" rel="nofollow noopener noreferrer">https://example.com/path</a>',
     ], 'common body_text plain renderer');
+
+    sr_sanitizer_check_assert(
+        sr_body_text_plain_text([
+            'body_format' => 'html',
+            'body_text' => '<p>첫 문장<br>둘째 문장</p><script>제거</script>',
+        ]) === '첫 문장 둘째 문장',
+        'common body_text plain text helper must remove markup and preserve block text.'
+    );
+    sr_sanitizer_check_assert(
+        sr_body_text_plain_text(['body_format' => 'html', 'body_text' => '<p><br></p>']) === '',
+        'common body_text plain text helper must treat an empty editor paragraph as empty.'
+    );
 }
 
 function sr_sanitizer_check_board_description_case(): void

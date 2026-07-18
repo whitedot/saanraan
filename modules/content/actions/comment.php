@@ -25,7 +25,7 @@ $contentSettings = sr_content_settings($pdo);
 $commentExtraFieldDefinitions = sr_comment_extra_field_definitions($page['comment_extra_fields_json'] ?? '[]');
 $commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);
 $commentExtraFieldValues = (array) ($commentExtraFieldInput['values'] ?? []);
-$values = sr_content_comment_input_values();
+$values = sr_content_comment_input_values($pdo, $contentSettings);
 if (empty($contentSettings['secret_comments_enabled'])) {
     $values['is_secret'] = 0;
 }

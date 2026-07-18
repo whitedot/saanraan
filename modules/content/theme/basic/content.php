@@ -16,6 +16,13 @@ if (sr_content_clean_cover_image_url((string) ($page['cover_image_url'] ?? '')) 
     $seo['og']['image'] = (string) $page['cover_image_url'];
 }
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
+$contentCommentEditorKey = sr_content_comment_editor_key($pdo, $contentLayoutSettings);
+$contentCommentToolbarPreset = sr_content_toolbar_preset_key((string) ($contentLayoutSettings['editor_toolbar_preset'] ?? 'standard'));
+$contentCommentEditorAttributes = sr_editor_textarea_attributes($pdo, $contentCommentEditorKey, $contentCommentToolbarPreset, 'comment_body_format');
+$contentCommentEditorRequiredAttribute = $contentCommentEditorKey === 'ckeditor' ? '' : ' required';
+if ($contentCommentEditorKey === 'ckeditor') {
+    $contentCommentEditorAttributes .= ' data-sr-editor-body-theme="content.' . sr_e(sr_content_theme_key((string) ($contentLayoutSettings['theme_key'] ?? 'basic'))) . '"';
+}
 $contentImageFiles = isset($contentImageFiles) && is_array($contentImageFiles) ? $contentImageFiles : [];
 $contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
@@ -26,6 +33,7 @@ $contentStylesheets = sr_enabled_module_asset_paths($pdo ?? null, [
     'reaction' => '/modules/reaction/assets/module.css',
 ]);
 $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null));
+$contentStylesheets = array_merge($contentStylesheets, sr_content_comment_body_stylesheets($pdo, $contentLayoutSettings));
 if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
@@ -295,10 +303,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <?php if (!empty($pageAccess['allowed'])) { ?>
             <section id="content-comments" class="content-comments">
                 <div class="content-comments-panel-header">
-                    <h2>댓글 <span><?php echo sr_e(number_format((int) ($contentCommentPage['total'] ?? 0))); ?></span></h2>
-                    <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
-                        <a href="#content-comment-form" class="btn btn-solid-light">작성</a>
-                    <?php } ?>
+                    <h2>댓글 <span class="content-comments-count"><?php echo sr_e(number_format((int) ($contentCommentPage['total'] ?? 0))); ?></span></h2>
                 </div>
                 <?php echo sr_public_feedback_toasts('content', (string) ($contentCommentNotice ?? ''), is_array($contentCommentErrors ?? null) ? $contentCommentErrors : []); ?>
                 <?php if (is_array($contentComments ?? null) && $contentComments !== []) { ?>
@@ -307,7 +312,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             <?php
                             $contentCommentDepth = min(3, max(1, (int) ($contentComment['depth'] ?? 1)));
                             ?>
-                            <li id="content-comment-<?php echo sr_e((string) (int) ($contentComment['id'] ?? 0)); ?>" class="content-comment-depth-<?php echo sr_e((string) $contentCommentDepth); ?>">
+                            <li id="content-comment-<?php echo sr_e((string) (int) ($contentComment['id'] ?? 0)); ?>" class="content-comment-item content-comment-depth-<?php echo sr_e((string) $contentCommentDepth); ?>">
                                 <?php
                                 $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null, $pdo);
                                 $contentCommentCanEdit = is_array($account ?? null) && sr_content_account_can_edit_comment($contentComment, $account);
@@ -319,24 +324,33 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 $contentCommentReplyId = 'content_comment_reply_' . (string) $contentComment['id'];
                                 $contentCommentReplyModalId = 'content_comment_reply_modal_' . (string) (int) $contentComment['id'];
                                 $contentCommentCreatedAt = (string) ($contentComment['created_at'] ?? '');
+                                $contentCommentPageNumber = (int) ($contentCommentPage['page'] ?? 1);
+                                $contentCommentUrl = sr_content_path((string) $page['slug'])
+                                    . ($contentCommentPageNumber > 1 ? '?comment_page=' . rawurlencode((string) $contentCommentPageNumber) : '')
+                                    . '#content-comment-' . rawurlencode((string) (int) ($contentComment['id'] ?? 0));
                                 ?>
                                 <div class="content-comment-meta">
                                     <?php $contentCommentAuthorLabel = (string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원'); ?>
-                                    <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
+                                    <div class="content-comment-author"><?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
                                         'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                    ]); ?>
+                                    ]); ?></div>
                                     <?php if ($contentCommentCreatedAt !== '') { ?>
-                                        <?php echo sr_content_time_html($contentCommentCreatedAt); ?>
+                                        <span class="content-comment-date">
+                                            <span class="content-comment-date-content">
+                                                <?php echo sr_content_time_html($contentCommentCreatedAt); ?>
+                                                <a class="content-comment-permalink" href="<?php echo sr_e(sr_url($contentCommentUrl)); ?>" aria-label="댓글 고유주소로 이동" title="댓글 고유주소"><?php echo sr_material_icon_html('link'); ?></a>
+                                            </span>
+                                        </span>
                                     <?php } ?>
                                     <?php if ((int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
-                                        <span>비밀</span>
+                                        <span class="content-comment-meta-status">비밀</span>
                                     <?php } ?>
                                     <?php if ($contentCommentDepth > 1) { ?>
                                         <span>답글 <?php echo sr_e((string) $contentCommentDepth); ?>단계</span>
                                     <?php } ?>
                                 </div>
                                 <?php if ($contentCommentCanViewBody) { ?>
-                                    <p><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
+                                    <div class="content-comment-body"><?php echo sr_content_comment_body_html($pdo, $contentComment, $contentLayoutSettings); ?></div>
                                     <?php echo sr_comment_extra_fields_display_html((string) ($contentComment['extra_values_json'] ?? '')); ?>
                                     <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
                                         <?php
@@ -353,10 +367,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <?php } ?>
                                 <?php if ($contentCommentCanEdit || $contentCommentCanDelete || $contentCommentCanHide || $contentCommentCanReply) { ?>
                                     <div class="content-comment-actions">
+                                        <div class="content-comment-action-group content-comment-action-group-leading">
                                         <?php if ($contentCommentCanReply) { ?>
                                             <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentReplyModalId); ?>">답글</button>
                                             <div id="<?php echo sr_e($contentCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($contentCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
-                                                <div class="modal-dialog">
+                                                <div class="modal-dialog content-comment-editor-dialog">
                                                     <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>" class="modal-content">
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
@@ -370,13 +385,17 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                         </div>
                                                         <div class="modal-body">
                                                             <strong class="content-comment-reply-source-label">댓글</strong>
-                                                            <p class="content-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) $contentComment['body_text']); ?></p>
-                                                            <label for="<?php echo sr_e($contentCommentReplyId); ?>">답글</label>
-                                                            <textarea id="<?php echo sr_e($contentCommentReplyId); ?>" name="body_text" rows="3" cols="60" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                                                            <p class="content-comment-reply-source" tabindex="0" aria-label="답글 대상 댓글"><?php echo sr_e(sr_content_comment_body_plain_text($pdo, $contentComment, $contentLayoutSettings)); ?></p>
+                                                            <p class="content-comment-editor-field">
+                                                                <label for="<?php echo sr_e($contentCommentReplyId); ?>">
+                                                                    <span>답글 <span class="sr-required-label">(필수)</span></span>
+                                                                    <textarea id="<?php echo sr_e($contentCommentReplyId); ?>" name="body_text" rows="3" cols="60"<?php echo $contentCommentEditorRequiredAttribute; ?> class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"<?php echo $contentCommentEditorAttributes; ?>><?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                                                                </label>
+                                                            </p>
                                                             <?php echo sr_comment_extra_fields_form_html($contentCommentExtraFieldDefinitions, (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? $contentCommentExtraFieldValues : [], 'comment_extra_fields', 'content_comment_reply_' . (string) $contentComment['id']); ?>
                                                             <?php if (!empty($contentSecretCommentsEnabled)) { ?>
                                                                 <label class="content-comment-secret-toggle">
-                                                                    <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] && !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
+                                                                    <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] && !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
                                                                     <span>비밀 댓글</span>
                                                                 </label>
                                                             <?php } ?>
@@ -389,10 +408,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                 </div>
                                             </div>
                                         <?php } ?>
+                                        </div>
+                                        <div class="content-comment-action-group content-comment-action-group-trailing">
                                         <?php if ($contentCommentCanEdit) { ?>
                                             <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentEditModalId); ?>">수정</button>
                                             <div id="<?php echo sr_e($contentCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($contentCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
-                                                <div class="modal-dialog">
+                                                <div class="modal-dialog content-comment-editor-dialog">
                                                     <form method="post" action="<?php echo sr_e(sr_url('/content/comment/edit')); ?>" class="modal-content">
                                                         <?php echo sr_csrf_field(); ?>
                                                         <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
@@ -403,11 +424,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <label for="<?php echo sr_e($contentCommentEditId); ?>">내용</label>
-                                                            <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
+                                                            <p class="content-comment-editor-field">
+                                                                <label for="<?php echo sr_e($contentCommentEditId); ?>">
+                                                                    <span>내용 <span class="sr-required-label">(필수)</span></span>
+                                                                    <textarea id="<?php echo sr_e($contentCommentEditId); ?>" name="body_text" rows="3" cols="60"<?php echo $contentCommentEditorRequiredAttribute; ?> class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"<?php echo $contentCommentEditorAttributes; ?>><?php echo sr_e((string) $contentComment['body_text']); ?></textarea>
+                                                                </label>
+                                                            </p>
                                                             <?php if (!empty($contentSecretCommentsEnabled) || (int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
                                                                 <label class="content-comment-secret-toggle">
-                                                                    <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                                    <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($contentComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                                                     <span>비밀 댓글</span>
                                                                 </label>
                                                             <?php } ?>
@@ -434,33 +459,39 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                 <button type="submit" class="btn btn-ghost-default">숨기기</button>
                                             </form>
                                         <?php } ?>
+                                        </div>
                                     </div>
                                 <?php } ?>
                             </li>
                         <?php } ?>
                     </ul>
-                    <?php echo sr_public_pagination_html($contentCommentPage, sr_content_path((string) $page['slug']), '콘텐츠 댓글 페이지', 'comment_page', 'content-comments', 'content-comments-pagination'); ?>
+                    <?php echo sr_public_pagination_html($contentCommentPage, sr_content_path((string) $page['slug']), '콘텐츠 댓글 페이지', 'comment_page', 'content-comments', 'content-comments-pagination', ['compact_edges' => true, 'link_class' => 'btn btn-ghost-default', 'current_class' => 'btn btn-solid-primary']); ?>
                 <?php } else { ?>
-                    <p>등록된 댓글이 없습니다.</p>
+                    <p class="content-comments-empty">등록된 댓글이 없습니다.</p>
                 <?php } ?>
                 <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
-                    <form id="content-comment-form" method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
+                    <form id="content-comment-form" class="content-comment-form" method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
                         <input type="hidden" name="parent_comment_id" value="0">
                         <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($contentCommentPage['page'] ?? 1)); ?>">
-                        <label for="content_comment_body">댓글</label>
-                        <textarea id="content_comment_body" name="body_text" rows="4" cols="60" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($contentCommentParentId ?? 0) < 1 ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                        <p>
+                            <label for="content_comment_body">
+                                <span>댓글 <span class="sr-required-label">(필수)</span></span>
+                                <textarea id="content_comment_body" name="body_text" rows="5" cols="80"<?php echo $contentCommentEditorRequiredAttribute; ?> class="form-textarea" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"<?php echo $contentCommentEditorAttributes; ?>><?php echo (int) ($contentCommentParentId ?? 0) < 1 ? sr_e((string) ($contentCommentBody ?? '')) : ''; ?></textarea>
+                            </label>
+                        </p>
                         <?php echo sr_comment_extra_fields_form_html($contentCommentExtraFieldDefinitions, (int) ($contentCommentParentId ?? 0) < 1 ? $contentCommentExtraFieldValues : [], 'comment_extra_fields', 'content_comment'); ?>
                         <?php if (!empty($contentSecretCommentsEnabled)) { ?>
                             <label class="content-comment-secret-toggle">
-                                <input type="checkbox" name="is_secret" value="1"<?php echo !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
+                                <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
                                 <span>비밀 댓글</span>
                             </label>
                         <?php } ?>
-                        <p class="form-help">@이름 형식으로 회원을 언급할 수 있습니다.</p>
-                        <button type="submit" class="btn btn-solid-light">댓글 등록</button>
+                        <button type="submit" class="btn btn-solid-primary">댓글 등록</button>
                     </form>
+                <?php } elseif (!$contentAdminPreview) { ?>
+                    <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode(sr_content_path((string) $page['slug']) . '#content-comments'))); ?>">로그인 후 댓글 작성</a></p>
                 <?php } ?>
             </section>
         <?php } ?>
@@ -476,6 +507,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <?php echo sr_banner_render_public_banner($pdo, (int) ($page['banner_after_content_id'] ?? 0)); ?>
     <?php } ?>
 </main>
+<?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
+    <?php echo sr_editor_assets_html($pdo, $contentCommentEditorKey, $contentCommentToolbarPreset); ?>
+<?php } ?>
 <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
     <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>

@@ -258,7 +258,8 @@ function sr_public_pagination_html(
     string $label,
     string $pageParam = 'page',
     string $anchor = '',
-    string $className = 'public-pagination'
+    string $className = 'public-pagination',
+    array $options = []
 ): string {
     $page = max(1, (int) ($pagination['page'] ?? 1));
     $totalPages = max(1, (int) ($pagination['total_pages'] ?? 1));
@@ -279,23 +280,47 @@ function sr_public_pagination_html(
         return sr_url($url);
     };
 
-    $startPage = max(1, min($page - 2, $totalPages - 4));
-    $endPage = min($totalPages, max($page + 2, 5));
+    $normalizeItemClass = static function (mixed $value): string {
+        $value = is_string($value) ? trim($value) : '';
+        return $value !== '' && preg_match('/\A[a-zA-Z0-9_-]+(?:\s+[a-zA-Z0-9_-]+)*\z/', $value) === 1 ? $value : '';
+    };
+    $linkClass = $normalizeItemClass($options['link_class'] ?? '');
+    $currentClass = $normalizeItemClass($options['current_class'] ?? '');
+    $compactEdges = !empty($options['compact_edges']);
+    $pageNumbers = [];
+    if ($compactEdges) {
+        $pageNumbers = [1 => 1, $totalPages => $totalPages];
+        for ($pageNumber = max(1, $page - 2); $pageNumber <= min($totalPages, $page + 2); $pageNumber++) {
+            $pageNumbers[$pageNumber] = $pageNumber;
+        }
+        ksort($pageNumbers);
+    } else {
+        $startPage = max(1, min($page - 2, $totalPages - 4));
+        $endPage = min($totalPages, max($page + 2, 5));
+        for ($pageNumber = $startPage; $pageNumber <= $endPage; $pageNumber++) {
+            $pageNumbers[$pageNumber] = $pageNumber;
+        }
+    }
     ob_start();
     ?>
     <nav class="<?php echo sr_e($className); ?>" aria-label="<?php echo sr_e($label); ?>">
-        <?php if ($page > 1) { ?>
-            <a href="<?php echo sr_e($urlForPage($page - 1)); ?>" rel="prev">이전</a>
+        <?php if (!$compactEdges && $page > 1) { ?>
+            <a<?php echo $linkClass !== '' ? ' class="' . sr_e($linkClass) . '"' : ''; ?> href="<?php echo sr_e($urlForPage($page - 1)); ?>" rel="prev">이전</a>
         <?php } ?>
-        <?php for ($pageNumber = $startPage; $pageNumber <= $endPage; $pageNumber++) { ?>
-            <?php if ($pageNumber === $page) { ?>
-                <span aria-current="page"><?php echo sr_e((string) $pageNumber); ?></span>
-            <?php } else { ?>
-                <a href="<?php echo sr_e($urlForPage($pageNumber)); ?>"><?php echo sr_e((string) $pageNumber); ?></a>
+        <?php $previousPageNumber = 0; ?>
+        <?php foreach ($pageNumbers as $pageNumber) { ?>
+            <?php if ($compactEdges && $previousPageNumber > 0 && $pageNumber > $previousPageNumber + 1) { ?>
+                <span class="<?php echo sr_e($className . '-gap'); ?>" aria-hidden="true">…</span>
             <?php } ?>
+            <?php if ($pageNumber === $page) { ?>
+                <span<?php echo $currentClass !== '' ? ' class="' . sr_e($currentClass) . '"' : ''; ?> aria-current="page"><?php echo sr_e((string) $pageNumber); ?></span>
+            <?php } else { ?>
+                <a<?php echo $linkClass !== '' ? ' class="' . sr_e($linkClass) . '"' : ''; ?> href="<?php echo sr_e($urlForPage($pageNumber)); ?>"><?php echo sr_e((string) $pageNumber); ?></a>
+            <?php } ?>
+            <?php $previousPageNumber = $pageNumber; ?>
         <?php } ?>
-        <?php if ($page < $totalPages) { ?>
-            <a href="<?php echo sr_e($urlForPage($page + 1)); ?>" rel="next">다음</a>
+        <?php if (!$compactEdges && $page < $totalPages) { ?>
+            <a<?php echo $linkClass !== '' ? ' class="' . sr_e($linkClass) . '"' : ''; ?> href="<?php echo sr_e($urlForPage($page + 1)); ?>" rel="next">다음</a>
         <?php } ?>
     </nav>
     <?php
@@ -970,6 +995,22 @@ function sr_body_text_html(array $record, bool $linkPlainUrls = false, ?PDO $pdo
     }
 
     return sr_plain_text_html($bodyText, $linkPlainUrls, $openPlainLinksInNewTab);
+}
+
+function sr_body_text_plain_text(array $record, ?PDO $pdo = null): string
+{
+    $bodyText = (string) ($record['body_text'] ?? '');
+    $bodyFormat = sr_body_format((string) ($record['body_format'] ?? 'plain'));
+    if ($bodyFormat === 'html') {
+        $bodyText = str_replace(['<br>', '<br/>', '<br />'], ' ', sr_sanitize_rich_text_html($bodyText));
+        $bodyText = html_entity_decode(strip_tags($bodyText), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    } elseif ($bodyFormat === 'markdown') {
+        $bodyText = $pdo instanceof PDO
+            ? sr_markdown_plain_text_for_body($pdo, $bodyText)
+            : sr_markdown_plain_text($bodyText);
+    }
+
+    return trim(preg_replace('/\s+/u', ' ', $bodyText) ?? '');
 }
 
 function sr_body_format(string $value): string

@@ -38,6 +38,7 @@ return [
         'business_info_visible' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_editor' => 'textarea',
         'comment_extra_fields_json' => '[]',
         'public_list_limit' => 50,
     ],

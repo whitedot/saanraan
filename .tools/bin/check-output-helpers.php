@@ -704,6 +704,23 @@ sr_output_helper_assert(
     sr_public_pagination_html(['page' => 1, 'total_pages' => 1], '/content/example', '댓글 페이지') === '',
     'Public pagination helper should omit a single-page navigation surface.'
 );
+$compactPublicPaginationHtml = sr_public_pagination_html(
+    ['page' => 5, 'total_pages' => 10],
+    '/content/example',
+    '댓글 페이지',
+    'comment_page',
+    'content-comments',
+    'content-comments-pagination',
+    ['compact_edges' => true, 'link_class' => 'btn btn-ghost-default', 'current_class' => 'btn btn-solid-primary']
+);
+sr_output_helper_assert(
+    str_contains($compactPublicPaginationHtml, 'class="btn btn-solid-primary" aria-current="page">5</span>')
+        && str_contains($compactPublicPaginationHtml, 'class="btn btn-ghost-default"')
+        && str_contains($compactPublicPaginationHtml, 'class="content-comments-pagination-gap"')
+        && !str_contains($compactPublicPaginationHtml, 'rel="prev"')
+        && !str_contains($compactPublicPaginationHtml, 'rel="next"'),
+    'Compact public pagination should match the community numeric edge window and button classes.'
+);
 
 $outputHelper = file_get_contents($root . '/core/helpers/output.php');
 if (is_string($outputHelper)) {

@@ -22,6 +22,7 @@ $flashResult = sr_request_method() === 'GET' ? sr_admin_pop_flash_result() : sr_
 $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $reactionPresetOptions = $surveyReactionAvailable && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$editorOptions = sr_editor_options($pdo);
 $surveyIdentityViewAvailable = $surveyIdentityVerificationModuleAvailable
     && function_exists('sr_identity_verification_available')
     && sr_identity_verification_available($pdo, 'survey.view');

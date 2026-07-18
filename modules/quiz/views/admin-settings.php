@@ -14,6 +14,13 @@ $quizSiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
     : [];
 $quizIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $quizReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
+$quizEditorModuleReferences = [];
+foreach (sr_editor_contracts($pdo) as $quizEditorContract) {
+    $quizEditorModuleKey = is_array($quizEditorContract) ? (string) ($quizEditorContract['module_key'] ?? '') : '';
+    if ($quizEditorModuleKey !== '') {
+        $quizEditorModuleReferences[$quizEditorModuleKey] = ['module_key' => $quizEditorModuleKey];
+    }
+}
 $quizAssetModuleReferences = [];
 foreach ($assetOptions as $quizAssetModuleKey => $quizAssetOption) {
     $assetProviderModuleKey = is_array($quizAssetOption)
@@ -433,9 +440,17 @@ $quizSettingsSectionNavItems = [
 
     <section id="quiz-settings-section-reaction" class="card" data-admin-section-anchor>
         <div class="card-header">
-            <h2 class="card-title">리액션 기본값</h2>
+            <h2 class="card-title">댓글·리액션 기본값</h2>
         </div>
         <div class="form-grid">
+            <div class="form-row">
+                <label class="form-label" for="quiz_settings_comment_editor">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('quiz_settings_comment_editor', 'comment_editor', $editorOptions, (string) ($settings['comment_editor'] ?? 'textarea'), true); ?>
+                    <p class="form-help">퀴즈 댓글·답글·수정 입력에 사용할 에디터입니다. CKEditor는 일반 편집 도구 구성을 사용하며, 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $quizEditorModuleReferences); ?>
+                </div>
+            </div>
             <div class="form-row">
                 <label class="form-label" for="quiz_settings_reaction_preset_key">퀴즈 리액션 프리셋</label>
                 <div class="form-field">

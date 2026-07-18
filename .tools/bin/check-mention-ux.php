@@ -143,9 +143,13 @@ foreach ([
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, 'data-sr-mention-input'), 'comment view should enable mention input: ' . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, '/member/mention-search'), 'comment view should point to member mention search: ' . $viewPath);
-    $mentionRenderer = str_starts_with($viewPath, '/modules/community/')
-        ? 'sr_community_comment_body_html'
-        : 'sr_member_mention_plain_text_html';
+    $mentionRenderer = match (true) {
+        str_starts_with($viewPath, '/modules/community/') => 'sr_community_comment_body_html',
+        str_starts_with($viewPath, '/modules/content/') => 'sr_content_comment_body_html',
+        str_starts_with($viewPath, '/modules/quiz/') => 'sr_quiz_comment_body_html',
+        str_starts_with($viewPath, '/modules/survey/') => 'sr_survey_comment_body_html',
+        default => 'sr_member_mention_plain_text_html',
+    };
     sr_mention_check_assert(is_string($view) && str_contains($view, $mentionRenderer), 'comment view should render mention tokens through the format-aware renderer: ' . $viewPath);
 }
 

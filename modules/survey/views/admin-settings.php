@@ -14,6 +14,13 @@ $surveySiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
     : [];
 $surveyIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $surveyReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
+$surveyEditorModuleReferences = [];
+foreach (sr_editor_contracts($pdo) as $surveyEditorContract) {
+    $surveyEditorModuleKey = is_array($surveyEditorContract) ? (string) ($surveyEditorContract['module_key'] ?? '') : '';
+    if ($surveyEditorModuleKey !== '') {
+        $surveyEditorModuleReferences[$surveyEditorModuleKey] = ['module_key' => $surveyEditorModuleKey];
+    }
+}
 $surveySiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $surveySiteMenuSelectOptions = static function (string $selectedMenuKey) use ($surveySiteMenuOptions): void {
     ?>
@@ -375,9 +382,17 @@ $surveySettingsSectionNavItems = [
 
     <section id="survey-settings-section-reaction" class="card" data-admin-section-anchor>
         <div class="card-header">
-            <h2 class="card-title">리액션</h2>
+            <h2 class="card-title">댓글·리액션</h2>
         </div>
         <div class="form-grid">
+            <div class="form-row">
+                <label class="form-label" for="survey_settings_comment_editor">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('survey_settings_comment_editor', 'comment_editor', $editorOptions, (string) ($settings['comment_editor'] ?? 'textarea'), true); ?>
+                    <p class="form-help">설문 댓글·답글·수정 입력에 사용할 에디터입니다. CKEditor는 일반 편집 도구 구성을 사용하며, 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveyEditorModuleReferences); ?>
+                </div>
+            </div>
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_reaction_preset_key', '설문 리액션 프리셋', $surveySettingsHelp['reaction_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">

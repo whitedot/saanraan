@@ -89,6 +89,13 @@ $quizCommentBody = (string) ($_SESSION['sr_quiz_comment_body'] ?? '');
 $quizCommentIsSecret = !empty($_SESSION['sr_quiz_comment_is_secret']);
 $quizCommentParentId = isset($_SESSION['sr_quiz_comment_parent_id']) ? (int) $_SESSION['sr_quiz_comment_parent_id'] : 0;
 $quizCommentExtraFieldDefinitions = sr_comment_extra_field_definitions($quiz['comment_extra_fields_json'] ?? '[]');
+$quizCommentEditorKey = sr_quiz_comment_editor_key($pdo, $quizSettings);
+$quizCommentToolbarPreset = 'standard';
+$quizCommentEditorAttributes = sr_editor_textarea_attributes($pdo, $quizCommentEditorKey, $quizCommentToolbarPreset, 'comment_body_format');
+$quizCommentEditorRequiredAttribute = $quizCommentEditorKey === 'ckeditor' ? '' : ' required';
+if ($quizCommentEditorKey === 'ckeditor') {
+    $quizCommentEditorAttributes .= ' data-sr-editor-body-theme="quiz.' . sr_e(sr_quiz_theme_key((string) ($quizSettings['theme_key'] ?? 'basic'))) . '"';
+}
 $quizCommentExtraFieldValues = isset($_SESSION['sr_quiz_comment_extra_field_values']) && is_array($_SESSION['sr_quiz_comment_extra_field_values']) ? $_SESSION['sr_quiz_comment_extra_field_values'] : [];
 unset($_SESSION['sr_quiz_comment_notice'], $_SESSION['sr_quiz_comment_errors'], $_SESSION['sr_quiz_comment_body'], $_SESSION['sr_quiz_comment_is_secret'], $_SESSION['sr_quiz_comment_parent_id'], $_SESSION['sr_quiz_comment_extra_field_values']);
 $quizCommentLoginUrl = '/login?next=' . rawurlencode($quizFormUrl . '?result=1#quiz-comments');
@@ -190,10 +197,10 @@ $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
     'consumer_target' => $quizConsumerTarget,
     'body_class' => $quizEmbedded ? 'sr-quiz-page sr-quiz-embed-page' : 'sr-quiz-page',
     'scripts' => $quizCommentsEnabled && is_array($currentAccount) ? ['/assets/mention-input.js'] : [],
-    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
+    'stylesheets' => array_merge(sr_enabled_module_asset_paths($pdo ?? null, [
         'popup_layer' => '/modules/popup_layer/assets/module.css',
         'reaction' => '/modules/reaction/assets/module.css',
-    ]),
+    ]), sr_quiz_comment_body_stylesheets($pdo, $quizSettings)),
     'output_slots' => [
         ['module_key' => 'quiz', 'point_key' => 'quiz.view', 'slot_key' => 'screen'],
     ],
@@ -370,11 +377,11 @@ if ($quizEmbedded) {
             <?php if ($quizCommentsEnabled && $submitResult !== null): ?>
                 <section id="quiz-comments" class="sr-quiz-comments">
                     <div class="sr-quiz-comments-panel-header">
-                        <h2>댓글 <span><?php echo sr_e(number_format((int) ($quizCommentPage['total'] ?? 0))); ?></span></h2>
+                        <h2>댓글 <span class="sr-quiz-comments-count"><?php echo sr_e(number_format((int) ($quizCommentPage['total'] ?? 0))); ?></span></h2>
                     </div>
                     <?php echo sr_public_feedback_toasts('quiz', $quizCommentNotice, $quizCommentErrors); ?>
                     <?php if ($quizComments === []): ?>
-                        <p>아직 작성된 댓글이 없습니다.</p>
+                        <p class="sr-quiz-comments-empty">아직 작성된 댓글이 없습니다.</p>
                     <?php else: ?>
                         <ul class="sr-quiz-comment-list">
                             <?php foreach ($quizComments as $quizComment): ?>
@@ -389,20 +396,32 @@ if ($quizEmbedded) {
                                 $quizCommentCanReply = is_array($currentAccount) && !$canPreviewAsAdmin && $quizCommentCanViewBody && $quizCommentDepth < 3;
                                 $quizCommentReplyId = 'quiz_comment_reply_' . (string) $quizCommentId;
                                 $quizCommentReplyModalId = 'quiz_comment_reply_modal_' . (string) $quizCommentId;
+                                $quizCommentPageNumber = (int) ($quizCommentPage['page'] ?? 1);
+                                $quizCommentUrl = '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1'
+                                    . ($quizCommentPageNumber > 1 ? '&comment_page=' . rawurlencode((string) $quizCommentPageNumber) : '')
+                                    . '#quiz-comment-' . rawurlencode((string) $quizCommentId);
                                 ?>
-                                <li id="quiz-comment-<?php echo sr_e((string) $quizCommentId); ?>" class="sr-quiz-comment-depth-<?php echo sr_e((string) $quizCommentDepth); ?>">
+                                <li id="quiz-comment-<?php echo sr_e((string) $quizCommentId); ?>" class="sr-quiz-comment-item sr-quiz-comment-depth-<?php echo sr_e((string) $quizCommentDepth); ?>">
                                     <div class="sr-quiz-comment-meta">
-                                        <strong><?php echo sr_e((string) ($quizComment['author_public_name'] ?? $quizComment['author_public_name_snapshot'] ?? '회원')); ?></strong>
-                                        <?php echo sr_quiz_time_html((string) ($quizComment['created_at'] ?? '')); ?>
+                                        <?php $quizCommentAuthorLabel = (string) ($quizComment['author_public_name'] ?? $quizComment['author_public_name_snapshot'] ?? '회원'); ?>
+                                        <div class="sr-quiz-comment-author"><?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, (int) ($quizComment['author_account_id'] ?? 0), $quizCommentAuthorLabel, [
+                                            'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                        ]); ?></div>
+                                        <span class="sr-quiz-comment-date">
+                                            <span class="sr-quiz-comment-date-content">
+                                                <?php echo sr_quiz_time_html((string) ($quizComment['created_at'] ?? '')); ?>
+                                                <a class="sr-quiz-comment-permalink" href="<?php echo sr_e(sr_url($quizCommentUrl)); ?>" aria-label="댓글 고유주소로 이동" title="댓글 고유주소"><?php echo sr_material_icon_html('link'); ?></a>
+                                            </span>
+                                        </span>
                                         <?php if ((int) ($quizComment['is_secret'] ?? 0) === 1): ?>
-                                            <span class="sr-quiz-comment-secret">비밀 댓글</span>
+                                            <span class="sr-quiz-comment-meta-status">비밀 댓글</span>
                                         <?php endif; ?>
                                         <?php if ($quizCommentDepth > 1): ?>
                                             <span>답글 <?php echo sr_e((string) $quizCommentDepth); ?>단계</span>
                                         <?php endif; ?>
                                     </div>
                                     <?php if ($quizCommentCanViewBody): ?>
-                                        <p><?php echo sr_member_mention_plain_text_html((string) ($quizComment['body_text'] ?? '')); ?></p>
+                                        <div class="sr-quiz-comment-body"><?php echo sr_quiz_comment_body_html($pdo, $quizComment, $quizSettings); ?></div>
                                         <?php echo sr_comment_extra_fields_display_html((string) ($quizComment['extra_values_json'] ?? '')); ?>
                                         <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
                                             <?php
@@ -414,14 +433,15 @@ if ($quizEmbedded) {
                                             <?php echo sr_reaction_render_widget($pdo, 'quiz', 'comment', (string) $quizCommentId, is_array($currentAccount) ? $currentAccount : null, $quizCommentReactionOptions); ?>
                                         <?php endif; ?>
                                     <?php else: ?>
-                                        <p>비밀 댓글입니다.</p>
+                                        <p class="sr-quiz-comment-secret">비밀 댓글입니다.</p>
                                     <?php endif; ?>
                                     <?php if ($quizCommentCanEdit || $quizCommentCanDelete || $quizCommentCanReply): ?>
                                         <div class="sr-quiz-comment-actions">
+                                            <div class="sr-quiz-comment-action-group sr-quiz-comment-action-group-leading">
                                             <?php if ($quizCommentCanReply): ?>
                                                 <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($quizCommentReplyModalId); ?>">답글</button>
                                                 <div id="<?php echo sr_e($quizCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($quizCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
-                                                    <div class="modal-dialog">
+                                                    <div class="modal-dialog sr-quiz-comment-editor-dialog">
                                                         <form method="post" action="<?php echo sr_e(sr_url('/quiz/comment')); ?>" class="modal-content">
                                                             <?php echo sr_csrf_field(); ?>
                                                             <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($quiz['id'] ?? 0)); ?>">
@@ -435,13 +455,17 @@ if ($quizEmbedded) {
                                                             </div>
                                                             <div class="modal-body">
                                                                 <strong class="sr-quiz-comment-reply-source-label">댓글</strong>
-                                                                <p class="sr-quiz-comment-reply-source"><?php echo sr_member_mention_plain_text_html((string) ($quizComment['body_text'] ?? '')); ?></p>
-                                                                <label class="sr-only" for="<?php echo sr_e($quizCommentReplyId); ?>">답글 본문</label>
-                                                                <textarea id="<?php echo sr_e($quizCommentReplyId); ?>" name="body_text" rows="3" cols="60" required data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($quizCommentParentId ?? 0) === $quizCommentId ? sr_e($quizCommentBody) : ''; ?></textarea>
+                                                                <p class="sr-quiz-comment-reply-source" tabindex="0" aria-label="답글 대상 댓글"><?php echo sr_e(sr_quiz_comment_body_plain_text($pdo, $quizComment, $quizSettings)); ?></p>
+                                                                <p class="sr-quiz-comment-editor-field">
+                                                                    <label for="<?php echo sr_e($quizCommentReplyId); ?>">
+                                                                        <span>답글 <span class="sr-required-label">(필수)</span></span>
+                                                                        <textarea id="<?php echo sr_e($quizCommentReplyId); ?>" name="body_text" rows="3" cols="60"<?php echo $quizCommentEditorRequiredAttribute; ?> class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"<?php echo $quizCommentEditorAttributes; ?>><?php echo (int) ($quizCommentParentId ?? 0) === $quizCommentId ? sr_e($quizCommentBody) : ''; ?></textarea>
+                                                                    </label>
+                                                                </p>
                                                                 <?php echo sr_comment_extra_fields_form_html($quizCommentExtraFieldDefinitions, (int) ($quizCommentParentId ?? 0) === $quizCommentId ? $quizCommentExtraFieldValues : [], 'comment_extra_fields', 'quiz_comment_reply_' . (string) $quizCommentId); ?>
                                                                 <?php if (!empty($quizSecretCommentsEnabled)): ?>
                                                                     <label class="sr-quiz-comment-secret-toggle">
-                                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($quizCommentParentId ?? 0) === $quizCommentId && $quizCommentIsSecret ? ' checked' : ''; ?>>
+                                                                        <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($quizCommentParentId ?? 0) === $quizCommentId && $quizCommentIsSecret ? ' checked' : ''; ?>>
                                                                         비밀 댓글
                                                                     </label>
                                                                 <?php endif; ?>
@@ -454,10 +478,12 @@ if ($quizEmbedded) {
                                                     </div>
                                                 </div>
                                             <?php endif; ?>
+                                            </div>
+                                            <div class="sr-quiz-comment-action-group sr-quiz-comment-action-group-trailing">
                                             <?php if ($quizCommentCanEdit): ?>
                                                 <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($quizCommentEditModalId); ?>">수정</button>
                                                 <div id="<?php echo sr_e($quizCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($quizCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
-                                                    <div class="modal-dialog">
+                                                    <div class="modal-dialog sr-quiz-comment-editor-dialog">
                                                         <form method="post" action="<?php echo sr_e(sr_url('/quiz/comment/edit')); ?>" class="modal-content">
                                                             <?php echo sr_csrf_field(); ?>
                                                             <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $quizCommentId); ?>">
@@ -468,11 +494,15 @@ if ($quizEmbedded) {
                                                                 </button>
                                                             </div>
                                                             <div class="modal-body">
-                                                                <label class="sr-only" for="<?php echo sr_e($quizCommentEditId); ?>">댓글 본문</label>
-                                                                <textarea id="<?php echo sr_e($quizCommentEditId); ?>" name="body_text" rows="3" cols="60" required data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo sr_e((string) ($quizComment['body_text'] ?? '')); ?></textarea>
+                                                                <p class="sr-quiz-comment-editor-field">
+                                                                    <label for="<?php echo sr_e($quizCommentEditId); ?>">
+                                                                        <span>내용 <span class="sr-required-label">(필수)</span></span>
+                                                                        <textarea id="<?php echo sr_e($quizCommentEditId); ?>" name="body_text" rows="3" cols="60"<?php echo $quizCommentEditorRequiredAttribute; ?> class="form-textarea" data-overlay-focus data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"<?php echo $quizCommentEditorAttributes; ?>><?php echo sr_e((string) ($quizComment['body_text'] ?? '')); ?></textarea>
+                                                                    </label>
+                                                                </p>
                                                                 <?php if (!empty($quizSecretCommentsEnabled) || (int) ($quizComment['is_secret'] ?? 0) === 1): ?>
                                                                     <label class="sr-quiz-comment-secret-toggle">
-                                                                        <input type="checkbox" name="is_secret" value="1"<?php echo (int) ($quizComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                                                                        <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($quizComment['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
                                                                         비밀 댓글
                                                                     </label>
                                                                 <?php endif; ?>
@@ -492,27 +522,32 @@ if ($quizEmbedded) {
                                                     <button type="submit" class="btn btn-ghost-danger">삭제</button>
                                                 </form>
                                             <?php endif; ?>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
-                        <?php echo sr_public_pagination_html($quizCommentPage, '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1', '퀴즈 댓글 페이지', 'comment_page', 'quiz-comments', 'quiz-comments-pagination'); ?>
+                        <?php echo sr_public_pagination_html($quizCommentPage, '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1', '퀴즈 댓글 페이지', 'comment_page', 'quiz-comments', 'quiz-comments-pagination', ['compact_edges' => true, 'link_class' => 'btn btn-ghost-default', 'current_class' => 'btn btn-solid-primary']); ?>
                     <?php endif; ?>
                     <?php if ($canPreviewAsAdmin): ?>
                         <p>관리자 미리보기에서는 댓글을 작성할 수 없습니다.</p>
                     <?php elseif (is_array($currentAccount)): ?>
-                        <form method="post" action="<?php echo sr_e(sr_url('/quiz/comment')); ?>" class="sr-quiz-comment-form">
+                        <form id="quiz-comment-form" method="post" action="<?php echo sr_e(sr_url('/quiz/comment')); ?>" class="sr-quiz-comment-form">
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="quiz_id" value="<?php echo sr_e((string) (int) ($quiz['id'] ?? 0)); ?>">
                             <input type="hidden" name="parent_comment_id" value="0">
                             <input type="hidden" name="comment_page" value="<?php echo sr_e((string) (int) ($quizCommentPage['page'] ?? 1)); ?>">
-                            <label class="sr-only" for="quiz_comment_body">댓글 본문</label>
-                            <textarea id="quiz_comment_body" name="body_text" rows="4" cols="60" required data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"><?php echo (int) ($quizCommentParentId ?? 0) < 1 ? sr_e($quizCommentBody) : ''; ?></textarea>
+                            <p>
+                                <label for="quiz_comment_body">
+                                    <span>댓글 <span class="sr-required-label">(필수)</span></span>
+                                    <textarea id="quiz_comment_body" name="body_text" rows="5" cols="80"<?php echo $quizCommentEditorRequiredAttribute; ?> class="form-textarea" data-sr-mention-input data-sr-mention-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>"<?php echo $quizCommentEditorAttributes; ?>><?php echo (int) ($quizCommentParentId ?? 0) < 1 ? sr_e($quizCommentBody) : ''; ?></textarea>
+                                </label>
+                            </p>
                             <?php echo sr_comment_extra_fields_form_html($quizCommentExtraFieldDefinitions, (int) ($quizCommentParentId ?? 0) < 1 ? $quizCommentExtraFieldValues : [], 'comment_extra_fields', 'quiz_comment'); ?>
                             <?php if (!empty($quizSecretCommentsEnabled)): ?>
                                 <label class="sr-quiz-comment-secret-toggle">
-                                    <input type="checkbox" name="is_secret" value="1"<?php echo $quizCommentIsSecret ? ' checked' : ''; ?>>
+                                    <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo $quizCommentIsSecret ? ' checked' : ''; ?>>
                                     비밀 댓글
                                 </label>
                             <?php endif; ?>
@@ -527,6 +562,9 @@ if ($quizEmbedded) {
     </section>
 </main>
 <?php
+if ($quizCommentsEnabled && is_array($currentAccount)) {
+    echo sr_editor_assets_html($pdo, $quizCommentEditorKey, $quizCommentToolbarPreset);
+}
 if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) {
     echo sr_reaction_public_script_html();
 }

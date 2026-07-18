@@ -180,6 +180,43 @@ test.describe('CKEditor browser smoke', () => {
     expect(styles.dark.focusShadow).not.toBe('none');
   });
 
+  test('module body themes keep editor input and rendered comment output colors identical', async ({ page }) => {
+    const cases = [
+      { theme: 'content.basic', expected: 'rgb(170, 17, 34)' },
+      { theme: 'community.basic', expected: 'rgb(17, 136, 51)' },
+      { theme: 'quiz.basic', expected: 'rgb(23, 32, 51)' },
+      { theme: 'survey.basic', expected: 'rgb(23, 32, 51)' },
+    ];
+
+    for (const bodyTheme of cases) {
+      await writeCkeditorFixture(page, {}, { 'data-sr-editor-body-theme': bodyTheme.theme });
+      await page.waitForFunction(() => {
+        const textarea = document.querySelector('textarea[data-sr-editor="ckeditor"]');
+        return textarea && textarea.dataset.srEditorReady === '1';
+      }, null, { timeout: 20000 });
+
+      const colors = await page.evaluate((theme) => {
+        document.documentElement.dataset.colorScheme = 'light';
+        document.documentElement.style.setProperty('--content-text', '#aa1122');
+        document.documentElement.style.setProperty('--community-text', '#118833');
+        const output = document.createElement('div');
+        output.className = 'sr-ckeditor';
+        output.dataset.srEditorOutput = '';
+        output.dataset.srEditorBodyTheme = theme;
+        output.innerHTML = '<div class="ck-content">저장된 댓글</div>';
+        document.body.appendChild(output);
+
+        return {
+          editor: getComputedStyle(document.querySelector('.ck-editor__editable_inline')).color,
+          output: getComputedStyle(output.querySelector('.ck-content')).color,
+        };
+      }, bodyTheme.theme);
+
+      expect(colors.editor).toBe(bodyTheme.expected);
+      expect(colors.output).toBe(bodyTheme.expected);
+    }
+  });
+
   test('upload adapter sends image, csrf, upload token, and consent fields', async ({ page }) => {
     let capturedMultipart = '';
     await page.route('**/ckeditor-upload-fixture', async (route) => {

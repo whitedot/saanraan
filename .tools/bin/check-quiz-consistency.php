@@ -275,7 +275,7 @@ function sr_quiz_check_paths_and_admin(): void
         'target="_top"',
         'quiz-comments',
         'sr_quiz_comments',
-        'sr_member_mention_plain_text_html',
+        'sr_quiz_comment_body_html',
         'data-sr-mention-input',
         'sr_quiz_display_settings_for_quiz',
         'sr_quiz_latest_attempt_result',

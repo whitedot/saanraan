@@ -12,6 +12,8 @@ if (!defined('SR_ROOT')) {
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/admin/helpers.php';
 require_once $root . '/modules/content/helpers.php';
+require_once $root . '/modules/quiz/helpers.php';
+require_once $root . '/modules/survey/helpers.php';
 require_once $root . '/modules/ckeditor/helpers.php';
 require_once $root . '/modules/popup_layer/helpers/body-files.php';
 
@@ -278,6 +280,25 @@ sr_ckeditor_assets_assert(
     sr_content_effective_body_format($ckeditorContractPdo, ['body_format' => 'plain', 'editor_key' => 'ckeditor']) === 'html',
     'Content CKEditor rows previously saved as plain should render through the html sanitizer path.'
 );
+foreach ([
+    'content' => 'sr_content_comment_body_html',
+    'quiz' => 'sr_quiz_comment_body_html',
+    'survey' => 'sr_survey_comment_body_html',
+] as $commentModuleKey => $commentBodyHtmlFunction) {
+    $commentHtml = $commentBodyHtmlFunction(
+        $ckeditorContractPdo,
+        ['body_text' => '<h4 onclick="bad()">댓글 제목</h4><script>bad()</script>'],
+        ['comment_editor' => 'ckeditor', 'theme_key' => 'basic']
+    );
+    sr_ckeditor_assets_assert(
+        str_contains($commentHtml, 'data-sr-editor-output')
+            && str_contains($commentHtml, 'data-sr-editor-body-theme="' . $commentModuleKey . '.basic"')
+            && str_contains($commentHtml, '<h4>댓글 제목</h4>')
+            && !str_contains($commentHtml, 'onclick')
+            && !str_contains($commentHtml, '<script'),
+        ucfirst($commentModuleKey) . ' CKEditor comments must use sanitized themed public output.'
+    );
+}
 
 sr_ckeditor_assets_require_markers('modules/ckeditor/vendor/ckeditor5/README.md', [
     'CKEditor 5',
@@ -310,6 +331,8 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.js
     "ckeditor.ClassicEditor.create(textarea, editorConfig(ckeditor, textarea))",
     "function applyBodyTheme(textarea, editorElement)",
     "window.srCkeditorEnhance = function ()",
+    "document.addEventListener('ui.overlay.open'",
+    "textarea.closest('.overlay[aria-hidden=\"true\"], .overlay[inert]')",
     "window.srCkeditorDestroyTextarea = function (textarea)",
     "textarea.dataset.srEditorInitializing === '1'",
     "editorForTextarea(textarea)",
@@ -333,6 +356,10 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.js
     "integrations: upload ? ['upload', 'url'] : ['url']",
     'shouldNotGroupWhenFull: true',
     "contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'toggleTableCaption']",
+]);
+
+sr_ckeditor_assets_require_markers('assets/common-ui.js', [
+    "new CustomEvent('ui.overlay.open', { bubbles: true })",
 ]);
 
 sr_ckeditor_assets_forbid_markers('modules/ckeditor/assets/saanraan-ckeditor.js', [
@@ -488,7 +515,7 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.cs
     '--ck-color-base-background: var(--sr-ckeditor-ui-surface)',
     '--ck-color-base-text: var(--sr-ckeditor-ui-text)',
     '--ck-color-button-default-hover-background: var(--sr-ckeditor-hover)',
-    ':is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor',
+    ':is([data-theme="dark"], [data-color-scheme="dark"], [data-color-scheme="system"]) .sr-ckeditor',
     'data-sr-editor-body-theme="content.basic"',
     'data-sr-editor-body-theme="community.basic"',
     '--sr-editor-body-text',
@@ -499,6 +526,11 @@ sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.cs
     'list-style: disc outside',
     '.sr-ckeditor .ck-content :where(table)',
     'display: table',
+]);
+sr_ckeditor_assets_forbid_markers('modules/ckeditor/assets/saanraan-ckeditor.css', [
+    'var(--content-text, var(--community-text',
+    'var(--content-muted, var(--community-muted',
+    'var(--content-border, var(--community-border',
 ]);
 
 sr_ckeditor_assets_require_markers('assets/editor-ck.css', [
@@ -518,15 +550,104 @@ sr_ckeditor_assets_require_markers('assets/editor-ck.css', [
 
 sr_ckeditor_assets_require_markers('core/helpers/output.php', [
     'function sr_body_editor_stylesheets',
+    'function sr_body_text_plain_text',
     'sr_editor_normalize_key($bodyEditorKey) === \'ckeditor\'',
     "'/modules/ckeditor/vendor/ckeditor5/ckeditor5.css'",
     "'/modules/ckeditor/assets/saanraan-ckeditor.css'",
+]);
+
+sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.css', [
+    'data-sr-editor-body-theme="content.basic"',
+    'data-sr-editor-body-theme="community.basic"',
+    'data-sr-editor-body-theme="quiz.basic"',
+    'data-sr-editor-body-theme="survey.basic"',
 ]);
 
 sr_ckeditor_assets_require_markers('modules/content/helpers.php', [
     'sr_content_effective_editor_key($pdo, $page)',
     'function sr_content_effective_body_format(PDO $pdo, array $page): string',
     'sr_editor_format_value($pdo, $editorKey)',
+    'function sr_content_comment_editor_key(PDO $pdo, ?array $settings = null): string',
+]);
+
+foreach (['content', 'quiz', 'survey'] as $commentModuleKey) {
+    sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/helpers/comments.php', [
+        'comment_body_format(PDO $pdo, ?array $settings = null): string',
+        'comment_body_html(PDO $pdo, array $comment, ?array $settings = null): string',
+        'sr_sanitize_rich_text_html($bodyText)',
+        'sr_body_editor_stylesheets($bodyFormat, $editorKey)',
+    ]);
+    sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/actions/comment.php', [
+        'comment_input_values($pdo,',
+    ]);
+    sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/actions/comment-edit.php', [
+        'comment_input_values($pdo,',
+    ]);
+}
+
+foreach ([
+    'modules/content/views/content.php' => '$contentCommentEditorAttributes',
+    'modules/content/theme/basic/content.php' => '$contentCommentEditorAttributes',
+    'modules/quiz/skins/basic/view.php' => '$quizCommentEditorAttributes',
+    'modules/quiz/theme/basic/view.php' => '$quizCommentEditorAttributes',
+    'modules/survey/skins/basic/view.php' => '$surveyCommentEditorAttributes',
+    'modules/survey/theme/basic/view.php' => '$surveyCommentEditorAttributes',
+] as $commentViewFile => $editorAttributeMarker) {
+    sr_ckeditor_assets_require_markers($commentViewFile, [
+        $editorAttributeMarker,
+        'comment_body_format',
+        'sr_editor_assets_html($pdo,',
+    ]);
+}
+
+foreach ([
+    'modules/content/views/content.php' => ['content-comment-action-group-leading', 'content-comment-action-group-trailing', 'content-comment-permalink', 'content-comments-count', 'content-comment-item', 'content-comment-editor-field'],
+    'modules/content/theme/basic/content.php' => ['content-comment-action-group-leading', 'content-comment-action-group-trailing', 'content-comment-permalink', 'content-comments-count', 'content-comment-item', 'content-comment-editor-field'],
+    'modules/quiz/skins/basic/view.php' => ['sr-quiz-comment-action-group-leading', 'sr-quiz-comment-action-group-trailing', 'sr-quiz-comment-permalink', 'sr_member_public_name_menu_html', 'sr-quiz-comments-count', 'sr-quiz-comment-item', 'sr-quiz-comment-editor-field'],
+    'modules/quiz/theme/basic/view.php' => ['sr-quiz-comment-action-group-leading', 'sr-quiz-comment-action-group-trailing', 'sr-quiz-comment-permalink', 'sr_member_public_name_menu_html', 'sr-quiz-comments-count', 'sr-quiz-comment-item', 'sr-quiz-comment-editor-field'],
+    'modules/survey/skins/basic/view.php' => ['sr-survey-comment-action-group-leading', 'sr-survey-comment-action-group-trailing', 'sr-survey-comment-permalink', 'sr_member_public_name_menu_html', 'sr-survey-comments-count', 'sr-survey-comment-item', 'sr-survey-comment-editor-field'],
+    'modules/survey/theme/basic/view.php' => ['sr-survey-comment-action-group-leading', 'sr-survey-comment-action-group-trailing', 'sr-survey-comment-permalink', 'sr_member_public_name_menu_html', 'sr-survey-comments-count', 'sr-survey-comment-item', 'sr-survey-comment-editor-field'],
+] as $commentViewFile => $commentUiMarkers) {
+    sr_ckeditor_assets_require_markers($commentViewFile, $commentUiMarkers);
+}
+
+foreach ([
+    'modules/content/views/content.php' => 'href="#content-comment-form"',
+    'modules/content/theme/basic/content.php' => 'href="#content-comment-form"',
+    'modules/quiz/skins/basic/view.php' => 'href="#quiz-comment-form"',
+    'modules/quiz/theme/basic/view.php' => 'href="#quiz-comment-form"',
+    'modules/survey/skins/basic/view.php' => 'href="#survey-comment-form"',
+    'modules/survey/theme/basic/view.php' => 'href="#survey-comment-form"',
+] as $commentViewFile => $detachedWriteLink) {
+    sr_ckeditor_assets_forbid_markers($commentViewFile, [$detachedWriteLink]);
+}
+
+foreach ([
+    'modules/content/theme/basic/assets/module.css' => ['.content-comment-action-group > .btn', '.content-comment-action-group > form > .btn', '.content-comment-permalink:focus-visible', '--content-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.content-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
+    'modules/quiz/theme/basic/assets/module.css' => ['.sr-quiz-comment-action-group > .btn', '.sr-quiz-comment-action-group > form > .btn', '.sr-quiz-comment-permalink:focus-visible', '--sr-quiz-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.sr-quiz-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
+    'modules/survey/theme/basic/assets/module.css' => ['.sr-survey-comment-action-group > .btn', '.sr-survey-comment-action-group > form > .btn', '.sr-survey-comment-permalink:focus-visible', '--sr-survey-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.sr-survey-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
+] as $commentStylesheet => $commentUiMarkers) {
+    sr_ckeditor_assets_require_markers($commentStylesheet, $commentUiMarkers);
+}
+
+sr_ckeditor_assets_forbid_markers('modules/content/theme/basic/assets/module.css', [
+    '.content-comments form {',
+    '.content-comment-actions .btn {',
+]);
+sr_ckeditor_assets_forbid_markers('modules/quiz/theme/basic/assets/module.css', [
+    '.sr-quiz-comment-actions form,',
+    '.sr-quiz-comment-actions .btn {',
+]);
+sr_ckeditor_assets_forbid_markers('modules/survey/theme/basic/assets/module.css', [
+    '.sr-survey-comment-actions form,',
+    '.sr-survey-comment-actions .btn {',
+]);
+sr_ckeditor_assets_require_markers('modules/community/theme/basic/assets/module.css', [
+    '.community-comment-actions .community-action-group > .btn',
+    '.community-screen .community-comment-secret-toggle',
+]);
+sr_ckeditor_assets_forbid_markers('modules/community/theme/basic/assets/module.css', [
+    '.community-comment-actions .btn {',
 ]);
 
 sr_ckeditor_assets_require_markers('modules/markdown_editor/assets/editor.js', [
@@ -576,6 +697,7 @@ foreach ([
 sr_ckeditor_assets_require_markers('docs/module-guide.md', [
     '--sr-editor-body-surface',
     'data-sr-editor-body-theme="content.{theme_key}"',
+    '콘텐츠·퀴즈·설문 댓글 에디터',
 ]);
 
 sr_ckeditor_assets_require_markers('docs/admin-ui-guide.md', [

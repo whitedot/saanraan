@@ -240,8 +240,16 @@ $contentSettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">CKEditor를 사용할 때 콘텐츠 본문 입력 화면에 적용할 툴바입니다.</p>
+                <p class="form-help">CKEditor를 사용할 때 콘텐츠 본문과 댓글 입력 화면에 적용할 툴바입니다.</p>
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentToolbarModuleReferences); ?>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="content_admin_settings_comment_editor">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_comment_editor', 'comment_editor', $editorOptions, (string) ($settings['comment_editor'] ?? 'textarea'), true); ?>
+                <p class="form-help">댓글·답글·수정 입력에 사용할 에디터입니다. CKEditor는 위 툴바 구성을 함께 사용하며, 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentEditorModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">

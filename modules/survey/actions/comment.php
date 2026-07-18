@@ -21,7 +21,8 @@ if (!sr_survey_account_has_submitted_response($pdo, $surveyId, (int) ($account['
     sr_render_error(403, '설문 참여 완료 후 댓글을 작성할 수 있습니다.');
 }
 
-$values = sr_survey_comment_input_values();
+$surveySettings = sr_survey_settings($pdo);
+$values = sr_survey_comment_input_values($pdo, $surveySettings);
 $commentExtraFieldDefinitions = sr_comment_extra_field_definitions($survey['comment_extra_fields_json'] ?? '[]');
 $commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);
 $commentExtraFieldValues = (array) ($commentExtraFieldInput['values'] ?? []);

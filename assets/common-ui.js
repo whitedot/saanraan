@@ -1075,6 +1075,7 @@
         overlayStack.push(overlay);
       }
       lockBodyScroll();
+      overlay.dispatchEvent(new CustomEvent('ui.overlay.open', { bubbles: true }));
       return;
     }
 
@@ -1088,6 +1089,7 @@
     setOverlayTriggersExpanded(overlay, true);
     overlayStack.push(overlay);
     lockBodyScroll();
+    overlay.dispatchEvent(new CustomEvent('ui.overlay.open', { bubbles: true }));
   };
 
   var hideOverlay = function hideOverlay(overlay, options) {

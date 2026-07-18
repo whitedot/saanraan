@@ -418,7 +418,7 @@ foreach (['other_answers[', 'sr-survey-other-input'] as $needle) {
         'Survey public form must collect text for selected other choices'
     );
 }
-foreach (['survey-comments', 'sr_survey_comments', 'sr_member_mention_plain_text_html', 'data-sr-mention-input'] as $needle) {
+foreach (['survey-comments', 'sr_survey_comments', 'sr_survey_comment_body_html', 'data-sr-mention-input'] as $needle) {
     sr_survey_check_contains(
         'modules/survey/skins/basic/view.php',
         $needle,

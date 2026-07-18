@@ -25,6 +25,7 @@ $assetOptions = sr_quiz_asset_options($pdo);
 $publicLayoutOptions = sr_quiz_layout_options($pdo);
 $publicThemeOptions = sr_quiz_theme_options();
 $reactionPresetOptions = $quizReactionAvailable && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$editorOptions = sr_editor_options($pdo);
 $quizIdentityViewAvailable = $quizIdentityVerificationModuleAvailable
     && function_exists('sr_identity_verification_available')
     && sr_identity_verification_available($pdo, 'quiz.view');

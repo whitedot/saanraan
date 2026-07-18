@@ -24,6 +24,7 @@ return [
     'settings' => [
         'editor' => 'textarea',
         'editor_toolbar_preset' => 'standard',
+        'comment_editor' => 'textarea',
         'external_embed_enabled' => true,
         'internal_embed_enabled' => true,
         'plain_text_auto_link_urls' => false,

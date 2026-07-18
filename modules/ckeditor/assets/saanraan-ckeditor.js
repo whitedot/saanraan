@@ -339,12 +339,16 @@
     });
   }
 
-  function enhance(ckeditor) {
+  function enhance(ckeditor, root) {
     if (!ckeditor || !ckeditor.ClassicEditor) {
       return;
     }
 
-    document.querySelectorAll('textarea[data-sr-editor="ckeditor"]').forEach(function (textarea) {
+    var scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll('textarea[data-sr-editor="ckeditor"]').forEach(function (textarea) {
+      if (textarea.closest('.overlay[aria-hidden="true"], .overlay[inert]')) {
+        return;
+      }
       if (textarea._srCkeditorDestroyPromise) {
         textarea._srCkeditorDestroyPromise.then(function () {
           if (textarea.dataset.srEditor === 'ckeditor') {
@@ -399,6 +403,13 @@
   window.srCkeditorEnhance = function () {
     enhance(window.CKEDITOR);
   };
+
+  document.addEventListener('ui.overlay.open', function (event) {
+    var overlay = event.target instanceof Element ? event.target : null;
+    if (overlay) {
+      enhance(window.CKEDITOR, overlay);
+    }
+  });
 
   window.srCkeditorDestroyTextarea = function (textarea) {
     var editor = editorForTextarea(textarea);

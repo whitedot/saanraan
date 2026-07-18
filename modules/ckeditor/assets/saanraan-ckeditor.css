@@ -69,31 +69,68 @@
   min-width: 0;
 }
 
-.sr-ckeditor[data-sr-editor-body-theme="content.basic"],
-.sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
+.sr-ckeditor[data-sr-editor-body-theme="content.basic"] {
   --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
-  --sr-editor-body-text: var(--content-text, var(--community-text, var(--text-strong, var(--color-default-900, var(--sr-text, #242424)))));
-  --sr-editor-body-muted: var(--content-muted, var(--community-muted, var(--text-muted, var(--color-default-600, var(--sr-muted, #6b7280)))));
-  --sr-editor-body-border: var(--content-border, var(--community-border, var(--sr-border, var(--color-default-300, #d8dde6))));
+  --sr-editor-body-text: var(--content-text, var(--sr-text, var(--text-strong, var(--color-default-900, #242424))));
+  --sr-editor-body-muted: var(--content-muted, var(--sr-muted, var(--text-muted, var(--color-default-600, #6b7280))));
+  --sr-editor-body-border: var(--content-border, var(--sr-border, var(--color-default-300, #d8dde6)));
 }
 
-:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor[data-sr-editor-body-theme="content.basic"],
-:is([data-theme="dark"], [data-color-scheme="dark"]) .sr-ckeditor[data-sr-editor-body-theme="community.basic"],
-[data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="content.basic"],
-[data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
+.sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
+  --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
+  --sr-editor-body-text: var(--community-text, var(--sr-text, var(--text-strong, var(--color-default-900, #242424))));
+  --sr-editor-body-muted: var(--community-muted, var(--sr-muted, var(--text-muted, var(--color-default-600, #6b7280))));
+  --sr-editor-body-border: var(--community-border, var(--sr-border, var(--color-default-300, #d8dde6)));
+}
+
+.sr-ckeditor:is([data-sr-editor-body-theme="quiz.basic"], [data-sr-editor-body-theme="survey.basic"]) {
+  --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
+  --sr-editor-body-text: var(--sr-text, var(--text-strong, var(--color-default-900, #242424)));
+  --sr-editor-body-muted: var(--sr-muted, var(--text-muted, var(--color-default-600, #6b7280)));
+  --sr-editor-body-border: var(--sr-border, var(--color-default-300, #d8dde6));
+}
+
+:is([data-theme="dark"], [data-color-scheme="dark"], [data-color-scheme="system"]) .sr-ckeditor[data-sr-editor-body-theme="content.basic"] {
   --sr-editor-body-surface: var(--sr-surface, var(--color-card, #171a21));
-  --sr-editor-body-text: var(--content-text, var(--community-text, var(--text-strong, var(--color-default-900, var(--sr-text, #f4f4f5)))));
-  --sr-editor-body-muted: var(--content-muted, var(--community-muted, var(--text-muted, var(--color-default-600, var(--sr-muted, #b7beca)))));
-  --sr-editor-body-border: var(--content-border, var(--community-border, var(--sr-border, var(--color-default-300, #343b47))));
+  --sr-editor-body-text: var(--content-text, var(--sr-text, var(--text-strong, var(--color-default-900, #f4f4f5))));
+  --sr-editor-body-muted: var(--content-muted, var(--sr-muted, var(--text-muted, var(--color-default-600, #b7beca))));
+  --sr-editor-body-border: var(--content-border, var(--sr-border, var(--color-default-300, #343b47)));
+}
+
+:is([data-theme="dark"], [data-color-scheme="dark"], [data-color-scheme="system"]) .sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
+  --sr-editor-body-surface: var(--sr-surface, var(--color-card, #171a21));
+  --sr-editor-body-text: var(--community-text, var(--sr-text, var(--text-strong, var(--color-default-900, #f4f4f5))));
+  --sr-editor-body-muted: var(--community-muted, var(--sr-muted, var(--text-muted, var(--color-default-600, #b7beca))));
+  --sr-editor-body-border: var(--community-border, var(--sr-border, var(--color-default-300, #343b47)));
+}
+
+:is([data-theme="dark"], [data-color-scheme="dark"], [data-color-scheme="system"]) .sr-ckeditor:is([data-sr-editor-body-theme="quiz.basic"], [data-sr-editor-body-theme="survey.basic"]) {
+  --sr-editor-body-surface: var(--sr-surface, var(--color-card, #171a21));
+  --sr-editor-body-text: var(--sr-text, var(--text-strong, var(--color-default-900, #f4f4f5)));
+  --sr-editor-body-muted: var(--sr-muted, var(--text-muted, var(--color-default-600, #b7beca)));
+  --sr-editor-body-border: var(--sr-border, var(--color-default-300, #343b47));
 }
 
 @media (prefers-color-scheme: light) {
-  [data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="content.basic"],
+  [data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="content.basic"] {
+    --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
+    --sr-editor-body-text: var(--content-text, var(--sr-text, var(--text-strong, var(--color-default-900, #242424))));
+    --sr-editor-body-muted: var(--content-muted, var(--sr-muted, var(--text-muted, var(--color-default-600, #6b7280))));
+    --sr-editor-body-border: var(--content-border, var(--sr-border, var(--color-default-300, #d8dde6)));
+  }
+
   [data-color-scheme="system"] .sr-ckeditor[data-sr-editor-body-theme="community.basic"] {
     --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
-    --sr-editor-body-text: var(--content-text, var(--community-text, var(--text-strong, var(--color-default-900, var(--sr-text, #242424)))));
-    --sr-editor-body-muted: var(--content-muted, var(--community-muted, var(--text-muted, var(--color-default-600, var(--sr-muted, #6b7280)))));
-    --sr-editor-body-border: var(--content-border, var(--community-border, var(--sr-border, var(--color-default-300, #d8dde6))));
+    --sr-editor-body-text: var(--community-text, var(--sr-text, var(--text-strong, var(--color-default-900, #242424))));
+    --sr-editor-body-muted: var(--community-muted, var(--sr-muted, var(--text-muted, var(--color-default-600, #6b7280))));
+    --sr-editor-body-border: var(--community-border, var(--sr-border, var(--color-default-300, #d8dde6)));
+  }
+
+  [data-color-scheme="system"] .sr-ckeditor:is([data-sr-editor-body-theme="quiz.basic"], [data-sr-editor-body-theme="survey.basic"]) {
+    --sr-editor-body-surface: var(--sr-surface, var(--color-card, #fff));
+    --sr-editor-body-text: var(--sr-text, var(--text-strong, var(--color-default-900, #242424)));
+    --sr-editor-body-muted: var(--sr-muted, var(--text-muted, var(--color-default-600, #6b7280)));
+    --sr-editor-body-border: var(--sr-border, var(--color-default-300, #d8dde6));
   }
 }
 

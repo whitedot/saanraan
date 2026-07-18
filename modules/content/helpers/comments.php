@@ -200,12 +200,58 @@ function sr_content_recent_comments(PDO $pdo, int $limit = 8): array
     return $comments;
 }
 
-function sr_content_comment_input_values(): array
+function sr_content_comment_body_format(PDO $pdo, ?array $settings = null): string
+{
+    return sr_editor_format_value($pdo, sr_content_comment_editor_key($pdo, $settings));
+}
+
+function sr_content_comment_body_plain_text(PDO $pdo, array $comment, ?array $settings = null): string
+{
+    $comment['body_format'] = sr_content_comment_body_format($pdo, $settings);
+    return sr_body_text_plain_text($comment, $pdo);
+}
+
+function sr_content_comment_body_html(PDO $pdo, array $comment, ?array $settings = null): string
+{
+    $editorKey = sr_content_comment_editor_key($pdo, $settings);
+    $comment['body_format'] = sr_editor_format_value($pdo, $editorKey);
+    if ((string) $comment['body_format'] === 'plain') {
+        return sr_member_mention_plain_text_html((string) ($comment['body_text'] ?? ''));
+    }
+    $html = sr_body_text_html($comment, false, $pdo);
+    if ($editorKey !== 'ckeditor' || (string) $comment['body_format'] !== 'html') {
+        return $html;
+    }
+
+    $themeKey = sr_content_theme_key((string) (($settings ?? [])['theme_key'] ?? 'basic'));
+    return '<div class="sr-ckeditor" data-sr-editor-output data-sr-editor-body-theme="content.' . sr_e($themeKey) . '">'
+        . '<div class="ck-content" lang="' . sr_e(sr_locale()) . '" dir="ltr">' . $html . '</div></div>';
+}
+
+function sr_content_comment_body_stylesheets(PDO $pdo, ?array $settings = null): array
+{
+    $editorKey = sr_content_comment_editor_key($pdo, $settings);
+    $bodyFormat = sr_editor_format_value($pdo, $editorKey);
+    $stylesheets = sr_body_editor_stylesheets($bodyFormat, $editorKey);
+    if ($bodyFormat === 'markdown') {
+        $stylesheets = array_merge($stylesheets, sr_markdown_stylesheets($pdo, '', 'full'));
+    }
+
+    return array_values(array_unique($stylesheets));
+}
+
+function sr_content_comment_input_values(?PDO $pdo = null, ?array $settings = null): array
 {
     $parentCommentIdValue = sr_post_string('parent_comment_id', 20);
+    $bodyFormat = $pdo instanceof PDO ? sr_content_comment_body_format($pdo, $settings) : 'plain';
+    $bodyText = sr_post_string_without_truncation('body_text', 5000);
+    if ($bodyFormat === 'html' && is_string($bodyText)) {
+        $bodyText = sr_sanitize_rich_text_html($bodyText);
+    }
 
     return [
-        'body_text' => sr_post_string_without_truncation('body_text', 5000),
+        'body_text' => $bodyText,
+        'body_format' => $bodyFormat,
         'is_secret' => sr_post_string('is_secret', 10) === '1' ? 1 : 0,
         'parent_comment_id' => preg_match('/\A[1-9][0-9]*\z/', $parentCommentIdValue) === 1 ? (int) $parentCommentIdValue : 0,
     ];
@@ -216,7 +262,7 @@ function sr_content_validate_comment_input(array $values): array
     if (!is_string($values['body_text'] ?? null)) {
         return ['댓글은 5000자 이하로 입력해 주세요.'];
     }
-    if (trim((string) $values['body_text']) === '') {
+    if (sr_body_text_plain_text($values) === '') {
         return ['댓글 내용을 입력하세요.'];
     }
 

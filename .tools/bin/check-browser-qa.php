@@ -101,6 +101,7 @@ sr_browser_qa_require_markers('.tools/browser-qa/tests/ckeditor-browser-smoke.sp
     'hasImageInsertViaUrl',
     'imageButtonVisible',
     'official editor theme follows project light and dark tokens',
+    'module body themes keep editor input and rendered comment output colors identical',
     'getComputedStyle',
     'focusShadow',
     'sr-ckeditor-unavailable',

@@ -105,6 +105,7 @@ function sr_content_default_settings(): array
     return [
         'editor' => 'textarea',
         'editor_toolbar_preset' => 'standard',
+        'comment_editor' => 'textarea',
         'external_embed_enabled' => true,
         'internal_embed_enabled' => true,
         'plain_text_auto_link_urls' => false,
@@ -343,6 +344,7 @@ function sr_content_settings(PDO $pdo): array
     $settings = array_merge(sr_content_default_settings(), $storedSettings);
     $settings['editor'] = sr_editor_normalize_key((string) ($settings['editor'] ?? 'textarea'));
     $settings['editor_toolbar_preset'] = sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'standard'));
+    $settings['comment_editor'] = sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
     $settings['external_embed_enabled'] = sr_content_bool_setting($settings['external_embed_enabled'] ?? true);
     $settings['internal_embed_enabled'] = sr_content_bool_setting($settings['internal_embed_enabled'] ?? true);
     unset($settings['embed_enabled']);
@@ -381,6 +383,12 @@ function sr_content_settings(PDO $pdo): array
     $settings['reaction_comment_preset_key'] = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $settings['reaction_comment_preset_key'] ?? '') : '';
 
     return $settings;
+}
+
+function sr_content_comment_editor_key(PDO $pdo, ?array $settings = null): string
+{
+    $settings = is_array($settings) ? $settings : sr_content_settings($pdo);
+    return sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
 }
 
 function sr_content_layout_required_targets(): array
@@ -602,6 +610,7 @@ function sr_content_save_settings(PDO $pdo, array $settings): void
     $rows = [
         ['editor', sr_editor_effective_key($pdo, (string) ($settings['editor'] ?? 'textarea')), 'string'],
         ['editor_toolbar_preset', sr_content_toolbar_preset_key((string) ($settings['editor_toolbar_preset'] ?? 'standard')), 'string'],
+        ['comment_editor', sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea')), 'string'],
         ['external_embed_enabled', !empty($settings['external_embed_enabled']) ? '1' : '0', 'bool'],
         ['internal_embed_enabled', !empty($settings['internal_embed_enabled']) ? '1' : '0', 'bool'],
         ['plain_text_auto_link_urls', !empty($settings['plain_text_auto_link_urls']) ? '1' : '0', 'bool'],
