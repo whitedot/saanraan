@@ -131,6 +131,19 @@ foreach ([
 }
 
 foreach ([
+    'modules/community/views/admin-boards.php',
+    'modules/content/views/admin-contents.php',
+    'modules/quiz/actions/admin-quiz.php',
+    'modules/survey/actions/admin-surveys.php',
+] as $relativePath) {
+    $body = file_get_contents($root . '/' . $relativePath);
+    $assert(
+        is_string($body) && str_contains($body, 'class="admin-form-secondary-actions admin-form-draft-actions"'),
+        $relativePath . ' must group draft and final save controls at the end of split sticky actions.'
+    );
+}
+
+foreach ([
     'modules/community/actions/admin-boards.php' => 'community.board',
     'modules/content/actions/admin-content-save.php' => 'content.item',
     'modules/quiz/actions/admin-quiz.php' => 'quiz.item',

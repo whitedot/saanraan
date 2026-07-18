@@ -286,9 +286,9 @@ $communitySettingsHelp = [
     ],
     'editor_default' => [
         'id' => 'community_settings_help_editor_default',
-        'title' => '게시글 입력 방식 기본값 도움말',
-        'body' => '<p>새 게시판을 만들 때 기본으로 선택할 게시글 입력 방식입니다. 기존 게시판에 따로 저장된 값은 자동으로 바꾸지 않습니다.</p>'
-            . '<p>다만 게시글은 작성 당시의 입력 방식을 별도로 저장하지 않습니다. 이 전체 기본값을 그대로 따르는 기존 게시판은 설정을 바꾸면 예전에 작성한 게시글의 공개 표시 방식도 달라질 수 있으므로 변경 전에 확인하세요.</p>',
+        'title' => '게시글·댓글 입력 방식 기본값 도움말',
+        'body' => '<p>새 게시판을 만들 때 기본으로 선택할 게시글과 댓글 입력 방식입니다. 기존 게시판에 따로 저장된 값은 자동으로 바꾸지 않습니다.</p>'
+            . '<p>게시글과 댓글은 작성 당시의 입력 방식을 별도로 저장하지 않습니다. 이 전체 기본값을 그대로 따르는 기존 게시판은 설정을 바꾸면 예전에 작성한 내용의 공개 표시 방식도 달라질 수 있으므로 변경 전에 확인하세요.</p>',
     ],
     'body_length' => [
         'id' => 'community_settings_help_body_length',
@@ -923,6 +923,14 @@ $communitySettingsSectionNavItems = [
             </div>
         </div>
         <div class="form-row">
+            <?php echo sr_admin_form_label_help_html('community_admin_settings_comment_editor', '댓글 입력 방식', $communitySettingsHelp['editor_default']['id'], $communitySettingsHelpOpenLabel, true); ?>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_comment_editor', 'comment_editor', $editorOptions, (string) ($settings['comment_editor'] ?? 'textarea'), true); ?>
+                <p class="form-help">새 게시판과 별도 설정이 없는 기존 게시판의 댓글·답글 작성과 출력에 적용할 기본 입력 방식입니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityEditorModuleReferences); ?>
+            </div>
+        </div>
+        <div class="form-row">
             <label class="form-label" for="community_admin_settings_post_toolbar_preset">툴바 구성 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <select id="community_admin_settings_post_toolbar_preset" name="post_toolbar_preset" class="form-select" required>
@@ -932,7 +940,7 @@ $communitySettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">CKEditor를 사용할 때 커뮤니티 게시글 작성/수정 화면에 적용할 툴바입니다.</p>
+                <p class="form-help">CKEditor를 사용할 때 커뮤니티 게시글과 댓글 작성/수정 화면에 적용할 툴바입니다.</p>
                 <?php echo sr_admin_module_reference_list_html($pdo, $communityToolbarModuleReferences); ?>
             </div>
         </div>

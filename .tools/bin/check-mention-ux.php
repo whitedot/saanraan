@@ -143,7 +143,10 @@ foreach ([
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, 'data-sr-mention-input'), 'comment view should enable mention input: ' . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, '/member/mention-search'), 'comment view should point to member mention search: ' . $viewPath);
-    sr_mention_check_assert(is_string($view) && str_contains($view, 'sr_member_mention_plain_text_html'), 'comment view should render mention tokens through the shared renderer: ' . $viewPath);
+    $mentionRenderer = str_starts_with($viewPath, '/modules/community/')
+        ? 'sr_community_comment_body_html'
+        : 'sr_member_mention_plain_text_html';
+    sr_mention_check_assert(is_string($view) && str_contains($view, $mentionRenderer), 'comment view should render mention tokens through the format-aware renderer: ' . $viewPath);
 }
 
 $notificationInstallSql = file_get_contents($root . '/modules/notification/install.sql');

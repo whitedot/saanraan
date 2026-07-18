@@ -151,3 +151,92 @@
     line-height: inherit;
     padding-left: 0;
 }
+
+.community-comment-body,
+.community-comment-body *,
+.community-comment-body *::before,
+.community-comment-body *::after {
+    box-sizing: border-box;
+}
+
+.community-comment-body :where(h1, h2, h3, h4, h5, h6, p, blockquote, ul, ol, li, pre, table, thead, tbody, tr, th, td, hr, figure, figcaption) {
+    padding: 0;
+}
+
+.community-comment-body :where(a) {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.community-comment-body :where(ul) {
+    list-style: disc outside;
+    padding-inline-start: 1.5em;
+}
+
+.community-comment-body :where(ol) {
+    list-style: decimal outside;
+    padding-inline-start: 1.5em;
+}
+
+.community-comment-body :where(table) {
+    border-collapse: collapse;
+    display: table;
+    text-indent: 0;
+}
+
+.community-comment-body :where(thead) {
+    display: table-header-group;
+}
+
+.community-comment-body :where(tbody) {
+    display: table-row-group;
+}
+
+.community-comment-body :where(tr) {
+    display: table-row;
+}
+
+.community-comment-body :where(th, td) {
+    display: table-cell;
+    vertical-align: top;
+}
+
+.community-comment-body :is(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, pre, table) {
+    color: inherit;
+    font-family: inherit;
+    line-height: inherit;
+    margin: 0;
+}
+
+.community-comment-body :is(h1, h2, h3, h4, h5, h6) {
+    font-size: inherit;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0;
+}
+
+.community-comment-body :is(a, li, figcaption, code) {
+    overflow-wrap: anywhere;
+}
+
+.community-comment-body :is(pre, table) {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.community-comment-body pre {
+    white-space: pre-wrap;
+}
+
+.community-comment-body img,
+.community-comment-body :is(video, iframe, embed, object) {
+    display: block;
+    height: auto;
+    max-width: 100%;
+}
+
+.community-comment-body blockquote {
+    border-left: 0;
+    color: inherit;
+    font-size: inherit;
+    padding-left: 0;
+}

@@ -425,8 +425,7 @@
     }
   }
 
-  function communityDraftSetBody(form, value) {
-    var textarea = communityDraftEditorTextarea(form);
+  function communitySetEditorTextareaValue(textarea, value) {
     if (!textarea) {
       return;
     }
@@ -437,6 +436,37 @@
     }
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function communityPrepareCommentModalEditor(textarea) {
+    if (!textarea) {
+      return;
+    }
+
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        var editor = textarea._srCkeditorInstance || (textarea.id && window.srCkeditorInstances ? window.srCkeditorInstances[textarea.id] : null);
+        if (!editor) {
+          return;
+        }
+        if (editor.ui && typeof editor.ui.update === 'function') {
+          editor.ui.update();
+        } else if (editor.ui && typeof editor.ui.fire === 'function') {
+          editor.ui.fire('update');
+        }
+        if (editor.editing && editor.editing.view && typeof editor.editing.view.focus === 'function') {
+          editor.editing.view.focus();
+        }
+      });
+    });
+  }
+
+  function communityDraftSetBody(form, value) {
+    var textarea = communityDraftEditorTextarea(form);
+    if (!textarea) {
+      return;
+    }
+    communitySetEditorTextareaValue(textarea, value);
   }
 
   function communityDraftSnapshot(form) {
@@ -746,12 +776,27 @@
         }
 
         var scrollTop = window.scrollY;
-        commentsSection.replaceWith(document.importNode(nextCommentsSection, true));
-        window.history.replaceState(window.history.state, '', pageUrl.pathname + pageUrl.search + pageUrl.hash);
-        initToasts();
-        initScrollTargetButtons();
-        window.requestAnimationFrame(function () {
-          window.scrollTo({ top: scrollTop, left: window.scrollX, behavior: 'auto' });
+        var editorDestroyPromises = [];
+        if (typeof window.srCkeditorDestroyTextarea === 'function') {
+          commentsSection.querySelectorAll('textarea[data-sr-editor="ckeditor"]').forEach(function (textarea) {
+            editorDestroyPromises.push(window.srCkeditorDestroyTextarea(textarea));
+          });
+        }
+        return Promise.all(editorDestroyPromises).then(function () {
+          var importedCommentsSection = document.importNode(nextCommentsSection, true);
+          commentsSection.replaceWith(importedCommentsSection);
+          window.history.replaceState(window.history.state, '', pageUrl.pathname + pageUrl.search + pageUrl.hash);
+          initToasts();
+          initScrollTargetButtons();
+          if (typeof window.srMarkdownEditorEnhance === 'function') {
+            window.srMarkdownEditorEnhance(importedCommentsSection);
+          }
+          if (typeof window.srCkeditorEnhance === 'function') {
+            window.srCkeditorEnhance();
+          }
+          window.requestAnimationFrame(function () {
+            window.scrollTo({ top: scrollTop, left: window.scrollX, behavior: 'auto' });
+          });
         });
       }).catch(function () {
         commentsSection.removeAttribute('aria-busy');
@@ -801,11 +846,12 @@
           replySource.textContent = replyButton.getAttribute('data-comment-body') || '';
         }
         if (replyBody && !preserveReplyInput) {
-          replyBody.value = '';
+          communitySetEditorTextareaValue(replyBody, '');
         }
         if (replySecret && !preserveReplyInput) {
           replySecret.checked = false;
         }
+        communityPrepareCommentModalEditor(replyBody);
         return;
       }
 
@@ -824,7 +870,7 @@
           editId.value = editButton.getAttribute('data-comment-id') || '';
         }
         if (editBody) {
-          editBody.value = editButton.getAttribute('data-comment-body') || '';
+          communitySetEditorTextareaValue(editBody, editButton.getAttribute('data-comment-body') || '');
         }
         if (editSecret) {
           editSecret.checked = isSecret;
@@ -832,6 +878,7 @@
         if (editSecretField) {
           editSecretField.hidden = editModal.getAttribute('data-secret-comments-enabled') !== '1' && !isSecret;
         }
+        communityPrepareCommentModalEditor(editBody);
         return;
       }
 

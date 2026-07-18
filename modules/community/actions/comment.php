@@ -47,7 +47,7 @@ if (is_array($board)) {
 }
 $commentChargeConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_charge', 'every_action') : ['enabled' => false];
 $commentRewardConfig = is_array($board) ? sr_community_asset_event_config($pdo, $board, $settings, 'comment_reward', 'once') : ['enabled' => false];
-$values = sr_community_comment_input_values();
+$values = sr_community_comment_input_values($pdo, $isGuestAuthor ? null : $board, $settings);
 $commentExtraFieldDefinitions = is_array($board)
     ? sr_comment_extra_field_definitions(sr_community_effective_board_setting($pdo, $board, 'comment_extra_fields_json', '[]'))
     : [];

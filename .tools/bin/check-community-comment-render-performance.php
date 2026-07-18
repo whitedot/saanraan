@@ -104,12 +104,21 @@ foreach ([
     $assert(is_string($view) && str_contains($view, 'data-community-comment-reply data-comment-id='), $viewFile . ' member reply buttons must pass the parent target to the shared modal.');
     $assert(is_string($view) && str_contains($view, 'data-community-comment-edit data-comment-id='), $viewFile . ' edit buttons must pass the target to the shared modal.');
     $assert(is_string($view) && str_contains($view, 'data-community-comment-report data-comment-id='), $viewFile . ' report buttons must pass the target to the shared modal.');
+    $assert(is_string($view) && substr_count($view, 'class="modal-dialog community-comment-editor-dialog"') === 3, $viewFile . ' reply and edit dialogs must use the bounded editor modal layout.');
+    $assert(is_string($view) && substr_count($view, 'class="community-comment-editor-field"') === 3, $viewFile . ' reply and edit body controls must use the editor field layout.');
+    $assert(is_string($view) && str_contains($view, 'class="community-comment-reply-source" tabindex="0" aria-label="답글 대상 댓글"'), $viewFile . ' long reply source text must expose a keyboard-scrollable preview.');
     $assert(is_string($view) && !str_contains($view, "\$communityCommentReportModalId"), $viewFile . ' must not generate a report modal id per comment.');
 }
 $communityModuleScript = file_get_contents($root . '/modules/community/assets/module.js');
+$communityModuleStyles = file_get_contents($root . '/modules/community/theme/basic/assets/module.css');
 $assert(is_string($communityModuleScript) && str_contains($communityModuleScript, 'function initCommentSharedModals()'), 'Community JavaScript must populate shared comment modals.');
 $assert(is_string($communityModuleScript) && str_contains($communityModuleScript, "replyButton.getAttribute('data-comment-id')"), 'Shared reply modal must receive the selected parent comment id.');
 $assert(is_string($communityModuleScript) && str_contains($communityModuleScript, "editButton.getAttribute('data-comment-body')"), 'Shared edit modal must restore the exact escaped comment body payload.');
+$assert(is_string($communityModuleScript) && str_contains($communityModuleScript, 'communityPrepareCommentModalEditor(replyBody);'), 'Shared reply modal must refresh its editor after becoming visible.');
+$assert(is_string($communityModuleScript) && str_contains($communityModuleScript, 'communityPrepareCommentModalEditor(editBody);'), 'Shared edit modal must refresh its editor after becoming visible.');
+$assert(is_string($communityModuleStyles) && str_contains($communityModuleStyles, '.community-comment-editor-dialog > .modal-content'), 'Comment editor dialogs must bound their content to the viewport.');
+$assert(is_string($communityModuleStyles) && str_contains($communityModuleStyles, '.community-comment-editor-dialog .sr-ckeditor .ck-editor__editable_inline'), 'Comment CKEditor instances must use a modal-sized editable area.');
+$assert(is_string($communityModuleStyles) && str_contains($communityModuleStyles, 'max-height: min(18vh, 8rem);'), 'Long reply source previews must scroll within a bounded height.');
 
 if ($errors !== []) {
     foreach ($errors as $error) {

@@ -630,6 +630,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <p class="form-help">게시판에 저장된 에디터 설정이 없으면 커뮤니티 환경설정을 사용합니다. 커뮤니티 게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로, 이 값을 바꾸면 기존 게시글의 공개 출력 방식도 함께 바뀔 수 있습니다.</p>
                 </div>
             </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_boards_comment_editor">댓글 에디터 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('community_admin_boards_comment_editor', 'comment_editor', $editorOptions, $boardField($formBoard, 'comment_editor', 'textarea'), true); ?>
+                    <p class="form-help">댓글과 답글의 작성·수정 및 공개 출력 방식을 정합니다. 댓글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로, 이 값을 바꾸면 기존 댓글의 공개 출력 방식도 함께 바뀔 수 있습니다.</p>
+                </div>
+            </div>
         </section>
 
         <section id="community-board-section-extra-fields" class="card admin-list-card admin-list-form" data-admin-section-anchor data-community-extra-fields-builder>
@@ -1434,16 +1441,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/community/boards')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
-            <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.3537f0cc') : sr_t('community::ui.save')); ?></button>
             <?php if ($communityBoardsPage === 'edit') { ?>
                 <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $formBoard['board_key']))); ?>" class="btn btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>" title="<?php echo sr_e(sr_t('community::ui.text.910d9d5a')); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                 <a href="<?php echo sr_e(sr_url('/admin/community/boards/copy?id=' . rawurlencode((string) $formBoard['id']))); ?>" class="btn btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>"><?php echo sr_material_icon_html('content_copy'); ?></a>
                 <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>" aria-label="<?php echo sr_e('삭제'); ?>" title="<?php echo sr_e('삭제'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
-            <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
-            <?php if (is_array($adminFormDraft ?? null)) { ?>
-                <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
-            <?php } ?>
+            <div class="admin-form-secondary-actions admin-form-draft-actions">
+                <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.3537f0cc') : sr_t('community::ui.save')); ?></button>
+                <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+                <?php if (is_array($adminFormDraft ?? null)) { ?>
+                    <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+                <?php } ?>
+            </div>
         </div>
     </form>
     <?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'community-board-form'); ?>

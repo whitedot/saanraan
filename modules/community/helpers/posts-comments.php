@@ -19,7 +19,7 @@ function sr_community_validate_comment_body_length(PDO $pdo, array $board, array
         return [];
     }
 
-    $length = sr_community_body_plain_length($bodyText);
+    $length = sr_community_body_plain_length($bodyText, (string) ($values['body_format'] ?? 'plain'));
     $minLength = sr_community_board_comment_body_min_length($pdo, $board);
     $maxLength = sr_community_board_comment_body_max_length($pdo, $board);
     $errors = [];
@@ -31,6 +31,46 @@ function sr_community_validate_comment_body_length(PDO $pdo, array $board, array
     }
 
     return $errors;
+}
+
+function sr_community_comment_body_format(PDO $pdo, array $board, ?array $settings = null): string
+{
+    return sr_community_body_format_for_editor_key($pdo, sr_community_effective_comment_editor($pdo, $board, $settings));
+}
+
+function sr_community_comment_body_html(PDO $pdo, array $comment, array $board, ?array $settings = null): string
+{
+    $bodyText = (string) ($comment['body_text'] ?? '');
+    $bodyFormat = sr_community_comment_body_format($pdo, $board, $settings);
+    if ($bodyFormat === 'html') {
+        return sr_community_sanitize_post_html($bodyText);
+    }
+    if ($bodyFormat === 'markdown') {
+        $rendered = sr_markdown_render($pdo, $bodyText, 'full');
+        return is_array($rendered) ? (string) ($rendered['html'] ?? '') : sr_markdown_text_html($bodyText);
+    }
+
+    return sr_member_mention_plain_text_html($bodyText);
+}
+
+function sr_community_comment_body_plain_text(PDO $pdo, array $comment, array $board, ?array $settings = null): string
+{
+    return sr_community_body_plain_text(
+        (string) ($comment['body_text'] ?? ''),
+        sr_community_comment_body_format($pdo, $board, $settings)
+    );
+}
+
+function sr_community_comment_body_stylesheets(PDO $pdo, array $board, ?array $settings = null): array
+{
+    $editorKey = sr_community_effective_comment_editor($pdo, $board, $settings);
+    $bodyFormat = sr_community_body_format_for_editor_key($pdo, $editorKey);
+    $stylesheets = sr_body_editor_stylesheets($bodyFormat, $editorKey);
+    if ($bodyFormat === 'markdown') {
+        $stylesheets = array_merge($stylesheets, sr_markdown_stylesheets($pdo, '', 'full'));
+    }
+
+    return array_values(array_unique($stylesheets));
 }
 
 function sr_community_post_published_comment_count(PDO $pdo, int $postId): int
@@ -636,12 +676,20 @@ function sr_community_account_can_comment_post(PDO $pdo, array $post, ?array $ac
     return false;
 }
 
-function sr_community_comment_input_values(): array
+function sr_community_comment_input_values(?PDO $pdo = null, ?array $board = null, ?array $settings = null): array
 {
     $parentCommentIdValue = sr_post_string('parent_comment_id', 20);
+    $bodyFormat = $pdo instanceof PDO && is_array($board)
+        ? sr_community_comment_body_format($pdo, $board, $settings)
+        : 'plain';
+    $bodyText = sr_post_string_without_truncation('body_text', 5000);
+    if ($bodyFormat === 'html' && is_string($bodyText)) {
+        $bodyText = sr_community_sanitize_post_html($bodyText);
+    }
 
     return [
-        'body_text' => sr_post_string_without_truncation('body_text', 5000),
+        'body_text' => $bodyText,
+        'body_format' => $bodyFormat,
         'is_secret' => sr_post_string('is_secret', 10) === '1' ? 1 : 0,
         'parent_comment_id' => preg_match('/\A[1-9][0-9]*\z/', $parentCommentIdValue) === 1 ? (int) $parentCommentIdValue : 0,
     ];
@@ -654,7 +702,7 @@ function sr_community_validate_comment_input(array $values): array
         return [sr_t('community::action.error.comment_body_too_long')];
     }
 
-    if (trim($bodyText) === '') {
+    if (sr_community_body_text_is_empty($bodyText, (string) ($values['body_format'] ?? 'plain'))) {
         return [sr_t('community::action.error.comment_body_required')];
     }
 

@@ -269,6 +269,7 @@ function sr_community_board_default_settings(array $settings, array $groupSettin
     $defaults['status'] = (string) ($settings['board_status'] ?? 'enabled');
     $defaults['skin_key'] = 'basic';
     $defaults['post_editor'] = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
+    $defaults['comment_editor'] = sr_community_comment_editor_key((string) ($settings['comment_editor'] ?? 'textarea'));
     $defaults['extra_fields_json'] = sr_community_extra_field_definitions_json($settings['extra_fields_json'] ?? '[]');
     $defaults['comment_extra_fields_json'] = sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]');
 
@@ -564,6 +565,27 @@ function sr_community_effective_post_editor(PDO $pdo, array $board, ?array $sett
 
     $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
     return sr_editor_effective_key($pdo, (string) ($settings['post_editor'] ?? 'textarea'));
+}
+
+function sr_community_comment_editor_key(string $value, bool $allowInherit = false): string
+{
+    return sr_editor_normalize_key($value, $allowInherit);
+}
+
+function sr_community_effective_comment_editor(PDO $pdo, array $board, ?array $settings = null): string
+{
+    $boardId = (int) ($board['id'] ?? 0);
+
+    if ($boardId > 0) {
+        $boardEditorValue = sr_community_board_setting_value($pdo, $boardId, 'comment_editor');
+        $boardEditor = is_string($boardEditorValue) ? sr_community_comment_editor_key($boardEditorValue) : '';
+        if ($boardEditor !== '') {
+            return sr_editor_effective_key($pdo, $boardEditor);
+        }
+    }
+
+    $settings = is_array($settings) ? sr_community_normalize_settings($settings) : sr_community_settings($pdo);
+    return sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
 }
 
 function sr_community_apply_board_setting_scope(PDO $pdo, int $boardId, int $boardGroupId, string $settingKey, string $source, mixed $value): void
@@ -1026,6 +1048,8 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     $board['skin_key'] = sr_community_skin_key(['skin_key' => (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'skin_key') ?? 'basic')]);
     $board['post_editor'] = sr_community_post_editor_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'post_editor') ?? ($settings['post_editor'] ?? 'textarea')));
     $board['effective_post_editor'] = sr_community_effective_post_editor($pdo, $board, $settings);
+    $board['comment_editor'] = sr_community_comment_editor_key((string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'comment_editor') ?? ($settings['comment_editor'] ?? 'textarea')));
+    $board['effective_comment_editor'] = sr_community_effective_comment_editor($pdo, $board, $settings);
     $board['reaction_enabled'] = sr_community_effective_board_setting($pdo, $board, 'reaction_enabled', !empty($settings['reaction_enabled']) ? '1' : '0');
     $board['reaction_post_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_post_preset_key') ?? '');
     $board['reaction_comment_preset_key'] = (string) (sr_community_board_setting_value($pdo, (int) $board['id'], 'reaction_comment_preset_key') ?? '');

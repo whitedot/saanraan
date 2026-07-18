@@ -1041,16 +1041,18 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php } ?>
         <div class="form-sticky-actions form-actions form-actions-split">
             <a href="<?php echo sr_e(sr_url('/admin/content')); ?>" class="btn btn-solid-light"><?php echo sr_e(sr_t('content::ui.list.f07b3200')); ?></a>
-            <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
             <?php if ($editing) { ?>
                 <a href="<?php echo sr_e($contentAdminViewUrl((string) $editPage['slug'], (string) ($editPage['status'] ?? ''))); ?>" class="btn btn-icon btn-solid-light" target="_blank" rel="noopener noreferrer" aria-label="<?php echo sr_e('사용자 화면 바로가기'); ?>" title="<?php echo sr_e('사용자 화면 바로가기'); ?>"><?php echo sr_material_icon_html('open_in_new'); ?></a>
                 <button type="button" class="btn btn-icon btn-solid-light" aria-label="<?php echo sr_e('복사'); ?>" title="<?php echo sr_e('복사'); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>" data-overlay="#content-copy-modal-<?php echo sr_e((string) (int) $editPage['id']); ?>"><?php echo sr_material_icon_html('content_copy'); ?></button>
                 <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentDeleteModalId); ?>" data-overlay="#<?php echo sr_e($contentDeleteModalId); ?>" aria-label="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('content::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
-            <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
-            <?php if (is_array($adminFormDraftForDisplay ?? null)) { ?>
-                <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
-            <?php } ?>
+            <div class="admin-form-secondary-actions admin-form-draft-actions">
+                <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e(sr_t('content::ui.save.5fb92622')); ?></button>
+                <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+                <?php if (is_array($adminFormDraftForDisplay ?? null)) { ?>
+                    <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+                <?php } ?>
+            </div>
         </div>
     </form>
     <?php echo sr_admin_form_draft_restore_script($adminFormDraftForDisplay ?? null, 'content-item-form'); ?>

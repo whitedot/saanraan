@@ -527,6 +527,36 @@ function sr_check_community_board_settings_runtime(): void
     if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'plain') {
         sr_check_community_board_settings_error('community post body format should default to plain when no board editor setting is stored.');
     }
+    $formatComment = ['id' => 1, 'body_text' => '<strong>gamma</strong>'];
+    if (sr_community_comment_body_format($pdo, $board, ['comment_editor' => 'textarea']) !== 'plain') {
+        sr_check_community_board_settings_error('community comment body format should default to plain when no board editor setting is stored.');
+    }
+    $boardSettingStmt->execute([
+        'setting_key' => 'comment_editor',
+        'setting_value' => 'html',
+        'value_type' => 'string',
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+    if (sr_community_comment_body_format($pdo, $board, ['comment_editor' => 'textarea']) !== 'html') {
+        sr_check_community_board_settings_error('community comment body format must follow the current board editor setting.');
+    }
+    $commentHtml = sr_community_comment_body_html($pdo, ['id' => 1, 'body_text' => '<script>alert(1)</script><strong>safe</strong>'], $board, ['comment_editor' => 'textarea']);
+    if (str_contains($commentHtml, '<script') || !str_contains($commentHtml, '<strong>safe</strong>')) {
+        sr_check_community_board_settings_error('community HTML comment rendering must sanitize unsafe markup and preserve allowed rich text.');
+    }
+    $originalPost = $_POST;
+    $_POST = [
+        'body_text' => '<script>alert(1)</script><strong>safe</strong>',
+        'parent_comment_id' => '0',
+    ];
+    $commentInputValues = sr_community_comment_input_values($pdo, $board, ['comment_editor' => 'textarea']);
+    $_POST = $originalPost;
+    if ((string) ($commentInputValues['body_format'] ?? '') !== 'html'
+        || str_contains((string) ($commentInputValues['body_text'] ?? ''), '<script')
+        || !str_contains((string) ($commentInputValues['body_text'] ?? ''), '<strong>safe</strong>')) {
+        sr_check_community_board_settings_error('community HTML comment input must derive the board format and sanitize before validation.');
+    }
     $boardSettingStmt->execute([
         'setting_key' => 'post_editor',
         'setting_value' => 'html',
@@ -555,10 +585,22 @@ function sr_check_community_board_settings_runtime(): void
     if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'plain') {
         sr_check_community_board_settings_error('community post body format must fall back to plain when markdown editor is configured but inactive.');
     }
+    $pdo->prepare(
+        "UPDATE sr_community_board_settings
+            SET setting_value = 'markdown'
+          WHERE board_id = 10
+            AND setting_key = 'comment_editor'"
+    )->execute();
+    if (sr_community_comment_body_format($pdo, $board, ['comment_editor' => 'textarea']) !== 'plain') {
+        sr_check_community_board_settings_error('community comment body format must fall back to plain when markdown editor is configured but inactive.');
+    }
     $pdo->exec("INSERT INTO sr_modules (id, module_key, version, status) VALUES (3, 'markdown_editor', '2026.07.003', 'enabled')");
     sr_clear_module_registry_cache();
     if (sr_community_post_body_format($pdo, $formatPost, ['post_editor' => 'textarea']) !== 'markdown') {
         sr_check_community_board_settings_error('community post body format must use markdown when the current board editor setting is active.');
+    }
+    if (sr_community_comment_body_format($pdo, $board, ['comment_editor' => 'textarea']) !== 'markdown') {
+        sr_check_community_board_settings_error('community comment body format must use markdown when the current board editor setting is active.');
     }
     sr_community_sync_board_summary_feed_candidates($pdo, 10, false);
     $candidateCount = (int) $pdo->query('SELECT COUNT(*) FROM sr_community_posts WHERE board_id = 10 AND summary_feed_candidate = 0')->fetchColumn();
@@ -622,6 +664,9 @@ sr_check_community_board_settings_contains('modules/community/helpers/posts-writ
 sr_check_community_board_settings_contains('modules/community/helpers/posts-comments.php', [
     'sr_community_validate_comment_body_length',
     'sr_community_post_comment_page',
+    'sr_community_comment_body_format',
+    'sr_community_comment_body_html',
+    'sr_community_comment_body_stylesheets',
 ], 'community comment runtime setting helpers');
 sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', array_merge($settingKeys, [
     'function sr_community_admin_apply_board_settings(',
@@ -640,6 +685,8 @@ if (substr_count($adminBoardSaveContent, '게시판 리액션 프리셋 값이 �
     sr_check_community_board_settings_error('community board reaction preset validation must have one authoritative branch.');
 }
 sr_check_community_board_settings_contains('modules/community/actions/admin-settings.php', [
+    "sr_post_string('comment_editor', 30)",
+    "['comment_editor', \$commentEditor, 'string']",
     'sr_admin_post_int_in_range(\'post_body_min_length\', 0, $postBodyMaxSettingLength)',
     'sr_admin_post_int_in_range(\'post_body_max_length\', 0, $postBodyMaxSettingLength)',
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
@@ -649,13 +696,16 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-sett
     '[\'comments_per_page\', (string) $commentsPerPage, \'int\']',
 ], 'community global post body length setting save');
 sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
-    '게시글은 작성 당시의 입력 방식을 별도로 저장하지 않습니다.',
-    '예전에 작성한 게시글의 공개 표시 방식도 달라질 수 있으므로',
-], 'community global post editor operational warning');
+    '게시글과 댓글은 작성 당시의 입력 방식을 별도로 저장하지 않습니다.',
+    '예전에 작성한 내용의 공개 표시 방식도 달라질 수 있으므로',
+    "'comment_editor', \$editorOptions",
+], 'community global post/comment editor operational warning');
 sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
     '커뮤니티 게시글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
     '기존 게시글의 공개 출력 방식도 함께 바뀔 수 있습니다.',
-], 'community board post editor operational warning');
+    '댓글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
+    '기존 댓글의 공개 출력 방식도 함께 바뀔 수 있습니다.',
+], 'community board post/comment editor operational warning');
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
     'function sr_community_effective_board_reaction_enabled',
     "sr_community_effective_board_setting(\$pdo, \$board, 'reaction_enabled'",

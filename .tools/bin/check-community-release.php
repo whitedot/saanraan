@@ -762,6 +762,23 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
     'sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
     "['extra_fields_json', \$extraFieldsJson, 'json']",
 ], 'Community settings post extra field defaults');
+sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
+    "sr_post_string('comment_editor', 30)",
+    "['comment_editor', \$commentEditor, 'string']",
+    "'comment_editor' => \$commentEditor",
+], 'Community settings comment editor');
+sr_community_release_file_contains('modules/community/helpers/admin-boards.php', [
+    "sr_post_string('comment_editor', 30)",
+    "'comment_editor' => \$commentEditor",
+], 'Community board comment editor');
+sr_community_release_file_contains('modules/community/views/admin-settings.php', [
+    "'comment_editor', \$editorOptions",
+    '댓글 입력 방식',
+], 'Community settings comment editor field');
+sr_community_release_file_contains('modules/community/views/admin-boards.php', [
+    "'comment_editor', \$editorOptions",
+    '댓글 에디터',
+], 'Community board comment editor field');
 sr_community_release_file_contains('modules/community/views/admin-settings.php', [
     "'community-post-extra-fields-json-section' => '게시글 추가 입력'",
     'sr_community_admin_post_extra_fields_editor_html(',
@@ -850,6 +867,9 @@ sr_community_release_file_contains('modules/community/theme/basic/post.php', [
     'class="community-comment-item community-comment-depth-',
     'class="community-comment-body"',
     'class="community-comment-form"',
+    '$communityCommentEditorAttributes',
+    'sr_community_comment_body_html($pdo, $comment, $postBoard, $communityLayoutSettings)',
+    'sr_editor_assets_html($pdo, $communityCommentEditorKey, $communityCommentToolbarPreset)',
     'btn btn-outline-danger',
     "sr_ui_arrow_icon_html('down', 'dropdown-icon')",
 ], 'Community post view action UI kit controls');

@@ -112,6 +112,7 @@ return [
         'board_sidebar_site_menu_key' => '',
         'business_info_visible' => true,
         'post_editor' => 'textarea',
+        'comment_editor' => 'textarea',
         'post_toolbar_preset' => 'community_post_basic',
         'external_embed_enabled' => true,
         'internal_embed_enabled' => true,

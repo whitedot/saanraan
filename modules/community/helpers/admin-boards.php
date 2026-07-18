@@ -101,6 +101,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $skinKey = sr_post_string('skin_key', 40);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_editor_effective_key($pdo, sr_community_post_editor_key($postEditorInput));
+        $commentEditorInput = sr_post_string('comment_editor', 30);
+        $commentEditor = sr_editor_effective_key($pdo, sr_community_comment_editor_key($commentEditorInput));
         $sortOrder = sr_admin_post_int_in_range('sort_order', 0, 1000000);
         $attachmentMaxBytes = sr_admin_post_int_in_range('attachment_max_bytes', 1024, 10485760);
         $attachmentMaxCount = sr_admin_post_int_in_range('attachment_max_count', 0, 10);
@@ -360,6 +362,10 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         if ($postEditorInput !== $postEditor || !array_key_exists($postEditor, $editorOptions)) {
             $errors[] = '게시판 에디터 값이 올바르지 않습니다.';
             $postEditor = 'textarea';
+        }
+        if ($commentEditorInput !== $commentEditor || !array_key_exists($commentEditor, $editorOptions)) {
+            $errors[] = '댓글 에디터 값이 올바르지 않습니다.';
+            $commentEditor = 'textarea';
         }
 
         if ($sortOrder === null) {
@@ -642,6 +648,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'status' => $status,
                 'skin_key' => $skinKey,
                 'post_editor' => $postEditor,
+                'comment_editor' => $commentEditor,
                 'read_policy' => $readPolicy,
                 'write_policy' => $writePolicy,
                 'comment_policy' => $commentPolicy,

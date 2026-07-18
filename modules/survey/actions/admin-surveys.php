@@ -1355,11 +1355,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php endforeach; ?>
         <div class="form-sticky-actions form-actions form-actions-split">
             <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/admin/surveys')); ?>">목록</a>
-            <button type="submit" class="btn btn-solid-primary admin-form-final-save">저장</button>
-            <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
-            <?php if (is_array($adminFormDraft ?? null)): ?>
-                <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
-            <?php endif; ?>
+            <div class="admin-form-secondary-actions admin-form-draft-actions">
+                <button type="submit" class="btn btn-solid-primary admin-form-final-save">저장</button>
+                <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
+                <?php if (is_array($adminFormDraft ?? null)): ?>
+                    <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
+                <?php endif; ?>
+            </div>
         </div>
     </form>
     <?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'survey-item-form'); ?>

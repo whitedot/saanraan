@@ -120,6 +120,8 @@ if (sr_request_method() === 'POST') {
         $accountGuardConfirmedHoldDurationMinutes = sr_admin_post_int_in_range('account_guard_confirmed_hold_duration_minutes', 10, 10080);
         $postEditorInput = sr_post_string('post_editor', 30);
         $postEditor = sr_editor_effective_key($pdo, sr_community_post_editor_key($postEditorInput));
+        $commentEditorInput = sr_post_string('comment_editor', 30);
+        $commentEditor = sr_editor_effective_key($pdo, sr_community_comment_editor_key($commentEditorInput));
         $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
         $postToolbarPreset = sr_community_post_toolbar_preset_key($postToolbarPresetInput);
         $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
@@ -325,6 +327,10 @@ if (sr_request_method() === 'POST') {
             $errors[] = '게시글 에디터 값이 올바르지 않습니다.';
             $postEditor = (string) ($settings['post_editor'] ?? 'textarea');
         }
+        if ($commentEditorInput !== $commentEditor || !array_key_exists($commentEditor, $editorOptions)) {
+            $errors[] = '댓글 에디터 값이 올바르지 않습니다.';
+            $commentEditor = (string) ($settings['comment_editor'] ?? 'textarea');
+        }
         if ($postToolbarPresetInput !== $postToolbarPreset || !array_key_exists($postToolbarPreset, $toolbarPresetOptions)) {
             $errors[] = '게시글 툴바 구성 값이 올바르지 않습니다.';
             $postToolbarPreset = (string) ($settings['post_toolbar_preset'] ?? 'community_post_basic');
@@ -491,6 +497,7 @@ if (sr_request_method() === 'POST') {
                 ['draft_retention_days', (string) $draftRetentionDays, 'int'],
                 ['draft_max_count_per_account', (string) $draftMaxCountPerAccount, 'int'],
                 ['post_editor', $postEditor, 'string'],
+                ['comment_editor', $commentEditor, 'string'],
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
                 ['post_body_min_length', (string) $postBodyMinLength, 'int'],
                 ['post_body_max_length', (string) $postBodyMaxLength, 'int'],
@@ -632,6 +639,7 @@ if (sr_request_method() === 'POST') {
                         'business_info_visible' => $businessInfoVisible,
                         'series_enabled' => $seriesEnabled,
                         'post_editor' => $postEditor,
+                        'comment_editor' => $commentEditor,
                         'post_toolbar_preset' => $postToolbarPreset,
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
                         'plain_text_auto_link_new_tab' => $plainTextAutoLinkNewTab,

@@ -1009,6 +1009,13 @@ sr_skin_theme_check_not_contains($publicCommonStylesheetPaths, [
     '.card{border:0;',
     '.table-card{border:0;',
 ], 'Public UI kit cards should not remove their border');
+sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
+    'font-size:inherit;font-weight:var(--font-weight-normal);line-height:inherit',
+], 'Public form controls should not inherit bold label text');
+sr_skin_theme_check_contains('modules/ckeditor/assets/saanraan-ckeditor.css', [
+    '.sr-ckeditor:not([data-sr-editor-output]) .ck-content',
+    'font-weight: var(--font-weight-normal, 400);',
+], 'CKEditor editable body normal font weight');
 
 sr_skin_theme_check_contains([
     'assets/common.css',

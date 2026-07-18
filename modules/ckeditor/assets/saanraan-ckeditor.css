@@ -106,6 +106,10 @@
   overflow-wrap: anywhere;
 }
 
+.sr-ckeditor:not([data-sr-editor-output]) .ck-content {
+  font-weight: var(--font-weight-normal, 400);
+}
+
 .sr-ckeditor[data-sr-editor-output] .ck-content {
   background: transparent;
   display: flow-root;
