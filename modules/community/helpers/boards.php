@@ -1074,8 +1074,201 @@ function sr_community_admin_prepare_board_row(PDO $pdo, array $board, array $set
     return $board;
 }
 
+function sr_community_board_description_allowed_html_tags(): array
+{
+    return array_fill_keys([
+        'a', 'abbr', 'address', 'article', 'aside', 'b', 'bdi', 'bdo', 'big', 'blockquote', 'br',
+        'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'dd', 'del', 'details', 'dfn', 'div',
+        'dl', 'dt', 'em', 'figcaption', 'figure', 'footer', 'font', 'h1', 'h2', 'h3', 'h4', 'h5',
+        'h6', 'header', 'hr', 'i', 'img', 'ins', 'kbd', 'li', 'main', 'mark', 'menu', 'nav', 'ol',
+        'p', 'pre', 'q', 's', 'samp', 'section', 'small', 'span', 'strike', 'strong', 'sub', 'summary',
+        'sup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'time', 'tr', 'u', 'ul', 'var', 'wbr',
+    ], true);
+}
+
+function sr_community_sanitize_board_description_html(string $html): string
+{
+    $html = sr_strip_rich_text_dropped_containers($html);
+    if ($html === '' || !class_exists('DOMDocument')) {
+        return sr_sanitize_rich_text_html($html);
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML('<?xml encoding="UTF-8"><div id="sr-community-board-description-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (!$loaded) {
+        return '';
+    }
+
+    $root = null;
+    foreach ($document->getElementsByTagName('div') as $div) {
+        if ($div instanceof DOMElement && $div->getAttribute('id') === 'sr-community-board-description-root') {
+            $root = $div;
+            break;
+        }
+    }
+    if (!$root instanceof DOMElement) {
+        return '';
+    }
+
+    $output = '';
+    foreach ($root->childNodes as $child) {
+        $output .= sr_community_sanitize_board_description_node($child);
+    }
+
+    return trim($output);
+}
+
+function sr_community_sanitize_board_description_node(DOMNode $node): string
+{
+    if ($node instanceof DOMText) {
+        return sr_e($node->wholeText);
+    }
+    if (!$node instanceof DOMElement) {
+        return '';
+    }
+
+    $tagName = strtolower($node->tagName);
+    if (in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed', 'form', 'meta', 'link', 'base', 'svg', 'math', 'template'], true)) {
+        return '';
+    }
+
+    $children = '';
+    foreach ($node->childNodes as $child) {
+        $children .= sr_community_sanitize_board_description_node($child);
+    }
+    if (!isset(sr_community_board_description_allowed_html_tags()[$tagName])) {
+        return $children;
+    }
+
+    $attributes = sr_community_sanitize_board_description_attributes($node, $tagName);
+    if ($tagName === 'img') {
+        return str_contains($attributes, ' src="') ? '<img' . $attributes . '>' : '';
+    }
+    if (in_array($tagName, ['br', 'hr', 'wbr'], true)) {
+        return '<' . $tagName . $attributes . '>';
+    }
+
+    return '<' . $tagName . $attributes . '>' . $children . '</' . $tagName . '>';
+}
+
+function sr_community_sanitize_board_description_attributes(DOMElement $node, string $tagName): string
+{
+    $globalAttributes = ['class', 'id', 'title', 'lang', 'dir', 'role', 'hidden', 'tabindex', 'style'];
+    $tagAttributes = [
+        'a' => ['href', 'target', 'name'],
+        'blockquote' => ['cite'],
+        'q' => ['cite'],
+        'img' => ['src', 'alt', 'width', 'height', 'loading', 'decoding'],
+        'ol' => ['start', 'reversed', 'type'],
+        'li' => ['value'],
+        'table' => ['border', 'cellpadding', 'cellspacing', 'summary', 'width'],
+        'col' => ['span', 'width'],
+        'colgroup' => ['span', 'width'],
+        'td' => ['colspan', 'rowspan', 'headers', 'scope', 'abbr'],
+        'th' => ['colspan', 'rowspan', 'headers', 'scope', 'abbr'],
+        'time' => ['datetime'],
+        'details' => ['open'],
+        'font' => ['color', 'face', 'size'],
+        'del' => ['cite', 'datetime'],
+        'ins' => ['cite', 'datetime'],
+    ];
+    $allowedAttributes = array_fill_keys(array_merge($globalAttributes, $tagAttributes[$tagName] ?? []), true);
+    $attributes = '';
+    $safeHref = false;
+
+    foreach ($node->attributes as $attribute) {
+        if (!$attribute instanceof DOMAttr) {
+            continue;
+        }
+        $attributeName = strtolower($attribute->name);
+        if (str_starts_with($attributeName, 'on')
+            || in_array($attributeName, ['srcdoc', 'http-equiv', 'xmlns', 'xlink:href'], true)
+        ) {
+            continue;
+        }
+        if (!isset($allowedAttributes[$attributeName])
+            && preg_match('/\A(?:aria|data)-[a-z0-9_-]+\z/', $attributeName) !== 1
+        ) {
+            continue;
+        }
+
+        $value = trim($attribute->value);
+        if ($attributeName === 'style') {
+            $value = sr_community_sanitize_board_description_style($value);
+            if ($value === '') {
+                continue;
+            }
+        } elseif (in_array($attributeName, ['href', 'src', 'cite'], true)) {
+            if (!sr_is_safe_relative_url($value) && !sr_is_http_url($value)) {
+                continue;
+            }
+            if ($attributeName === 'src'
+                && sr_is_http_url($value)
+                && strtolower((string) parse_url($value, PHP_URL_SCHEME)) !== 'https'
+            ) {
+                continue;
+            }
+            if ($attributeName === 'href') {
+                $safeHref = true;
+            }
+        } elseif ($attributeName === 'target') {
+            if (preg_match('/\A(?:_(?:blank|self|parent|top)|[a-z][a-z0-9_-]{0,63})\z/i', $value) !== 1) {
+                continue;
+            }
+        } elseif (in_array($attributeName, ['width', 'height', 'colspan', 'rowspan', 'span', 'start', 'value', 'border', 'cellpadding', 'cellspacing'], true)) {
+            if (preg_match('/\A[0-9]{1,4}\z/', $value) !== 1) {
+                continue;
+            }
+        }
+
+        $attributes .= ' ' . $attributeName . '="' . sr_e($value) . '"';
+    }
+
+    if ($tagName === 'a' && $safeHref) {
+        $attributes .= ' rel="nofollow noopener noreferrer"';
+    }
+
+    return $attributes;
+}
+
+function sr_community_sanitize_board_description_style(string $style): string
+{
+    $style = trim((string) preg_replace('/\/\*.*?\*\//s', '', $style));
+    if ($style === '') {
+        return '';
+    }
+
+    $validationValue = html_entity_decode($style, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE, 'UTF-8');
+    $validationValue = preg_replace_callback('/\\\\([0-9a-f]{1,6})[\x20\t\r\n\f]?/i', static function (array $match): string {
+        $codepoint = hexdec((string) ($match[1] ?? ''));
+        if ($codepoint < 1 || $codepoint > 0x10ffff) {
+            return '';
+        }
+        if (function_exists('mb_chr')) {
+            return mb_chr($codepoint, 'UTF-8');
+        }
+        return html_entity_decode('&#' . (string) $codepoint . ';', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }, $validationValue) ?? '';
+    $validationValue = preg_replace('/\\\\([^0-9a-f])/i', '$1', $validationValue) ?? '';
+    $validationValue = strtolower((string) preg_replace('/[\x00-\x20\x7f]+/', '', $validationValue));
+    if (preg_match('/(?:expression\(|javascript:|vbscript:|data:|@import|-moz-binding|behavior:)/i', $validationValue) === 1) {
+        return '';
+    }
+
+    return $style;
+}
+
+function sr_community_board_description_html(string $html): string
+{
+    return sr_community_sanitize_board_description_html($html);
+}
+
 function sr_community_create_board(PDO $pdo, array $data): int
 {
+    $description = sr_community_sanitize_board_description_html((string) ($data['description'] ?? ''));
     $now = sr_now();
     $stmt = $pdo->prepare(
         'INSERT INTO sr_community_boards
@@ -1087,7 +1280,7 @@ function sr_community_create_board(PDO $pdo, array $data): int
         'board_group_id' => (int) ($data['board_group_id'] ?? 0) > 0 ? (int) $data['board_group_id'] : null,
         'board_key' => (string) $data['board_key'],
         'title' => (string) $data['title'],
-        'description' => (string) $data['description'],
+        'description' => $description,
         'status' => (string) $data['status'],
         'read_policy' => (string) $data['read_policy'],
         'write_policy' => (string) $data['write_policy'],
@@ -1105,6 +1298,7 @@ function sr_community_create_board(PDO $pdo, array $data): int
 
 function sr_community_update_board(PDO $pdo, int $boardId, array $data): void
 {
+    $description = sr_community_sanitize_board_description_html((string) ($data['description'] ?? ''));
     $stmt = $pdo->prepare(
         'UPDATE sr_community_boards
          SET board_group_id = :board_group_id,
@@ -1122,7 +1316,7 @@ function sr_community_update_board(PDO $pdo, int $boardId, array $data): void
     $stmt->execute([
         'board_group_id' => (int) ($data['board_group_id'] ?? 0) > 0 ? (int) $data['board_group_id'] : null,
         'title' => (string) $data['title'],
-        'description' => (string) $data['description'],
+        'description' => $description,
         'status' => (string) $data['status'],
         'read_policy' => (string) $data['read_policy'],
         'write_policy' => (string) $data['write_policy'],

@@ -566,7 +566,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="community_admin_boards_description"><?php echo sr_e(sr_t('community::ui.text.8c3f651d')); ?></label>
                 <div class="form-field">
-                    <textarea id="community_admin_boards_description" name="description" rows="3" cols="60" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'description')); ?></textarea>
+                    <textarea id="community_admin_boards_description" name="description" rows="3" cols="60" maxlength="2000" class="form-textarea"><?php echo sr_e($boardField($formBoard, 'description')); ?></textarea>
+                    <p class="form-help">일반 구조·표현 태그와 inline style을 HTML로 사용할 수 있습니다. 스크립트, iframe, 이벤트 속성, 실행형 URL과 CSS 값은 저장할 때 제거됩니다.</p>
                 </div>
             </div>
             <div class="form-row">

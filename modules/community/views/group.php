@@ -50,7 +50,7 @@ $communityFrameModifier = 'group';
                                 </a>
                             </h2>
                             <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-                                <p class="community-board-card-description"><?php echo sr_e((string) $board['description']); ?></p>
+                                <div class="community-board-card-description"><?php echo sr_community_board_description_html((string) $board['description']); ?></div>
                             <?php } ?>
                         </div>
                     </article>

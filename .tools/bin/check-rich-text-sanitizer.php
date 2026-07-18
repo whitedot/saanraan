@@ -8,6 +8,7 @@ define('SR_ROOT', $root);
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/community/helpers/posts.php';
+require_once $root . '/modules/community/helpers/boards.php';
 
 $errors = [];
 
@@ -214,6 +215,65 @@ function sr_sanitizer_check_body_text_helper_case(): void
     ], 'common body_text plain renderer');
 }
 
+function sr_sanitizer_check_board_description_case(): void
+{
+    $input = '<div id="hero" class="board-intro" data-layout="grid" style="display:grid; position:relative; color:#f00">'
+        . '<h4>큰 제목</h4>'
+        . '<p onclick="bad()" style="font-size:18px; margin:1rem">안내 <b>중요</b> <a href="javascript:alert(1)">위험</a> '
+        . '<a href="https://example.com/guide" target="_blank">링크</a></p>'
+        . '<table style="width:100%"><tr><td colspan="2">첫 번째</td></tr></table>'
+        . '<img src="https://example.com/a.png" alt="이미지">'
+        . '<span style="background:url(javascript:alert(1))">위험한 스타일</span>'
+        . '<script>alert(1)</script></div>';
+    $output = sr_community_sanitize_board_description_html($input);
+
+    sr_sanitizer_check_contains($output, [
+        '<div id="hero" class="board-intro" data-layout="grid" style="display:grid; position:relative; color:#f00">',
+        '<h4>큰 제목</h4>',
+        '<p style="font-size:18px; margin:1rem">안내 <b>중요</b> <a>위험</a> ',
+        '<a href="https://example.com/guide" target="_blank" rel="nofollow noopener noreferrer">링크</a>',
+        '<table style="width:100%"><tr><td colspan="2">첫 번째</td></tr></table>',
+        '<img src="https://example.com/a.png" alt="이미지">',
+        '<span>위험한 스타일</span>',
+    ], 'community board description safe HTML');
+    sr_sanitizer_check_not_contains($output, [
+        '<script',
+        'onclick',
+        'javascript:',
+    ], 'community board description restricted HTML');
+    sr_sanitizer_check_assert(
+        sr_community_board_description_html($input) === $output,
+        'Community board description renderer must sanitize stored HTML again.'
+    );
+    sr_sanitizer_check_assert(
+        isset(sr_community_board_description_allowed_html_tags()['div'], sr_community_board_description_allowed_html_tags()['span'], sr_community_board_description_allowed_html_tags()['table'], sr_community_board_description_allowed_html_tags()['h6']),
+        'Community board description allowlist must preserve broad presentational HTML.'
+    );
+    sr_sanitizer_check_assert(
+        sr_community_sanitize_board_description_style('position:fixed; transform:rotate(2deg); --accent:#f00') === 'position:fixed; transform:rotate(2deg); --accent:#f00',
+        'Community board description sanitizer must preserve administrator inline styles.'
+    );
+    sr_sanitizer_check_assert(
+        sr_community_sanitize_board_description_style('background:url(\\6a avascript:alert(1))') === '',
+        'Community board description sanitizer must reject escaped scriptable CSS values.'
+    );
+
+    sr_sanitizer_check_file_contains(SR_ROOT . '/modules/community/helpers/boards.php', [
+        '$description = sr_community_sanitize_board_description_html((string) ($data[\'description\'] ?? \'\'));',
+        "'description' => \$description,",
+    ], 'community board description storage flow');
+    foreach ([
+        'modules/community/skins/basic/list.php',
+        'modules/community/theme/basic/list.php',
+        'modules/community/views/group.php',
+        'modules/community/theme/basic/group.php',
+    ] as $viewFile) {
+        sr_sanitizer_check_file_contains(SR_ROOT . '/' . $viewFile, [
+            'sr_community_board_description_html((string) $board[\'description\'])',
+        ], 'community board description output flow');
+    }
+}
+
 function sr_sanitizer_check_rich_text_module_flow_markers(): void
 {
     $contracts = [
@@ -341,6 +401,7 @@ sr_sanitizer_check_ckeditor_case('sr_community_sanitize_post_html', 'community p
 sr_sanitizer_check_ckeditor_case('sr_sanitize_rich_text_html_fallback', 'common rich text sanitizer fallback');
 sr_sanitizer_check_ckeditor_client_sync_markers();
 sr_sanitizer_check_body_text_helper_case();
+sr_sanitizer_check_board_description_case();
 sr_sanitizer_check_rich_text_module_flow_markers();
 
 sr_sanitizer_check_assert(

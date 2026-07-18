@@ -63,7 +63,7 @@ $communityFrameModifier = 'list';
 
         <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
         <?php if ((string) ($board['description'] ?? '') !== '') { ?>
-            <p><?php echo sr_e((string) $board['description']); ?></p>
+            <div class="community-board-description"><?php echo sr_community_board_description_html((string) $board['description']); ?></div>
         <?php } ?>
 
         <?php echo sr_public_feedback_toasts('community', $boardNotice, []); ?>
