@@ -17,12 +17,6 @@
     width: min(100%, 1120px);
 }
 
-.member-skin-basic-page .btn-solid-primary {
-    background-color: var(--color-primary-hover, #0857bf);
-    border-color: var(--color-primary-hover, #0857bf);
-    color: var(--sr-on-primary, var(--color-white, #fff));
-}
-
 .member-skin-basic-layout {
     align-items: start;
     display: grid;
