@@ -211,6 +211,7 @@ function sr_survey_group_setting_bundles(): array
         'secret_comments_enabled' => ['secret_comments_enabled'],
         'reaction_preset_key' => ['reaction_preset_key'],
         'reaction_comment_preset_key' => ['reaction_comment_preset_key'],
+        'comment_editor_key' => ['comment_editor_key'],
         'comment_extra_fields_json' => ['comment_extra_fields_json'],
         'reward' => ['reward_enabled'],
     ];

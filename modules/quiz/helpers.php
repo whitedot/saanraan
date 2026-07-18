@@ -733,6 +733,11 @@ function sr_quiz_settings(PDO $pdo): array
 function sr_quiz_comment_editor_key(PDO $pdo, ?array $settings = null): string
 {
     $settings = is_array($settings) ? $settings : sr_quiz_settings($pdo);
+    $itemEditorKey = sr_editor_normalize_key((string) ($settings['comment_editor_key'] ?? 'inherit'), true);
+    if ($itemEditorKey !== 'inherit') {
+        return sr_editor_effective_key($pdo, $itemEditorKey);
+    }
+
     return sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
 }
 
@@ -932,6 +937,7 @@ function sr_quiz_ui_kit_layout_context(array $settings, array $context = []): ar
 function sr_quiz_display_settings_for_quiz(array $settings, array $quiz): array
 {
     $settings = sr_quiz_normalize_settings($settings);
+    $settings['comment_editor_key'] = sr_editor_normalize_key((string) ($quiz['comment_editor_key'] ?? 'inherit'), true);
     $skinKey = sr_quiz_clean_optional_skin_key((string) ($quiz['skin_key'] ?? ''));
     if ($skinKey !== '') {
         $settings['skin_key'] = $skinKey;

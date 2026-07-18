@@ -70,7 +70,7 @@ function sr_content_group_path(string $groupKey): string
 
 function sr_content_group_basic_setting_keys(): array
 {
-    return ['status', 'layout_key', 'reaction_preset_key', 'reaction_comment_preset_key', 'comment_extra_fields_json', 'member_submission_enabled', 'member_submission_allowed_group_keys', 'member_submission_review_required'];
+    return ['status', 'layout_key', 'reaction_preset_key', 'reaction_comment_preset_key', 'comment_editor_key', 'comment_extra_fields_json', 'member_submission_enabled', 'member_submission_allowed_group_keys', 'member_submission_review_required'];
 }
 
 function sr_content_group_asset_access_setting_keys(): array
@@ -138,6 +138,7 @@ function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null
         'layout_key' => $layoutKey,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_editor_key' => 'inherit',
         'comment_extra_fields_json' => '[]',
         'asset_access_enabled' => '0',
         'asset_module' => '',
@@ -543,6 +544,9 @@ function sr_content_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId,
     } elseif (in_array($settingKey, ['reaction_preset_key', 'reaction_comment_preset_key'], true)) {
         $sql = 'UPDATE sr_content_items SET ' . $settingKey . ' = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
         $params = [sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values[$settingKey] ?? '') : '', $accountId, $now];
+    } elseif ($settingKey === 'comment_editor_key') {
+        $sql = 'UPDATE sr_content_items SET comment_editor_key = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
+        $params = [sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true), $accountId, $now];
     } elseif ($settingKey === 'comment_extra_fields_json') {
         $sql = 'UPDATE sr_content_items SET comment_extra_fields_json = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
         $params = [sr_comment_extra_field_definitions_json($values['comment_extra_fields_json'] ?? '[]'), $accountId, $now];

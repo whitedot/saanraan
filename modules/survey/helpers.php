@@ -776,6 +776,11 @@ function sr_survey_settings(PDO $pdo): array
 function sr_survey_comment_editor_key(PDO $pdo, ?array $settings = null): string
 {
     $settings = is_array($settings) ? $settings : sr_survey_settings($pdo);
+    $itemEditorKey = sr_editor_normalize_key((string) ($settings['comment_editor_key'] ?? 'inherit'), true);
+    if ($itemEditorKey !== 'inherit') {
+        return sr_editor_effective_key($pdo, $itemEditorKey);
+    }
+
     return sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
 }
 
@@ -934,6 +939,7 @@ function sr_survey_ui_kit_layout_context(array $settings, array $context = []): 
 function sr_survey_display_settings_for_survey(array $settings, array $survey): array
 {
     $settings = sr_survey_normalize_settings($settings);
+    $settings['comment_editor_key'] = sr_editor_normalize_key((string) ($survey['comment_editor_key'] ?? 'inherit'), true);
     $skinKey = sr_survey_clean_optional_skin_key((string) ($survey['skin_key'] ?? ''));
     if ($skinKey !== '') {
         $settings['skin_key'] = $skinKey;

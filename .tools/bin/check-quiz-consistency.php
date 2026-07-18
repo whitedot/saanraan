@@ -106,6 +106,7 @@ function sr_quiz_check_schema(): void
         'attempt_limit_policy VARCHAR(30)',
         'member_group_keys_json LONGTEXT',
         'comments_enabled TINYINT(1)',
+        "comment_editor_key VARCHAR(40) NOT NULL DEFAULT 'inherit'",
         'CREATE TABLE IF NOT EXISTS sr_quiz_groups',
         'CREATE TABLE IF NOT EXISTS sr_quiz_setting_sources',
         'quiz_group_id BIGINT UNSIGNED NULL',
@@ -123,7 +124,7 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.07.005'",
+        "'version' => '2026.07.006'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/paths.php', [
         "'GET /admin/quiz/groups'",

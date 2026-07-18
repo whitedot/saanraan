@@ -108,6 +108,7 @@ if (is_array($account)) {
 }
 
 $contentLayoutSettings = $contentSettings;
+$contentLayoutSettings['comment_editor_key'] = sr_editor_normalize_key((string) ($page['comment_editor_key'] ?? 'inherit'), true);
 $contentPageLayoutKey = sr_public_layout_normalize_key((string) ($page['layout_key'] ?? ''));
 if (sr_content_layout_disabled($contentPageLayoutKey)) {
     include SR_ROOT . '/modules/content/views/content-no-layout.php';

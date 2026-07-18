@@ -82,6 +82,7 @@ $publicLayoutOptions = isset($publicLayoutOptions) && is_array($publicLayoutOpti
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $contentEditorFallbackKey = 'textarea';
 $contentEditorOptions = $pdo instanceof PDO ? sr_editor_options($pdo) : ['textarea' => '기본 textarea', 'html' => 'HTML'];
+$contentCommentEditorOptions = $pdo instanceof PDO ? sr_editor_options($pdo, true) : ['inherit' => '상위 설정 사용', 'textarea' => '기본 textarea', 'html' => 'HTML'];
 $contentEditorStoredKey = sr_content_item_editor_key((string) ($values['editor_key'] ?? $contentEditorFallbackKey));
 if (!isset($contentEditorOptions[$contentEditorStoredKey])) {
     $contentEditorStoredKey = $contentEditorFallbackKey;
@@ -580,6 +581,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'content-section-body' => '본문/이미지',
         'content-section-public' => '공개 설정',
         'content-section-reaction' => '리액션',
+        'content-section-comments' => '댓글 설정',
         'content-item-comment-extra-fields-json-section' => '댓글 추가 입력',
         'content-section-seo' => 'SEO',
         'content-section-access-asset' => '유료 열람',
@@ -786,6 +788,17 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <?php } ?>
                     </select>
                     <p class="form-help">기본값 사용은 콘텐츠 환경설정의 댓글 기본 프리셋을 따르고, 사용안함은 이 콘텐츠 댓글에만 적용됩니다.</p>
+                </div>
+            </div>
+        </section>
+        <section id="content-section-comments" class="card" data-admin-section-anchor>
+            <h2>댓글 설정</h2>
+            <div class="form-row">
+                <label class="form-label" for="content_admin_contents_comment_editor_key">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('content_admin_contents_comment_editor_key', 'comment_editor_key', $contentCommentEditorOptions, sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true), true); ?>
+                    <p class="form-help">상위 설정 사용은 콘텐츠 환경설정의 댓글 입력 방식을 따릅니다. 개별 방식을 선택하면 이 콘텐츠의 댓글·답글·수정 화면과 기존 댓글 출력에 적용됩니다.</p>
+                    <?php echo $pageSettingSourceRadioHtml('source_comment_editor_key', $pageSettingSource($values, 'comment_editor_key')); ?>
                 </div>
             </div>
         </section>

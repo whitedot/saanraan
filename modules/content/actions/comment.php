@@ -22,6 +22,7 @@ if (sr_content_asset_access_required($page)) {
 }
 
 $contentSettings = sr_content_settings($pdo);
+$contentSettings['comment_editor_key'] = sr_editor_normalize_key((string) ($page['comment_editor_key'] ?? 'inherit'), true);
 $commentExtraFieldDefinitions = sr_comment_extra_field_definitions($page['comment_extra_fields_json'] ?? '[]');
 $commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);
 $commentExtraFieldValues = (array) ($commentExtraFieldInput['values'] ?? []);

@@ -19,6 +19,7 @@ $surveyMemberGroupsForAdmin = array_values(array_filter($memberGroups, static fu
     return (string) ($memberGroup['status'] ?? '') === 'enabled';
 }));
 $reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$commentEditorOptions = sr_editor_options($pdo, true);
 $enabledMemberGroupKeys = [];
 foreach ($memberGroups as $memberGroup) {
     if ((string) ($memberGroup['status'] ?? '') === 'enabled') {
@@ -430,6 +431,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         'secret_comments_enabled' => 0,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_editor_key' => 'inherit',
         'reward_enabled' => 0,
     ];
     $surveyGroups = sr_survey_groups($pdo);
@@ -917,6 +919,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             비밀 댓글 허용
                         </label>
                         <?php echo $surveyScopeRadioHtml('secret_comments_enabled', (string) ($values['source_secret_comments_enabled'] ?? 'item')); ?>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label" for="survey_comment_editor_key">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
+                    <div class="form-field">
+                        <?php echo sr_admin_radio_toggle_group_html('survey_comment_editor_key', 'comment_editor_key', $commentEditorOptions, sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true), true); ?>
+                        <p class="form-help">상위 설정 사용은 설문 환경설정의 댓글 입력 방식을 따릅니다. 개별 방식을 선택하면 이 설문의 댓글·답글·수정 화면과 기존 댓글 출력에 적용됩니다.</p>
+                        <?php echo $surveyScopeRadioHtml('comment_editor_key', (string) ($values['source_comment_editor_key'] ?? 'item')); ?>
                     </div>
                 </div>
                 <div class="form-row">

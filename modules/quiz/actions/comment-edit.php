@@ -27,6 +27,7 @@ if (!sr_quiz_account_can_edit_comment($comment, $account)) {
 }
 
 $quizSettings = sr_quiz_settings($pdo);
+$quizSettings['comment_editor_key'] = sr_editor_normalize_key((string) ($quiz['comment_editor_key'] ?? 'inherit'), true);
 $values = sr_quiz_comment_input_values($pdo, $quizSettings);
 if ((int) ($quiz['secret_comments_enabled'] ?? 0) !== 1) {
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;

@@ -388,6 +388,11 @@ function sr_content_settings(PDO $pdo): array
 function sr_content_comment_editor_key(PDO $pdo, ?array $settings = null): string
 {
     $settings = is_array($settings) ? $settings : sr_content_settings($pdo);
+    $itemEditorKey = sr_editor_normalize_key((string) ($settings['comment_editor_key'] ?? 'inherit'), true);
+    if ($itemEditorKey !== 'inherit') {
+        return sr_editor_effective_key($pdo, $itemEditorKey);
+    }
+
     return sr_editor_effective_key($pdo, (string) ($settings['comment_editor'] ?? 'textarea'));
 }
 
@@ -857,6 +862,7 @@ function sr_content_default_values(?PDO $pdo = null, ?array $site = null, array 
         'popup_layer_id' => (int) ($defaults['popup_layer_id'] ?? 0),
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_editor_key' => 'inherit',
         'comment_extra_fields_json' => $pdo instanceof PDO
             ? sr_comment_extra_field_definitions_json(sr_content_settings($pdo)['comment_extra_fields_json'] ?? '[]')
             : '[]',

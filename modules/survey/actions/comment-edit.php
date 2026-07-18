@@ -27,6 +27,7 @@ if (!sr_survey_account_can_edit_comment($comment, $account)) {
 }
 
 $surveySettings = sr_survey_settings($pdo);
+$surveySettings['comment_editor_key'] = sr_editor_normalize_key((string) ($survey['comment_editor_key'] ?? 'inherit'), true);
 $values = sr_survey_comment_input_values($pdo, $surveySettings);
 if ((int) ($survey['secret_comments_enabled'] ?? 0) !== 1) {
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;

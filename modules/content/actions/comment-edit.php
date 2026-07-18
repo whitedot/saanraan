@@ -27,6 +27,7 @@ if (!sr_content_account_can_edit_comment($comment, $account)) {
 }
 
 $contentSettings = sr_content_settings($pdo);
+$contentSettings['comment_editor_key'] = sr_editor_normalize_key((string) ($page['comment_editor_key'] ?? 'inherit'), true);
 $values = sr_content_comment_input_values($pdo, $contentSettings);
 if (empty($contentSettings['secret_comments_enabled'])) {
     $values['is_secret'] = (int) ($comment['is_secret'] ?? 0) === 1 ? 1 : 0;

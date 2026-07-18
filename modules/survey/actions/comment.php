@@ -22,6 +22,7 @@ if (!sr_survey_account_has_submitted_response($pdo, $surveyId, (int) ($account['
 }
 
 $surveySettings = sr_survey_settings($pdo);
+$surveySettings['comment_editor_key'] = sr_editor_normalize_key((string) ($survey['comment_editor_key'] ?? 'inherit'), true);
 $values = sr_survey_comment_input_values($pdo, $surveySettings);
 $commentExtraFieldDefinitions = sr_comment_extra_field_definitions($survey['comment_extra_fields_json'] ?? '[]');
 $commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);

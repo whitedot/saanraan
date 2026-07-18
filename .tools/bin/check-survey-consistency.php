@@ -84,6 +84,11 @@ sr_survey_check_contains(
     'CREATE TABLE IF NOT EXISTS sr_survey_reward_grants',
     'Survey reward grants table must exist'
 );
+sr_survey_check_contains(
+    'modules/survey/install.sql',
+    "comment_editor_key VARCHAR(40) NOT NULL DEFAULT 'inherit'",
+    'Survey items must store an individual comment editor override'
+);
 foreach ([
     "'GET /admin/surveys/reward-logs' => 'actions/admin-reward-logs.php'",
     "'label' => '보상 로그'",
@@ -156,8 +161,8 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.07.005'",
-    'Survey module version must include display name update'
+    "'version' => '2026.07.006'",
+    'Survey module version must include the item comment editor schema update'
 );
 foreach (['CREATE TABLE IF NOT EXISTS sr_survey_groups', 'CREATE TABLE IF NOT EXISTS sr_survey_setting_sources', 'survey_group_id BIGINT UNSIGNED NULL'] as $needle) {
     sr_survey_check_contains('modules/survey/install.sql', $needle, 'Survey group schema must be installed');

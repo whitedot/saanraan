@@ -22,6 +22,7 @@ if (!sr_quiz_account_has_result($pdo, $quizId, (int) ($account['id'] ?? 0))) {
 }
 
 $quizSettings = sr_quiz_settings($pdo);
+$quizSettings['comment_editor_key'] = sr_editor_normalize_key((string) ($quiz['comment_editor_key'] ?? 'inherit'), true);
 $values = sr_quiz_comment_input_values($pdo, $quizSettings);
 $commentExtraFieldDefinitions = sr_comment_extra_field_definitions($quiz['comment_extra_fields_json'] ?? '[]');
 $commentExtraFieldInput = sr_comment_extra_field_values_from_post($commentExtraFieldDefinitions);

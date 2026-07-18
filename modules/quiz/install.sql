@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS sr_quiz_sets (
     secret_comments_enabled TINYINT(1) NOT NULL DEFAULT 0,
     reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
+    comment_editor_key VARCHAR(40) NOT NULL DEFAULT 'inherit',
     comment_extra_fields_json LONGTEXT NULL,
     view_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
     reward_enabled TINYINT(1) NOT NULL DEFAULT 0,

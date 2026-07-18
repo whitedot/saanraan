@@ -281,14 +281,22 @@ sr_ckeditor_assets_assert(
     'Content CKEditor rows previously saved as plain should render through the html sanitizer path.'
 );
 foreach ([
-    'content' => 'sr_content_comment_body_html',
-    'quiz' => 'sr_quiz_comment_body_html',
-    'survey' => 'sr_survey_comment_body_html',
-] as $commentModuleKey => $commentBodyHtmlFunction) {
+    'content' => ['html' => 'sr_content_comment_body_html', 'editor' => 'sr_content_comment_editor_key'],
+    'quiz' => ['html' => 'sr_quiz_comment_body_html', 'editor' => 'sr_quiz_comment_editor_key'],
+    'survey' => ['html' => 'sr_survey_comment_body_html', 'editor' => 'sr_survey_comment_editor_key'],
+] as $commentModuleKey => $commentFunctions) {
+    $commentBodyHtmlFunction = (string) $commentFunctions['html'];
+    $commentEditorFunction = (string) $commentFunctions['editor'];
+    sr_ckeditor_assets_assert(
+        $commentEditorFunction($ckeditorContractPdo, ['comment_editor' => 'textarea', 'comment_editor_key' => 'ckeditor']) === 'ckeditor'
+            && $commentEditorFunction($ckeditorContractPdo, ['comment_editor' => 'ckeditor', 'comment_editor_key' => 'textarea']) === 'textarea'
+            && $commentEditorFunction($ckeditorContractPdo, ['comment_editor' => 'ckeditor', 'comment_editor_key' => 'inherit']) === 'ckeditor',
+        ucfirst($commentModuleKey) . ' item comment editor must override module settings while inherit follows them.'
+    );
     $commentHtml = $commentBodyHtmlFunction(
         $ckeditorContractPdo,
         ['body_text' => '<h4 onclick="bad()">댓글 제목</h4><script>bad()</script>'],
-        ['comment_editor' => 'ckeditor', 'theme_key' => 'basic']
+        ['comment_editor' => 'textarea', 'comment_editor_key' => 'ckeditor', 'theme_key' => 'basic']
     );
     sr_ckeditor_assets_assert(
         str_contains($commentHtml, 'data-sr-editor-output')
@@ -579,9 +587,43 @@ foreach (['content', 'quiz', 'survey'] as $commentModuleKey) {
     ]);
     sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/actions/comment.php', [
         'comment_input_values($pdo,',
+        "['comment_editor_key']",
     ]);
     sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/actions/comment-edit.php', [
         'comment_input_values($pdo,',
+        "['comment_editor_key']",
+    ]);
+}
+
+foreach ([
+    'modules/content/views/admin-contents.php',
+    'modules/quiz/actions/admin-quiz.php',
+    'modules/survey/actions/admin-surveys.php',
+] as $commentAdminViewFile) {
+    sr_ckeditor_assets_require_markers($commentAdminViewFile, [
+        'sr_admin_radio_toggle_group_html(',
+        "'comment_editor_key'",
+        '댓글 입력 방식',
+        'source_comment_editor_key',
+        'sr_editor_options($pdo, true)',
+    ]);
+}
+
+foreach (['content', 'quiz', 'survey'] as $commentModuleKey) {
+    sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/install.sql', [
+        "comment_editor_key VARCHAR(40) NOT NULL DEFAULT 'inherit'",
+    ]);
+}
+
+foreach ([
+    'modules/content/helpers/records.php',
+    'modules/quiz/helpers/admin.php',
+    'modules/survey/helpers/admin-surveys.php',
+] as $commentAdminSaveFile) {
+    sr_ckeditor_assets_require_markers($commentAdminSaveFile, [
+        "sr_post_string('comment_editor_key', 40)",
+        'comment_editor_key = :comment_editor_key',
+        "sr_editor_options(\$pdo, true)",
     ]);
 }
 

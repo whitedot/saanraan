@@ -440,6 +440,8 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     $memberGroupKeys = sr_survey_normalize_member_group_keys($_POST['member_group_keys'] ?? []);
     $commentsEnabled = ($_POST['comments_enabled'] ?? '') === '1';
     $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+    $rawCommentEditorKey = sr_post_string('comment_editor_key', 40);
+    $commentEditorKey = sr_editor_normalize_key($rawCommentEditorKey, true);
     $commentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
     $commentExtraFieldsInput = is_string($commentExtraFieldsInput) ? $commentExtraFieldsInput : '[]';
     $reactionPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '';
@@ -534,6 +536,9 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
         $errors[] = '기간당 1회 제한은 제한 기간을 1초 이상 입력해야 합니다.';
     }
     $errors = array_merge($errors, sr_comment_extra_field_definition_errors($commentExtraFieldsInput));
+    if (strtolower(trim($rawCommentEditorKey)) !== $commentEditorKey || !isset(sr_editor_options($pdo, true)[$commentEditorKey])) {
+        $errors[] = '댓글 입력 방식 값이 올바르지 않습니다.';
+    }
     if ($rewardEnabled) {
         if (!in_array($rewardProvider, sr_survey_reward_providers(), true)) {
             $errors[] = '보상 종류 값이 올바르지 않습니다.';
@@ -694,6 +699,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
             'member_group_keys_json' => sr_survey_member_group_keys_json($memberGroupKeys),
             'comments_enabled' => $commentsEnabled ? 1 : 0,
             'secret_comments_enabled' => $secretCommentsEnabled ? 1 : 0,
+            'comment_editor_key' => $commentEditorKey,
             'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($commentExtraFieldsInput),
             'reaction_preset_key' => $reactionPresetKey,
             'reaction_comment_preset_key' => $reactionCommentPresetKey,
@@ -724,6 +730,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
                          status = :status, starts_at = :starts_at, ends_at = :ends_at,
                          response_limit_policy = :response_limit_policy, response_limit_period_seconds = :response_limit_period_seconds, member_group_keys_json = :member_group_keys_json,
                          comments_enabled = :comments_enabled, secret_comments_enabled = :secret_comments_enabled,
+                         comment_editor_key = :comment_editor_key,
                          comment_extra_fields_json = :comment_extra_fields_json,
                          reaction_preset_key = :reaction_preset_key, reaction_comment_preset_key = :reaction_comment_preset_key,
                          reward_enabled = :reward_enabled,
@@ -743,7 +750,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
                          sensitive_data_policy, recontact_policy, withdrawal_policy, vendor_name, external_channel_policy, invite_token_policy,
                          qa_status, qa_note, questionnaire_version, revision_locked,
                          organizer_name, contact_text, consent_required, consent_text, privacy_notice, anonymous_allowed, login_required,
-                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, comment_extra_fields_json, reaction_preset_key, reaction_comment_preset_key, reward_enabled,
+                         public_listed, robots_policy, status, starts_at, ends_at, response_limit_policy, response_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, comment_editor_key, comment_extra_fields_json, reaction_preset_key, reaction_comment_preset_key, reward_enabled,
                          created_by_account_id, updated_by_account_id, created_at, updated_at)
                      VALUES
                         (:survey_group_id, :survey_key, :title, :description, :cover_image_url, :skin_key, :research_purpose, :target_population, :recruitment_method, :estimated_minutes,
@@ -752,7 +759,7 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
                          :sensitive_data_policy, :recontact_policy, :withdrawal_policy, :vendor_name, :external_channel_policy, :invite_token_policy,
                          :qa_status, :qa_note, 1, :revision_locked,
                          :organizer_name, :contact_text, :consent_required, :consent_text, :privacy_notice, :anonymous_allowed, :login_required,
-                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :comment_extra_fields_json, :reaction_preset_key, :reaction_comment_preset_key, :reward_enabled,
+                         :public_listed, :robots_policy, :status, :starts_at, :ends_at, :response_limit_policy, :response_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :comment_editor_key, :comment_extra_fields_json, :reaction_preset_key, :reaction_comment_preset_key, :reward_enabled,
                          :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
                 )->execute(array_merge($surveyValues, [
                     'created_by_account_id' => (int) ($account['id'] ?? 0),

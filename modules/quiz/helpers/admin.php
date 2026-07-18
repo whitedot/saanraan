@@ -38,6 +38,7 @@ function sr_quiz_default_admin_values(?array $settings = null): array
         'secret_comments_enabled' => 0,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
+        'comment_editor_key' => 'inherit',
         'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]'),
         'reward_enabled' => !empty($settings['default_reward_enabled']) ? 1 : 0,
         'reward_provider' => (string) $settings['default_reward_provider'],
@@ -70,6 +71,7 @@ function sr_quiz_default_admin_values(?array $settings = null): array
         'source_secret_comments_enabled' => 'item',
         'source_reaction_preset_key' => 'item',
         'source_reaction_comment_preset_key' => 'item',
+        'source_comment_editor_key' => 'item',
         'source_comment_extra_fields_json' => 'item',
         'source_reward' => 'item',
     ];
@@ -149,6 +151,7 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'secret_comments_enabled' => (int) ($quiz['secret_comments_enabled'] ?? 0),
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $quiz['reaction_preset_key'] ?? '') : '',
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $quiz['reaction_comment_preset_key'] ?? '') : '',
+        'comment_editor_key' => sr_editor_normalize_key((string) ($quiz['comment_editor_key'] ?? 'inherit'), true),
         'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($quiz['comment_extra_fields_json'] ?? '[]'),
         'reward_enabled' => (int) ($quiz['reward_enabled'] ?? 0),
         'reward_provider' => (string) ($policy['reward_provider'] ?? 'ledger_asset'),
@@ -173,6 +176,7 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'source_secret_comments_enabled' => $settingSource('secret_comments_enabled', 'comments'),
         'source_reaction_preset_key' => $settingSource('reaction_preset_key', 'reactions'),
         'source_reaction_comment_preset_key' => $settingSource('reaction_comment_preset_key', 'reactions'),
+        'source_comment_editor_key' => $settingSource('comment_editor_key'),
         'source_comment_extra_fields_json' => $settingSource('comment_extra_fields_json'),
         'source_reward' => $settingSource('reward'),
     ];
@@ -181,6 +185,7 @@ function sr_quiz_admin_values_from_row(array $quiz): array
 function sr_quiz_admin_values_from_post(): array
 {
     $skinKey = sr_quiz_optional_option_key_from_post(sr_post_string('skin_key', 40), sr_quiz_skin_options());
+    $rawCommentEditorKey = sr_post_string('comment_editor_key', 40);
 
     $resultRuleKeys = $_POST['result_rule_key'] ?? [];
     $resultRuleTitles = $_POST['result_rule_title'] ?? [];
@@ -313,6 +318,8 @@ function sr_quiz_admin_values_from_post(): array
         'secret_comments_enabled' => ($_POST['secret_comments_enabled'] ?? '') === '1' ? 1 : 0,
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : '',
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : '',
+        'comment_editor_key' => sr_editor_normalize_key($rawCommentEditorKey, true),
+        'raw_comment_editor_key' => $rawCommentEditorKey,
         'comment_extra_fields_json' => sr_post_string_without_truncation('comment_extra_fields_json', 20000) ?? '[]',
         'reward_enabled' => ($_POST['reward_enabled'] ?? '') === '1' ? 1 : 0,
         'reward_provider' => sr_quiz_clean_key(sr_post_string('reward_provider', 30), 30),
@@ -337,6 +344,7 @@ function sr_quiz_admin_values_from_post(): array
         'source_secret_comments_enabled' => sr_quiz_setting_scope(sr_post_string('source_secret_comments_enabled', 20)),
         'source_reaction_preset_key' => sr_quiz_setting_scope(sr_post_string('source_reaction_preset_key', 20)),
         'source_reaction_comment_preset_key' => sr_quiz_setting_scope(sr_post_string('source_reaction_comment_preset_key', 20)),
+        'source_comment_editor_key' => sr_quiz_setting_scope(sr_post_string('source_comment_editor_key', 20)),
         'source_comment_extra_fields_json' => sr_quiz_setting_scope(sr_post_string('source_comment_extra_fields_json', 20)),
         'source_reward' => sr_quiz_setting_scope(sr_post_string('source_reward', 20)),
     ];
@@ -525,6 +533,11 @@ function sr_quiz_admin_validation_errors(PDO $pdo, array $values, array $assetOp
         }
     }
     $errors = array_merge($errors, sr_comment_extra_field_definition_errors($values['comment_extra_fields_json'] ?? '[]'));
+    $rawCommentEditorKey = strtolower(trim((string) ($values['raw_comment_editor_key'] ?? $values['comment_editor_key'] ?? '')));
+    $commentEditorKey = sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true);
+    if ($rawCommentEditorKey !== $commentEditorKey || !isset(sr_editor_options($pdo, true)[$commentEditorKey])) {
+        $errors[] = '댓글 입력 방식 값이 올바르지 않습니다.';
+    }
 
     $questions = (array) ($values['questions'] ?? []);
     if ($questions === []) {
@@ -779,11 +792,11 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
         $insertQuiz = $pdo->prepare(
             'INSERT INTO sr_quiz_sets
                 (quiz_key, title, description, cover_image_url, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
-                 attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, comment_extra_fields_json, reward_enabled,
+                 attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, comment_editor_key, comment_extra_fields_json, reward_enabled,
                  created_by_account_id, updated_by_account_id, created_at, updated_at)
              VALUES
                 (:quiz_key, :title, :description, :cover_image_url, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
-                 :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :comment_extra_fields_json, :reward_enabled,
+                 :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :comment_editor_key, :comment_extra_fields_json, :reward_enabled,
                  :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
         );
         $memberGroupKeysJson = json_encode(array_values($memberGroupKeys), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -804,6 +817,7 @@ function sr_quiz_copy_admin_quiz(PDO $pdo, int $sourceQuizId, array $options, in
             'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
             'comments_enabled' => (int) ($sourceQuiz['comments_enabled'] ?? 0),
             'secret_comments_enabled' => (int) ($sourceQuiz['secret_comments_enabled'] ?? 0),
+            'comment_editor_key' => sr_editor_normalize_key((string) ($sourceQuiz['comment_editor_key'] ?? 'inherit'), true),
             'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($sourceQuiz['comment_extra_fields_json'] ?? '[]'),
             'reward_enabled' => is_array($rewardPolicy) ? 1 : 0,
             'created_by_account_id' => $accountId,
@@ -1046,6 +1060,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
     $memberGroupKeysJson = json_encode(sr_quiz_member_group_keys_from_value($values['member_group_keys'] ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $commentsEnabled = !empty($values['comments_enabled']) ? 1 : 0;
     $secretCommentsEnabled = !empty($values['secret_comments_enabled']) ? 1 : 0;
+    $commentEditorKey = sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true);
     $commentExtraFieldsJson = sr_comment_extra_field_definitions_json($values['comment_extra_fields_json'] ?? '[]');
     $skinKey = sr_quiz_clean_optional_skin_key((string) ($values['skin_key'] ?? ''));
     $settings = sr_quiz_settings($pdo);
@@ -1088,6 +1103,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                      secret_comments_enabled = :secret_comments_enabled,
                      reaction_preset_key = :reaction_preset_key,
                      reaction_comment_preset_key = :reaction_comment_preset_key,
+                     comment_editor_key = :comment_editor_key,
                      comment_extra_fields_json = :comment_extra_fields_json,
                      reward_enabled = :reward_enabled,
                      updated_by_account_id = :updated_by_account_id,
@@ -1115,6 +1131,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'secret_comments_enabled' => $secretCommentsEnabled,
                 'reaction_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_preset_key'] ?? '') : '',
                 'reaction_comment_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
+                'comment_editor_key' => $commentEditorKey,
                 'comment_extra_fields_json' => $commentExtraFieldsJson,
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'updated_by_account_id' => $accountId,
@@ -1125,11 +1142,11 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_quiz_sets
                     (quiz_group_id, quiz_key, title, description, cover_image_url, skin_key, status, quiz_mode, scoring_model, pass_score, starts_at, ends_at,
-                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reaction_preset_key, reaction_comment_preset_key, comment_extra_fields_json, reward_enabled,
+                     attempt_limit_policy, attempt_limit_period_seconds, member_group_keys_json, comments_enabled, secret_comments_enabled, reaction_preset_key, reaction_comment_preset_key, comment_editor_key, comment_extra_fields_json, reward_enabled,
                      created_by_account_id, updated_by_account_id, created_at, updated_at)
                  VALUES
                     (:quiz_group_id, :quiz_key, :title, :description, :cover_image_url, :skin_key, :status, :quiz_mode, :scoring_model, :pass_score, :starts_at, :ends_at,
-                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reaction_preset_key, :reaction_comment_preset_key, :comment_extra_fields_json, :reward_enabled,
+                     :attempt_limit_policy, :attempt_limit_period_seconds, :member_group_keys_json, :comments_enabled, :secret_comments_enabled, :reaction_preset_key, :reaction_comment_preset_key, :comment_editor_key, :comment_extra_fields_json, :reward_enabled,
                      :created_by_account_id, :updated_by_account_id, :created_at, :updated_at)'
             );
             $stmt->execute([
@@ -1152,6 +1169,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'secret_comments_enabled' => $secretCommentsEnabled,
                 'reaction_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_preset_key'] ?? '') : '',
                 'reaction_comment_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
+                'comment_editor_key' => $commentEditorKey,
                 'comment_extra_fields_json' => $commentExtraFieldsJson,
                 'reward_enabled' => (int) $values['reward_enabled'],
                 'created_by_account_id' => $accountId,
