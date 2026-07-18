@@ -350,6 +350,45 @@ $quizSettingsSectionNavItems = [
                     <p class="form-help">사이트 설정에 저장된 사업자 정보 중 값이 있는 항목을 퀴즈 공개 레이아웃 푸터에 표시합니다.</p>
                 </div>
             </div>
+            <div class="form-row">
+                <span class="form-label">퀴즈 사이드</span>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('quiz_settings_sidebar_enabled', 'sidebar_enabled', '1', !empty($settings['sidebar_enabled']), '사용'); ?>
+                    <p class="form-help">퀴즈 메인을 제외한 전체 목록과 퀴즈 풀이·결과 화면에 사이드를 표시합니다.</p>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="quiz_settings_sidebar_menu_type">사이드 메뉴 <span class="sr-required-label">(필수)</span></label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('quiz_settings_sidebar_menu_type', 'sidebar_menu_type', $quizSidebarMenuTypeOptions, (string) ($settings['sidebar_menu_type'] ?? 'groups'), true, ' data-quiz-settings-sidebar-menu-type'); ?>
+                    <p class="form-help">사이드 첫 영역에 표시할 탐색 메뉴를 정합니다.</p>
+                </div>
+            </div>
+            <?php if ($siteMenuOptions !== []) { ?>
+                <?php $quizSidebarUsesSiteMenu = (string) ($settings['sidebar_menu_type'] ?? 'groups') === 'site_menu'; ?>
+                <div class="form-row" data-quiz-settings-sidebar-site-menu-row<?php echo $quizSidebarUsesSiteMenu ? '' : ' hidden'; ?>>
+                    <label class="form-label" for="quiz_settings_sidebar_site_menu_key">사이드 사이트 메뉴 <span class="sr-required-label" data-quiz-settings-sidebar-site-menu-required<?php echo $quizSidebarUsesSiteMenu ? '' : ' hidden'; ?>>(필수)</span></label>
+                    <div class="form-field">
+                        <select id="quiz_settings_sidebar_site_menu_key" name="sidebar_site_menu_key" class="form-select" data-quiz-settings-sidebar-site-menu<?php echo $quizSidebarUsesSiteMenu ? ' required' : ' disabled'; ?>>
+                            <option value="">선택 안 함</option>
+                            <?php foreach ($siteMenuOptions as $menuKey => $menuOption) { ?>
+                                <option value="<?php echo sr_e((string) $menuKey); ?>"<?php echo (string) ($settings['sidebar_site_menu_key'] ?? '') === (string) $menuKey ? ' selected' : ''; ?>><?php echo sr_e((string) ($menuOption['label'] ?? $menuKey)); ?></option>
+                            <?php } ?>
+                        </select>
+                        <p class="form-help">사이드 메뉴에서 사이트 메뉴를 선택한 경우 사용합니다.</p>
+                    </div>
+                </div>
+            <?php } ?>
+            <div class="form-row">
+                <span class="form-label">사이드 표시 개수</span>
+                <div class="form-field">
+                    <div class="admin-inline-fields">
+                        <label>인기 퀴즈 <input type="number" name="sidebar_popular_limit" value="<?php echo sr_e((string) ($settings['sidebar_popular_limit'] ?? 5)); ?>" min="1" max="10" class="form-input" required></label>
+                        <label>최신댓글 <input type="number" name="sidebar_comments_limit" value="<?php echo sr_e((string) ($settings['sidebar_comments_limit'] ?? 5)); ?>" min="1" max="10" class="form-input" required></label>
+                    </div>
+                    <p class="form-help">각 영역에 표시할 항목 수를 1~10개로 정합니다.</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -660,6 +699,27 @@ $quizSettingsSectionNavItems = [
         });
         syncAttemptPeriod();
     }
+
+    var sidebarMenuTypeControls = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-sidebar-menu-type]'));
+    var sidebarSiteMenuRow = document.querySelector('[data-quiz-settings-sidebar-site-menu-row]');
+    var sidebarSiteMenu = document.querySelector('[data-quiz-settings-sidebar-site-menu]');
+    var sidebarSiteMenuRequired = document.querySelector('[data-quiz-settings-sidebar-site-menu-required]');
+    function syncSidebarSiteMenu() {
+        if (!sidebarSiteMenuRow || !sidebarSiteMenu) {
+            return;
+        }
+        var active = checkedValue('sidebar_menu_type', 'groups') === 'site_menu';
+        sidebarSiteMenuRow.hidden = !active;
+        sidebarSiteMenu.disabled = !active;
+        sidebarSiteMenu.required = active;
+        if (sidebarSiteMenuRequired) {
+            sidebarSiteMenuRequired.hidden = !active;
+        }
+    }
+    sidebarMenuTypeControls.forEach(function (control) {
+        control.addEventListener('change', syncSidebarSiteMenu);
+    });
+    syncSidebarSiteMenu();
 
     var rewardProviderControls = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-provider]'));
     var rewardRows = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-reward-row]'));

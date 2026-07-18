@@ -9,6 +9,7 @@ require_once SR_ROOT . '/modules/quiz/helpers/attempts.php';
 require_once SR_ROOT . '/modules/quiz/helpers/comments.php';
 require_once SR_ROOT . '/modules/quiz/helpers/rewards.php';
 require_once SR_ROOT . '/modules/quiz/helpers/groups.php';
+require_once SR_ROOT . '/modules/quiz/helpers/sidebar.php';
 
 function sr_quiz_key_is_valid(string $key): bool
 {
@@ -353,6 +354,11 @@ function sr_quiz_default_settings(): array
         'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_extra_menu_keys_json' => [],
+        'sidebar_enabled' => true,
+        'sidebar_menu_type' => 'groups',
+        'sidebar_site_menu_key' => '',
+        'sidebar_popular_limit' => 5,
+        'sidebar_comments_limit' => 5,
         'default_status' => 'draft',
         'default_quiz_mode' => 'scored',
         'default_scoring_model' => 'correct_answer',
@@ -488,6 +494,24 @@ function sr_quiz_clean_layout_menu_key(string $value): string
 {
     $value = strtolower(trim($value));
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_quiz_sidebar_menu_type_options(bool $siteMenuAvailable): array
+{
+    $options = [
+        'groups' => '퀴즈 그룹',
+    ];
+    if ($siteMenuAvailable) {
+        $options['site_menu'] = '사이트 메뉴';
+    }
+    $options['none'] = '표시 안 함';
+
+    return $options;
+}
+
+function sr_quiz_sidebar_menu_type(string $value): string
+{
+    return in_array($value, ['groups', 'site_menu', 'none'], true) ? $value : 'groups';
 }
 
 function sr_quiz_clean_layout_extra_menu_area_key(string $value): string
@@ -658,6 +682,11 @@ function sr_quiz_normalize_settings(array $settings): array
         $normalized[$settingKey] = sr_quiz_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
     }
     $normalized['layout_extra_menu_keys_json'] = sr_quiz_layout_extra_menu_items_from_settings($normalized);
+    $normalized['sidebar_enabled'] = !empty($normalized['sidebar_enabled']);
+    $normalized['sidebar_menu_type'] = sr_quiz_sidebar_menu_type((string) ($normalized['sidebar_menu_type'] ?? 'groups'));
+    $normalized['sidebar_site_menu_key'] = sr_quiz_clean_layout_menu_key((string) ($normalized['sidebar_site_menu_key'] ?? ''));
+    $normalized['sidebar_popular_limit'] = max(1, min(10, (int) ($normalized['sidebar_popular_limit'] ?? 5)));
+    $normalized['sidebar_comments_limit'] = max(1, min(10, (int) ($normalized['sidebar_comments_limit'] ?? 5)));
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_quiz_statuses(), true)
         ? (string) $normalized['default_status']
         : (string) $defaults['default_status'];
@@ -753,6 +782,11 @@ function sr_quiz_settings_from_post(): array
         'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_extra_menu_keys_json' => sr_quiz_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []),
+        'sidebar_enabled' => ($_POST['sidebar_enabled'] ?? '') === '1',
+        'sidebar_menu_type' => sr_post_string('sidebar_menu_type', 30),
+        'sidebar_site_menu_key' => sr_quiz_clean_layout_menu_key(sr_post_string('sidebar_site_menu_key', 60)),
+        'sidebar_popular_limit' => sr_post_string('sidebar_popular_limit', 20),
+        'sidebar_comments_limit' => sr_post_string('sidebar_comments_limit', 20),
         'default_status' => sr_post_string('default_status', 20),
         'default_quiz_mode' => sr_post_string('default_quiz_mode', 30),
         'default_scoring_model' => sr_post_string('default_scoring_model', 40),
@@ -814,6 +848,13 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
             $errors[] = '퀴즈 레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
             break;
         }
+    }
+    $sidebarMenuType = (string) ($settings['sidebar_menu_type'] ?? 'groups');
+    if (!isset(sr_quiz_sidebar_menu_type_options($siteMenuOptions !== [])[$sidebarMenuType])) {
+        $errors[] = '퀴즈 사이드 메뉴 유형이 올바르지 않습니다.';
+    } elseif ($sidebarMenuType === 'site_menu'
+        && ((string) ($settings['sidebar_site_menu_key'] ?? '') === '' || !isset($siteMenuOptions[(string) $settings['sidebar_site_menu_key']]))) {
+        $errors[] = '퀴즈 사이드에 표시할 사이트 메뉴를 선택하세요.';
     }
     if ((string) ($settings['default_attempt_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_attempt_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응시 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
@@ -1161,42 +1202,52 @@ function sr_quiz_key_exists(PDO $pdo, string $quizKey, int $excludeId = 0): bool
     return (bool) $stmt->fetchColumn();
 }
 
-function sr_quiz_public_quiz_count(PDO $pdo): int
+function sr_quiz_public_quiz_count(PDO $pdo, int $groupId = 0): int
 {
-    $stmt = $pdo->prepare(
-        "SELECT COUNT(*)
+    $sql = "SELECT COUNT(*)
          FROM sr_quiz_sets
          WHERE status = 'active'
            AND deleted_at IS NULL
            AND (starts_at IS NULL OR starts_at <= :now_start)
-           AND (ends_at IS NULL OR ends_at >= :now_end)"
-    );
+           AND (ends_at IS NULL OR ends_at >= :now_end)";
+    if ($groupId > 0) {
+        $sql .= ' AND quiz_group_id = :quiz_group_id';
+    }
+    $stmt = $pdo->prepare($sql);
     $now = sr_now();
-    $stmt->execute(['now_start' => $now, 'now_end' => $now]);
+    $params = ['now_start' => $now, 'now_end' => $now];
+    if ($groupId > 0) {
+        $params['quiz_group_id'] = $groupId;
+    }
+    $stmt->execute($params);
 
     return max(0, (int) $stmt->fetchColumn());
 }
 
-function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null, int $offset = 0): array
+function sr_quiz_public_quizzes(PDO $pdo, ?int $limit = null, int $offset = 0, int $groupId = 0): array
 {
     if ($limit === null) {
         $settings = sr_quiz_settings($pdo);
         $limit = (int) ($settings['public_list_limit'] ?? 50);
     }
 
-    $stmt = $pdo->prepare(
-        "SELECT id, quiz_key, title, description, cover_image_url, created_at
+    $sql = "SELECT id, quiz_key, title, description, cover_image_url, view_count, created_at
          FROM sr_quiz_sets
          WHERE status = 'active'
            AND deleted_at IS NULL
            AND (starts_at IS NULL OR starts_at <= :now_start)
-           AND (ends_at IS NULL OR ends_at >= :now_end)
-         ORDER BY created_at DESC, id DESC
-         LIMIT :limit_value OFFSET :offset_value"
-    );
+           AND (ends_at IS NULL OR ends_at >= :now_end)";
+    if ($groupId > 0) {
+        $sql .= ' AND quiz_group_id = :quiz_group_id';
+    }
+    $sql .= ' ORDER BY created_at DESC, id DESC LIMIT :limit_value OFFSET :offset_value';
+    $stmt = $pdo->prepare($sql);
     $now = sr_now();
     $stmt->bindValue('now_start', $now);
     $stmt->bindValue('now_end', $now);
+    if ($groupId > 0) {
+        $stmt->bindValue('quiz_group_id', $groupId, PDO::PARAM_INT);
+    }
     $stmt->bindValue('limit_value', max(1, min(100, $limit)), PDO::PARAM_INT);
     $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     $stmt->execute();

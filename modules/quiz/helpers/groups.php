@@ -111,6 +111,23 @@ function sr_quiz_group_by_id(PDO $pdo, int $groupId): ?array
     return is_array($row) ? $row : null;
 }
 
+function sr_quiz_group_by_key(PDO $pdo, string $groupKey, bool $enabledOnly = false): ?array
+{
+    if (!sr_quiz_group_key_is_valid($groupKey) || !sr_quiz_groups_table_exists($pdo)) {
+        return null;
+    }
+    $sql = 'SELECT * FROM sr_quiz_groups WHERE group_key = :group_key';
+    if ($enabledOnly) {
+        $sql .= " AND status = 'enabled'";
+    }
+    $sql .= ' LIMIT 1';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['group_key' => $groupKey]);
+    $group = $stmt->fetch();
+
+    return is_array($group) ? $group : null;
+}
+
 function sr_quiz_group_key_exists(PDO $pdo, string $groupKey, int $exceptId = 0): bool
 {
     $stmt = $pdo->prepare('SELECT id FROM sr_quiz_groups WHERE group_key = :group_key AND id <> :except_id LIMIT 1');

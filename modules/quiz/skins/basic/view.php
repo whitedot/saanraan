@@ -192,7 +192,6 @@ if ($canPreviewAsAdmin) {
 }
 $quizShareUrl = sr_absolute_url($site ?? null, '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')));
 $quizConsumerTarget = $submitResult !== null ? 'quiz.result' : 'quiz.view';
-
 $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
     'consumer_target' => $quizConsumerTarget,
     'body_class' => $quizEmbedded ? 'sr-quiz-page sr-quiz-embed-page' : 'sr-quiz-page',
@@ -203,6 +202,7 @@ $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
     ]), sr_quiz_comment_body_stylesheets($pdo, $quizSettings)),
     'output_slots' => [
         ['module_key' => 'quiz', 'point_key' => 'quiz.view', 'slot_key' => 'screen'],
+        ['module_key' => 'quiz', 'point_key' => 'quiz.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
 ]);
 if ($pdo instanceof PDO) {
@@ -244,6 +244,10 @@ if ($quizEmbedded) {
 <main class="quiz-page-main">
     <section class="quiz-page-section">
         <div class="quiz-page-container">
+            <?php if (!$quizEmbedded): ?>
+                <div class="quiz-screen-frame">
+                    <div class="quiz-screen-main">
+            <?php endif; ?>
             <h1><?php echo sr_e((string) $quiz['title']); ?></h1>
             <?php echo sr_quiz_cover_image_html($quiz, 'sr-quiz-cover-image', (string) ($quiz['title'] ?? '')); ?>
             <?php if ((string) ($quiz['description'] ?? '') !== ''): ?>
@@ -557,6 +561,12 @@ if ($quizEmbedded) {
                         <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url($quizCommentLoginUrl)); ?>" target="_top">로그인 후 댓글 작성</a></p>
                     <?php endif; ?>
                 </section>
+            <?php endif; ?>
+            <?php if (!$quizEmbedded): ?>
+                    </div>
+                    <?php $quizSidebarSubject = $quiz; ?>
+                    <?php include SR_ROOT . '/modules/quiz/views/sidebar.php'; ?>
+                </div>
             <?php endif; ?>
         </div>
     </section>

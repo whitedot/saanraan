@@ -40,4 +40,17 @@ return [
             ],
         ],
     ],
+    [
+        'point_key' => 'quiz.sidebar.summary',
+        'label' => '퀴즈 사이드 요약',
+        'surface' => 'public',
+        'output' => true,
+        'slots' => [
+            [
+                'slot_key' => 'after_summary',
+                'label' => '사이드 요약 다음',
+                'kind' => 'content',
+            ],
+        ],
+    ],
 ];

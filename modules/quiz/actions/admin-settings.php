@@ -37,6 +37,7 @@ if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_men
     require_once SR_ROOT . '/modules/site_menu/helpers.php';
     $siteMenuOptions = sr_site_menu_options($pdo);
 }
+$quizSidebarMenuTypeOptions = sr_quiz_sidebar_menu_type_options($siteMenuOptions !== []);
 $settings = sr_quiz_settings($pdo);
 $adminFormDraftKey = 'quiz.settings';
 $adminFormDraftContext = 'default';
@@ -62,8 +63,18 @@ if (sr_request_method() === 'POST') {
         sr_admin_redirect_with_result(sr_admin_action_result([], '퀴즈 환경설정 임시저장본을 삭제했습니다.'), $permissionPath);
     }
 
+    $postedSidebarMenuType = sr_post_string('sidebar_menu_type', 30);
+    $postedSidebarPopularLimit = sr_admin_post_int_in_range('sidebar_popular_limit', 1, 10);
+    $postedSidebarCommentsLimit = sr_admin_post_int_in_range('sidebar_comments_limit', 1, 10);
     $settings = sr_quiz_settings_from_post();
     $errors = sr_quiz_settings_validation_errors($pdo, $settings, $assetOptions);
+    if ($postedSidebarMenuType !== (string) ($settings['sidebar_menu_type'] ?? '')
+        || !isset($quizSidebarMenuTypeOptions[(string) ($settings['sidebar_menu_type'] ?? '')])) {
+        $errors[] = '퀴즈 사이드 메뉴 유형이 올바르지 않습니다.';
+    }
+    if ($postedSidebarPopularLimit === null || $postedSidebarCommentsLimit === null) {
+        $errors[] = '퀴즈 사이드 표시 개수는 1~10 사이로 입력하세요.';
+    }
     if ($errors === []) {
         try {
             sr_quiz_save_settings($pdo, $settings);

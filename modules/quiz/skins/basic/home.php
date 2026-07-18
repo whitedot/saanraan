@@ -7,17 +7,19 @@ $quizzes = isset($quizzes) && is_array($quizzes) ? $quizzes : sr_quiz_public_qui
 $quizListPagination = isset($quizListPagination) && is_array($quizListPagination) ? $quizListPagination : ['page' => 1, 'total_pages' => 1];
 $quizScreenTarget = isset($quizScreenTarget) && $quizScreenTarget === 'quiz.list' ? 'quiz.list' : 'quiz.home';
 $quizScreenIsList = $quizScreenTarget === 'quiz.list';
-$quizScreenTitle = $quizScreenIsList ? '전체 퀴즈·테스트' : '퀴즈·테스트';
+$quizListGroup = isset($quizListGroup) && is_array($quizListGroup) ? $quizListGroup : null;
+$quizListGroupKey = is_array($quizListGroup) ? (string) ($quizListGroup['group_key'] ?? '') : '';
+$quizScreenTitle = is_array($quizListGroup) ? (string) ($quizListGroup['title'] ?? '전체 퀴즈·테스트') : ($quizScreenIsList ? '전체 퀴즈·테스트' : '퀴즈·테스트');
+$quizListUrl = '/quiz/list' . ($quizListGroupKey !== '' ? '?group=' . rawurlencode($quizListGroupKey) : '');
 $quizPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
     'title' => $quizScreenTitle,
-    'canonical' => $quizScreenIsList ? '/quiz/list' : '/quiz',
+    'canonical' => $quizScreenIsList ? $quizListUrl : '/quiz',
     'og' => [
         'title' => '퀴즈·테스트',
         'type' => 'website',
     ],
 ];
-
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_context($quizSettings, [
     'consumer_target' => $quizScreenTarget,
     'body_class' => 'sr-quiz-page',
@@ -26,6 +28,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
     ]),
     'output_slots' => [
         ['module_key' => 'quiz', 'point_key' => $quizScreenTarget, 'slot_key' => 'screen'],
+        ['module_key' => 'quiz', 'point_key' => 'quiz.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
 ]));
 ?>
@@ -44,6 +47,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                     <p>새로운 퀴즈와 테스트를 만나보세요.</p>
                 <?php endif; ?>
             </header>
+            <?php if ($quizScreenIsList): ?>
+                <div class="quiz-screen-frame">
+                    <div class="quiz-screen-main">
+            <?php endif; ?>
             <?php if ($quizzes === []): ?>
                 <p class="sr-quiz-home-empty">현재 공개된 퀴즈가 없습니다.</p>
             <?php else: ?>
@@ -88,9 +95,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_quiz_public_layout_
                 </div>
             <?php endif; ?>
             <?php if ($quizScreenIsList): ?>
-                <?php echo sr_public_pagination_html($quizListPagination, '/quiz/list', '퀴즈 목록 페이지'); ?>
+                <?php echo sr_public_pagination_html($quizListPagination, $quizListUrl, '퀴즈 목록 페이지'); ?>
             <?php else: ?>
                 <p><a class="btn btn-outline-primary" href="<?php echo sr_e(sr_url('/quiz/list')); ?>">전체 퀴즈 보기</a></p>
+            <?php endif; ?>
+            <?php if ($quizScreenIsList): ?>
+                    </div>
+                    <?php $quizSidebarSubject = ['group_key' => $quizListGroupKey]; ?>
+                    <?php include SR_ROOT . '/modules/quiz/views/sidebar.php'; ?>
+                </div>
             <?php endif; ?>
         </div>
     </section>
