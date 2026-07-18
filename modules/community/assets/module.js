@@ -219,80 +219,6 @@
     });
   }
 
-  function initCopyUrlButtons() {
-    Array.prototype.slice.call(document.querySelectorAll('[data-community-copy-url]')).forEach(function (button) {
-      if (button.getAttribute('data-community-copy-ready') === '1') {
-        return;
-      }
-
-      var resetTimer = 0;
-      var defaultLabel = button.getAttribute('data-community-copy-default-label') || button.textContent || 'URL 복사';
-      var successLabel = button.getAttribute('data-community-copy-success-label') || '복사됨';
-      var errorLabel = button.getAttribute('data-community-copy-error-label') || '복사 실패';
-
-      function setButtonLabel(label) {
-        button.textContent = label;
-      }
-
-      function resetButtonLabel() {
-        window.clearTimeout(resetTimer);
-        resetTimer = window.setTimeout(function () {
-          setButtonLabel(defaultLabel);
-          button.removeAttribute('aria-live');
-        }, 1800);
-      }
-
-      function fallbackCopy(text) {
-        var input = document.createElement('textarea');
-        input.value = text;
-        input.setAttribute('readonly', 'readonly');
-        input.style.position = 'fixed';
-        input.style.left = '-9999px';
-        input.style.top = '0';
-        document.body.appendChild(input);
-        input.select();
-
-        try {
-          return document.execCommand('copy');
-        } finally {
-          input.remove();
-        }
-      }
-
-      button.addEventListener('click', function () {
-        var rawUrl = button.getAttribute('data-community-copy-url') || '';
-        if (rawUrl === '') {
-          return;
-        }
-
-        var url = rawUrl;
-        try {
-          url = new URL(rawUrl, window.location.href).toString();
-        } catch (error) {
-          url = rawUrl;
-        }
-
-        var copyPromise = navigator.clipboard && window.isSecureContext
-          ? navigator.clipboard.writeText(url).then(function () {
-            return true;
-          })
-          : Promise.resolve(fallbackCopy(url));
-
-        copyPromise.then(function (copied) {
-          button.setAttribute('aria-live', 'polite');
-          setButtonLabel(copied ? successLabel : errorLabel);
-          resetButtonLabel();
-        }).catch(function () {
-          button.setAttribute('aria-live', 'polite');
-          setButtonLabel(errorLabel);
-          resetButtonLabel();
-        });
-      });
-
-      button.setAttribute('data-community-copy-ready', '1');
-    });
-  }
-
   function initScrollTargetButtons() {
     Array.prototype.slice.call(document.querySelectorAll('[data-community-scroll-target]')).forEach(function (button) {
       if (button.getAttribute('data-community-scroll-ready') === '1') {
@@ -823,7 +749,6 @@
         commentsSection.replaceWith(document.importNode(nextCommentsSection, true));
         window.history.replaceState(window.history.state, '', pageUrl.pathname + pageUrl.search + pageUrl.hash);
         initToasts();
-        initCopyUrlButtons();
         initScrollTargetButtons();
         window.requestAnimationFrame(function () {
           window.scrollTo({ top: scrollTop, left: window.scrollX, behavior: 'auto' });
@@ -1009,7 +934,6 @@
   function init() {
     initImageLayer();
     initToasts();
-    initCopyUrlButtons();
     initScrollTargetButtons();
     initAssetConfirmationSubmitClose();
     initDraftAutosave();

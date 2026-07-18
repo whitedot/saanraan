@@ -1013,13 +1013,15 @@
 }
 
 .community-comments-panel {
-    border: 0;
-    border-radius: 8px;
+    --community-comments-padding-inline: clamp(20px, 2.5vw, 28px);
+    border: 1px solid var(--community-border, var(--sr-border, #d8dde6));
+    border-radius: calc(var(--community-radius, 8px) + 4px);
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     margin: 0;
-    padding: 18px;
+    overflow: hidden;
+    padding: 0 var(--community-comments-padding-inline) 22px;
     width: 100%;
 }
 
@@ -1029,8 +1031,8 @@
     display: flex;
     gap: 12px;
     justify-content: space-between;
-    margin: -18px -18px 0;
-    padding: 16px 18px 14px;
+    margin-inline: calc(-1 * var(--community-comments-padding-inline));
+    padding: 18px var(--community-comments-padding-inline) 16px;
 }
 
 .community-comments-panel-header h2 {
@@ -1043,9 +1045,123 @@
 }
 
 .community-comments-count {
-    color: var(--sr-muted, var(--text-muted, #6b6b6b));
-    font-size: 0.85em;
-    font-weight: var(--font-weight-medium, 500);
+    background: var(--sr-surface-muted, var(--community-surface-soft, #f5f7fb));
+    border-radius: 999px;
+    color: var(--sr-muted-strong, var(--community-muted, #6b6b6b));
+    display: inline-flex;
+    font-size: var(--type-meta-size, 0.75rem);
+    font-weight: var(--font-weight-semibold, 600);
+    justify-content: center;
+    line-height: var(--type-meta-line-height, 1.4);
+    margin-left: 4px;
+    min-width: 1.75rem;
+    padding: 2px 7px;
+    vertical-align: 0.1em;
+}
+
+.community-comments-empty,
+.community-comment-unavailable {
+    color: var(--community-muted, var(--sr-muted, #6b6b6b));
+    font-size: var(--type-small-size, 0.875rem);
+    line-height: var(--type-small-line-height, 1.5);
+    margin: 0;
+    padding-block: 10px;
+}
+
+.community-comment-list {
+    display: grid;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.community-comment-item {
+    border-top: 1px solid var(--community-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding-block: 18px;
+    scroll-margin-top: 40px;
+}
+
+.community-comment-item:first-child {
+    border-top: 0;
+    padding-top: 2px;
+}
+
+.community-comment-item:last-child {
+    padding-bottom: 2px;
+}
+
+.community-comment-meta {
+    align-items: center;
+    color: var(--community-muted, var(--sr-muted, #6b6b6b));
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--type-meta-size, 0.75rem);
+    gap: 6px 9px;
+    line-height: var(--type-meta-line-height, 1.4);
+}
+
+.community-comment-author {
+    color: var(--community-text, var(--sr-text, #242424));
+    font-weight: var(--font-weight-semibold, 600);
+    min-width: 0;
+}
+
+.community-comment-meta > :not(:first-child) {
+    align-items: center;
+    display: inline-flex;
+    gap: 9px;
+}
+
+.community-comment-meta > :not(:first-child)::before {
+    background: var(--community-border, var(--sr-border, #d8dde6));
+    border-radius: 50%;
+    content: "";
+    height: 3px;
+    width: 3px;
+}
+
+.community-comment-meta-status {
+    color: var(--sr-warning-text, var(--sr-muted-strong, var(--community-muted, #6b6b6b)));
+    font-weight: var(--font-weight-semibold, 600);
+}
+
+.community-comment-date-content {
+    align-items: center;
+    display: inline-flex;
+    gap: 3px;
+}
+
+.community-comment-permalink {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    font-size: 1rem;
+    height: 1.25em;
+    justify-content: center;
+    line-height: 1;
+    text-decoration: none;
+    width: 1.25em;
+}
+
+.community-comment-permalink:is(:hover, :focus-visible) {
+    color: var(--sr-muted-strong, var(--community-text, #242424));
+}
+
+.community-comment-permalink:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid var(--sr-primary, var(--color-primary, #0a74ff));
+    outline-offset: 2px;
+}
+
+.community-comment-body {
+    color: var(--community-text, var(--sr-text, #242424));
+    font-size: var(--type-body-size, 1rem);
+    line-height: max(var(--type-body-line-height, 1.5), 1.7);
+    margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .community-comments-pagination {
@@ -1083,23 +1199,106 @@
     margin: 0;
 }
 
+.community-post-view-board a {
+    align-items: center;
+    color: var(--sr-muted-strong, var(--community-muted, var(--sr-muted, #6b6b6b)));
+    display: inline-flex;
+    font-size: var(--type-meta-size, 0.75rem);
+    font-weight: var(--font-weight-semibold, 600);
+    gap: 0.35rem;
+    line-height: var(--type-meta-line-height, 1.4);
+    text-decoration: none;
+}
+
+.community-post-view-board a::after {
+    content: "›";
+    font-size: 1.15em;
+    line-height: 1;
+}
+
+.community-post-view-board a:is(:hover, :focus-visible) {
+    color: var(--sr-primary, var(--color-primary, #0a74ff));
+}
+
 .community-post-heading {
     display: grid;
-    gap: 4px;
+    gap: 10px;
 }
 
 .community-post-view {
-    background: #fff;
-    border-radius: var(--community-radius, 8px);
+    --community-post-view-padding-inline: clamp(22px, 3vw, 34px);
+    background: var(--community-surface, var(--sr-surface, #fff));
+    border: 1px solid var(--community-border, var(--sr-border, #d8dde6));
+    border-radius: calc(var(--community-radius, 8px) + 4px);
     color: var(--community-text, var(--sr-text, var(--text-strong, #242424)));
     display: grid;
-    gap: 18px;
-    padding: 18px;
+    gap: clamp(22px, 3vw, 32px);
+    overflow: hidden;
+    padding: clamp(22px, 3vw, 34px) var(--community-post-view-padding-inline);
 }
 
 .community-post-view-header {
     display: grid;
-    gap: 12px;
+    gap: 16px;
+}
+
+.community-screen article.community-post-view h1.community-post-view-title {
+    font-size: clamp(1.625rem, 1.15rem + 1.5vw, 2.5rem);
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    margin: 0;
+    text-wrap: pretty;
+}
+
+.community-post-view-title .community-post-notice-label {
+    margin-right: 0.2em;
+    vertical-align: 0.18em;
+}
+
+.community-post-view-meta {
+    align-items: center;
+    color: var(--community-text, var(--sr-text, #242424));
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--type-meta-size, 0.75rem);
+    gap: 7px 10px;
+    line-height: var(--type-meta-line-height, 1.4);
+}
+
+.community-post-meta-item {
+    align-items: center;
+    display: inline-flex;
+    gap: 5px;
+    min-width: 0;
+}
+
+.community-post-meta-item + .community-post-meta-item::before {
+    background: var(--community-border, var(--sr-border, #d8dde6));
+    border-radius: 50%;
+    content: "";
+    height: 3px;
+    margin-right: 1px;
+    width: 3px;
+}
+
+.community-post-meta-label {
+    color: var(--community-muted, var(--sr-muted, #6b6b6b));
+}
+
+.community-post-meta-status {
+    color: var(--sr-warning-text, var(--sr-muted-strong, var(--community-muted, #6b6b6b)));
+    font-weight: var(--font-weight-semibold, 600);
+}
+
+.community-post-view-meta :is(a, .member-profile-menu > summary) {
+    color: var(--community-text, var(--sr-text, #242424));
+    font-weight: var(--font-weight-semibold, 600);
+    text-decoration: none;
+}
+
+.community-post-view-meta a:is(:hover, :focus-visible),
+.community-post-view-meta .member-profile-menu > summary:is(:hover, :focus-visible) {
+    color: var(--sr-primary, var(--color-primary, #0a74ff));
 }
 
 .community-post-view-actions,
@@ -1109,9 +1308,12 @@
 
 .community-post-view-actions {
     align-items: center;
+    border-bottom: 1px solid var(--community-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin-inline: calc(-1 * var(--community-post-view-padding-inline));
+    padding: 0 var(--community-post-view-padding-inline) 14px;
 }
 
 .community-action-group {
@@ -1171,11 +1373,38 @@
     min-width: 0;
 }
 
-.community-post-view-actions .btn,
-.community-comment-actions .btn {
+.community-post-view-actions .btn {
     font-size: var(--type-meta-size);
     line-height: var(--type-meta-line-height);
     padding-inline: var(--community-action-button-padding-inline, 0.45rem);
+}
+
+.community-comment-actions .btn {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
+    min-height: 0;
+    padding: 0;
+}
+
+.community-comment-actions .btn:is(:hover, :active) {
+    background: transparent;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+.community-comment-management-dropdown {
+    align-items: center;
+    align-self: flex-start;
+    display: inline-flex;
+    line-height: var(--type-meta-line-height);
+}
+
+.community-comment-management-dropdown > .dropdown-toggle {
+    align-items: baseline;
+    line-height: inherit;
 }
 
 .community-post-comments-jump {
@@ -1397,10 +1626,21 @@ a.community-post-title:focus,
 .community-post-body {
     box-sizing: border-box;
     color: var(--sr-text, var(--text-strong, #242424));
-    font-size: var(--type-body-size);
-    line-height: var(--type-body-line-height);
+    font-size: clamp(var(--type-body-size), 0.98rem + 0.12vw, 1.0625rem);
+    line-height: max(var(--type-body-line-height), 1.75);
+    margin-block: -6px;
+    min-height: clamp(9rem, 18vw, 13rem);
     overflow-wrap: anywhere;
+    padding: 0 clamp(0px, 0.8vw, 8px) clamp(6px, 1vw, 12px);
     word-break: normal;
+}
+
+.community-post-body > :first-child {
+    margin-top: 0;
+}
+
+.community-post-body > :last-child {
+    margin-bottom: 0;
 }
 
 .community-post-image-thumbnails {
@@ -1574,7 +1814,12 @@ a.community-post-title:focus,
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 2px;
+}
+
+.community-comment-actions:not(:has(.btn, .dropdown-item)),
+.community-comment-actions .community-action-group:not(:has(.btn, .dropdown-item)) {
+    display: none;
 }
 
 .community-comment-actions .community-action-group {
@@ -1596,6 +1841,17 @@ a.community-post-title:focus,
 
 .community-comment-actions details form {
     margin-top: 10px;
+}
+
+.community-comment-form {
+    border-top: 1px solid var(--community-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
+    margin-inline: calc(-1 * var(--community-comments-padding-inline));
+    padding: 20px var(--community-comments-padding-inline) 0;
+}
+
+.community-comment-form > .btn[type="submit"] {
+    justify-self: end;
+    min-width: 5.5rem;
 }
 
 .community-comment-secret-toggle {
@@ -1765,6 +2021,40 @@ a.community-post-title:focus,
     .community-board-table-mobile-meta {
         display: flex;
     }
+
+    .community-post-view {
+        --community-post-view-padding-inline: 18px;
+        border-radius: var(--community-radius, 8px);
+        padding: 20px var(--community-post-view-padding-inline);
+    }
+
+    .community-screen article.community-post-view h1.community-post-view-title {
+        font-size: clamp(1.5rem, 7vw, 2rem);
+    }
+
+    .community-post-view-meta {
+        gap-block: 8px;
+    }
+
+    .community-post-body {
+        margin-block: -4px;
+        min-height: 8rem;
+        padding-inline: 0;
+    }
+
+    .community-comments-panel {
+        --community-comments-padding-inline: 18px;
+        border-radius: var(--community-radius, 8px);
+        padding-bottom: 18px;
+    }
+
+    .community-comment-item {
+        padding-block: 16px;
+    }
+
+    .community-comment-actions .community-action-group-trailing {
+        margin-left: 0;
+    }
 }
 
 /*
@@ -1812,15 +2102,19 @@ a.community-post-title:focus,
     color: var(--community-muted);
 }
 
-.community-comments-panel,
 .community-screen fieldset {
     border-color: var(--community-border);
     border-radius: var(--community-radius);
 }
 
+.community-comments-panel {
+    border-color: var(--community-border);
+    border-radius: calc(var(--community-radius, 8px) + 4px);
+}
+
 .community-comments-panel,
 .community-post-view {
-    background: #fff;
+    background: var(--community-surface, var(--sr-surface, #fff));
 }
 
 [data-color-scheme="dark"] .community-comments-panel,
@@ -1851,8 +2145,8 @@ a.community-post-title:focus,
 
 .community-comment-depth-2,
 .community-comment-depth-3 {
-    border-left: 3px solid var(--community-border);
-    padding-left: 14px;
+    border-left: 2px solid var(--community-border);
+    padding-left: 16px;
 }
 
 .community-comment-depth-2 {
@@ -1867,7 +2161,7 @@ a.community-post-title:focus,
     .community-comment-depth-2,
     .community-comment-depth-3 {
         margin-left: 8px;
-        padding-left: 10px;
+        padding-left: 12px;
     }
 }
 

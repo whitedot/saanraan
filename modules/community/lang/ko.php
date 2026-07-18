@@ -202,7 +202,6 @@ return [
     'action.notice.image_attach_failed_after_post' => '게시글은 등록했지만 이미지 첨부는 처리하지 못했습니다.',
     'action.notice.image_attached' => '이미지를 첨부했습니다.',
     'action.notice.login_required_to_comment' => '로그인하면 댓글을 작성할 수 있습니다.',
-    'action.notice.login_required_to_post_actions' => '로그인하면 스크랩과 신고를 사용할 수 있습니다.',
     'action.notice.message_deleted' => '쪽지를 삭제했습니다.',
     'action.notice.message_sent' => '쪽지를 보냈습니다.',
     'action.notice.post_deleted' => '게시글을 삭제했습니다.',

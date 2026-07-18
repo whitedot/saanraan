@@ -332,7 +332,6 @@ if (!$canComment && !is_array($account)) {
 } elseif (!$canComment) {
     $commentUnavailableMessage = sr_t('community::action.notice.comment_unavailable');
 }
-$postActionUnavailableMessage = is_array($account) ? '' : sr_t('community::action.notice.login_required_to_post_actions');
 $canReportPost = !$paidReadConfirmationRequired && !$paidReadBlocked && is_array($account) && (int) $post['author_account_id'] !== (int) $account['id'];
 $reportReasonKeys = sr_community_report_reason_keys();
 $postNotices = $assetReadNotices;
