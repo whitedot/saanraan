@@ -760,3 +760,98 @@
     flex-wrap: wrap;
     padding: 0 6px;
 }
+
+.survey-screen-frame {
+    align-items: start;
+    display: grid;
+    gap: clamp(24px, 3vw, 40px);
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    min-width: 0;
+}
+
+.survey-screen-main {
+    display: grid;
+    gap: 24px;
+    min-width: 0;
+}
+
+.survey-sidebar {
+    align-self: start;
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+    position: sticky;
+    top: 24px;
+}
+
+.survey-sidebar-section {
+    min-width: 0;
+}
+
+.sr-survey-page .survey-sidebar-section .card-header {
+    border-bottom: 1px solid var(--sr-border, var(--color-default-300, #d8dde6));
+    padding: 16px 18px 14px;
+}
+
+.sr-survey-page .survey-sidebar-section .card-title {
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    font-size: var(--type-body-size, 1rem);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.survey-sidebar-section .card-body {
+    padding: 14px 18px 16px;
+}
+
+.survey-sidebar-nav ul,
+.survey-sidebar-list {
+    display: grid;
+    gap: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.survey-sidebar-nav a,
+.survey-sidebar-list a {
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    display: block;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.survey-sidebar-nav a:hover,
+.survey-sidebar-nav a:focus-visible,
+.survey-sidebar-list a:hover,
+.survey-sidebar-list a:focus-visible,
+.survey-sidebar-nav a[aria-current="page"] {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.survey-sidebar-list li {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.survey-sidebar-list span {
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+    font-size: var(--type-meta-size, .78rem);
+    line-height: 1.45;
+}
+
+@media (max-width: 1024px) {
+    .survey-screen-frame {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .survey-sidebar {
+        border-top: 1px solid var(--sr-border, var(--color-default-300, #d8dde6));
+        padding-top: 24px;
+        position: static;
+    }
+}

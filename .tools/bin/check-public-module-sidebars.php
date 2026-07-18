@@ -9,6 +9,7 @@ if (!defined('SR_ROOT')) {
 }
 require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/quiz/helpers.php';
+require_once $root . '/modules/survey/helpers.php';
 
 $errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
@@ -145,6 +146,62 @@ $contains('modules/quiz/actions/list.php', [
 ]);
 $quizExcerpt = sr_quiz_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
 $assert($quizExcerpt === '태그 제거', 'quiz sidebar excerpt must remove HTML tags.');
+
+$contains('modules/survey/module.php', [
+    "'sidebar_enabled' => true",
+    "'sidebar_menu_type' => 'groups'",
+    "'sidebar_popular_limit' => 5",
+    "'sidebar_comments_limit' => 5",
+]);
+$contains('modules/survey/actions/admin-settings.php', [
+    "sr_post_string('sidebar_menu_type'",
+    "sr_admin_post_int_in_range('sidebar_popular_limit', 1, 10)",
+    "sr_admin_post_int_in_range('sidebar_comments_limit', 1, 10)",
+]);
+$contains('modules/survey/views/admin-settings.php', [
+    '설문 메인을 제외한 전체 목록과 설문 참여·완료 화면',
+    'data-survey-settings-sidebar-menu-type',
+    'siteMenu.required = active',
+]);
+$contains('modules/survey/helpers/sidebar.php', [
+    'function sr_survey_sidebar_context(',
+    "s.status = 'active'",
+    's.public_listed = 1',
+    's.comments_enabled = 1',
+    'c.is_secret = 0',
+    'viewer_response.submitted_at IS NOT NULL',
+    'sr_survey_comment_body_plain_text(',
+]);
+$contains('modules/survey/views/sidebar.php', [
+    '<aside class="survey-sidebar"',
+    '인기 설문',
+    '최신댓글',
+    "'point_key' => 'survey.sidebar.summary'",
+]);
+foreach ([
+    'modules/survey/theme/basic/home.php',
+    'modules/survey/skins/basic/home.php',
+    'modules/survey/theme/basic/view.php',
+    'modules/survey/skins/basic/view.php',
+] as $screenFile) {
+    $contains($screenFile, ['survey-screen-frame', 'views/sidebar.php']);
+}
+$contains('modules/survey/theme/basic/home.php', ['if ($surveyScreenIsList)', "'survey.sidebar.summary'"]);
+$contains('modules/survey/skins/basic/home.php', ['if ($surveyScreenIsList)', "'survey.sidebar.summary'"]);
+$contains('modules/survey/theme/basic/assets/module.css', [
+    '.survey-screen-frame',
+    '.survey-sidebar',
+    'var(--sr-text',
+    'var(--sr-muted',
+    '@media (max-width: 1024px)',
+]);
+$contains('modules/survey/actions/list.php', [
+    "sr_get_string('group', 64)",
+    'sr_survey_group_by_key(',
+    'sr_survey_public_form_count($pdo, $surveyListGroupId)',
+]);
+$surveyExcerpt = sr_survey_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
+$assert($surveyExcerpt === '태그 제거', 'survey sidebar excerpt must remove HTML tags.');
 
 if ($errors !== []) {
     fwrite(STDERR, "public module sidebar checks failed:\n- " . implode("\n- ", $errors) . "\n");

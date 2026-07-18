@@ -183,6 +183,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     ]), sr_survey_comment_body_stylesheets($pdo, $settings)),
     'output_slots' => [
         ['module_key' => 'survey', 'point_key' => 'survey.view', 'slot_key' => 'screen'],
+        ['module_key' => 'survey', 'point_key' => 'survey.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
 ]));
 ?>
@@ -196,6 +197,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
 <main class="survey-page-main">
     <section class="survey-page-section">
         <div class="survey-page-container">
+            <div class="survey-screen-frame">
+                <div class="survey-screen-main">
             <h1><?php echo sr_e((string) $survey['title']); ?></h1>
             <?php echo sr_survey_cover_image_html($survey, 'sr-survey-cover-image', (string) ($survey['title'] ?? '')); ?>
             <?php if ((string) ($survey['description'] ?? '') !== ''): ?>
@@ -574,6 +577,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     <?php endif; ?>
                 </section>
             <?php endif; ?>
+                </div>
+                <?php $surveySidebarSubject = $survey; ?>
+                <?php include SR_ROOT . '/modules/survey/views/sidebar.php'; ?>
+            </div>
         </div>
     </section>
 </main>

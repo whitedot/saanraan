@@ -8,6 +8,7 @@ require_once dirname(__DIR__, 2) . '/core/helpers/upload.php';
 require_once SR_ROOT . '/modules/survey/helpers/comments.php';
 require_once SR_ROOT . '/modules/survey/helpers/responses.php';
 require_once SR_ROOT . '/modules/survey/helpers/groups.php';
+require_once SR_ROOT . '/modules/survey/helpers/sidebar.php';
 
 function sr_survey_key_is_valid(string $key): bool
 {
@@ -451,6 +452,11 @@ function sr_survey_default_settings(): array
         'skin_key' => 'basic',
         'layout_primary_menu_key' => 'header',
         'layout_extra_menu_keys_json' => [],
+        'sidebar_enabled' => true,
+        'sidebar_menu_type' => 'groups',
+        'sidebar_site_menu_key' => '',
+        'sidebar_popular_limit' => 5,
+        'sidebar_comments_limit' => 5,
         'default_status' => 'draft',
         'default_login_required' => 1,
         'default_consent_required' => 0,
@@ -489,6 +495,22 @@ function sr_survey_clean_layout_menu_key(string $value): string
 {
     $value = strtolower(trim($value));
     return preg_match('/\A[a-z][a-z0-9_]{1,59}\z/', $value) === 1 ? $value : '';
+}
+
+function sr_survey_sidebar_menu_type_options(bool $siteMenuAvailable): array
+{
+    $options = ['groups' => '설문 그룹'];
+    if ($siteMenuAvailable) {
+        $options['site_menu'] = '사이트 메뉴';
+    }
+    $options['none'] = '표시 안 함';
+
+    return $options;
+}
+
+function sr_survey_sidebar_menu_type(string $value): string
+{
+    return in_array($value, ['groups', 'site_menu', 'none'], true) ? $value : 'groups';
 }
 
 function sr_survey_clean_layout_extra_menu_area_key(string $value): string
@@ -739,6 +761,11 @@ function sr_survey_normalize_settings(array $settings): array
         $normalized[$settingKey] = sr_survey_clean_layout_menu_key((string) ($normalized[$settingKey] ?? ''));
     }
     $normalized['layout_extra_menu_keys_json'] = sr_survey_layout_extra_menu_items_from_settings($normalized);
+    $normalized['sidebar_enabled'] = !empty($normalized['sidebar_enabled']);
+    $normalized['sidebar_menu_type'] = sr_survey_sidebar_menu_type((string) ($normalized['sidebar_menu_type'] ?? 'groups'));
+    $normalized['sidebar_site_menu_key'] = sr_survey_clean_layout_menu_key((string) ($normalized['sidebar_site_menu_key'] ?? ''));
+    $normalized['sidebar_popular_limit'] = max(1, min(10, (int) ($normalized['sidebar_popular_limit'] ?? 5)));
+    $normalized['sidebar_comments_limit'] = max(1, min(10, (int) ($normalized['sidebar_comments_limit'] ?? 5)));
     $normalized['default_status'] = in_array((string) $normalized['default_status'], sr_survey_statuses(), true) ? (string) $normalized['default_status'] : (string) $defaults['default_status'];
     $normalized['default_login_required'] = !empty($normalized['default_login_required']) ? 1 : 0;
     $normalized['default_consent_required'] = !empty($normalized['default_consent_required']) ? 1 : 0;
@@ -794,6 +821,11 @@ function sr_survey_settings_from_post(): array
         'skin_key' => $skinKey,
         'layout_primary_menu_key' => sr_survey_clean_layout_menu_key(sr_post_string('layout_primary_menu_key', 60)),
         'layout_extra_menu_keys_json' => sr_survey_layout_extra_menu_items_from_pair_values($_POST['layout_extra_menu_area_keys'] ?? [], $_POST['layout_extra_menu_labels'] ?? [], $_POST['layout_extra_menu_keys'] ?? []),
+        'sidebar_enabled' => ($_POST['sidebar_enabled'] ?? '') === '1',
+        'sidebar_menu_type' => sr_post_string('sidebar_menu_type', 30),
+        'sidebar_site_menu_key' => sr_survey_clean_layout_menu_key(sr_post_string('sidebar_site_menu_key', 60)),
+        'sidebar_popular_limit' => sr_post_string('sidebar_popular_limit', 20),
+        'sidebar_comments_limit' => sr_post_string('sidebar_comments_limit', 20),
         'default_status' => sr_post_string('default_status', 20),
         'default_login_required' => ($_POST['default_login_required'] ?? '') === '1',
         'default_consent_required' => ($_POST['default_consent_required'] ?? '') === '1',
@@ -841,6 +873,13 @@ function sr_survey_settings_validation_errors(PDO $pdo, array $settings): array
             $errors[] = '설문 레이아웃 사이트 메뉴 값이 올바르지 않습니다.';
             break;
         }
+    }
+    $sidebarMenuType = (string) ($settings['sidebar_menu_type'] ?? 'groups');
+    if (!isset(sr_survey_sidebar_menu_type_options($siteMenuOptions !== [])[$sidebarMenuType])) {
+        $errors[] = '설문 사이드 메뉴 유형이 올바르지 않습니다.';
+    } elseif ($sidebarMenuType === 'site_menu'
+        && ((string) ($settings['sidebar_site_menu_key'] ?? '') === '' || !isset($siteMenuOptions[(string) $settings['sidebar_site_menu_key']]))) {
+        $errors[] = '설문 사이드에 표시할 사이트 메뉴를 선택하세요.';
     }
     if ((string) ($settings['default_response_limit_policy'] ?? '') === 'per_period' && (int) ($settings['default_response_limit_period_seconds'] ?? 0) < 1) {
         $errors[] = '기본 응답 제한이 기간당 1회이면 제한 기간을 1초 이상 입력해야 합니다.';
@@ -1268,39 +1307,49 @@ function sr_survey_public_window_is_open(array $survey, ?string $now = null): bo
     return ($startsAt === '' || $startsAt <= $now) && ($endsAt === '' || $endsAt >= $now);
 }
 
-function sr_survey_public_form_count(PDO $pdo): int
+function sr_survey_public_form_count(PDO $pdo, int $groupId = 0): int
 {
-    $stmt = $pdo->prepare(
-        "SELECT COUNT(*)
+    $sql = "SELECT COUNT(*)
          FROM sr_survey_forms
          WHERE status = 'active'
            AND deleted_at IS NULL
            AND public_listed = 1
            AND (starts_at IS NULL OR starts_at <= :now_start)
-           AND (ends_at IS NULL OR ends_at >= :now_end)"
-    );
+           AND (ends_at IS NULL OR ends_at >= :now_end)";
+    if ($groupId > 0) {
+        $sql .= ' AND survey_group_id = :survey_group_id';
+    }
+    $stmt = $pdo->prepare($sql);
     $now = sr_now();
-    $stmt->execute(['now_start' => $now, 'now_end' => $now]);
+    $params = ['now_start' => $now, 'now_end' => $now];
+    if ($groupId > 0) {
+        $params['survey_group_id'] = $groupId;
+    }
+    $stmt->execute($params);
 
     return max(0, (int) $stmt->fetchColumn());
 }
 
-function sr_survey_public_forms(PDO $pdo, int $limit = 50, int $offset = 0): array
+function sr_survey_public_forms(PDO $pdo, int $limit = 50, int $offset = 0, int $groupId = 0): array
 {
-    $stmt = $pdo->prepare(
-        "SELECT id, survey_key, title, description, cover_image_url, updated_at
+    $sql = "SELECT id, survey_key, title, description, cover_image_url, view_count, updated_at
          FROM sr_survey_forms
          WHERE status = 'active'
            AND deleted_at IS NULL
            AND public_listed = 1
            AND (starts_at IS NULL OR starts_at <= :now_start)
-           AND (ends_at IS NULL OR ends_at >= :now_end)
-         ORDER BY updated_at DESC, id DESC
-         LIMIT :limit_value OFFSET :offset_value"
-    );
+           AND (ends_at IS NULL OR ends_at >= :now_end)";
+    if ($groupId > 0) {
+        $sql .= ' AND survey_group_id = :survey_group_id';
+    }
+    $sql .= ' ORDER BY updated_at DESC, id DESC LIMIT :limit_value OFFSET :offset_value';
+    $stmt = $pdo->prepare($sql);
     $now = sr_now();
     $stmt->bindValue('now_start', $now);
     $stmt->bindValue('now_end', $now);
+    if ($groupId > 0) {
+        $stmt->bindValue('survey_group_id', $groupId, PDO::PARAM_INT);
+    }
     $stmt->bindValue('limit_value', max(1, min(100, $limit)), PDO::PARAM_INT);
     $stmt->bindValue('offset_value', max(0, $offset), PDO::PARAM_INT);
     $stmt->execute();
