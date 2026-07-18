@@ -923,6 +923,9 @@ if (sr_community_body_excerpt('abcdef', 'plain', 3) !== 'abc...') {
 if (sr_community_home_latest_comment_excerpt('<p>본문</p><ul><li>항목</li></ul>', 50) !== '본문 항목') {
     sr_check_community_board_settings_error('community latest comment excerpt tag removal failed.');
 }
+if (sr_community_home_latest_comment_excerpt('<img src="https://example.com/x.png" alt="1 &gt; 0">본문', 50) !== '본문') {
+    sr_check_community_board_settings_error('community latest comment excerpt attribute boundary handling failed.');
+}
 if (sr_community_board_sidebar_menu_type('none') !== 'none'
     || sr_community_board_sidebar_menu_type('same_group') !== 'same_group'
     || sr_community_board_sidebar_menu_type('invalid') !== 'all_boards'

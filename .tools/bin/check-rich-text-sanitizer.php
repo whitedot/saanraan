@@ -120,6 +120,7 @@ function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): vo
 {
     $ckeditorHtml = '<h1 class="ck-heading_heading1">큰 제목</h1>'
         . '<h2 class="ck-heading_heading2">제목</h2>'
+        . '<h4 class="ck-heading_heading3" style="text-align:right;margin-left:40px">제목 3</h4>'
         . '<p class="ck-paragraph" style="text-align:center;margin-left:40px"><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s> <span style="font-size:18px;color:#b91c1c;background-color:#fee2e2">강조</span></p>'
         . '<blockquote class="ck-blockquote"><p>인용</p></blockquote>'
         . '<ul class="ck-list"><li data-list-item-id="a">하나</li><li>둘</li></ul>'
@@ -132,6 +133,7 @@ function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): vo
     $output = $sanitize($ckeditorHtml);
     $expected = '<h1>큰 제목</h1>'
         . '<h2>제목</h2>'
+        . '<h4 style="text-align:right;margin-left:40px;">제목 3</h4>'
         . '<p style="text-align:center;margin-left:40px;"><strong>굵게</strong> <em>기울임</em> <u>밑줄</u> <s>취소</s> <span style="color:#b91c1c;background-color:#fee2e2;font-size:18px;">강조</span></p>'
         . '<blockquote><p>인용</p></blockquote>'
         . '<ul><li>하나</li><li>둘</li></ul>'
@@ -145,6 +147,7 @@ function sr_sanitizer_check_ckeditor_case(callable $sanitize, string $label): vo
     sr_sanitizer_check_not_contains($output, [
         'ck-heading_heading1',
         'ck-heading_heading2',
+        'ck-heading_heading3',
         'ck-paragraph',
         'ck-blockquote',
         'ck-list',

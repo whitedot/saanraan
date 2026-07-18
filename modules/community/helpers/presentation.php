@@ -520,9 +520,9 @@ function sr_community_home_latest_post_sections(PDO $pdo, array $boards, array $
 
 function sr_community_home_latest_comment_excerpt(string $bodyText, int $length = 50): string
 {
-    $decodedBodyText = html_entity_decode($bodyText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $plainText = preg_replace('/<[^>]*>/', ' ', $decodedBodyText);
-    $plainText = strip_tags(is_string($plainText) ? $plainText : $decodedBodyText);
+    $plainText = preg_replace('/<[^>]*>/', ' ', $bodyText);
+    $plainText = strip_tags(is_string($plainText) ? $plainText : $bodyText);
+    $plainText = html_entity_decode($plainText, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
     return sr_community_body_excerpt($plainText, 'plain', $length);
 }

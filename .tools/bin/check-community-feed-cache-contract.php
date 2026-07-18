@@ -252,6 +252,10 @@ function sr_check_community_feed_cache_contract_home_feed_fixture(): void
         'home latest comment excerpts must remove rich text tags and preserve word boundaries.'
     );
     sr_check_community_feed_cache_contract_assert(
+        sr_community_home_latest_comment_excerpt('<p><img src="https://example.com/x.png" alt="1 &gt; 0">본문</p>', 50) === '본문',
+        'home latest comment excerpts must not expose tag attribute fragments containing encoded angle brackets.'
+    );
+    sr_check_community_feed_cache_contract_assert(
         str_contains($s3BodyImageUrl, '/community/body-file?post_id=9001') && str_contains($s3BodyImageUrl, 'd=s3'),
         'home body image fallback must preserve the community body-file storage driver query.'
     );

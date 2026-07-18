@@ -551,6 +551,7 @@ function sr_rich_text_allowed_html_tags(): array
         'h1' => ['style'],
         'h2' => ['style'],
         'h3' => ['style'],
+        'h4' => ['style'],
         'img' => ['src', 'alt', 'width', 'height'],
         'figure' => ['class'],
         'figcaption' => [],
@@ -651,8 +652,8 @@ function sr_rich_text_purifier_config(): HTMLPurifier_Config
     $config->set('Core.Encoding', 'UTF-8');
     $config->set('HTML.Doctype', 'HTML 4.01 Transitional');
     $config->set('HTML.DefinitionID', 'saanraan-rich-text');
-    $config->set('HTML.DefinitionRev', 3);
-    $config->set('HTML.Allowed', 'p[style],br,strong,em,u,s,span[style],blockquote,ul,ol,li,a[href|rel],h1[style],h2[style],h3[style],img[src|alt|width|height],figure[class],figcaption,table,thead,tbody,tr,th[colspan|rowspan],td[colspan|rowspan],hr');
+    $config->set('HTML.DefinitionRev', 4);
+    $config->set('HTML.Allowed', 'p[style],br,strong,em,u,s,span[style],blockquote,ul,ol,li,a[href|rel],h1[style],h2[style],h3[style],h4[style],img[src|alt|width|height],figure[class],figcaption,table,thead,tbody,tr,th[colspan|rowspan],td[colspan|rowspan],hr');
     $config->set('Attr.AllowedClasses', ['image', 'table']);
     $config->set('CSS.AllowedProperties', ['color', 'background-color', 'font-size', 'text-align', 'margin-left']);
     $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
@@ -907,6 +908,7 @@ function sr_sanitize_rich_text_html_style(string $value, string $tagName): strin
         'h1' => ['text-align', 'margin-left'],
         'h2' => ['text-align', 'margin-left'],
         'h3' => ['text-align', 'margin-left'],
+        'h4' => ['text-align', 'margin-left'],
         'span' => ['color', 'background-color', 'font-size'],
     ];
     $allowedProperties = $allowedByTag[$tagName] ?? [];

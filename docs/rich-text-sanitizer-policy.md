@@ -44,7 +44,7 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 | `blockquote` | 없음 | 인용 |
 | `ul`, `ol`, `li` | 없음 | 목록 |
 | `a` | `href` | 링크 |
-| `h1`, `h2`, `h3` | 제한된 `style` | 본문 안 제목, 정렬, 들여쓰기 |
+| `h1`, `h2`, `h3`, `h4` | 제한된 `style` | 본문 안 제목, CKEditor 제목 3, 정렬, 들여쓰기 |
 | `img` | `src`, `alt`, `width`, `height` | 본문 이미지 |
 | `figure` | 제한된 `class` | CKEditor 이미지·표 묶음 |
 | `figcaption` | 없음 | 이미지·표 캡션 |
@@ -64,7 +64,7 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 - `alt`: 최대 160자로 자른다.
 - `figure.class`: `image` 또는 `table`만 허용한다. class가 남지 않는 `figure`는 wrapper를 제거하고 내부의 안전한 내용만 남긴다.
 - `th`, `td`의 `colspan`, `rowspan`: 1부터 99까지의 양의 정수만 허용한다.
-- `p`, `h1`, `h2`, `h3`의 `style`: `text-align`과 `margin-left`만 허용한다. 정렬은 `left`, `center`, `right`, `justify`, 들여쓰기는 CKEditor 단계값인 `40px`부터 `200px`까지만 허용한다.
+- `p`, `h1`, `h2`, `h3`, `h4`의 `style`: `text-align`과 `margin-left`만 허용한다. 정렬은 `left`, `center`, `right`, `justify`, 들여쓰기는 CKEditor 단계값인 `40px`부터 `200px`까지만 허용한다.
 - `span.style`: 설정된 팔레트의 `color`, `background-color`, `font-size`와 `12px`, `14px`, `18px`, `24px`, `32px` 글자 크기만 허용한다. 다른 CSS 속성과 값은 제거한다.
 - `a`: 링크 속성이 남은 경우 `rel="nofollow noopener noreferrer"`를 서버가 추가한다.
 - `a`: 안전한 `href`가 남지 않으면 링크 태그를 제거하고 내부 텍스트만 남긴다.
@@ -95,7 +95,7 @@ CKEditor가 만드는 문단, 제목, 인용, 목록, 링크, 본문 이미지, 
 - `a[href]`
 - `img[src|alt|width|height]`
 - `span[style]`의 제한된 글자 크기·색상
-- `p`, `h1`, `h2`, `h3`의 제한된 정렬·들여쓰기
+- `p`, `h1`, `h2`, `h3`, `h4`의 제한된 정렬·들여쓰기
 - `figure.image`, `figure.table`, `figcaption`
 - `table`, `thead`, `tbody`, `tr`, `th[colspan|rowspan]`, `td[colspan|rowspan]`
 - `hr`
