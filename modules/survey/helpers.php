@@ -470,7 +470,7 @@ function sr_survey_default_settings(): array
 
 function sr_survey_layout_required_targets(): array
 {
-    return ['survey.home', 'survey.view', 'survey.complete'];
+    return ['survey.home', 'survey.list', 'survey.view', 'survey.complete'];
 }
 
 function sr_survey_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
@@ -676,7 +676,7 @@ function sr_survey_skin_options(): array
 
 function sr_survey_skin_views(): array
 {
-    return ['home', 'view', 'complete'];
+    return ['home', 'list', 'view', 'complete'];
 }
 
 function sr_survey_skin_key(string $value): string
@@ -707,7 +707,7 @@ function sr_survey_optional_option_key_from_post(string $value, array $options):
 
 function sr_survey_theme_options(): array
 {
-    return sr_view_theme_options(SR_ROOT . '/modules/survey/theme', ['home.php', 'view.php', 'complete.php', 'ui-kit.php'], '기본 설문 테마', 'survey_view_theme', false);
+    return sr_view_theme_options(SR_ROOT . '/modules/survey/theme', ['home.php', 'list.php', 'view.php', 'complete.php', 'ui-kit.php'], '기본 설문 테마', 'survey_view_theme', false);
 }
 
 function sr_survey_theme_key(string $themeKey): string

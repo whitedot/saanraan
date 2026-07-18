@@ -28,8 +28,8 @@ $source = static function (string $file) use ($root, &$errors): string {
 };
 
 foreach ([
-    'modules/quiz/actions/home.php' => ['sr_quiz_public_quiz_count(', '$quizListPagination', 'sr_quiz_public_quizzes($pdo, $quizListPerPage,'],
-    'modules/survey/actions/home.php' => ['sr_survey_public_form_count(', '$surveyListPagination', 'sr_survey_public_forms($pdo, $surveyListPerPage,'],
+    'modules/quiz/actions/list.php' => ['sr_quiz_public_quiz_count(', '$quizListPagination', 'sr_quiz_public_quizzes($pdo, $quizListPerPage,'],
+    'modules/survey/actions/list.php' => ['sr_survey_public_form_count(', '$surveyListPagination', 'sr_survey_public_forms($pdo, $surveyListPerPage,'],
     'modules/coupon/actions/coupons.php' => ['sr_coupon_public_claim_campaign_count(', '$couponCampaignPagination', 'sr_coupon_public_claim_campaigns($pdo, $accountId, $couponCampaignPerPage,'],
 ] as $file => $markers) {
     $contents = $source($file);
@@ -38,11 +38,19 @@ foreach ([
     }
 }
 foreach ([
-    'modules/quiz/theme/basic/home.php' => "sr_public_pagination_html(\$quizListPagination, '/quiz'",
-    'modules/survey/theme/basic/home.php' => "sr_public_pagination_html(\$surveyListPagination, '/survey'",
+    'modules/quiz/theme/basic/home.php' => "sr_public_pagination_html(\$quizListPagination, '/quiz/list'",
+    'modules/survey/theme/basic/home.php' => "sr_public_pagination_html(\$surveyListPagination, '/survey/list'",
     'modules/coupon/views/coupons.php' => "sr_public_pagination_html(\$couponCampaignPagination, '/coupons'",
 ] as $file => $marker) {
     $assert(str_contains($source($file), $marker), $file . ' must render public full-list navigation.');
+}
+foreach ([
+    'modules/quiz/actions/home.php' => 'sr_quiz_public_quizzes($pdo, 6, 0)',
+    'modules/survey/actions/home.php' => 'sr_survey_public_forms($pdo, 6, 0)',
+] as $file => $marker) {
+    $contents = $source($file);
+    $assert(str_contains($contents, $marker), $file . ' must load only the main-page recommendation set.');
+    $assert(!str_contains($contents, 'ListPagination'), $file . ' must not build full-list pagination.');
 }
 
 $quizPdo = new PDO('sqlite::memory:');

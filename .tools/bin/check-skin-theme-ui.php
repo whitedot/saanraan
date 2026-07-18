@@ -509,10 +509,12 @@ $publicModuleLayoutTargets = [
     'community.search',
     'quiz',
     'quiz.home',
+    'quiz.list',
     'quiz.view',
     'quiz.result',
     'survey',
     'survey.home',
+    'survey.list',
     'survey.view',
     'survey.complete',
 ];
@@ -520,8 +522,8 @@ $publicModuleLayoutTargets = [
 foreach ([
     'content' => ['content.home', 'content.group', 'content.view', 'content.search'],
     'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
-    'quiz' => ['quiz.home', 'quiz.view', 'quiz.result'],
-    'survey' => ['survey.home', 'survey.view', 'survey.complete'],
+    'quiz' => ['quiz.home', 'quiz.list', 'quiz.view', 'quiz.result'],
+    'survey' => ['survey.home', 'survey.list', 'survey.view', 'survey.complete'],
 ] as $moduleKey => $requiredTargets) {
     sr_skin_theme_check_contains('modules/' . $moduleKey . '/helpers' . ($moduleKey === 'community' ? '/presentation' : '') . '.php', [
         'function sr_' . $moduleKey . '_layout_required_targets(): array',
@@ -574,7 +576,7 @@ sr_skin_theme_check_contains('modules/community/helpers/levels.php', [
 sr_skin_theme_check_contains('modules/quiz/helpers.php', [
     'function sr_quiz_theme_options(): array',
     "SR_ROOT . '/modules/quiz/theme'",
-    "['home.php', 'view.php', 'result.php', 'ui-kit.php']",
+    "['home.php', 'list.php', 'view.php', 'result.php', 'ui-kit.php']",
     "array_merge(sr_quiz_skin_views(), ['ui-kit'])",
     "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'common.css')",
     "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'ui-kit-layout.css')",
@@ -584,7 +586,7 @@ sr_skin_theme_check_contains('modules/quiz/helpers.php', [
 sr_skin_theme_check_contains('modules/survey/helpers.php', [
     'function sr_survey_theme_options(): array',
     "SR_ROOT . '/modules/survey/theme'",
-    "['home.php', 'view.php', 'complete.php', 'ui-kit.php']",
+    "['home.php', 'list.php', 'view.php', 'complete.php', 'ui-kit.php']",
     "array_merge(sr_survey_skin_views(), ['ui-kit'])",
     "sr_public_layout_module_theme_asset_url('survey', \$themeKey, 'common.css')",
     "sr_public_layout_module_theme_asset_url('survey', \$themeKey, 'ui-kit-layout.css')",

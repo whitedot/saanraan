@@ -2,6 +2,7 @@
 
 return [
     'GET /quiz' => 'actions/home.php',
+    'GET /quiz/list' => 'actions/list.php',
     'GET /quiz/cover-image' => 'actions/cover-image.php',
     'GET /quiz/ui-kit' => 'actions/ui-kit.php',
     'POST /quiz/comment' => 'actions/comment.php',

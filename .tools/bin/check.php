@@ -1243,11 +1243,13 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         ],
         'quiz' => [
             'quiz.home' => ['modules/quiz/skins/basic/home.php', 'modules/quiz/theme/basic/home.php'],
+            'quiz.list' => ['modules/quiz/skins/basic/list.php', 'modules/quiz/theme/basic/list.php'],
             'quiz.view' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php'],
             'quiz.result' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php'],
         ],
         'survey' => [
             'survey.home' => ['modules/survey/skins/basic/home.php', 'modules/survey/theme/basic/home.php'],
+            'survey.list' => ['modules/survey/skins/basic/list.php', 'modules/survey/theme/basic/list.php'],
             'survey.view' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php'],
             'survey.complete' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php'],
         ],

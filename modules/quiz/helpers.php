@@ -382,7 +382,7 @@ function sr_quiz_default_settings(): array
 
 function sr_quiz_layout_required_targets(): array
 {
-    return ['quiz.home', 'quiz.view', 'quiz.result'];
+    return ['quiz.home', 'quiz.list', 'quiz.view', 'quiz.result'];
 }
 
 function sr_quiz_layout_options(PDO $pdo, bool $includeInstalledModules = false): array
@@ -442,7 +442,7 @@ function sr_quiz_skin_options(): array
 
 function sr_quiz_skin_views(): array
 {
-    return ['home', 'view', 'result'];
+    return ['home', 'list', 'view', 'result'];
 }
 
 function sr_quiz_skin_key(string $value): string
@@ -625,7 +625,7 @@ function sr_quiz_layout_extra_menu_keys_json(mixed $value): string
 
 function sr_quiz_theme_options(): array
 {
-    return sr_view_theme_options(SR_ROOT . '/modules/quiz/theme', ['home.php', 'view.php', 'result.php', 'ui-kit.php'], '기본 퀴즈 테마', 'quiz_view_theme', false);
+    return sr_view_theme_options(SR_ROOT . '/modules/quiz/theme', ['home.php', 'list.php', 'view.php', 'result.php', 'ui-kit.php'], '기본 퀴즈 테마', 'quiz_view_theme', false);
 }
 
 function sr_quiz_theme_key(string $themeKey): string

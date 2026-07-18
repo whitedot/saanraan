@@ -5,25 +5,28 @@ require_once SR_ROOT . '/modules/survey/helpers.php';
 $settings = sr_survey_settings($pdo);
 $surveys = isset($surveys) && is_array($surveys) ? $surveys : sr_survey_public_forms($pdo, (int) ($settings['public_list_limit'] ?? 50));
 $surveyListPagination = isset($surveyListPagination) && is_array($surveyListPagination) ? $surveyListPagination : ['page' => 1, 'total_pages' => 1];
+$surveyScreenTarget = isset($surveyScreenTarget) && $surveyScreenTarget === 'survey.list' ? 'survey.list' : 'survey.home';
+$surveyScreenIsList = $surveyScreenTarget === 'survey.list';
+$surveyScreenTitle = $surveyScreenIsList ? '전체 설문·여론조사' : '설문·여론조사';
 $surveyPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $seo = [
-    'title' => '설문·여론조사',
-    'canonical' => '/survey',
+    'title' => $surveyScreenTitle,
+    'canonical' => $surveyScreenIsList ? '/survey/list' : '/survey',
 ];
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
-    'consumer_target' => 'survey.home',
+    'consumer_target' => $surveyScreenTarget,
     'body_class' => 'sr-survey-page',
     'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
         'popup_layer' => '/modules/popup_layer/assets/module.css',
     ]),
     'output_slots' => [
-        ['module_key' => 'survey', 'point_key' => 'survey.home', 'slot_key' => 'screen'],
+        ['module_key' => 'survey', 'point_key' => $surveyScreenTarget, 'slot_key' => 'screen'],
     ],
 ]));
 ?>
 <?php echo sr_render_output_slot($pdo, [
     'module_key' => 'survey',
-    'point_key' => 'survey.home',
+    'point_key' => $surveyScreenTarget,
     'slot_key' => 'screen',
 ]); ?>
 
@@ -31,7 +34,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
     <section class="survey-page-section sr-survey-home">
         <div class="survey-page-container">
             <header class="sr-survey-home-header">
-                <h1>설문·여론조사</h1>
+                <h1><?php echo sr_e($surveyScreenTitle); ?></h1>
+                <?php if (!$surveyScreenIsList): ?>
+                    <p>현재 참여할 수 있는 설문과 여론조사를 확인하세요.</p>
+                <?php endif; ?>
             </header>
             <?php if ($surveys === []): ?>
                 <p class="sr-survey-home-empty">참여할 수 있는 설문이 없습니다.</p>
@@ -76,7 +82,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                 <?php endforeach; ?>
                 </div>
             <?php endif; ?>
-            <?php echo sr_public_pagination_html($surveyListPagination, '/survey', '설문 목록 페이지'); ?>
+            <?php if ($surveyScreenIsList): ?>
+                <?php echo sr_public_pagination_html($surveyListPagination, '/survey/list', '설문 목록 페이지'); ?>
+            <?php else: ?>
+                <p><a class="btn btn-outline-primary" href="<?php echo sr_e(sr_url('/survey/list')); ?>">전체 설문 보기</a></p>
+            <?php endif; ?>
         </div>
     </section>
 </main>

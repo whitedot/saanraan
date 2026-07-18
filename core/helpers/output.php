@@ -2585,8 +2585,8 @@ function sr_public_layout_module_setting_targets(string $moduleKey): array
     return [
         'content' => ['content.home', 'content.group', 'content.view', 'content.search'],
         'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
-        'quiz' => ['quiz.home', 'quiz.view', 'quiz.result'],
-        'survey' => ['survey.home', 'survey.view', 'survey.complete'],
+        'quiz' => ['quiz.home', 'quiz.list', 'quiz.view', 'quiz.result'],
+        'survey' => ['survey.home', 'survey.list', 'survey.view', 'survey.complete'],
     ][$moduleKey] ?? [$moduleKey];
 }
 
