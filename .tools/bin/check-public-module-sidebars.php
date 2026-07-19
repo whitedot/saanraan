@@ -12,6 +12,16 @@ require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/quiz/helpers.php';
 require_once $root . '/modules/survey/helpers.php';
 
+if (!function_exists('sr_log_exception')) {
+    function sr_log_exception(Throwable $exception, string $context): void
+    {
+        $contexts = $GLOBALS['sr_public_sidebar_logged_contexts'] ?? [];
+        $contexts = is_array($contexts) ? $contexts : [];
+        $contexts[] = $context;
+        $GLOBALS['sr_public_sidebar_logged_contexts'] = $contexts;
+    }
+}
+
 $errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
     if (!$condition) {
@@ -321,6 +331,70 @@ $assert(
     ),
     'namespace invalidation must reject writers holding an earlier namespace generation.'
 );
+
+$publicSideMenuGenerationPath = sr_public_data_cache_namespace_generation_path('public-side-menu');
+file_put_contents($publicSideMenuGenerationPath, "broken\n");
+unset($GLOBALS['sr_public_data_cache_memory']);
+$assert(
+    sr_public_data_cache_generation('public-side-menu', 'content.groups', 'content_sidebar_groups_v1') === '',
+    'an invalid namespace generation marker must disable the affected cache.'
+);
+$assert(
+    !sr_public_data_cache_write(
+        'public-side-menu',
+        'content.groups',
+        'content_sidebar_groups_v1',
+        [['group_key' => 'news', 'title' => '손상 marker 값']]
+    ),
+    'an invalid namespace generation marker must reject cache writes.'
+);
+$assert(
+    sr_public_data_cache_read('public-side-menu', 'content.groups', 'content_sidebar_groups_v1') === null,
+    'an invalid namespace generation marker must reject cache reads.'
+);
+$assert(
+    sr_public_data_cache_clear_namespace('public-side-menu'),
+    'namespace invalidation must repair an invalid namespace generation marker.'
+);
+
+$failureNamespace = 'public-cache-failure-fixture';
+$failureCacheKey = 'fixture.groups';
+$failureSchema = 'fixture_groups_v1';
+sr_public_data_cache_clear_namespace($failureNamespace);
+$failureGeneration = sr_public_data_cache_generation($failureNamespace, $failureCacheKey, $failureSchema);
+$assert(
+    sr_public_data_cache_write(
+        $failureNamespace,
+        $failureCacheKey,
+        $failureSchema,
+        [['group_key' => 'fixture', 'title' => '기존 캐시']],
+        $failureGeneration
+    ),
+    'cache invalidation failure fixture must create an initial payload.'
+);
+$failurePayloadPath = sr_public_data_cache_path($failureNamespace, $failureCacheKey, $failureSchema, $failureGeneration);
+$failureNamespaceDirectory = sr_public_data_cache_root() . '/' . $failureNamespace;
+chmod($failureNamespaceDirectory, 0555);
+$assert(
+    !sr_public_data_cache_clear_namespace($failureNamespace),
+    'cache namespace clear must report a namespace generation rotation failure.'
+);
+chmod($failureNamespaceDirectory, 0775);
+$assert(
+    !is_file($failurePayloadPath)
+        && sr_public_data_cache_read($failureNamespace, $failureCacheKey, $failureSchema, $failureGeneration) === null,
+    'failed namespace generation rotation must clear known payloads and request memory as a fallback.'
+);
+$loggedCacheFailureContexts = $GLOBALS['sr_public_sidebar_logged_contexts'] ?? [];
+$assert(
+    is_array($loggedCacheFailureContexts)
+        && in_array('public_data_cache_generation_invalid', $loggedCacheFailureContexts, true)
+        && in_array('public_data_cache_namespace_invalidation_failed', $loggedCacheFailureContexts, true),
+    'invalid generation markers and generation rotation failures must be logged.'
+);
+@unlink(sr_public_data_cache_namespace_generation_path($failureNamespace));
+@rmdir(dirname($failurePayloadPath));
+@rmdir($failureNamespaceDirectory);
 
 if ($errors !== []) {
     fwrite(STDERR, "public module sidebar checks failed:\n- " . implode("\n- ", $errors) . "\n");

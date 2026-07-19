@@ -81,19 +81,27 @@ function sr_public_data_cache_entry_generation_path(
 
 function sr_public_data_cache_generation_marker(string $path): string
 {
-    if ($path === '' || !is_file($path)) {
+    static $reportedInvalidPaths = [];
+
+    if ($path === '') {
+        return '';
+    }
+    if (!file_exists($path) && !is_link($path)) {
         return 'initial';
     }
 
-    $contents = @file_get_contents($path);
+    $contents = is_file($path) ? @file_get_contents($path) : false;
     $generation = is_string($contents) ? strtolower(trim($contents)) : '';
     if (preg_match('/\A[a-f0-9]{32}\z/', $generation) === 1) {
         return $generation;
     }
 
-    sr_public_data_cache_log_failure('public_data_cache_generation_invalid', 'Cache generation marker is unreadable or invalid: ' . $path);
+    if (!isset($reportedInvalidPaths[$path])) {
+        sr_public_data_cache_log_failure('public_data_cache_generation_invalid', 'Cache generation marker is unreadable or invalid: ' . $path);
+        $reportedInvalidPaths[$path] = true;
+    }
 
-    return substr(hash('sha256', "invalid\n" . $path . "\n" . (is_string($contents) ? $contents : 'unreadable')), 0, 32);
+    return '';
 }
 
 function sr_public_data_cache_generation(string $namespace, string $cacheKey, string $payloadSchema): string
@@ -110,6 +118,9 @@ function sr_public_data_cache_generation(string $namespace, string $cacheKey, st
     $entryGeneration = sr_public_data_cache_generation_marker(
         sr_public_data_cache_entry_generation_path($namespace, $cacheKey, $payloadSchema)
     );
+    if ($namespaceGeneration === '' || $entryGeneration === '') {
+        return '';
+    }
 
     return hash('sha256', $namespaceGeneration . "\n" . $entryGeneration);
 }
@@ -333,6 +344,13 @@ function sr_public_data_cache_forget(string $namespace, string $cacheKey, string
     $legacyPath = sr_public_data_cache_legacy_path($namespace, $cacheKey, $payloadSchema);
     $generationPath = sr_public_data_cache_entry_generation_path($namespace, $cacheKey, $payloadSchema);
     if (!sr_public_data_cache_rotate_generation($generationPath, 'public_data_cache_entry_invalidation_failed')) {
+        $memory = $GLOBALS['sr_public_data_cache_memory'] ?? [];
+        if (is_array($memory)) {
+            unset($memory[$namespace]);
+            $GLOBALS['sr_public_data_cache_memory'] = $memory;
+        }
+        sr_public_data_cache_unlink($path, 'public_data_cache_entry_fallback_cleanup_failed');
+        sr_public_data_cache_unlink($legacyPath, 'public_data_cache_legacy_fallback_cleanup_failed');
         return false;
     }
 
@@ -360,6 +378,14 @@ function sr_public_data_cache_clear_namespace(string $namespace): bool
         sr_public_data_cache_namespace_generation_path($namespace),
         'public_data_cache_namespace_invalidation_failed'
     )) {
+        $memory = $GLOBALS['sr_public_data_cache_memory'] ?? [];
+        if (is_array($memory)) {
+            unset($memory[$namespace]);
+            $GLOBALS['sr_public_data_cache_memory'] = $memory;
+        }
+        foreach ($oldPaths as $path) {
+            sr_public_data_cache_unlink($path, 'public_data_cache_namespace_fallback_cleanup_failed');
+        }
         return false;
     }
 
