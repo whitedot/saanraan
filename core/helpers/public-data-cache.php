@@ -16,9 +16,11 @@ function sr_public_data_cache_schema(string $schema): string
     return preg_match('/\A[a-z][a-z0-9_.-]{1,79}\z/', $schema) === 1 ? $schema : '';
 }
 
-function sr_public_data_cache_root(): string
+function sr_public_data_cache_root(string $root = ''): string
 {
-    return rtrim((string) SR_ROOT, '/\\') . '/storage/cache/public-data';
+    $root = $root !== '' ? $root : (string) SR_ROOT;
+
+    return rtrim($root, '/\\') . '/storage/cache/public-data';
 }
 
 function sr_public_data_cache_hash(string $cacheKey, string $payloadSchema): string
@@ -67,10 +69,11 @@ function sr_public_data_cache_read(string $namespace, string $cacheKey, string $
         || (string) ($record['payload_schema'] ?? '') !== $payloadSchema
         || !is_array($record['payload'] ?? null)
     ) {
+        @unlink($path);
         return null;
     }
 
-    $GLOBALS['sr_public_data_cache_memory'][$namespace][$hash] = $record['payload'];
+    sr_public_data_cache_remember($namespace, $hash, $record['payload']);
 
     return $record['payload'];
 }
@@ -94,13 +97,26 @@ function sr_public_data_cache_write(string $namespace, string $cacheKey, string 
     ];
     $json = json_encode($record, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     $path = sr_public_data_cache_path($namespace, $cacheKey, $payloadSchema);
-    if (!is_string($json) || $path === '' || !sr_write_file_atomically($path, $json . "\n")) {
+    if (!is_string($json) || $path === '') {
         return false;
     }
+    sr_public_data_cache_remember($namespace, $hash, $payload);
 
-    $GLOBALS['sr_public_data_cache_memory'][$namespace][$hash] = $payload;
+    return sr_write_file_atomically($path, $json . "\n");
+}
 
-    return true;
+function sr_public_data_cache_remember(string $namespace, string $hash, array $payload): void
+{
+    $memory = $GLOBALS['sr_public_data_cache_memory'] ?? [];
+    if (!is_array($memory)) {
+        $memory = [];
+    }
+    if (!isset($memory[$namespace]) || !is_array($memory[$namespace])) {
+        $memory[$namespace] = [];
+    }
+
+    $memory[$namespace][$hash] = $payload;
+    $GLOBALS['sr_public_data_cache_memory'] = $memory;
 }
 
 function sr_public_data_cache_forget(string $namespace, string $cacheKey, string $payloadSchema): void
@@ -112,7 +128,11 @@ function sr_public_data_cache_forget(string $namespace, string $cacheKey, string
     }
 
     $hash = sr_public_data_cache_hash($cacheKey, $payloadSchema);
-    unset($GLOBALS['sr_public_data_cache_memory'][$namespace][$hash]);
+    $memory = $GLOBALS['sr_public_data_cache_memory'] ?? [];
+    if (is_array($memory)) {
+        unset($memory[$namespace][$hash]);
+        $GLOBALS['sr_public_data_cache_memory'] = $memory;
+    }
     $path = sr_public_data_cache_path($namespace, $cacheKey, $payloadSchema);
     if ($path !== '' && is_file($path)) {
         @unlink($path);
@@ -126,11 +146,32 @@ function sr_public_data_cache_clear_namespace(string $namespace): void
         return;
     }
 
-    unset($GLOBALS['sr_public_data_cache_memory'][$namespace]);
+    $memory = $GLOBALS['sr_public_data_cache_memory'] ?? [];
+    if (is_array($memory)) {
+        unset($memory[$namespace]);
+        $GLOBALS['sr_public_data_cache_memory'] = $memory;
+    }
     $directory = sr_public_data_cache_root() . '/' . $namespace;
     foreach (glob($directory . '/*/*.json') ?: [] as $path) {
         if (is_file($path)) {
             @unlink($path);
         }
     }
+}
+
+function sr_public_data_cache_clear_all(string $root = ''): int
+{
+    $cacheRoot = sr_public_data_cache_root($root);
+    $deleted = 0;
+    foreach (glob($cacheRoot . '/*/*/*.json') ?: [] as $path) {
+        if (is_file($path) && @unlink($path)) {
+            $deleted++;
+        }
+    }
+
+    if ($root === '' || rtrim($root, '/\\') === rtrim((string) SR_ROOT, '/\\')) {
+        $GLOBALS['sr_public_data_cache_memory'] = [];
+    }
+
+    return $deleted;
 }

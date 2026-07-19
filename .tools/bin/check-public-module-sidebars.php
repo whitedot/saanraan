@@ -257,6 +257,8 @@ sr_survey_save_group($sidebarPdo, ['title' => '변경된 의견', 'description' 
 $assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 뉴스', 'content group update must invalidate the sidebar menu cache.');
 $assert((sr_quiz_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 상식', 'quiz group update must invalidate the sidebar menu cache.');
 $assert((sr_survey_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 의견', 'survey group update must invalidate the sidebar menu cache.');
+sr_public_data_cache_write('public-side-menu', 'content.groups', 'content_sidebar_groups_v1', [['group_key' => '../invalid', 'title' => '손상값']]);
+$assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 뉴스', 'content sidebar must reject an invalid cached group row and reload the database value.');
 sr_public_data_cache_clear_namespace('public-side-menu');
 
 if ($errors !== []) {

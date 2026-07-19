@@ -393,6 +393,7 @@ sr_performance_baseline_require_markers('modules/survey/actions/admin-export.php
 $allowedStorageCacheFiles = [
     '.tools/bin/dev-router.php' => true,
     '.tools/bin/check-storage-helpers.php' => true,
+    '.tools/bin/check-install-reset-policy.php' => true,
     'core/helpers/storage.php' => true,
     'core/helpers/output.php' => true,
     'core/helpers/public-data-cache.php' => true,
@@ -404,6 +405,7 @@ $allowedStorageCacheFiles = [
     'docs/customization-guide.md' => true,
     'docs/deployment-protection.md' => true,
     'docs/implementation-snapshot.md' => true,
+    'docs/install-reset.md' => true,
     'docs/admin-ui-guide.md' => true,
     'docs/module-guide.md' => true,
     'docs/performance-policy.md' => true,

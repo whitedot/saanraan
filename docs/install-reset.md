@@ -49,7 +49,8 @@ Preview는 config env, site base URL, DB 이름, S3 bucket에서 production-look
 2. production-looking 경고와 unsafe/remote storage reference를 확인한다.
 3. storage reference를 batch 크기만큼 삭제한다. 남은 reference가 있으면 DB와 설치 상태 파일은 건드리지 않고 종료한다.
 4. 현재 DB introspection과 allowlist의 교집합 table을 batch 크기만큼 drop한다. 남은 table이 있으면 설치 상태 파일은 건드리지 않고 종료한다.
-5. DB/storage batch가 모두 끝난 뒤 `storage/update-failed.json`, `storage/installed.lock`, `config/config.php`, `config/config-*.tmp.php`를 제거한다.
+5. DB/storage batch가 모두 끝난 뒤 `storage/cache/public-data`의 생성 JSON 캐시를 비운다.
+6. `storage/update-failed.json`, `storage/installed.lock`, `config/config.php`, `config/config-*.tmp.php`를 제거한다.
 
 ## 안전 기준
 
@@ -58,10 +59,11 @@ Preview는 config env, site base URL, DB 이름, S3 bucket에서 production-look
 - DB 삭제 대상은 allowlist와 DB introspection의 교집합으로만 정한다.
 - 기본값으로 non-`sr_` table 또는 현재 설정의 안전한 table prefix 밖 table을 삭제하지 않는다.
 - `config/config.php`와 `storage/installed.lock`은 DB와 storage 정리가 끝난 뒤 마지막에 제거한다.
+- 공개 메뉴 파일 캐시는 이전 설치의 메뉴명을 새 설치에서 재사용하지 않도록 완료 단계에서만 제거한다. 캐시 파일만 대상으로 하며 원본 업로드나 모듈 데이터는 삭제하지 않는다.
 - remote storage는 등록된 driver/key와 별도 preview/confirmation 없이 삭제하지 않는다.
 - web request 하나로 무제한 삭제를 실행하지 않고 bounded batch와 retry 기준을 둔다.
 - production-looking 환경은 기본 거부하고, 별도 flag와 owner reauth 없이는 실행하지 않는다.
 
-## 후속 구현
+## 실행 후 확인
 
-다음 작업 단위에서 execution mode를 추가할 때는 confirmation phrase, reset lock, batch size, 실패 요약, idempotent retry를 함께 구현한다. 실행 뒤에는 `sr_is_installed()`가 false가 되고 HTTP root가 설치 화면으로 돌아와야 한다.
+실행 완료 뒤에는 `sr_is_installed()`가 false가 되고 HTTP root가 설치 화면으로 돌아와야 한다. 중간 batch에서 종료한 경우 config와 설치 상태 파일, 공개 메뉴 캐시는 유지되어야 하며 같은 명령을 다시 실행해 완료할 수 있어야 한다.

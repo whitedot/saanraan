@@ -172,6 +172,9 @@ mkdir($execRoot . '/storage', 0755, true);
 file_put_contents($execRoot . '/config/config.php', "<?php\nreturn [];\n");
 file_put_contents($execRoot . '/storage/installed.lock', "{}\n");
 file_put_contents($execRoot . '/storage/update-failed.json', "{}\n");
+mkdir($execRoot . '/storage/cache/public-data/test-cache/aa', 0755, true);
+$execPublicDataCacheFile = $execRoot . '/storage/cache/public-data/test-cache/aa/cache.json';
+file_put_contents($execPublicDataCacheFile, "{}\n");
 
 $execKeyA = 'cache/check-install-reset-policy/exec-a.txt';
 $execKeyB = 'cache/check-install-reset-policy/exec-b.txt';
@@ -209,6 +212,9 @@ if (is_file(SR_ROOT . '/storage/' . $execKeyA) === is_file(SR_ROOT . '/storage/'
 if (!is_file($execRoot . '/config/config.php') || !is_file($execRoot . '/storage/installed.lock')) {
     sr_install_reset_check_error('Install reset must keep install state files until DB/storage batches complete.');
 }
+if (!is_file($execPublicDataCacheFile)) {
+    sr_install_reset_check_error('Install reset must keep public data cache files until DB/storage batches complete.');
+}
 
 $secondBatch = sr_install_reset_execute($execPdo, $execTables, $safeConfig, $execRoot, ['confirmation' => '초기화', 'batch_size' => 1]);
 if (($secondBatch['state'] ?? '') !== 'partial' || ($secondBatch['stage'] ?? '') !== 'database') {
@@ -225,6 +231,9 @@ if (sr_install_reset_existing_prefixed_tables($execPdo, 'sr_') !== []) {
 if (is_file($execRoot . '/config/config.php') || is_file($execRoot . '/storage/installed.lock') || is_file($execRoot . '/storage/update-failed.json')) {
     sr_install_reset_check_error('Install reset should remove install state files after DB/storage completion.');
 }
+if (is_file($execPublicDataCacheFile) || (int) ($thirdBatch['public_data_cache_files_deleted'] ?? 0) !== 1) {
+    sr_install_reset_check_error('Install reset should clear public data cache files after DB/storage completion.');
+}
 
 @unlink(SR_ROOT . '/storage/' . $execKeyA);
 @unlink(SR_ROOT . '/storage/' . $execKeyB);
@@ -232,6 +241,11 @@ if (is_file($execRoot . '/config/config.php') || is_file($execRoot . '/storage/i
 @unlink($execRoot . '/storage/installed.lock');
 @unlink($execRoot . '/storage/update-failed.json');
 @unlink($execRoot . '/storage/install-reset.lock');
+@unlink($execPublicDataCacheFile);
+@rmdir($execRoot . '/storage/cache/public-data/test-cache/aa');
+@rmdir($execRoot . '/storage/cache/public-data/test-cache');
+@rmdir($execRoot . '/storage/cache/public-data');
+@rmdir($execRoot . '/storage/cache');
 @rmdir($execRoot . '/config');
 @rmdir($execRoot . '/storage');
 @rmdir($execRoot);
@@ -260,6 +274,7 @@ sr_install_reset_check_contains('docs/install-reset.md', [
     'storage/installed.lock',
     'storage/install-reset.lock',
     'storage reference',
+    'storage/cache/public-data',
     'production-looking',
 ]);
 

@@ -139,9 +139,21 @@ sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 1, 'Site menu runti
 sr_site_menu_clear_runtime_cache('header');
 sr_site_menu_render($pdo, 'header', 'navigation');
 sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 1, 'Site menu persistent cache must reuse the enabled item tree after runtime cache clear.');
+sr_public_data_cache_write(sr_site_menu_tree_cache_namespace(), 'header', sr_site_menu_tree_cache_schema(), ['menu_key' => 'wrong']);
+sr_site_menu_clear_runtime_cache('header');
+sr_site_menu_render($pdo, 'header', 'navigation');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu renderer must reject an invalid persistent tree and reload it from the database.');
+sr_site_menu_clear_cache('header');
+$brokenCachePath = sr_public_data_cache_path(sr_site_menu_tree_cache_namespace(), 'header', sr_site_menu_tree_cache_schema());
+if (!is_dir(dirname($brokenCachePath))) {
+    mkdir(dirname($brokenCachePath), 0755, true);
+}
+file_put_contents($brokenCachePath, "{\n");
+sr_site_menu_render($pdo, 'header', 'navigation');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 3, 'Site menu renderer must discard a structurally invalid cache file and reload it from the database.');
 sr_site_menu_clear_cache('header');
 sr_site_menu_render($pdo, 'header', 'navigation');
-sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu full cache clear must force the next tree lookup.');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 4, 'Site menu full cache clear must force the next tree lookup.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'footer', 'secondary_navigation') === '', 'Site menu render runtime fixture must skip disabled menus.');
 $emptyTree = sr_site_menu_tree($pdo, 'empty_menu');
 sr_site_menu_check_assert(($emptyTree['enabled'] ?? false) === true, 'Site menu tree helper must keep enabled menu state when a menu has no enabled items.');

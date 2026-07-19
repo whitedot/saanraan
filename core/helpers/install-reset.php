@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/public-data-cache.php';
+
 function sr_install_reset_sql_source_paths(string $root): array
 {
     $paths = [];
@@ -476,12 +478,14 @@ function sr_install_reset_execute(PDO $pdo, array $targetTables, array $config, 
             ];
         }
 
+        $publicDataCacheDeleted = sr_public_data_cache_clear_all($root);
         $stateFiles = sr_install_reset_remove_install_state_files($root);
         return [
             'state' => 'completed',
             'message' => 'install reset execution completed.',
             'storage' => $storageResult,
             'database' => $dropResult,
+            'public_data_cache_files_deleted' => $publicDataCacheDeleted,
             'install_state_files' => $stateFiles,
         ];
     } finally {

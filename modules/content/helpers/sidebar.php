@@ -4,11 +4,35 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/core/helpers/public-data-cache.php';
 
+function sr_content_sidebar_group_menu_rows_from_cache(array $rows): ?array
+{
+    $normalized = [];
+    foreach ($rows as $row) {
+        if (!is_array($row)
+            || !is_string($row['group_key'] ?? null)
+            || !sr_content_group_key_is_valid((string) $row['group_key'])
+            || !is_string($row['title'] ?? null)
+        ) {
+            return null;
+        }
+        $normalized[] = [
+            'group_key' => (string) $row['group_key'],
+            'title' => (string) $row['title'],
+        ];
+    }
+
+    return $normalized;
+}
+
 function sr_content_sidebar_group_menu_rows(PDO $pdo): array
 {
-    $cached = sr_public_data_cache_read('public-side-menu', 'content.groups', 'content_sidebar_groups_v1');
+    $cachedPayload = sr_public_data_cache_read('public-side-menu', 'content.groups', 'content_sidebar_groups_v1');
+    $cached = is_array($cachedPayload) ? sr_content_sidebar_group_menu_rows_from_cache($cachedPayload) : null;
     if (is_array($cached)) {
         return $cached;
+    }
+    if (is_array($cachedPayload)) {
+        sr_content_sidebar_clear_group_menu_cache();
     }
 
     $groups = [];

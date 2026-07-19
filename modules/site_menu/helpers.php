@@ -15,6 +15,43 @@ function sr_site_menu_tree_cache_schema(): string
     return 'site_menu_tree_v2';
 }
 
+function sr_site_menu_tree_from_cache(array $tree, string $menuKey): ?array
+{
+    if ((string) ($tree['menu_key'] ?? '') !== $menuKey
+        || !is_string($tree['label'] ?? null)
+        || !is_bool($tree['enabled'] ?? null)
+        || !is_array($tree['items'] ?? null)
+    ) {
+        return null;
+    }
+
+    $items = [];
+    $itemsByParent = [];
+    foreach ($tree['items'] as $item) {
+        if (!is_array($item)
+            || (int) ($item['id'] ?? 0) < 1
+            || !is_string($item['label'] ?? null)
+            || !is_string($item['url'] ?? null)
+            || !is_string($item['icon_name'] ?? null)
+            || !is_string($item['target'] ?? null)
+        ) {
+            return null;
+        }
+        $parentId = max(0, (int) ($item['parent_id'] ?? 0));
+        $item['parent_id'] = $parentId;
+        $items[] = $item;
+        $itemsByParent[$parentId][] = $item;
+    }
+
+    return [
+        'menu_key' => $menuKey,
+        'label' => (string) $tree['label'],
+        'enabled' => (bool) $tree['enabled'],
+        'items' => $items,
+        'items_by_parent' => $itemsByParent,
+    ];
+}
+
 function sr_site_menu_clean_key(string $value): string
 {
     $value = strtolower(trim($value));
@@ -266,7 +303,7 @@ function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsB
 
     }
 
-    sr_site_menu_clear_cache('header');
+    sr_site_menu_clear_cache();
 
     return $created;
 }
@@ -539,12 +576,16 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
         return $cache[$pdoCacheKey][$menuKey];
     }
 
-    $persistentTree = sr_public_data_cache_read(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
+    $persistentPayload = sr_public_data_cache_read(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
+    $persistentTree = is_array($persistentPayload) ? sr_site_menu_tree_from_cache($persistentPayload, $menuKey) : null;
     if (is_array($persistentTree)) {
         $cache[$pdoCacheKey][$menuKey] = $persistentTree;
         $GLOBALS['sr_site_menu_runtime_tree_cache'] = $cache;
 
         return $persistentTree;
+    }
+    if (is_array($persistentPayload)) {
+        sr_public_data_cache_forget(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
     }
 
     $stmt = $pdo->prepare(

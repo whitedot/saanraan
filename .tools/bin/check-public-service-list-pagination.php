@@ -38,8 +38,8 @@ foreach ([
     }
 }
 foreach ([
-    'modules/quiz/theme/basic/home.php' => "sr_public_pagination_html(\$quizListPagination, '/quiz/list'",
-    'modules/survey/theme/basic/home.php' => "sr_public_pagination_html(\$surveyListPagination, '/survey/list'",
+    'modules/quiz/theme/basic/home.php' => 'sr_public_pagination_html($quizListPagination, $quizListUrl',
+    'modules/survey/theme/basic/home.php' => 'sr_public_pagination_html($surveyListPagination, $surveyListUrl',
     'modules/coupon/views/coupons.php' => "sr_public_pagination_html(\$couponCampaignPagination, '/coupons'",
 ] as $file => $marker) {
     $assert(str_contains($source($file), $marker), $file . ' must render public full-list navigation.');
@@ -63,6 +63,7 @@ $quizPdo->exec(
         title TEXT NOT NULL,
         description TEXT NOT NULL,
         cover_image_url TEXT NOT NULL,
+        view_count INTEGER NOT NULL DEFAULT 0,
         status TEXT NOT NULL,
         starts_at TEXT NULL,
         ends_at TEXT NULL,
@@ -96,6 +97,7 @@ $surveyPdo->exec(
         title TEXT NOT NULL,
         description TEXT NOT NULL,
         cover_image_url TEXT NOT NULL,
+        view_count INTEGER NOT NULL DEFAULT 0,
         status TEXT NOT NULL,
         public_listed INTEGER NOT NULL,
         starts_at TEXT NULL,
