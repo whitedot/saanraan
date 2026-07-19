@@ -57,6 +57,9 @@ $contains('modules/content/views/admin-settings.php', [
 $contains('modules/content/helpers/sidebar.php', [
     'function sr_content_sidebar_context(',
     'function sr_content_sidebar_group_menu_rows(',
+    "'site-menu-provider.php'",
+    "'tree_function'",
+    "'render_function'",
     "sr_public_data_cache_read('public-side-menu', 'content.groups'",
     "p.status = 'published'",
     'p.asset_access_enabled <> 1 OR p.asset_access_amount <= 0',
@@ -129,6 +132,9 @@ $contains('modules/quiz/views/admin-settings.php', [
 $contains('modules/quiz/helpers/sidebar.php', [
     'function sr_quiz_sidebar_context(',
     'function sr_quiz_sidebar_group_menu_rows(',
+    "'site-menu-provider.php'",
+    "'tree_function'",
+    "'render_function'",
     "sr_public_data_cache_read('public-side-menu', 'quiz.groups'",
     "q.status = 'active'",
     'q.comments_enabled = 1',
@@ -189,6 +195,9 @@ $contains('modules/survey/views/admin-settings.php', [
 $contains('modules/survey/helpers/sidebar.php', [
     'function sr_survey_sidebar_context(',
     'function sr_survey_sidebar_group_menu_rows(',
+    "'site-menu-provider.php'",
+    "'tree_function'",
+    "'render_function'",
     "sr_public_data_cache_read('public-side-menu', 'survey.groups'",
     "s.status = 'active'",
     's.public_listed = 1',
@@ -229,6 +238,31 @@ $contains('modules/survey/actions/list.php', [
 ]);
 $surveyExcerpt = sr_survey_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
 $assert($surveyExcerpt === '태그 제거', 'survey sidebar excerpt must remove HTML tags.');
+
+$contains('modules/community/helpers/boards.php', [
+    "'site-menu-provider.php'",
+    "'options_function'",
+    "'tree_function'",
+    "'render_function'",
+]);
+foreach ([
+    'modules/content/actions/admin-settings.php',
+    'modules/content/helpers/sidebar.php',
+    'modules/community/actions/admin-boards.php',
+    'modules/community/actions/admin-settings.php',
+    'modules/community/helpers/boards.php',
+    'modules/quiz/actions/admin-settings.php',
+    'modules/quiz/helpers.php',
+    'modules/quiz/helpers/sidebar.php',
+    'modules/survey/actions/admin-settings.php',
+    'modules/survey/helpers.php',
+    'modules/survey/helpers/sidebar.php',
+] as $siteMenuConsumerFile) {
+    $assert(
+        !str_contains($source($siteMenuConsumerFile), 'modules/site_menu/helpers.php'),
+        $siteMenuConsumerFile . ' must use the site menu provider contract instead of including its helper directly.'
+    );
+}
 
 $sidebarPdo = new PDO('sqlite::memory:');
 $sidebarPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

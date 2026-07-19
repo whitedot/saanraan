@@ -31,11 +31,15 @@ $surveyIdentityViewAdultAvailable = $surveyIdentityVerificationModuleAvailable
     && sr_identity_verification_available($pdo, 'survey.view.adult');
 $surveyLayoutOptions = sr_survey_layout_options($pdo);
 $publicThemeOptions = sr_survey_theme_options();
-$siteMenuOptions = [];
-if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
-    require_once SR_ROOT . '/modules/site_menu/helpers.php';
-    $siteMenuOptions = sr_site_menu_options($pdo);
-}
+$siteMenuOptions = sr_module_contract_invoke(
+    $pdo,
+    'site_menu',
+    'site-menu-provider.php',
+    'options_function',
+    [],
+    []
+);
+$siteMenuOptions = is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $surveySidebarMenuTypeOptions = sr_survey_sidebar_menu_type_options($siteMenuOptions !== []);
 $settings = sr_survey_settings($pdo);
 $adminFormDraftKey = 'survey.settings';

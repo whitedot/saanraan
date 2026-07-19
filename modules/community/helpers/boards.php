@@ -375,8 +375,22 @@ function sr_community_board_sidebar_site_menu_key(string $value): string
 
 function sr_community_board_sidebar_site_menu_available(PDO $pdo): bool
 {
-    return sr_module_enabled($pdo, 'site_menu')
-        && is_file(SR_ROOT . '/modules/site_menu/helpers.php');
+    return sr_module_contract_function($pdo, 'site_menu', 'site-menu-provider.php', 'tree_function') !== ''
+        && sr_module_contract_function($pdo, 'site_menu', 'site-menu-provider.php', 'render_function') !== '';
+}
+
+function sr_community_site_menu_options(PDO $pdo): array
+{
+    $options = sr_module_contract_invoke(
+        $pdo,
+        'site_menu',
+        'site-menu-provider.php',
+        'options_function',
+        [],
+        []
+    );
+
+    return is_array($options) ? $options : [];
 }
 
 function sr_community_normalize_board_setting_source(string $source): string
@@ -1799,14 +1813,26 @@ function sr_community_board_sidebar_menu_context(PDO $pdo, array $board, ?array 
         if ($siteMenuKey === '' || !sr_community_board_sidebar_site_menu_available($pdo)) {
             return ['type' => $menuType, 'title' => '', 'html' => ''];
         }
-        require_once SR_ROOT . '/modules/site_menu/helpers.php';
-        $siteMenuTree = function_exists('sr_site_menu_tree') ? sr_site_menu_tree($pdo, $siteMenuKey) : [];
+        $siteMenuTree = sr_module_contract_invoke(
+            $pdo,
+            'site_menu',
+            'site-menu-provider.php',
+            'tree_function',
+            [$siteMenuKey],
+            []
+        );
+        $siteMenuTree = is_array($siteMenuTree) ? $siteMenuTree : [];
         $menuTitle = trim((string) ($siteMenuTree['label'] ?? ''));
-        $html = function_exists('sr_site_menu_render')
-            ? sr_site_menu_render($pdo, $siteMenuKey, 'community_board_sidebar')
-            : '';
+        $html = sr_module_contract_invoke(
+            $pdo,
+            'site_menu',
+            'site-menu-provider.php',
+            'render_function',
+            [$siteMenuKey, 'community_board_sidebar'],
+            ''
+        );
 
-        return ['type' => $menuType, 'title' => $menuTitle, 'html' => $html];
+        return ['type' => $menuType, 'title' => $menuTitle, 'html' => is_string($html) ? $html : ''];
     }
 
     $currentBoardId = (int) ($board['id'] ?? 0);

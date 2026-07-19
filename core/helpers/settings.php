@@ -603,6 +603,32 @@ function sr_module_contract_function(PDO $pdo, string $moduleKey, string $contra
     return $function !== '' && function_exists($function) ? $function : '';
 }
 
+function sr_module_contract_invoke(
+    PDO $pdo,
+    string $moduleKey,
+    string $contractFile,
+    string $functionKey,
+    array $arguments = [],
+    mixed $fallback = null
+): mixed {
+    $function = sr_module_contract_function($pdo, $moduleKey, $contractFile, $functionKey);
+    if ($function === '') {
+        return $fallback;
+    }
+
+    try {
+        return $function($pdo, ...$arguments);
+    } catch (Throwable $exception) {
+        if (function_exists('sr_log_exception')) {
+            $contractLabel = preg_replace('/[^a-z0-9_]+/', '_', strtolower($contractFile . '_' . $functionKey));
+            $contractLabel = is_string($contractLabel) ? trim($contractLabel, '_') : 'contract';
+            sr_log_exception($exception, 'module_contract_invoke_failed_' . $moduleKey . '_' . $contractLabel);
+        }
+
+        return $fallback;
+    }
+}
+
 function sr_site_settings(PDO $pdo): array
 {
     static $cache = [];
@@ -1018,6 +1044,7 @@ function sr_module_known_contract_files(): array
         'delivery-templates.php',
         'sitemap.php',
         'menu-links.php',
+        'site-menu-provider.php',
         'member-group-rules.php',
         'dashboard.php',
         'layout-options.php',

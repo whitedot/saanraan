@@ -837,7 +837,7 @@ sr_check_community_board_settings_contains('modules/community/theme/basic/home-f
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
     "'none' => '선택 안 함'",
     'function sr_community_board_sidebar_site_menu_available',
-    "sr_module_enabled(\$pdo, 'site_menu')",
+    "sr_module_contract_function(\$pdo, 'site_menu', 'site-menu-provider.php'",
     "'title' => \$menuTitle",
     ": '커뮤니티'",
     ": '그룹 없음'",

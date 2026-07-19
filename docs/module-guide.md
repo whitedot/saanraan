@@ -95,6 +95,7 @@ modules/{module_key}/
 - delivery-templates.php (optional)
 - sitemap.php (optional)
 - menu-links.php (optional)
+- site-menu-provider.php (optional)
 - member-group-rules.php (optional)
 - dashboard.php (optional)
 - layout-options.php (optional)
@@ -381,8 +382,8 @@ return [
         'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [
-        'min_version' => '0.2.0',
-        'tested_with' => ['0.2.0'],
+        'min_version' => '0.2.1',
+        'tested_with' => ['0.2.1'],
         'module_contract' => '2.0',
     ],
     'requires' => [
@@ -1058,6 +1059,12 @@ return [
 - `url`은 내부 상대 경로(`/board`) 또는 허용된 `http/https` URL이다.
 - 신규 설치에서 `site_menu`가 선택되면 설치 후 seed helper가 `service_domain.main_page`를 선언한 설치 모듈의 메인 페이지를 기본 `header` 메뉴에 추가한다. 메뉴 항목 표시명은 모듈명이나 초기화면 후보 표시명과 분리된 `service_domain.main_page.menu_label`을 우선하고, 선언이 없을 때만 `label`로 대체한다. 번들 기본값은 `Home`, `Contents`, `Community`, `Quiz`, `Survey`다. `menu-links.php` 후보 전체를 자동 등록하지 않으며, 로그인/회원가입 링크도 기본 header에 자동 삽입하지 않는다.
 
+`site-menu-provider.php`:
+
+- 배열을 반환하고 `helpers`, `options_function`, `tree_function`, `render_function`을 가진다.
+- `options_function`은 `function (PDO $pdo): array`, `tree_function`은 `function (PDO $pdo, string $menuKey): array`, `render_function`은 `function (PDO $pdo, string $menuKey, string $slot): string` 형식이다.
+- 소비 모듈은 provider helper를 직접 include하지 않고 안전 계약 로더를 통해 호출한다. provider가 비활성·비호환 상태이거나 호출 중 예외가 발생하면 선택지는 빈 배열, tree는 빈 배열, 렌더 결과는 빈 문자열로 처리한다.
+
 `output-slots.php`:
 
 - callable을 반환한다.
@@ -1438,6 +1445,7 @@ return [
 | `paths.php` | `admin` 모듈 | 관리자 내비게이션 구성 | `admin-menu.php` path가 실제 GET route인지 확인 |
 | `admin-menu.php` | `admin` 모듈 | 관리자 레이아웃/내비게이션 구성 | 활성 모듈 관리자 메뉴 노출 |
 | `menu-links.php` | `site_menu` 모듈 | 사이트 메뉴 관리자 화면 | 운영자가 메뉴 항목에 연결할 수 있는 링크 자산 |
+| `site-menu-provider.php` | `content`, `community`, `quiz`, `survey` 모듈 | 공개 사이드 메뉴 렌더링과 사이트 메뉴 선택값 검증 | 활성·호환 상태인 `site_menu` 모듈의 메뉴 선택지, published tree, 렌더러 호출 |
 | `extension-points.php` | `banner` 모듈 | 배너 관리자 대상 선택 | content slot 대상 목록 |
 | `extension-points.php` | `popup_layer` 모듈 | 팝업 관리자 대상 선택 | public overlay/content 대상 목록 |
 | `output-slots.php` | core output helper | 화면 소유 모듈이 `sr_render_output_slot()` 호출하거나 layout context의 `output_slots` asset을 선조회할 때 | 저장된 출력 규칙 렌더링과 필요한 public asset 선언 |
@@ -1499,9 +1507,9 @@ return [
 | `policy_documents` | `paths.php`, `admin-menu.php`, `delivery-templates.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | 없음 |
 | `asset_ledger` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | `member-assets.php`, `asset-recovery-targets.php` |
 | `payment_ledger` | `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | `payment-ledger-targets.php` |
-| `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php` | `menu-links.php` |
+| `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `site-menu-provider.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `dashboard.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `layout-options.php`, `url-embed-targets.php`, `reaction-targets.php`, `payment-ledger-targets.php`, `operational-status.php`, `retention-targets.php` | `member-assets.php`, `notification-events.php`, `admin-notification-events.php` |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `dashboard.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `layout-options.php`, `url-embed-targets.php`, `reaction-targets.php`, `payment-ledger-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php`, `site-setting-references.php` | `logo-positions.php` |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `retention-targets.php` | `extension-points.php`, `coupon-targets.php`, `banner-references.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php`, `popup-layer-references.php`, `coupon-targets.php` |
@@ -1511,10 +1519,10 @@ return [
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `asset_exchange` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-action-rows.php`, `dashboard.php` | `asset-exchange.php`, `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-withdrawal-assets.php`, `member-summary-rows.php`, `coupon-references.php`, `dashboard.php`, `url-embed-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php` |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php` |
 | `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `member-registration.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php` | `member-assets.php`, `notification-events.php` |
-| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `member-assets.php`, `notification-events.php` |
-| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `member-assets.php`, `notification-events.php` |
+| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php` |
+| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php` |
 | `antispam` | `paths.php`, `admin-menu.php` | `antispam-targets.php`, `antispam-providers.php` |
 | `antispam_captcha_providers` | `antispam-providers.php` | 없음 |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | 없음 |
@@ -1772,6 +1780,7 @@ return [
 규칙:
 
 - 링크 자산 제공은 메뉴 항목 자동 생성을 의미하지 않는다.
+- 콘텐츠·커뮤니티·퀴즈·설문이 사이트 메뉴 선택지나 공개 사이드 메뉴를 사용할 때는 `site_menu` helper를 직접 include하지 않고 `site-menu-provider.php`의 `options_function`, `tree_function`, `render_function`을 안전 계약 로더로 호출한다. 계약 버전이나 최소 코어 버전이 맞지 않으면 해당 선택 기능은 사용할 수 없는 상태로 처리한다.
 - 최종 메뉴 구성은 `site_menu` 관리자 화면에서 운영자가 초안으로 편집하고, `공개 반영`을 실행했을 때 공개 메뉴 테이블에 적용된다. 메뉴/항목 추가, 수정, 삭제, 순서 저장은 공개 반영 전까지 공개 사이트에 노출되지 않는다.
 - 콘텐츠·커뮤니티·퀴즈·설문 환경설정에서는 번들 공개 레이아웃의 주 메뉴를 선택하고, 추가 메뉴는 이름, 자동 생성 key, 메뉴 key를 가진 항목 추가 방식으로 필요한 만큼 연결할 수 있다. 콘텐츠는 `사용 안 함` 다음에 내장 `콘텐츠 그룹` 메뉴를, 커뮤니티는 내장 `게시판 그룹` 메뉴를 표시하고, 그 뒤에 사이트 메뉴를 표시한다. 퀴즈와 설문은 사이트 메뉴를 표시한다.
 - 주 메뉴를 사용 안 함으로 설정하면 사이트 메뉴 output slot을 호출하지 않는다. 내장 `콘텐츠 그룹` 또는 `게시판 그룹` 메뉴를 선택하면 해당 그룹 링크를 선택한 메뉴 영역에 명시적으로 렌더링한다.

@@ -161,15 +161,30 @@ function sr_quiz_sidebar_menu_context(PDO $pdo, array $settings, string $current
     }
     if ($menuType === 'site_menu') {
         $menuKey = sr_quiz_clean_layout_menu_key((string) ($settings['sidebar_site_menu_key'] ?? ''));
-        if ($menuKey === '' || !sr_module_enabled($pdo, 'site_menu') || !is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
+        if ($menuKey === '') {
             return ['title' => '', 'html' => ''];
         }
-        require_once SR_ROOT . '/modules/site_menu/helpers.php';
-        $tree = function_exists('sr_site_menu_tree') ? sr_site_menu_tree($pdo, $menuKey) : [];
+        $tree = sr_module_contract_invoke(
+            $pdo,
+            'site_menu',
+            'site-menu-provider.php',
+            'tree_function',
+            [$menuKey],
+            []
+        );
+        $tree = is_array($tree) ? $tree : [];
+        $html = sr_module_contract_invoke(
+            $pdo,
+            'site_menu',
+            'site-menu-provider.php',
+            'render_function',
+            [$menuKey, 'quiz_sidebar'],
+            ''
+        );
 
         return [
             'title' => trim((string) ($tree['label'] ?? '메뉴')),
-            'html' => function_exists('sr_site_menu_render') ? sr_site_menu_render($pdo, $menuKey, 'quiz_sidebar') : '',
+            'html' => is_string($html) ? $html : '',
         ];
     }
 

@@ -32,11 +32,15 @@ $quizIdentityViewAvailable = $quizIdentityVerificationModuleAvailable
 $quizIdentityViewAdultAvailable = $quizIdentityVerificationModuleAvailable
     && function_exists('sr_identity_verification_available')
     && sr_identity_verification_available($pdo, 'quiz.view.adult');
-$siteMenuOptions = [];
-if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
-    require_once SR_ROOT . '/modules/site_menu/helpers.php';
-    $siteMenuOptions = sr_site_menu_options($pdo);
-}
+$siteMenuOptions = sr_module_contract_invoke(
+    $pdo,
+    'site_menu',
+    'site-menu-provider.php',
+    'options_function',
+    [],
+    []
+);
+$siteMenuOptions = is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $quizSidebarMenuTypeOptions = sr_quiz_sidebar_menu_type_options($siteMenuOptions !== []);
 $settings = sr_quiz_settings($pdo);
 $adminFormDraftKey = 'quiz.settings';

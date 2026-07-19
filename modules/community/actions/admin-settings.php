@@ -47,11 +47,7 @@ foreach (sr_community_privacy_consent_target_keys() as $privacyConsentTargetKey)
     $privacyConsentDocumentOptions += sr_community_privacy_consent_policy_document_options($pdo, (string) ($settings[sr_community_privacy_consent_document_setting_key($privacyConsentTargetKey)] ?? ''));
 }
 $communityBoardSidebarSiteMenuAvailable = sr_community_board_sidebar_site_menu_available($pdo);
-$siteMenuOptions = [];
-if ($communityBoardSidebarSiteMenuAvailable) {
-    require_once SR_ROOT . '/modules/site_menu/helpers.php';
-    $siteMenuOptions = sr_site_menu_options($pdo);
-}
+$siteMenuOptions = $communityBoardSidebarSiteMenuAvailable ? sr_community_site_menu_options($pdo) : [];
 $assetModuleOptions = sr_community_asset_module_options($pdo);
 $assetPolicySets = sr_community_asset_policy_sets($pdo);
 $levels = sr_community_levels($pdo, $settings);

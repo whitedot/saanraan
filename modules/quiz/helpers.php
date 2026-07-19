@@ -838,11 +838,15 @@ function sr_quiz_settings_validation_errors(PDO $pdo, array $settings, array $as
     if (!isset(sr_quiz_skin_options()[(string) ($settings['skin_key'] ?? '')])) {
         $errors[] = '퀴즈 스킨 값이 올바르지 않습니다.';
     }
-    $siteMenuOptions = [];
-    if (sr_module_enabled($pdo, 'site_menu') && is_file(SR_ROOT . '/modules/site_menu/helpers.php')) {
-        require_once SR_ROOT . '/modules/site_menu/helpers.php';
-        $siteMenuOptions = sr_site_menu_options($pdo);
-    }
+    $siteMenuOptions = sr_module_contract_invoke(
+        $pdo,
+        'site_menu',
+        'site-menu-provider.php',
+        'options_function',
+        [],
+        []
+    );
+    $siteMenuOptions = is_array($siteMenuOptions) ? $siteMenuOptions : [];
     foreach (array_merge([(string) ($settings['layout_primary_menu_key'] ?? '')], sr_quiz_layout_extra_menu_keys_from_value($settings['layout_extra_menu_keys_json'] ?? [])) as $menuKey) {
         if ($menuKey !== '' && !isset($siteMenuOptions[$menuKey])) {
             $errors[] = '퀴즈 레이아웃 사이트 메뉴 값이 올바르지 않습니다.';

@@ -24,6 +24,22 @@ function sr_site_menu_check_assert(bool $condition, string $message): void
     }
 }
 
+$siteMenuProvider = require SR_ROOT . '/modules/site_menu/site-menu-provider.php';
+sr_site_menu_check_assert(is_array($siteMenuProvider), 'Site menu provider contract must return an array.');
+foreach (['helpers', 'options_function', 'tree_function', 'render_function'] as $providerKey) {
+    sr_site_menu_check_assert(
+        is_string($siteMenuProvider[$providerKey] ?? null) && trim((string) $siteMenuProvider[$providerKey]) !== '',
+        'Site menu provider contract must declare ' . $providerKey . '.'
+    );
+}
+$siteMenuMetadata = sr_module_metadata('site_menu');
+$siteMenuProvides = is_array($siteMenuMetadata['contracts']['provides'] ?? null) ? $siteMenuMetadata['contracts']['provides'] : [];
+sr_site_menu_check_assert(in_array('site-menu-provider.php', $siteMenuProvides, true), 'Site menu module metadata must provide the site menu provider contract.');
+$coreSettingsSource = (string) file_get_contents(SR_ROOT . '/core/helpers/settings.php');
+sr_site_menu_check_assert(str_contains($coreSettingsSource, 'function sr_module_contract_invoke('), 'Core must expose a guarded module contract invocation helper.');
+$siteMenuHelpersSource = (string) file_get_contents(SR_ROOT . '/modules/site_menu/helpers.php');
+sr_site_menu_check_assert(str_contains($siteMenuHelpersSource, 'site_menu_link_suggestions_failed_'), 'Site menu link providers must isolate callable failures.');
+
 class SrSiteMenuCheckPdo extends PDO
 {
     public int $siteMenuTreePrepareCount = 0;

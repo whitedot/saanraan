@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.07.009',
+    'version' => '2026.07.010',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -14,8 +14,8 @@ return [
         'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [
-        'min_version' => '0.2.0',
-        'tested_with' => ['0.2.0'],
+        'min_version' => '0.2.1',
+        'tested_with' => ['0.2.1'],
         'module_contract' => '2.0',
     ],
     'requires' => [
@@ -47,6 +47,7 @@ return [
             'asset-recovery-targets.php',
         ],
         'consumes' => [
+            'site-menu-provider.php',
             'member-assets.php',
             'notification-events.php',
             'admin-notification-events.php',

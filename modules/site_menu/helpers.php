@@ -315,7 +315,14 @@ function sr_site_menu_link_suggestions(PDO $pdo): array
     foreach (sr_enabled_module_contract_files($pdo, 'menu-links.php', ['site_menu']) as $moduleKey => $file) {
         $links = sr_load_module_contract_file($moduleKey, $file);
         if (is_callable($links)) {
-            $links = $links($pdo);
+            try {
+                $links = $links($pdo);
+            } catch (Throwable $exception) {
+                if (function_exists('sr_log_exception')) {
+                    sr_log_exception($exception, 'site_menu_link_suggestions_failed_' . $moduleKey);
+                }
+                continue;
+            }
         }
 
         if (!is_array($links)) {

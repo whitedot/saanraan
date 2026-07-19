@@ -2,7 +2,7 @@
 
 return [
     'name' => '사이트 메뉴',
-    'version' => '2026.06.003',
+    'version' => '2026.07.001',
     'type' => 'module',
     'description' => '사이트 공통 내비게이션 메뉴 관리 모듈입니다.',
     'admin' => [
@@ -14,8 +14,8 @@ return [
         'stylesheets' => ['assets/admin.css'],
     ],
     'saanraan' => [
-        'min_version' => '0.2.0',
-        'tested_with' => ['0.2.0'],
+        'min_version' => '0.2.1',
+        'tested_with' => ['0.2.1'],
         'module_contract' => '2.0',
     ],
     'requires' => [
@@ -26,6 +26,7 @@ return [
             'paths.php',
             'admin-menu.php',
             'output-slots.php',
+            'site-menu-provider.php',
         ],
         'consumes' => [
             'menu-links.php',

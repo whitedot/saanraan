@@ -15,9 +15,6 @@ if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/
     require_once SR_ROOT . '/modules/reaction/helpers.php';
 }
 $communityBoardSidebarSiteMenuAvailable = sr_community_board_sidebar_site_menu_available($pdo);
-if ($communityBoardSidebarSiteMenuAvailable) {
-    require_once SR_ROOT . '/modules/site_menu/helpers.php';
-}
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/community/boards', 'view');
@@ -44,7 +41,7 @@ $editorOptions = [];
 $assetModuleOptions = [];
 $assetPolicySets = [];
 $reactionPresetOptions = ['' => '리액션 기본값'];
-$siteMenuOptions = function_exists('sr_site_menu_options') ? sr_site_menu_options($pdo) : [];
+$siteMenuOptions = $communityBoardSidebarSiteMenuAvailable ? sr_community_site_menu_options($pdo) : [];
 $maxLevel = sr_community_max_level_value($settings);
 $publicBanners = [];
 $publicBannerIds = [];

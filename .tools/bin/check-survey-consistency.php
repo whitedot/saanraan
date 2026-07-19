@@ -161,7 +161,7 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.07.006'",
+    "'version' => '2026.07.007'",
     'Survey module version must include the item comment editor schema update'
 );
 foreach (['CREATE TABLE IF NOT EXISTS sr_survey_groups', 'CREATE TABLE IF NOT EXISTS sr_survey_setting_sources', 'survey_group_id BIGINT UNSIGNED NULL'] as $needle) {
