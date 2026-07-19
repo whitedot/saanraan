@@ -93,8 +93,8 @@ $contains('modules/content/theme/basic/assets/module.css', [
     'var(--sr-muted',
     '@media (max-width: 1024px)',
 ]);
-$contains('modules/content/theme/basic/content.php', ['content-page-view', 'content-reading-panel', 'content-comments']);
-$contains('modules/content/views/content.php', ['content-page-view', 'content-reading-panel', 'content-comments']);
+$contains('modules/content/theme/basic/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
+$contains('modules/content/views/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
 $contains('modules/content/helpers.php', ["'content.form'", 'sidebar_enabled', 'sidebar_menu_type']);
 
 $excerpt = sr_content_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);

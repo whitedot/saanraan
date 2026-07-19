@@ -162,6 +162,34 @@
     line-height: var(--type-meta-line-height);
 }
 
+.content-view-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.content-view-action-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.content-view-action-group-trailing {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.content-view-actions .btn {
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-line-height);
+    padding-inline: 0.45rem;
+}
+
 .content-meta span + span::before,
 .content-group-item-meta span + span::before {
     color: var(--content-muted, var(--sr-muted, #47505c));

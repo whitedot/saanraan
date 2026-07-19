@@ -99,8 +99,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <?php if ($contentDateText !== '') { ?>
                     <span><?php echo sr_content_time_html($contentDateText); ?></span>
                 <?php } ?>
-                <?php include SR_ROOT . '/modules/content/views/content-edit-link.php'; ?>
             </div>
+            <?php if ((string) ($contentEditUrl ?? '') !== '') { ?>
+                <div class="content-view-actions">
+                    <div class="content-view-action-group content-view-action-group-trailing">
+                        <?php include SR_ROOT . '/modules/content/views/content-edit-link.php'; ?>
+                    </div>
+                </div>
+            <?php } ?>
         </header>
         <?php if ((string) ($page['cover_image_url'] ?? '') !== '') { ?>
             <figure class="content-cover-figure">
