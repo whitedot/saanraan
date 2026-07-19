@@ -44,6 +44,7 @@ $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_sty
 $contentStylesheets = array_merge($contentStylesheets, sr_content_comment_body_stylesheets($pdo, $contentLayoutSettings));
 $contentStylesheets = array_merge((array) ($contentPublicIdentityAssets['stylesheets'] ?? []), $contentStylesheets);
 $contentReactionCommentTargets = [];
+$contentReactionCommentSummaries = [];
 if (
     sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets')
     && empty($contentAdminPreview)
@@ -64,6 +65,15 @@ if (
         $contentReactionCommentIds,
         is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
     );
+    if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_record_summaries')) {
+        $contentReactionCommentSummaries = sr_reaction_record_summaries(
+            $pdo,
+            'content',
+            'comment',
+            $contentReactionCommentIds,
+            is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
+        );
+    }
 }
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.view',
@@ -325,14 +335,15 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <?php } ?>
         <?php } ?>
         </div>
+    </article>
         <?php if (!empty($pageAccess['allowed'])) { ?>
-            <section id="content-comments" class="content-comments">
+            <section id="content-comments" class="content-comments-panel">
                 <div class="content-comments-panel-header">
                     <h2>댓글 <span class="content-comments-count"><?php echo sr_e(number_format((int) ($contentCommentPage['total'] ?? 0))); ?></span></h2>
                 </div>
                 <?php echo sr_public_feedback_toasts('content', (string) ($contentCommentNotice ?? ''), is_array($contentCommentErrors ?? null) ? $contentCommentErrors : []); ?>
                 <?php if (is_array($contentComments ?? null) && $contentComments !== []) { ?>
-                    <ul>
+                    <ul class="content-comment-list">
                         <?php foreach ($contentComments as $contentComment) { ?>
                             <?php
                             $contentCommentDepth = min(3, max(1, (int) ($contentComment['depth'] ?? 1)));
@@ -366,7 +377,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         <?php echo $contentCommentAuthorIdentity['name_html']; ?>
                                     </div>
                                     <?php if ($contentCommentCreatedAt !== '') { ?>
-                                        <span class="content-comment-date">
+                                        <span class="content-comment-meta-item content-comment-date">
                                             <span class="content-comment-date-content">
                                                 <?php echo sr_content_time_html($contentCommentCreatedAt); ?>
                                                 <a class="content-comment-permalink" href="<?php echo sr_e(sr_url($contentCommentUrl)); ?>" aria-label="댓글 고유주소로 이동" title="댓글 고유주소"><?php echo sr_material_icon_html('link'); ?></a>
@@ -374,10 +385,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         </span>
                                     <?php } ?>
                                     <?php if ((int) ($contentComment['is_secret'] ?? 0) === 1) { ?>
-                                        <span class="content-comment-meta-status">비밀</span>
+                                        <span class="content-comment-meta-item content-comment-meta-status">비밀</span>
                                     <?php } ?>
                                     <?php if ($contentCommentDepth > 1) { ?>
-                                        <span>답글 <?php echo sr_e((string) $contentCommentDepth); ?>단계</span>
+                                        <span class="content-comment-meta-item">답글 <?php echo sr_e((string) $contentCommentDepth); ?>단계</span>
                                     <?php } ?>
                                 </div>
                                 <?php if ($contentCommentCanViewBody) { ?>
@@ -389,6 +400,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         $contentCommentReactionOptions = ['label' => '댓글 리액션'];
                                         if (isset($contentReactionCommentTargets[$contentCommentReactionId]) && is_array($contentReactionCommentTargets[$contentCommentReactionId])) {
                                             $contentCommentReactionOptions['resolved_target'] = $contentReactionCommentTargets[$contentCommentReactionId];
+                                        }
+                                        if (isset($contentReactionCommentSummaries[$contentCommentReactionId]) && is_array($contentReactionCommentSummaries[$contentCommentReactionId])) {
+                                            $contentCommentReactionOptions['counts'] = (array) ($contentReactionCommentSummaries[$contentCommentReactionId]['counts'] ?? []);
+                                            $contentCommentReactionOptions['my_record'] = $contentReactionCommentSummaries[$contentCommentReactionId]['my_record'] ?? null;
                                         }
                                         ?>
                                         <?php echo sr_reaction_render_widget($pdo, 'content', 'comment', $contentCommentReactionId, is_array($account ?? null) ? $account : null, $contentCommentReactionOptions); ?>
@@ -498,9 +513,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     </ul>
                     <?php echo sr_public_pagination_html($contentCommentPage, sr_content_path((string) $page['slug']), '콘텐츠 댓글 페이지', 'comment_page', 'content-comments', 'content-comments-pagination', ['compact_edges' => true, 'link_class' => 'btn btn-ghost-default', 'current_class' => 'btn btn-solid-primary']); ?>
                 <?php } else { ?>
-                    <p class="content-comments-empty">등록된 댓글이 없습니다.</p>
+                    <p class="content-comments-empty">댓글이 없습니다.</p>
                 <?php } ?>
-                <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
+                <?php if ($contentAdminPreview) { ?>
+                    <p class="content-comment-unavailable">관리자 미리보기에서는 댓글을 작성할 수 없습니다.</p>
+                <?php } elseif (is_array($account ?? null)) { ?>
                     <form id="content-comment-form" class="content-comment-form" method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="content_id" value="<?php echo sr_e((string) $page['id']); ?>">
@@ -521,12 +538,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <?php } ?>
                         <button type="submit" class="btn btn-solid-primary">댓글 등록</button>
                     </form>
-                <?php } elseif (!$contentAdminPreview) { ?>
-                    <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode(sr_content_path((string) $page['slug']) . '#content-comments'))); ?>">로그인 후 댓글 작성</a></p>
+                <?php } else { ?>
+                    <p class="content-comment-unavailable">로그인하면 댓글을 작성할 수 있습니다.</p>
                 <?php } ?>
             </section>
         <?php } ?>
-    </article>
 
     <?php echo sr_render_output_slot($pdo, [
         'module_key' => 'content',

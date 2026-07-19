@@ -212,7 +212,7 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.07.009',
+        'version' => '2026.07.010',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
@@ -224,13 +224,13 @@ $optionalModules = [
     ],
     'quiz' => [
         'name' => '퀴즈·테스트',
-        'version' => '2026.07.008',
+        'version' => '2026.07.009',
         'label' => '퀴즈·테스트',
         'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
     ],
     'survey' => [
         'name' => '설문·여론조사',
-        'version' => '2026.07.008',
+        'version' => '2026.07.009',
         'label' => '설문·여론조사',
         'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
     ],

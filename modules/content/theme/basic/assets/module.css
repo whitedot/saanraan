@@ -422,7 +422,7 @@
 
 .content-series-nav,
 .content-downloads,
-.content-comments {
+.content-comments-panel {
     color: var(--sr-text, var(--text-strong, #242424));
     font-family: var(--font-body);
     overflow-wrap: anywhere;
@@ -430,7 +430,7 @@
 
 .content-series-nav h2,
 .content-downloads h2,
-.content-comments h2 {
+.content-comments-panel h2 {
     font-family: var(--font-secondary);
     font-size: var(--type-section-title-size);
     font-weight: var(--font-weight-semibold);
@@ -440,7 +440,7 @@
 
 .content-series-nav ol,
 .content-downloads ul,
-.content-comments ul {
+.content-comment-list {
     display: grid;
     gap: 12px;
     list-style: none;
@@ -450,7 +450,7 @@
 
 .content-series-nav li,
 .content-downloads li,
-.content-comments li {
+.content-comment-item {
     border-bottom: 1px solid var(--content-border, var(--sr-border, #d8dde6));
     padding-bottom: 12px;
 }
@@ -473,7 +473,7 @@
     margin: 0;
 }
 
-.content-comments {
+.content-comments-panel {
     --content-comments-padding-inline: clamp(20px, 2.5vw, 28px);
     background: var(--content-surface, var(--sr-surface, #fff));
     border: 1px solid var(--content-border, var(--sr-border, #d8dde6));
@@ -512,7 +512,8 @@
     vertical-align: 0.1em;
 }
 
-.content-comments-empty {
+.content-comments-empty,
+.content-comment-unavailable {
     color: var(--content-muted, var(--sr-muted, #6b6b6b));
     font-size: var(--type-small-size, 0.875rem);
     line-height: var(--type-small-line-height, 1.5);
@@ -520,11 +521,11 @@
     padding-block: 10px;
 }
 
-.content-comments ul {
+.content-comment-list {
     gap: 0;
 }
 
-.content-comments li.content-comment-item {
+.content-comment-item {
     border-bottom: 0;
     border-top: 1px solid var(--content-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
     display: grid;
@@ -534,12 +535,12 @@
     scroll-margin-top: 40px;
 }
 
-.content-comments li.content-comment-item:first-child {
+.content-comment-item:first-child {
     border-top: 0;
     padding-top: 2px;
 }
 
-.content-comments li.content-comment-item:last-child {
+.content-comment-item:last-child {
     padding-bottom: 2px;
 }
 
@@ -704,23 +705,23 @@
         margin-left: 0;
     }
 
-    .content-comments {
+    .content-comments-panel {
         --content-comments-padding-inline: 18px;
         border-radius: var(--content-radius, 8px);
         padding-bottom: 18px;
     }
 
-    .content-comments li.content-comment-item {
+    .content-comment-item {
         padding-block: 16px;
     }
 }
 
-.content-comments label {
+.content-comments-panel label {
     display: grid;
     gap: 6px;
 }
 
-.content-comments .content-comment-secret-toggle {
+.content-comments-panel .content-comment-secret-toggle {
     align-items: center;
     display: inline-flex;
     gap: 8px;
@@ -1880,7 +1881,7 @@
         position: static;
     }
 
-    .content-comments {
+    .content-comments-panel {
         height: auto;
         overflow: visible;
         position: static;
@@ -1963,7 +1964,7 @@
 .content-access-notice,
 .content-series-nav,
 .content-downloads,
-.content-comments,
+.content-comments-panel,
 .content-home-feed,
 .content-group-feed,
 .content-group-tabs,
@@ -1977,7 +1978,7 @@
 .content-body > :is(h1, h2, h3, h4, h5, h6),
 .content-series-nav,
 .content-downloads,
-.content-comments,
+.content-comments-panel,
 .content-comment-meta strong,
 .content-home-header h1,
 .content-group-header h1,
@@ -2019,11 +2020,11 @@
     padding: 18px;
 }
 
-.content-comments {
+.content-comments-panel {
     background: var(--content-surface, var(--sr-surface, #fff));
 }
 
-[data-color-scheme="dark"] .content-comments {
+[data-color-scheme="dark"] .content-comments-panel {
     background: var(--content-surface);
 }
 
@@ -2033,7 +2034,7 @@
 
 .content-series-nav li,
 .content-downloads li,
-.content-comments li {
+.content-comment-item {
     border-bottom-color: var(--content-border);
 }
 
@@ -2041,7 +2042,7 @@
     outline-color: var(--color-primary);
 }
 
-.content-comments textarea {
+.content-comments-panel textarea {
     border-color: var(--content-border);
     border-radius: var(--content-radius);
     color: var(--content-text);
@@ -2232,6 +2233,8 @@
 }
 
 .content-screen-main {
+    display: grid;
+    gap: 12px;
     min-width: 0;
 }
 

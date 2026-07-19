@@ -168,16 +168,16 @@ $sourceChecks = [
     'modules/content/views/content.php#comment-avatar' => 'content-comment-author-avatar',
     'modules/quiz/theme/basic/view.php' => 'sr_quiz_comment_page(',
     'modules/quiz/theme/basic/view.php#post-avatar' => 'sr-quiz-post-author-avatar',
-    'modules/quiz/theme/basic/view.php#comment-avatar' => 'sr-quiz-comment-author-avatar',
+    'modules/quiz/theme/basic/view.php#comment-avatar' => 'quiz-comment-author-avatar',
     'modules/quiz/skins/basic/view.php' => 'sr_quiz_comment_page(',
     'modules/quiz/skins/basic/view.php#post-avatar' => 'sr-quiz-post-author-avatar',
-    'modules/quiz/skins/basic/view.php#comment-avatar' => 'sr-quiz-comment-author-avatar',
+    'modules/quiz/skins/basic/view.php#comment-avatar' => 'quiz-comment-author-avatar',
     'modules/survey/theme/basic/view.php' => 'sr_survey_comment_page(',
     'modules/survey/theme/basic/view.php#post-avatar' => 'sr-survey-post-author-avatar',
-    'modules/survey/theme/basic/view.php#comment-avatar' => 'sr-survey-comment-author-avatar',
+    'modules/survey/theme/basic/view.php#comment-avatar' => 'survey-comment-author-avatar',
     'modules/survey/skins/basic/view.php' => 'sr_survey_comment_page(',
     'modules/survey/skins/basic/view.php#post-avatar' => 'sr-survey-post-author-avatar',
-    'modules/survey/skins/basic/view.php#comment-avatar' => 'sr-survey-comment-author-avatar',
+    'modules/survey/skins/basic/view.php#comment-avatar' => 'survey-comment-author-avatar',
     'modules/content/theme/basic/content.php#pagination' => 'sr_public_pagination_html($contentCommentPage',
     'modules/content/views/content.php#pagination' => 'sr_public_pagination_html($contentCommentPage',
     'modules/quiz/theme/basic/view.php#pagination' => 'sr_public_pagination_html($quizCommentPage',
@@ -268,6 +268,189 @@ foreach ([
 }
 
 foreach ([
+    'modules/content/theme/basic/content.php' => ['content-comments-panel', 'content-comment-list', 'content-comment-meta-item', 'content-comment-unavailable', '$contentReactionCommentSummaries'],
+    'modules/content/views/content.php' => ['content-comments-panel', 'content-comment-list', 'content-comment-meta-item', 'content-comment-unavailable', '$contentReactionCommentSummaries'],
+    'modules/quiz/theme/basic/view.php' => ['quiz-comments-panel', 'quiz-comment-list', 'quiz-comment-meta-item', 'quiz-comment-unavailable', '$quizReactionCommentSummaries'],
+    'modules/quiz/skins/basic/view.php' => ['quiz-comments-panel', 'quiz-comment-list', 'quiz-comment-meta-item', 'quiz-comment-unavailable', '$quizReactionCommentSummaries'],
+    'modules/survey/theme/basic/view.php' => ['survey-comments-panel', 'survey-comment-list', 'survey-comment-meta-item', 'survey-comment-unavailable', '$surveyReactionCommentSummaries'],
+    'modules/survey/skins/basic/view.php' => ['survey-comments-panel', 'survey-comment-list', 'survey-comment-meta-item', 'survey-comment-unavailable', '$surveyReactionCommentSummaries'],
+] as $commentViewPath => $commentStructureMarkers) {
+    $contents = file_get_contents($root . '/' . $commentViewPath);
+    foreach ($commentStructureMarkers as $marker) {
+        $assert(
+            is_string($contents) && str_contains($contents, $marker),
+            $commentViewPath . ' must keep the complete comment structure marker: ' . $marker
+        );
+    }
+    $assert(
+        is_string($contents)
+            && str_contains($contents, "['counts']")
+            && str_contains($contents, "['my_record']"),
+        $commentViewPath . ' must pass batch reaction summaries into comment widgets.'
+    );
+    $assert(
+        is_string($contents)
+            && str_contains($contents, '로그인하면 댓글을 작성할 수 있습니다.')
+            && !str_contains($contents, '로그인 후 댓글 작성'),
+        $commentViewPath . ' must render the community-style guest comment notice instead of a login button.'
+    );
+}
+
+foreach (['modules/content/theme/basic/content.php', 'modules/content/views/content.php'] as $contentCommentViewPath) {
+    $contents = file_get_contents($root . '/' . $contentCommentViewPath);
+    $articleClosePosition = is_string($contents) ? strpos($contents, '</article>') : false;
+    $commentPanelPosition = is_string($contents) ? strpos($contents, 'id="content-comments" class="content-comments-panel"') : false;
+    $assert(
+        $articleClosePosition !== false
+            && $commentPanelPosition !== false
+            && $articleClosePosition < $commentPanelPosition,
+        $contentCommentViewPath . ' must render the comment panel as a sibling after the content article.'
+    );
+}
+
+$commentViewStateChecks = [
+    'modules/community/theme/basic/post.php' => [
+        'required' => [
+            '$comments === []',
+            'community-comments-empty',
+            '$canComment',
+            'community-comment-form',
+            '$commentUnavailableMessage !== \'\'',
+            'community-comment-unavailable',
+            'guest_author_name',
+            'guest_password',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+    'modules/community/skins/basic/view.php' => [
+        'required' => [
+            '$comments === []',
+            'community-comments-empty',
+            '$canComment',
+            'community-comment-form',
+            '$commentUnavailableMessage !== \'\'',
+            'community-comment-unavailable',
+            'guest_author_name',
+            'guest_password',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+    'modules/content/theme/basic/content.php' => [
+        'required' => [
+            '$contentComments !== []',
+            'content-comments-empty',
+            '$contentAdminPreview',
+            '관리자 미리보기에서는 댓글을 작성할 수 없습니다.',
+            'elseif (is_array($account ?? null))',
+            'content-comment-form',
+            '로그인하면 댓글을 작성할 수 있습니다.',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+    'modules/content/views/content.php' => [
+        'required' => [
+            '$contentComments !== []',
+            'content-comments-empty',
+            '$contentAdminPreview',
+            '관리자 미리보기에서는 댓글을 작성할 수 없습니다.',
+            'elseif (is_array($account ?? null))',
+            'content-comment-form',
+            '로그인하면 댓글을 작성할 수 있습니다.',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+    'modules/quiz/theme/basic/view.php' => [
+        'required' => [
+            '$quizCommentsEnabled && $submitResult !== null',
+            '$quizComments === []',
+            'quiz-comments-empty',
+            '$canPreviewAsAdmin',
+            '관리자 미리보기에서는 댓글을 작성할 수 없습니다.',
+            'elseif (is_array($currentAccount))',
+            'quiz-comment-form',
+            '로그인하면 댓글을 작성할 수 있습니다.',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+    'modules/quiz/skins/basic/view.php' => [
+        'required' => [
+            '$quizCommentsEnabled && $submitResult !== null',
+            '$quizComments === []',
+            'quiz-comments-empty',
+            '$canPreviewAsAdmin',
+            '관리자 미리보기에서는 댓글을 작성할 수 없습니다.',
+            'elseif (is_array($currentAccount))',
+            'quiz-comment-form',
+            '로그인하면 댓글을 작성할 수 있습니다.',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+    'modules/survey/theme/basic/view.php' => [
+        'required' => [
+            '$surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)',
+            '$surveyComments === []',
+            'survey-comments-empty',
+            '$canPreviewAsAdmin',
+            '$surveyCanWriteComment',
+            '설문 참여 완료 후 댓글을 작성할 수 있습니다.',
+            'survey-comment-form',
+            '로그인하면 댓글을 작성할 수 있습니다.',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+    'modules/survey/skins/basic/view.php' => [
+        'required' => [
+            '$surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)',
+            '$surveyComments === []',
+            'survey-comments-empty',
+            '$canPreviewAsAdmin',
+            '$surveyCanWriteComment',
+            '설문 참여 완료 후 댓글을 작성할 수 있습니다.',
+            'survey-comment-form',
+            '로그인하면 댓글을 작성할 수 있습니다.',
+        ],
+        'forbidden' => ['로그인 후 댓글 작성'],
+    ],
+];
+foreach ($commentViewStateChecks as $commentViewPath => $stateChecks) {
+    $contents = file_get_contents($root . '/' . $commentViewPath);
+    foreach ((array) ($stateChecks['required'] ?? []) as $marker) {
+        $assert(
+            is_string($contents) && str_contains($contents, (string) $marker),
+            $commentViewPath . ' must keep the comment request-flow state marker: ' . (string) $marker
+        );
+    }
+    foreach ((array) ($stateChecks['forbidden'] ?? []) as $marker) {
+        $assert(
+            is_string($contents) && !str_contains($contents, (string) $marker),
+            $commentViewPath . ' must not restore the forbidden comment state output: ' . (string) $marker
+        );
+    }
+}
+
+foreach ([
+    ['modules/content/theme/basic/content.php', 'modules/content/views/content.php', []],
+    ['modules/quiz/theme/basic/view.php', 'modules/quiz/skins/basic/view.php', [
+        "require_once SR_ROOT . '/modules/quiz/helpers.php';" => "require_once __DIR__ . '/../../helpers.php';",
+    ]],
+    ['modules/survey/theme/basic/view.php', 'modules/survey/skins/basic/view.php', [
+        "require_once SR_ROOT . '/modules/survey/helpers.php';" => "require_once __DIR__ . '/../../helpers.php';",
+    ]],
+] as [$themeViewPath, $fallbackViewPath, $normalizations]) {
+    $themeContents = file_get_contents($root . '/' . $themeViewPath);
+    $fallbackContents = file_get_contents($root . '/' . $fallbackViewPath);
+    if (is_string($themeContents)) {
+        $themeContents = strtr($themeContents, $normalizations);
+    }
+    $assert(
+        is_string($themeContents)
+            && is_string($fallbackContents)
+            && $themeContents === $fallbackContents,
+        $fallbackViewPath . ' must keep the same complete request-flow branches as ' . $themeViewPath . '.'
+    );
+}
+
+foreach ([
     'modules/community/theme/basic/assets/module.css' => [
         '.community-comments-pagination',
         '.community-list-author-profile-image',
@@ -279,6 +462,9 @@ foreach ([
     ],
     'modules/content/theme/basic/assets/module.css' => [
         '.content-comments-pagination',
+        '.content-comments-panel',
+        '.content-comment-list',
+        '.content-comment-unavailable',
         '.content-post-author-avatar',
         '.content-comment-author-avatar',
         'border-bottom: 1px solid var(--content-divider',
@@ -286,18 +472,20 @@ foreach ([
     'modules/quiz/theme/basic/assets/module.css' => [
         '.quiz-comments-pagination',
         '.sr-quiz-author-meta',
-        '.sr-quiz-comment-author-avatar',
-        '.sr-quiz-page .quiz-page-main .sr-quiz-comments-panel-header h2',
-        '.sr-quiz-page .quiz-page-main .sr-quiz-comment-form > p',
-        'border-bottom: 1px solid var(--sr-quiz-comment-divider',
+        '.quiz-comment-author-avatar',
+        '.quiz-comment-unavailable',
+        '.sr-quiz-page .quiz-page-main .quiz-comments-panel-header h2',
+        '.sr-quiz-page .quiz-page-main .quiz-comment-form > p',
+        'border-bottom: 1px solid var(--quiz-comment-divider',
     ],
     'modules/survey/theme/basic/assets/module.css' => [
         '.survey-comments-pagination',
         '.sr-survey-author-meta',
-        '.sr-survey-comment-author-avatar',
-        '.sr-survey-page .survey-page-main .sr-survey-comments-panel-header h2',
-        '.sr-survey-page .survey-page-main .sr-survey-comment-form > p',
-        'border-bottom: 1px solid var(--sr-survey-comment-divider',
+        '.survey-comment-author-avatar',
+        '.survey-comment-unavailable',
+        '.sr-survey-page .survey-page-main .survey-comments-panel-header h2',
+        '.sr-survey-page .survey-page-main .survey-comment-form > p',
+        'border-bottom: 1px solid var(--survey-comment-divider',
     ],
 ] as $commentStylesheetPath => $markers) {
     $contents = file_get_contents($root . '/' . $commentStylesheetPath);

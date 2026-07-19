@@ -161,7 +161,7 @@ foreach (['skin_key VARCHAR(40) NOT NULL DEFAULT \'\''] as $needle) {
 }
 sr_survey_check_contains(
     'modules/survey/module.php',
-    "'version' => '2026.07.008'",
+    "'version' => '2026.07.009'",
     'Survey module version must include the item comment editor schema update'
 );
 foreach (['CREATE TABLE IF NOT EXISTS sr_survey_groups', 'CREATE TABLE IF NOT EXISTS sr_survey_setting_sources', 'survey_group_id BIGINT UNSIGNED NULL'] as $needle) {
@@ -430,7 +430,7 @@ foreach (['survey-comments', 'sr_survey_comments', 'sr_survey_comment_body_html'
         'Survey public page must render comment mentions and mention input'
     );
 }
-foreach (['$surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)', 'sr_survey_account_has_submitted_response', '?submitted=1#survey-comments'] as $needle) {
+foreach (['$surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)', 'sr_survey_account_has_submitted_response', 'class="survey-comment-unavailable">로그인하면 댓글을 작성할 수 있습니다.'] as $needle) {
     sr_survey_check_contains(
         'modules/survey/skins/basic/view.php',
         $needle,

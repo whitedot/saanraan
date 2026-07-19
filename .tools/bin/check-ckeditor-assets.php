@@ -645,10 +645,10 @@ foreach ([
 foreach ([
     'modules/content/views/content.php' => ['content-comment-action-group-leading', 'content-comment-action-group-trailing', 'content-comment-permalink', 'content-comments-count', 'content-comment-item', 'content-comment-editor-field'],
     'modules/content/theme/basic/content.php' => ['content-comment-action-group-leading', 'content-comment-action-group-trailing', 'content-comment-permalink', 'content-comments-count', 'content-comment-item', 'content-comment-editor-field'],
-    'modules/quiz/skins/basic/view.php' => ['sr-quiz-comment-action-group-leading', 'sr-quiz-comment-action-group-trailing', 'sr-quiz-comment-permalink', 'sr_member_public_identity_parts', 'sr-quiz-comments-count', 'sr-quiz-comment-item', 'sr-quiz-comment-editor-field'],
-    'modules/quiz/theme/basic/view.php' => ['sr-quiz-comment-action-group-leading', 'sr-quiz-comment-action-group-trailing', 'sr-quiz-comment-permalink', 'sr_member_public_identity_parts', 'sr-quiz-comments-count', 'sr-quiz-comment-item', 'sr-quiz-comment-editor-field'],
-    'modules/survey/skins/basic/view.php' => ['sr-survey-comment-action-group-leading', 'sr-survey-comment-action-group-trailing', 'sr-survey-comment-permalink', 'sr_member_public_identity_parts', 'sr-survey-comments-count', 'sr-survey-comment-item', 'sr-survey-comment-editor-field'],
-    'modules/survey/theme/basic/view.php' => ['sr-survey-comment-action-group-leading', 'sr-survey-comment-action-group-trailing', 'sr-survey-comment-permalink', 'sr_member_public_identity_parts', 'sr-survey-comments-count', 'sr-survey-comment-item', 'sr-survey-comment-editor-field'],
+    'modules/quiz/skins/basic/view.php' => ['quiz-comment-action-group-leading', 'quiz-comment-action-group-trailing', 'quiz-comment-permalink', 'sr_member_public_identity_parts', 'quiz-comments-count', 'quiz-comment-item', 'quiz-comment-editor-field'],
+    'modules/quiz/theme/basic/view.php' => ['quiz-comment-action-group-leading', 'quiz-comment-action-group-trailing', 'quiz-comment-permalink', 'sr_member_public_identity_parts', 'quiz-comments-count', 'quiz-comment-item', 'quiz-comment-editor-field'],
+    'modules/survey/skins/basic/view.php' => ['survey-comment-action-group-leading', 'survey-comment-action-group-trailing', 'survey-comment-permalink', 'sr_member_public_identity_parts', 'survey-comments-count', 'survey-comment-item', 'survey-comment-editor-field'],
+    'modules/survey/theme/basic/view.php' => ['survey-comment-action-group-leading', 'survey-comment-action-group-trailing', 'survey-comment-permalink', 'sr_member_public_identity_parts', 'survey-comments-count', 'survey-comment-item', 'survey-comment-editor-field'],
 ] as $commentViewFile => $commentUiMarkers) {
     sr_ckeditor_assets_require_markers($commentViewFile, $commentUiMarkers);
 }
@@ -666,8 +666,8 @@ foreach ([
 
 foreach ([
     'modules/content/theme/basic/assets/module.css' => ['.content-comment-action-group > .btn', '.content-comment-action-group > form > .btn', '.content-comment-permalink:focus-visible', '--content-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.content-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
-    'modules/quiz/theme/basic/assets/module.css' => ['.sr-quiz-comment-action-group > .btn', '.sr-quiz-comment-action-group > form > .btn', '.sr-quiz-comment-permalink:focus-visible', '--sr-quiz-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.sr-quiz-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
-    'modules/survey/theme/basic/assets/module.css' => ['.sr-survey-comment-action-group > .btn', '.sr-survey-comment-action-group > form > .btn', '.sr-survey-comment-permalink:focus-visible', '--sr-survey-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.sr-survey-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
+    'modules/quiz/theme/basic/assets/module.css' => ['.quiz-comment-action-group > .btn', '.quiz-comment-action-group > form > .btn', '.quiz-comment-permalink:focus-visible', '--quiz-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.quiz-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
+    'modules/survey/theme/basic/assets/module.css' => ['.survey-comment-action-group > .btn', '.survey-comment-action-group > form > .btn', '.survey-comment-permalink:focus-visible', '--survey-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.survey-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
 ] as $commentStylesheet => $commentUiMarkers) {
     sr_ckeditor_assets_require_markers($commentStylesheet, $commentUiMarkers);
 }
@@ -677,12 +677,12 @@ sr_ckeditor_assets_forbid_markers('modules/content/theme/basic/assets/module.css
     '.content-comment-actions .btn {',
 ]);
 sr_ckeditor_assets_forbid_markers('modules/quiz/theme/basic/assets/module.css', [
-    '.sr-quiz-comment-actions form,',
-    '.sr-quiz-comment-actions .btn {',
+    '.quiz-comment-actions form,',
+    '.quiz-comment-actions .btn {',
 ]);
 sr_ckeditor_assets_forbid_markers('modules/survey/theme/basic/assets/module.css', [
-    '.sr-survey-comment-actions form,',
-    '.sr-survey-comment-actions .btn {',
+    '.survey-comment-actions form,',
+    '.survey-comment-actions .btn {',
 ]);
 sr_ckeditor_assets_require_markers('modules/community/theme/basic/assets/module.css', [
     '.community-comment-actions .community-action-group > .btn',

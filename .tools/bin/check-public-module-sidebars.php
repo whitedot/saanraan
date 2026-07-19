@@ -116,8 +116,8 @@ if ($contentSidebarRuleMatched) {
     $assert(!str_contains($contentSidebarRule, 'position: sticky'), 'content sidebar must remain in normal document flow.');
     $assert(!preg_match('/\btop\s*:/', $contentSidebarRule), 'content sidebar must not keep a sticky top offset.');
 }
-$contains('modules/content/theme/basic/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
-$contains('modules/content/views/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
+$contains('modules/content/theme/basic/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments-panel']);
+$contains('modules/content/views/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments-panel']);
 foreach (['modules/content/theme/basic/content.php', 'modules/content/views/content.php'] as $contentViewFile) {
     $contentViewSource = $source($contentViewFile);
     $assert(substr_count($contentViewSource, 'class="content-view-actions') === 2, $contentViewFile . ' must render top and bottom content action rows.');

@@ -124,7 +124,7 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.07.008'",
+        "'version' => '2026.07.009'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/paths.php', [
         "'GET /admin/quiz/groups'",
@@ -283,7 +283,7 @@ function sr_quiz_check_paths_and_admin(): void
         '$quizCommentsEnabled && $submitResult !== null',
         'sr_reaction_render_widget($pdo, \'quiz\', \'quiz_set\'',
         '$submitResult !== null',
-        '?result=1#quiz-comments',
+        'class="quiz-comment-unavailable">로그인하면 댓글을 작성할 수 있습니다.',
         "sr_quiz_skin_view_file(\$quizSettings, 'result')",
     ]);
     sr_quiz_check_file_contains('modules/quiz/helpers.php', [

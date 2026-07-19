@@ -13,29 +13,33 @@ for (const [name, className, commonStylesheet, stylesheet] of fixtures) {
   test(`${name} comment pagination keeps computed theme colors`, async ({ page }) => {
     await page.setContent(`<!doctype html>
       <html lang="ko" data-color-scheme="light">
-      <head><style>
-        :root[data-color-scheme="light"] {
-          --sr-text: #172033;
-          --sr-border: #ccd4e0;
-          --sr-surface: #ffffff;
-          --color-default-700: #172033;
-          --color-primary: #172033;
-          --color-white: #ffffff;
-        }
-        :root[data-color-scheme="dark"] {
-          --sr-text: #e5ecf5;
-          --sr-border: #475569;
-          --sr-surface: #111827;
-          --color-default-700: #e5ecf5;
-          --color-primary: #e5ecf5;
-          --color-white: #111827;
-        }
-      </style></head>
+      <head></head>
       <body><nav class="${className}"><a class="btn btn-ghost-default" href="#">2</a><span class="btn btn-solid-primary" aria-current="page">3</span></nav></body>
       </html>`);
     await page.addStyleTag({ path: path.join(root, commonStylesheet.replace('/common.css', '/reset.css')) });
     await page.addStyleTag({ path: path.join(root, commonStylesheet) });
     await page.addStyleTag({ path: path.join(root, stylesheet) });
+    await page.addStyleTag({ content: `
+      *, *::before, *::after {
+        transition: none !important;
+      }
+      :root[data-color-scheme="light"] {
+        --sr-text: #172033;
+        --sr-border: #ccd4e0;
+        --sr-surface: #ffffff;
+        --color-default-700: #172033;
+        --color-primary: #172033;
+        --color-white: #ffffff;
+      }
+      :root[data-color-scheme="dark"] {
+        --sr-text: #e5ecf5;
+        --sr-border: #475569;
+        --sr-surface: #111827;
+        --color-default-700: #e5ecf5;
+        --color-primary: #e5ecf5;
+        --color-white: #111827;
+      }
+    ` });
 
     const computed = async () => page.evaluate(() => {
       const link = getComputedStyle(document.querySelector('a'));
@@ -89,6 +93,8 @@ const panelFixtures = [
     author: 'community-comment-author',
     avatar: 'community-comment-author-avatar',
     form: 'community-comment-form',
+    empty: 'community-comments-empty',
+    unavailable: 'community-comment-unavailable',
   },
   {
     name: 'content basic',
@@ -96,14 +102,16 @@ const panelFixtures = [
     stylesheet: 'modules/content/theme/basic/assets/module.css',
     wrapperOpen: '<main class="content-page">',
     wrapperClose: '</main>',
-    panel: 'content-comments',
+    panel: 'content-comments-panel',
     header: 'content-comments-panel-header',
     count: 'content-comments-count',
-    list: '',
+    list: 'content-comment-list',
     item: 'content-comment-item',
     author: 'content-comment-author',
     avatar: 'content-comment-author-avatar',
     form: 'content-comment-form',
+    empty: 'content-comments-empty',
+    unavailable: 'content-comment-unavailable',
   },
   {
     name: 'quiz basic',
@@ -111,14 +119,16 @@ const panelFixtures = [
     stylesheet: 'modules/quiz/theme/basic/assets/module.css',
     wrapperOpen: '<main class="sr-quiz-page"><div class="quiz-page-main">',
     wrapperClose: '</div></main>',
-    panel: 'sr-quiz-comments',
-    header: 'sr-quiz-comments-panel-header',
-    count: 'sr-quiz-comments-count',
-    list: 'sr-quiz-comment-list',
-    item: 'sr-quiz-comment-item',
-    author: 'sr-quiz-comment-author',
-    avatar: 'sr-quiz-comment-author-avatar',
-    form: 'sr-quiz-comment-form',
+    panel: 'quiz-comments-panel',
+    header: 'quiz-comments-panel-header',
+    count: 'quiz-comments-count',
+    list: 'quiz-comment-list',
+    item: 'quiz-comment-item',
+    author: 'quiz-comment-author',
+    avatar: 'quiz-comment-author-avatar',
+    form: 'quiz-comment-form',
+    empty: 'quiz-comments-empty',
+    unavailable: 'quiz-comment-unavailable',
   },
   {
     name: 'survey basic',
@@ -126,19 +136,21 @@ const panelFixtures = [
     stylesheet: 'modules/survey/theme/basic/assets/module.css',
     wrapperOpen: '<main class="sr-survey-page"><div class="survey-page-main">',
     wrapperClose: '</div></main>',
-    panel: 'sr-survey-comments',
-    header: 'sr-survey-comments-panel-header',
-    count: 'sr-survey-comments-count',
-    list: 'sr-survey-comment-list',
-    item: 'sr-survey-comment-item',
-    author: 'sr-survey-comment-author',
-    avatar: 'sr-survey-comment-author-avatar',
-    form: 'sr-survey-comment-form',
+    panel: 'survey-comments-panel',
+    header: 'survey-comments-panel-header',
+    count: 'survey-comments-count',
+    list: 'survey-comment-list',
+    item: 'survey-comment-item',
+    author: 'survey-comment-author',
+    avatar: 'survey-comment-author-avatar',
+    form: 'survey-comment-form',
+    empty: 'survey-comments-empty',
+    unavailable: 'survey-comment-unavailable',
   },
 ];
 
 for (const fixture of panelFixtures) {
-  test(`${fixture.name} comment panel follows community divider metrics`, async ({ page }) => {
+  test(`${fixture.name} comment panel keeps complete divider metrics`, async ({ page }) => {
     const listClass = fixture.list === '' ? '' : ` class="${fixture.list}"`;
     await page.setContent(`<!doctype html>
       <html lang="ko" data-color-scheme="light">
@@ -174,6 +186,7 @@ for (const fixture of panelFixtures) {
             <li class="${fixture.item}" data-comment-second><div>둘째 댓글</div></li>
           </ul>
           <form class="${fixture.form}"><p data-comment-form-copy>댓글 작성</p><button type="button">등록</button></form>
+          <p class="${fixture.unavailable}" data-comment-unavailable>로그인하면 댓글을 작성할 수 있습니다.</p>
         </section>
       ${fixture.wrapperClose}</body></html>`);
     await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet.replace('/common.css', '/reset.css')) });
@@ -191,6 +204,7 @@ for (const fixture of panelFixtures) {
       const avatarFallback = getComputedStyle(document.querySelector('[data-comment-avatar-fallback]'));
       const form = getComputedStyle(document.querySelector('form'));
       const formCopy = getComputedStyle(document.querySelector('[data-comment-form-copy]'));
+      const unavailable = getComputedStyle(document.querySelector('[data-comment-unavailable]'));
       return {
         panelBackground: panel.backgroundColor,
         panelBorder: panel.borderTopColor,
@@ -222,6 +236,9 @@ for (const fixture of panelFixtures) {
         formPaddingTop: form.paddingTop,
         formCopyColor: formCopy.color,
         formCopyMarginBottom: formCopy.marginBottom,
+        unavailableColor: unavailable.color,
+        unavailableMargin: unavailable.margin,
+        unavailablePaddingBlock: [unavailable.paddingTop, unavailable.paddingBottom],
       };
     });
 
@@ -259,6 +276,9 @@ for (const fixture of panelFixtures) {
       expect(styles.formPaddingTop).toBe('20px');
       expect(styles.formCopyColor).toBe(scheme === 'dark' ? 'rgb(229, 236, 245)' : 'rgb(23, 32, 51)');
       expect(styles.formCopyMarginBottom).toBe('0px');
+      expect(styles.unavailableColor).toBe(scheme === 'dark' ? 'rgb(174, 184, 199)' : 'rgb(104, 115, 134)');
+      expect(styles.unavailableMargin).toBe('0px');
+      expect(styles.unavailablePaddingBlock).toEqual(['10px', '10px']);
       expect(styles.headerDivider).toBe(styles.itemDivider);
       expect(styles.formDivider).toBe(styles.itemDivider);
     }
@@ -289,5 +309,93 @@ for (const fixture of panelFixtures) {
     await page.locator('[data-comment-avatar-fallback]').evaluate((element) => element.style.setProperty('--member-profile-image-size', '29px'));
     expect((await computed()).avatarSize).toEqual(['29px', '29px']);
     expect((await computed()).avatarFallbackSize).toEqual(['29px', '29px']);
+  });
+
+  test(`${fixture.name} empty guest comment state keeps the complete non-interactive flow`, async ({ page }) => {
+    await page.setContent(`<!doctype html>
+      <html lang="ko" data-color-scheme="light">
+      <head><style>
+        :root[data-color-scheme="light"] {
+          --radius: 8px;
+          --sr-text: #172033;
+          --sr-muted: #687386;
+          --sr-muted-strong: #4c586b;
+          --sr-border: #ccd4e0;
+          --sr-border-soft: #e3e8ef;
+          --sr-surface: #ffffff;
+          --sr-surface-muted: #f3f6fa;
+          --color-card: #ffffff;
+        }
+        :root[data-color-scheme="dark"] {
+          --radius: 8px;
+          --sr-text: #e5ecf5;
+          --sr-muted: #aeb8c7;
+          --sr-muted-strong: #c9d2de;
+          --sr-border: #475569;
+          --sr-border-soft: #344154;
+          --sr-surface: #111827;
+          --sr-surface-muted: #1f2937;
+          --color-card: #111827;
+        }
+      </style></head>
+      <body>${fixture.wrapperOpen}
+        <section class="${fixture.panel}" data-comment-panel>
+          <div class="${fixture.header}" data-comment-header><h2>댓글 <span class="${fixture.count}">0</span></h2></div>
+          <p class="${fixture.empty}" data-comment-empty>댓글이 없습니다.</p>
+          <p class="${fixture.unavailable}" data-comment-unavailable>로그인하면 댓글을 작성할 수 있습니다.</p>
+        </section>
+      ${fixture.wrapperClose}</body></html>`);
+    await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet.replace('/common.css', '/reset.css')) });
+    await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet) });
+    await page.addStyleTag({ path: path.join(root, fixture.stylesheet) });
+
+    expect(await page.locator('[data-comment-panel] a, [data-comment-panel] button').count()).toBe(0);
+    expect(await page.locator('[data-comment-panel] > *').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-comment-header') !== null
+      ? 'header'
+      : (element.getAttribute('data-comment-empty') !== null ? 'empty' : 'unavailable')))).toEqual(['header', 'empty', 'unavailable']);
+
+    for (const scheme of ['light', 'dark']) {
+      await page.locator('html').evaluate((element, nextScheme) => element.setAttribute('data-color-scheme', nextScheme), scheme);
+      const state = await page.evaluate(() => {
+        const panel = document.querySelector('[data-comment-panel]');
+        const header = document.querySelector('[data-comment-header]');
+        const empty = document.querySelector('[data-comment-empty]');
+        const unavailable = document.querySelector('[data-comment-unavailable]');
+        const panelStyle = getComputedStyle(panel);
+        const emptyStyle = getComputedStyle(empty);
+        const unavailableStyle = getComputedStyle(unavailable);
+        const headerRect = header.getBoundingClientRect();
+        const emptyRect = empty.getBoundingClientRect();
+        const unavailableRect = unavailable.getBoundingClientRect();
+        return {
+          panelBackground: panelStyle.backgroundColor,
+          panelBorder: panelStyle.borderTopColor,
+          panelGap: panelStyle.gap,
+          emptyColor: emptyStyle.color,
+          emptyMargin: emptyStyle.margin,
+          emptyPaddingBlock: [emptyStyle.paddingTop, emptyStyle.paddingBottom],
+          unavailableColor: unavailableStyle.color,
+          unavailableMargin: unavailableStyle.margin,
+          unavailablePaddingBlock: [unavailableStyle.paddingTop, unavailableStyle.paddingBottom],
+          headerToEmptyGap: Math.round(emptyRect.top - headerRect.bottom),
+          emptyToUnavailableGap: Math.round(unavailableRect.top - emptyRect.bottom),
+          emptyText: empty.textContent.trim(),
+          unavailableText: unavailable.textContent.trim(),
+        };
+      });
+      expect(state.panelBackground).toBe(scheme === 'dark' ? 'rgb(17, 24, 39)' : 'rgb(255, 255, 255)');
+      expect(state.panelBorder).toBe(scheme === 'dark' ? 'rgb(71, 85, 105)' : 'rgb(204, 212, 224)');
+      expect(state.panelGap).toBe('18px');
+      expect(state.emptyColor).toBe(scheme === 'dark' ? 'rgb(174, 184, 199)' : 'rgb(104, 115, 134)');
+      expect(state.emptyMargin).toBe('0px');
+      expect(state.emptyPaddingBlock).toEqual(['10px', '10px']);
+      expect(state.unavailableColor).toBe(state.emptyColor);
+      expect(state.unavailableMargin).toBe('0px');
+      expect(state.unavailablePaddingBlock).toEqual(['10px', '10px']);
+      expect(state.headerToEmptyGap).toBe(18);
+      expect(state.emptyToUnavailableGap).toBe(18);
+      expect(state.emptyText).toBe('댓글이 없습니다.');
+      expect(state.unavailableText).toBe('로그인하면 댓글을 작성할 수 있습니다.');
+    }
   });
 }

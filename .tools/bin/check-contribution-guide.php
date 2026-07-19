@@ -56,6 +56,10 @@ sr_contribution_check_contains('docs/contribution-guide.md', [
     'SR_SMOKE_ADMIN_IDENTIFIER=<admin>',
     'SR_SMOKE_ADMIN_PASSWORD=<password>',
     '고위험 변경',
+    '기능 변경 완결성 확인',
+    '자연스러운 공통 기능 소유자가 없는 경우 새 공통 모듈이나 코어 기능을 만들지 않는다',
+    '없어야 하는 버튼, 링크, 문구, fallback, 중복 asset',
+    '정확한 동일성이나 완전한 완료로 판정하지 않는다',
     '문서 갱신 기준',
 ], $errors);
 

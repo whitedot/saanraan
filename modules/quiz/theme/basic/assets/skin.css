@@ -37,13 +37,13 @@
 
 .sr-quiz-skin-focus .sr-quiz-result p,
 .sr-quiz-skin-focus .sr-quiz-question p,
-.sr-quiz-skin-focus .sr-quiz-comments p {
+.sr-quiz-skin-focus .quiz-comments-panel p {
     color: var(--sr-muted, #4d5b73);
 }
 
 .sr-quiz-skin-focus .sr-quiz-question,
 .sr-quiz-skin-focus .sr-quiz-result,
-.sr-quiz-skin-focus .sr-quiz-comments {
+.sr-quiz-skin-focus .quiz-comments-panel {
     border-color: var(--sr-border-soft, rgba(255, 255, 255, 0.14));
 }
 
