@@ -338,6 +338,13 @@ function sr_public_data_cache_forget(string $namespace, string $cacheKey, string
         return false;
     }
 
+    $namespaceGeneration = sr_public_data_cache_generation_marker(
+        sr_public_data_cache_namespace_generation_path($namespace)
+    );
+    if ($namespaceGeneration === '') {
+        return sr_public_data_cache_clear_namespace($namespace);
+    }
+
     $generation = sr_public_data_cache_generation($namespace, $cacheKey, $payloadSchema);
     $hash = sr_public_data_cache_versioned_hash($cacheKey, $payloadSchema, $generation);
     $path = sr_public_data_cache_path($namespace, $cacheKey, $payloadSchema, $generation);

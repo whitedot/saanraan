@@ -353,8 +353,12 @@ $assert(
     'an invalid namespace generation marker must reject cache reads.'
 );
 $assert(
-    sr_public_data_cache_clear_namespace('public-side-menu'),
-    'namespace invalidation must repair an invalid namespace generation marker.'
+    sr_public_data_cache_forget('public-side-menu', 'content.groups', 'content_sidebar_groups_v1'),
+    'entry invalidation must escalate to namespace invalidation when the namespace marker is invalid.'
+);
+$assert(
+    sr_public_data_cache_generation('public-side-menu', 'content.groups', 'content_sidebar_groups_v1') !== '',
+    'entry invalidation must restore a usable generation after repairing the namespace marker.'
 );
 
 $failureNamespace = 'public-cache-failure-fixture';
