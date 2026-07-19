@@ -347,6 +347,89 @@ function sr_member_registration_extension_fields(PDO $pdo, array $contracts): ar
     return $fields;
 }
 
+function sr_member_registration_extension_account_fields(array $fields, array $contracts): array
+{
+    return array_filter(
+        $fields,
+        static function (array $field) use ($contracts): bool {
+            $moduleKey = (string) ($field['module_key'] ?? '');
+            $contract = is_array($contracts[$moduleKey] ?? null) ? $contracts[$moduleKey] : [];
+            $valuesFunction = (string) ($contract['account_values_function'] ?? '');
+            $saveFunction = (string) ($contract['account_save_function'] ?? '');
+
+            return $valuesFunction !== ''
+                && $saveFunction !== ''
+                && function_exists($valuesFunction)
+                && function_exists($saveFunction);
+        }
+    );
+}
+
+function sr_member_registration_extension_account_values(PDO $pdo, array $contracts, int $accountId): array
+{
+    $values = [];
+    foreach ($contracts as $contract) {
+        $valuesFunction = (string) ($contract['account_values_function'] ?? '');
+        if ($valuesFunction === '' || !function_exists($valuesFunction)) {
+            continue;
+        }
+
+        $result = $valuesFunction($pdo, $accountId);
+        if (!is_array($result)) {
+            continue;
+        }
+        foreach ($result as $key => $value) {
+            if (is_string($key) && is_scalar($value)) {
+                $values[$key] = (string) $value;
+            }
+        }
+    }
+
+    return $values;
+}
+
+function sr_member_registration_extension_account_validation_errors(PDO $pdo, array $contracts, array $values, array $context = []): array
+{
+    $errors = [];
+    foreach ($contracts as $contract) {
+        $validateFunction = (string) ($contract['account_validate_function'] ?? '');
+        if ($validateFunction === '' || !function_exists($validateFunction)) {
+            continue;
+        }
+
+        $result = $validateFunction($pdo, $values, $context);
+        if (!is_array($result)) {
+            continue;
+        }
+        foreach ($result as $error) {
+            $error = trim((string) $error);
+            if ($error !== '') {
+                $errors[] = $error;
+            }
+        }
+    }
+
+    return $errors;
+}
+
+function sr_member_registration_extension_account_save(PDO $pdo, array $contracts, int $accountId, array $values, array $context = []): array
+{
+    $metadata = [];
+    foreach ($contracts as $moduleKey => $contract) {
+        $saveFunction = (string) ($contract['account_save_function'] ?? '');
+        if ($saveFunction === '' || !function_exists($saveFunction)) {
+            continue;
+        }
+
+        $result = $saveFunction($pdo, $accountId, $values, $context);
+        if (is_array($result)) {
+            $metadata[(string) $moduleKey] = $result;
+        }
+    }
+
+    return $metadata;
+}
+
 function sr_member_registration_extension_empty_values(array $fields): array
 {
     $values = [];

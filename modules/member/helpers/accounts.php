@@ -701,6 +701,110 @@ function sr_member_update_account_basics(PDO $pdo, int $accountId, string $displ
     ]);
 }
 
+function sr_member_update_account_details(
+    PDO $pdo,
+    array $config,
+    array $account,
+    string $email,
+    ?string $newLoginId,
+    string $displayName,
+    string $locale,
+    bool $emailVerificationEnabled
+): array {
+    $accountId = (int) ($account['id'] ?? 0);
+    $email = sr_normalize_identifier($email);
+    $newLoginId = $newLoginId === null ? null : sr_member_normalize_login_id($newLoginId);
+    $displayName = sr_member_normalize_display_name($displayName);
+
+    if ($accountId < 1 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new InvalidArgumentException('member_account_email_invalid');
+    }
+    if ($newLoginId !== null && !sr_member_is_valid_login_id($newLoginId)) {
+        throw new InvalidArgumentException('member_account_login_id_invalid');
+    }
+    $emailHash = sr_hmac_hash($email, $config);
+    $stmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE email_hash = :email_hash AND id <> :id LIMIT 1');
+    $stmt->execute([
+        'email_hash' => $emailHash,
+        'id' => $accountId,
+    ]);
+    if (is_array($stmt->fetch())) {
+        throw new RuntimeException('member_account_email_duplicate');
+    }
+
+    $currentEmail = sr_normalize_identifier((string) ($account['email'] ?? ''));
+    $currentEmailHash = (string) ($account['email_hash'] ?? '');
+    $currentLoginIdHash = (string) ($account['login_id_hash'] ?? '');
+    $currentAccountIdentifierHash = (string) ($account['account_identifier_hash'] ?? '');
+    $currentHasLegacyLoginId = $currentLoginIdHash === ''
+        && $currentAccountIdentifierHash !== ''
+        && $currentEmailHash !== ''
+        && !hash_equals($currentEmailHash, $currentAccountIdentifierHash);
+
+    $nextLoginIdHash = $currentLoginIdHash !== '' ? $currentLoginIdHash : null;
+    $accountIdentifierHash = $currentLoginIdHash !== ''
+        ? $currentLoginIdHash
+        : ($currentHasLegacyLoginId ? $currentAccountIdentifierHash : $emailHash);
+    $loginIdChanged = false;
+
+    if ($newLoginId !== null) {
+        $nextLoginIdHash = sr_hmac_hash($newLoginId, $config);
+        $stmt = $pdo->prepare(
+            'SELECT id
+             FROM sr_member_accounts
+             WHERE (login_id_hash = :login_id_hash OR account_identifier_hash = :account_identifier_hash)
+               AND id <> :id
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'login_id_hash' => $nextLoginIdHash,
+            'account_identifier_hash' => $nextLoginIdHash,
+            'id' => $accountId,
+        ]);
+        if (is_array($stmt->fetch())) {
+            throw new RuntimeException('member_account_login_id_duplicate');
+        }
+
+        $accountIdentifierHash = $nextLoginIdHash;
+        $loginIdChanged = $currentLoginIdHash === '' || !hash_equals($currentLoginIdHash, $nextLoginIdHash);
+    }
+
+    $emailChanged = $currentEmail !== $email;
+    $emailVerifiedAt = $emailChanged
+        ? ($emailVerificationEnabled ? null : sr_now())
+        : ($account['email_verified_at'] ?? null);
+
+    $stmt = $pdo->prepare(
+        'UPDATE sr_member_accounts
+         SET account_identifier_hash = :account_identifier_hash,
+             login_id_hash = :login_id_hash,
+             email = :email,
+             email_hash = :email_hash,
+             display_name = :display_name,
+             locale = :locale,
+             email_verified_at = :email_verified_at,
+             updated_at = :updated_at
+         WHERE id = :id'
+    );
+    $stmt->execute([
+        'account_identifier_hash' => $accountIdentifierHash,
+        'login_id_hash' => $nextLoginIdHash,
+        'email' => $email,
+        'email_hash' => $emailHash,
+        'display_name' => $displayName,
+        'locale' => $locale,
+        'email_verified_at' => is_string($emailVerifiedAt) ? $emailVerifiedAt : null,
+        'updated_at' => sr_now(),
+        'id' => $accountId,
+    ]);
+
+    return [
+        'email_changed' => $emailChanged,
+        'login_id_changed' => $loginIdChanged,
+        'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,
+    ];
+}
+
 function sr_member_log_auth(PDO $pdo, ?int $accountId, string $eventType, string $result): void
 {
     $stmt = $pdo->prepare(

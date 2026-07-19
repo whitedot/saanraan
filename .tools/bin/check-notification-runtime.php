@@ -1122,6 +1122,7 @@ $settingsView = sr_notification_runtime_file('modules/notification/views/admin-n
 $memberAccountView = sr_notification_runtime_file('modules/member/views/account.php');
 $accountNotificationsAction = sr_notification_runtime_file('modules/notification/actions/account-notifications.php');
 $accountNotificationsView = sr_notification_runtime_file('modules/notification/views/account-notifications.php');
+$accountNotificationsCss = sr_notification_runtime_file('modules/notification/assets/module.css');
 $communityCommentAction = sr_notification_runtime_file('modules/community/actions/comment.php');
 $communityNotificationHelpers = sr_notification_runtime_file('modules/community/helpers/notifications.php');
 sr_notification_runtime_assert(str_contains($communityCommentAction, '#community-comment-') && !str_contains($communityCommentAction, "'link_url' => '/community/post?id=' . (string) \$postId . '#comments'"), 'community comment created notifications must link to the created comment anchor.');
@@ -1160,11 +1161,22 @@ sr_notification_runtime_assert(
     'notification settings action must server-validate required operational push provider fields.'
 );
 sr_notification_runtime_assert(
-    str_contains($memberAccountView, "sr_module_enabled(\$pdo, 'notification')")
-        && str_contains($memberAccountView, "'url' => '/account/notifications'"),
-    'member account view must link to account notification settings when notification module is enabled.'
+    !str_contains($memberAccountView, "'url' => '/account/notifications'"),
+    'member account view must keep the standalone notification page out of the mypage sidebar.'
 );
-sr_notification_runtime_assert(str_contains($accountNotificationsView, "sr_url('/mypage')"), 'member notification settings view must link back to mypage.');
+sr_notification_runtime_assert(
+    str_contains($accountNotificationsView, 'class="notification-account-page"')
+        && str_contains($accountNotificationsView, "'/modules/notification/assets/module.css'")
+        && !str_contains($accountNotificationsView, "sr_url('/mypage')"),
+    'member notification settings view must render as a standalone notification-owned public screen.'
+);
+sr_notification_runtime_assert(
+    str_contains($accountNotificationsView, 'class="filtering filtering-plain notification-account-filter"')
+        && str_contains($accountNotificationsView, 'class="card-header"')
+        && str_contains($accountNotificationsView, 'class="card-body notification-account-card-stack"')
+        && str_contains($accountNotificationsCss, 'max-width: 1800px;'),
+    'member notification settings view must use the UI kit card/filter structure and the full notification container.'
+);
 sr_notification_runtime_assert(
     is_string($notificationAdminHelpers)
         && str_contains($notificationAdminHelpers, 'function sr_notification_admin_mark_unread(')

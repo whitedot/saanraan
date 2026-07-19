@@ -1,0 +1,122 @@
+.notification-account-page {
+    box-sizing: border-box;
+    display: grid;
+    gap: calc(var(--spacing) * 5);
+    margin: 0 auto;
+    max-width: 1800px;
+    padding: 40px clamp(16px, 2.5vw, 40px);
+    width: 100%;
+}
+
+.notification-account-heading {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+}
+
+.notification-account-heading > *,
+.notification-account-page .card-header > .notification-account-muted {
+    margin: 0;
+}
+
+.notification-account-muted {
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+}
+
+.notification-account-summary-list {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.notification-account-summary-list > div {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+}
+
+.notification-account-summary-list dt {
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+    font-size: var(--type-small-size);
+    line-height: var(--type-small-line-height);
+}
+
+.notification-account-summary-list dd {
+    color: var(--sr-text, var(--text-strong, var(--color-default-900)));
+    margin: 0;
+}
+
+.notification-account-card-stack,
+.notification-account-form {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+}
+
+.notification-account-provider-grid {
+    display: grid;
+    gap: calc(var(--spacing) * 5);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+}
+
+.notification-account-form > p {
+    margin: 0;
+}
+
+.notification-account-form label {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+}
+
+.notification-account-form > .btn {
+    justify-self: start;
+}
+
+.notification-account-inline-form {
+    align-items: center;
+    display: flex;
+    gap: calc(var(--spacing) * 2);
+    min-width: min(24rem, 70vw);
+}
+
+.notification-account-inline-form .form-input {
+    min-width: 10rem;
+}
+
+.notification-account-filter {
+    margin: 0;
+}
+
+.notification-account-empty {
+    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
+    margin: 0;
+}
+
+.notification-account-page .table td:last-child,
+.notification-account-page .table th:last-child {
+    white-space: nowrap;
+}
+
+.notification-account-page .card-footer .pagination {
+    margin: 0;
+}
+
+@media (max-width: 760px) {
+    .notification-account-page {
+        padding: 24px 16px;
+    }
+
+    .notification-account-summary-list {
+        grid-template-columns: 1fr;
+    }
+
+    .notification-account-inline-form {
+        align-items: stretch;
+        display: grid;
+        min-width: 15rem;
+    }
+
+    .notification-account-inline-form .form-input,
+    .notification-account-inline-form .btn,
+    .notification-account-form > .btn {
+        width: 100%;
+    }
+}

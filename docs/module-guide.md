@@ -1031,7 +1031,7 @@ return [
 - `asset-exchange.php`: 자산 환전 후보와 원장 helper 계약
 - `member-assets.php`: 콘텐츠/커뮤니티에서 쓰는 금액성 회원 자산 후보
 - `member-withdrawal-assets.php`: 회원 탈퇴 시 정리할 자산 후보와 처리 계약
-- `member-registration.php`: 회원가입 추가 입력, 검증, 저장. 확장 입력값은 `registration_extensions[...]` POST namespace로 전달된다.
+- `member-registration.php`: 회원가입 추가 입력, 검증, 저장과 선택적인 회원 계정 화면 조회·수정. 확장 입력값은 `registration_extensions[...]` POST namespace로 전달된다.
 - `member-mfa-providers.php`: 로그인 2차 인증 provider 후보. provider key, label, method, 로그인 지원 여부, 회원 직접 등록 지원 여부를 선언한다.
 - `homepage-candidates.php`: 과거 초기화면 저장 경로와 모듈 소유 공개 경로 사용 가능 여부
 - `editor-options.php`: textarea 강화 에디터 후보
@@ -1372,11 +1372,12 @@ return [
 `member-registration.php`:
 
 - 배열을 반환한다.
-- 선택 `helpers`, `fields`, `fields_function`, `validate_function`, `save_function`을 제공한다.
+- 선택 `helpers`, `fields`, `fields_function`, `validate_function`, `save_function`, `account_values_function`, `account_validate_function`, `account_save_function`을 제공한다.
 - 필드 `type`은 `text` 또는 `checkbox`를 사용할 수 있고, `checkbox` 값은 `registration_extensions[...]`에서 선택 시 `1`, 미선택 시 `0`으로 정규화된다.
 - `required` 필드는 회원가입 helper가 브라우저 표시와 별개로 서버에서도 검증한다. `text`는 빈 문자열을 거부하고, `checkbox`는 선택된 `1`만 유효하다.
 - 추가 입력은 `registration_extensions[{field_key}]` POST namespace 안에서만 읽고, 기본 회원 필드 이름과 충돌하면 안 된다.
 - `validate_function`은 가입 트랜잭션 전에 오류 배열을 반환하고, `save_function`은 가입 트랜잭션 안에서 자기 모듈 확장 데이터를 저장한다.
+- 회원 계정 정보에서도 같은 가입 입력을 수정하게 하려면 `account_values_function`과 `account_save_function`을 모두 제공한다. 선택 `account_validate_function`은 계정 저장 전에 오류 배열을 반환한다. 회원 모듈은 이 함수들을 명시적으로 호출할 뿐 제공 모듈의 테이블을 직접 조회하거나 저장하지 않는다.
 
 `member-mfa-providers.php`:
 
@@ -1534,7 +1535,7 @@ return [
 | `member-summary-rows.php` | core public layout helper | 공개 레이아웃 회원 보유 요약 영역 | 금액성 자산 외 계정별 보유 row 후보 |
 | `member-action-rows.php` | core public layout helper | 공개 레이아웃 회원 요약 영역 | 계정별 행동 row 후보 |
 | `member-only-routes.php` | core member-only guard | 사이트 회원전용 모드 비로그인 요청 판단 | 모듈 공개 화면 route/prefix와 파일성 보호 route |
-| `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장 | 서비스 모듈이 회원가입 시 필요한 추가 입력 |
+| `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장, 선택적인 계정 화면 값 조회·수정 | 서비스 모듈이 회원가입 시 필요한 추가 입력과 이후 회원 설정 관리를 함께 제공할 때 |
 | `member-mfa-providers.php` | `member` 모듈 | 로그인 MFA 운영자 설정, 로그인 challenge provider 결정, 회원 보안 화면 등록 가능 여부 판단 | TOTP, 이메일, SMS, 다른 OTP 같은 로그인 2차 인증 방식 후보 |
 | `public-identity.php` | `content`, `community`, `quiz`, `survey` 모듈 | 목록·읽기·댓글의 작성자 context 일괄 준비와 렌더링 | 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업 및 공통 stylesheet/script |
 | `public-banner.php` | `content`, `community` 모듈과 공개 layout shell | 선택 배너 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 배너 공개 정책, 마크업과 공통 stylesheet |

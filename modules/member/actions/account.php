@@ -8,11 +8,6 @@ if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modu
 }
 
 $account = sr_member_require_login($pdo);
-sr_member_group_evaluate_account($pdo, (int) $account['id']);
-$memberAccountActionRows = function_exists('sr_public_layout_member_action_rows')
-    ? sr_public_layout_member_action_rows($pdo, (int) $account['id'])
-    : [];
-
 $errors = [];
 $notice = '';
 $emailVerificationUrl = '';
@@ -21,6 +16,21 @@ $submittedBasics = null;
 $memberMfaSetup = [];
 $memberMfaRecoveryCodes = [];
 $memberSettings = sr_member_settings($pdo);
+$memberAccountBasePath = '/mypage';
+$memberAccountPage = 'overview';
+$memberAccountRoutePages = [
+    '/mypage' => 'overview',
+    '/account' => 'overview',
+    '/mypage/account' => 'account',
+    '/mypage/profile' => 'account',
+    '/mypage/security' => 'security',
+    '/mypage/privacy' => 'privacy',
+    '/mypage/verify' => 'verify',
+];
+$memberAccountCurrentPath = sr_request_path();
+if (isset($memberAccountRoutePages[$memberAccountCurrentPath])) {
+    $memberAccountPage = $memberAccountRoutePages[$memberAccountCurrentPath];
+}
 $memberMfaLoginMode = sr_member_mfa_login_mode($memberSettings['mfa_login_mode'] ?? null, $memberSettings['mfa_login_enabled'] ?? null);
 $memberMfaLoginProviderKeys = sr_member_mfa_enabled_login_provider_keys($pdo, $memberSettings);
 $memberMfaTotpLoginAllowed = in_array('totp', $memberMfaLoginProviderKeys, true);
@@ -36,27 +46,133 @@ $memberSecurityIdentityAvailable = function_exists('sr_identity_verification_ava
 $memberSecurityIdentityStartUrl = $memberSecurityIdentityAvailable && function_exists('sr_identity_verification_start_url')
     ? sr_identity_verification_start_url($memberSecurityIdentityPurpose, '/mypage/security')
     : '';
-$memberAccountBasePath = '/mypage';
-$memberAccountPage = 'overview';
-$memberAccountRoutePages = [
-    '/mypage' => 'overview',
-    '/account' => 'overview',
-    '/mypage/account' => 'account',
-    '/mypage/profile' => 'profile',
-    '/mypage/security' => 'security',
-    '/mypage/privacy' => 'privacy',
-];
-$memberAccountCurrentPath = sr_request_path();
-if (isset($memberAccountRoutePages[$memberAccountCurrentPath])) {
-    $memberAccountPage = $memberAccountRoutePages[$memberAccountCurrentPath];
+$memberAccountIdentityStartUrl = $memberSecurityIdentityAvailable && function_exists('sr_identity_verification_start_url')
+    ? sr_identity_verification_start_url($memberSecurityIdentityPurpose, '/mypage/verify')
+    : '';
+$memberAccountId = (int) $account['id'];
+$memberAccountSessionTokenHash = isset($_SESSION['sr_session_token_hash']) && is_string($_SESSION['sr_session_token_hash'])
+    ? $_SESSION['sr_session_token_hash']
+    : '';
+$memberAccountHasPassword = trim((string) ($account['password_hash'] ?? '')) !== '';
+$memberAccountHasMfaReauth = !$memberAccountHasPassword
+    && sr_member_mfa_active_totp_factor($pdo, $memberAccountId) !== null;
+$memberAccountAccessState = sr_member_account_access_state($memberAccountId, $memberAccountSessionTokenHash);
+
+if ($memberAccountCurrentPath === '/mypage/verify' && sr_request_method() === 'POST') {
+    sr_require_csrf();
+    $memberAccountAccessIntent = sr_post_string('intent', 40);
+    $memberAccountAccessResult = [
+        'verified' => false,
+        'method' => $memberAccountHasPassword ? 'password' : 'mfa',
+        'reason' => 'invalid_code',
+    ];
+    $memberAccountAccessThrottle = sr_member_reauth_throttle_status($pdo, $memberAccountId);
+
+    if ($memberAccountAccessIntent !== 'account_access_verify') {
+        $errors[] = sr_t('member::action.account.intent_invalid');
+    } elseif (!$memberAccountHasPassword && !$memberAccountHasMfaReauth) {
+        $memberAccountAccessResult = [
+            'verified' => true,
+            'method' => 'authenticated_session',
+            'reason' => '',
+        ];
+    } elseif (!empty($memberAccountAccessThrottle['limited'])) {
+        $errors[] = sr_t('member::action.reauth.throttled');
+        sr_member_log_auth($pdo, $memberAccountId, 'reauth_blocked', 'failure');
+    } else {
+        $memberAccountAccessPassword = sr_post_string_without_truncation('current_password', 255);
+        $memberAccountAccessMfaCode = sr_post_string_without_truncation('mfa_code', 80);
+        $memberAccountAccessResult = sr_member_mfa_management_reauth(
+            $pdo,
+            $account,
+            $memberAccountAccessPassword ?? '',
+            $memberAccountAccessMfaCode ?? '',
+            $config
+        );
+        if (empty($memberAccountAccessResult['verified'])) {
+            $errors[] = $memberAccountHasPassword
+                ? sr_t('member::action.reauth.password_invalid')
+                : sr_t('member::action.account.mfa_reauth_invalid');
+            sr_member_log_auth($pdo, $memberAccountId, 'account_page_reauth', 'failure');
+        }
+    }
+
+    if ($errors === []) {
+        $memberAccountAccessMethod = (string) ($memberAccountAccessResult['method'] ?? 'authenticated_session');
+        sr_member_account_access_remember_credential($memberAccountId, $memberAccountSessionTokenHash, $memberAccountAccessMethod);
+        sr_member_log_auth($pdo, $memberAccountId, 'account_page_reauth', 'success');
+        sr_audit_log($pdo, [
+            'actor_account_id' => $memberAccountId,
+            'actor_type' => 'member',
+            'event_type' => 'member.account.credential_reauthenticated',
+            'target_type' => 'member_account',
+            'target_id' => (string) $memberAccountId,
+            'result' => 'success',
+            'message' => 'Member account page credential was reauthenticated.',
+            'metadata' => [
+                'method' => $memberAccountAccessMethod,
+                'identity_required' => $memberSecurityIdentityRequired,
+            ],
+        ]);
+
+        if ($memberSecurityIdentityRequired && !$memberSecurityIdentitySatisfied) {
+            if ($memberAccountIdentityStartUrl !== '') {
+                sr_redirect($memberAccountIdentityStartUrl);
+            }
+            $errors[] = '본인확인 기능이 준비되지 않아 마이페이지에 진입할 수 없습니다.';
+        } else {
+            sr_member_account_access_complete($memberAccountId, $memberAccountSessionTokenHash);
+            sr_redirect(sr_member_account_access_take_next_path());
+        }
+    }
+
+    $_SESSION['sr_member_account_flash'] = [
+        'notice' => '',
+        'errors' => $errors,
+    ];
+    sr_redirect('/mypage/verify');
 }
+
+$memberAccountAccessState = sr_member_account_access_state($memberAccountId, $memberAccountSessionTokenHash);
+if (
+    sr_member_account_access_credential_verified($memberAccountAccessState)
+    && (!$memberSecurityIdentityRequired || $memberSecurityIdentitySatisfied)
+    && !sr_member_account_access_completed($memberAccountAccessState)
+) {
+    sr_member_account_access_complete($memberAccountId, $memberAccountSessionTokenHash);
+    $memberAccountAccessState = sr_member_account_access_state($memberAccountId, $memberAccountSessionTokenHash);
+}
+
+if (!sr_member_account_access_completed($memberAccountAccessState)) {
+    if ($memberAccountCurrentPath !== '/mypage/verify') {
+        sr_member_account_access_remember_next_path($memberAccountCurrentPath);
+        sr_redirect('/mypage/verify');
+    }
+    $memberAccountPage = 'verify';
+} elseif ($memberAccountCurrentPath === '/mypage/verify') {
+    sr_redirect(sr_member_account_access_take_next_path());
+}
+if ($memberAccountCurrentPath === '/mypage/profile' && sr_request_method() === 'GET') {
+    sr_redirect('/mypage/account');
+}
+
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies) || $profileExtraFieldDefinitions !== [];
 $profileExtraFieldValues = [];
+$registrationExtensionContracts = sr_member_registration_extension_contracts($pdo);
+$registrationExtensionFields = sr_member_registration_extension_fields($pdo, $registrationExtensionContracts);
+$registrationAccountExtensionFields = sr_member_registration_extension_account_fields($registrationExtensionFields, $registrationExtensionContracts);
+$registrationAccountExtensionValues = [];
 $memberLocaleOptions = sr_supported_locales($site ?? null);
-unset($_SESSION['sr_member_account_reauth']);
+
+if ($memberAccountPage !== 'verify') {
+    sr_member_group_evaluate_account($pdo, $memberAccountId);
+}
+$memberAccountActionRows = $memberAccountPage !== 'verify' && function_exists('sr_public_layout_member_action_rows')
+    ? sr_public_layout_member_action_rows($pdo, $memberAccountId)
+    : [];
 
 if (
     $emailVerificationEnabled
@@ -77,6 +193,15 @@ if (sr_request_method() === 'GET') {
         $notice = (string) ($accountFlash['notice'] ?? '');
         $flashErrors = $accountFlash['errors'] ?? [];
         $errors = is_array($flashErrors) ? array_values(array_filter(array_map('strval', $flashErrors))) : [];
+    }
+
+    if (
+        $memberAccountPage === 'verify'
+        && $memberSecurityIdentityRequired
+        && sr_get_string('identity_verification', 20) !== ''
+        && sr_get_string('identity_verification', 20) !== 'success'
+    ) {
+        $errors[] = '본인확인이 완료되지 않았습니다. 다시 시도해 주세요.';
     }
 
     $mfaSetupFlash = isset($_SESSION['sr_member_mfa_setup_flash']) && is_array($_SESSION['sr_member_mfa_setup_flash'])
@@ -103,6 +228,12 @@ if (sr_request_method() === 'GET') {
     }
 }
 
+if ($memberAccountPage === 'verify') {
+    $memberSkinView = sr_member_skin_view(sr_member_skin_key($memberSettings), 'account');
+    include $memberSkinView;
+    return;
+}
+
 $intent = '';
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
@@ -125,13 +256,28 @@ if (sr_request_method() === 'POST') {
 
     if ($errors === [] && $intent === 'basics') {
         $memberAccountPage = 'account';
+        $emailInput = sr_post_string_without_truncation('email', 255);
+        $loginIdInput = sr_post_string_without_truncation('login_id', 40);
         $basics = [
+            'email' => sr_normalize_identifier((string) ($emailInput ?? '')),
+            'login_id' => sr_member_normalize_login_id((string) ($loginIdInput ?? '')),
             'display_name' => sr_member_normalize_display_name(sr_post_string('display_name', 120)),
             'nickname' => sr_member_normalize_nickname(sr_post_string('nickname', 80)),
             'locale' => sr_post_string('locale', 20),
         ];
         $submittedBasics = $basics;
+        $registrationAccountExtensionValues = sr_member_registration_extension_values_from_post($registrationAccountExtensionFields, $errors);
 
+        if ($emailInput === null) {
+            $errors[] = sr_t('member::action.register.email_too_long');
+        } elseif (!filter_var($basics['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = sr_t('member::action.register.email_invalid');
+        }
+        if ($loginIdInput === null) {
+            $errors[] = sr_t('member::action.register.login_id_too_long');
+        } elseif ($basics['login_id'] !== '' && !sr_member_is_valid_login_id($basics['login_id'])) {
+            $errors[] = sr_t('member::action.register.login_id_invalid');
+        }
         foreach (sr_member_display_name_validation_errors((string) $basics['display_name']) as $displayNameError) {
             $errors[] = $displayNameError;
         }
@@ -144,22 +290,61 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('member::action.account.locale_invalid');
         }
 
+        $errors = array_merge($errors, sr_member_registration_extension_account_validation_errors(
+            $pdo,
+            $registrationExtensionContracts,
+            $registrationAccountExtensionValues,
+            ['site' => $site, 'account' => $account, 'values' => $basics]
+        ));
+
+        $accountDetailsResult = [];
         if ($errors === []) {
             $pdo->beginTransaction();
             try {
-                sr_member_update_account_basics($pdo, (int) $account['id'], $basics['display_name'], $basics['locale']);
+                $accountDetailsResult = sr_member_update_account_details(
+                    $pdo,
+                    $config,
+                    $account,
+                    $basics['email'],
+                    $basics['login_id'] !== '' ? $basics['login_id'] : null,
+                    $basics['display_name'],
+                    $basics['locale'],
+                    $emailVerificationEnabled
+                );
                 if (!empty($memberSettings['nickname_enabled'])) {
                     sr_member_set_nickname($pdo, (int) $account['id'], (string) $basics['nickname']);
                 } else {
                     sr_member_delete_nickname($pdo, (int) $account['id']);
                 }
+                sr_member_registration_extension_account_save(
+                    $pdo,
+                    $registrationExtensionContracts,
+                    (int) $account['id'],
+                    $registrationAccountExtensionValues,
+                    ['site' => $site, 'account' => $account, 'values' => $basics]
+                );
                 $pdo->commit();
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                throw $exception;
+                $knownMessages = [
+                    'member_account_email_duplicate' => '이미 사용 중인 이메일입니다.',
+                    'member_account_login_id_duplicate' => '이미 사용 중인 로그인 아이디입니다.',
+                    'member_account_email_invalid' => sr_t('member::action.register.email_invalid'),
+                    'member_account_login_id_invalid' => sr_t('member::action.register.login_id_invalid'),
+                ];
+                $extensionMessage = sr_member_registration_extension_exception_message($registrationExtensionContracts, $exception);
+                $knownMessage = (string) ($knownMessages[$exception->getMessage()] ?? '');
+                if ($knownMessage !== '' || $extensionMessage !== '') {
+                    $errors[] = $knownMessage !== '' ? $knownMessage : $extensionMessage;
+                } else {
+                    throw $exception;
+                }
             }
+        }
+
+        if ($errors === []) {
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'member',
@@ -171,9 +356,16 @@ if (sr_request_method() === 'POST') {
                 'metadata' => [
                     'locale' => $basics['locale'],
                     'nickname_set' => !empty($memberSettings['nickname_enabled']) && (string) $basics['nickname'] !== '',
+                    'email_changed' => !empty($accountDetailsResult['email_changed']),
+                    'login_id_changed' => !empty($accountDetailsResult['login_id_changed']),
+                    'login_id_set' => !empty($accountDetailsResult['login_id_set']),
+                    'registration_extensions_updated' => array_keys($registrationAccountExtensionValues),
                 ],
             ]);
 
+            if (!empty($accountDetailsResult['email_changed'])) {
+                unset($_SESSION['sr_debug_email_verification_url']);
+            }
             $account = sr_member_current_account($pdo);
             if (is_array($account)) {
                 sr_set_locale((string) $account['locale']);
@@ -181,7 +373,7 @@ if (sr_request_method() === 'POST') {
             $notice = sr_t('member::action.account.basics_saved');
         }
     } elseif ($errors === [] && $intent === 'profile') {
-        $memberAccountPage = 'profile';
+        $memberAccountPage = 'account';
         if (!$profileFieldsEnabled) {
             $errors[] = sr_t('member::action.account.profile_unavailable');
         }
@@ -339,6 +531,12 @@ if (sr_request_method() === 'POST') {
                 sr_member_logout($pdo);
                 sr_redirect('/login');
             }
+
+            $memberAccountSessionTokenHash = isset($_SESSION['sr_session_token_hash']) && is_string($_SESSION['sr_session_token_hash'])
+                ? $_SESSION['sr_session_token_hash']
+                : '';
+            sr_member_account_access_remember_credential((int) $account['id'], $memberAccountSessionTokenHash, 'password');
+            sr_member_account_access_complete((int) $account['id'], $memberAccountSessionTokenHash);
 
             sr_member_log_auth($pdo, (int) $account['id'], $passwordAuthEvent, 'success');
             sr_audit_log($pdo, [
@@ -656,6 +854,19 @@ if ($profileExtraFieldDefinitions !== []) {
     }
 } else {
     $profileExtraValues = [];
+}
+if ($registrationAccountExtensionFields !== []) {
+    if ($intent === 'basics' && $errors !== []) {
+        $registrationAccountExtensionValues = array_merge(
+            sr_member_registration_extension_empty_values($registrationAccountExtensionFields),
+            $registrationAccountExtensionValues
+        );
+    } else {
+        $registrationAccountExtensionValues = array_merge(
+            sr_member_registration_extension_empty_values($registrationAccountExtensionFields),
+            sr_member_registration_extension_account_values($pdo, $registrationExtensionContracts, (int) $account['id'])
+        );
+    }
 }
 $consents = sr_member_latest_consents($pdo, (int) $account['id']);
 $memberMfaActiveFactor = sr_member_mfa_active_totp_factor($pdo, (int) $account['id']);

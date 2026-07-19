@@ -7,6 +7,7 @@ require_once SR_ROOT . '/modules/member/helpers/nicknames.php';
 require_once SR_ROOT . '/modules/member/helpers/accounts.php';
 require_once SR_ROOT . '/modules/member/helpers/follows.php';
 require_once SR_ROOT . '/modules/member/helpers/sessions.php';
+require_once SR_ROOT . '/modules/member/helpers/account-access.php';
 require_once SR_ROOT . '/modules/member/helpers/profile.php';
 require_once SR_ROOT . '/modules/member/helpers/tokens.php';
 require_once SR_ROOT . '/modules/member/helpers/groups.php';

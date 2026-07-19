@@ -15,6 +15,8 @@ return [
     'POST /account' => 'actions/account.php',
     'GET /mypage' => 'actions/account.php',
     'POST /mypage' => 'actions/account.php',
+    'GET /mypage/verify' => 'actions/account.php',
+    'POST /mypage/verify' => 'actions/account.php',
     'GET /mypage/account' => 'actions/account.php',
     'POST /mypage/account' => 'actions/account.php',
     'GET /mypage/profile' => 'actions/account.php',

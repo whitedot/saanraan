@@ -349,6 +349,32 @@ function sr_message_registration_save(PDO $pdo, int $accountId, array $values, a
     }
 }
 
+function sr_message_registration_account_values(PDO $pdo, int $accountId): array
+{
+    $memberSettings = sr_message_member_settings($pdo, $accountId);
+
+    return [
+        sr_message_registration_field_key() => !empty($memberSettings['receive_enabled']) ? '1' : '0',
+    ];
+}
+
+function sr_message_registration_account_save(PDO $pdo, int $accountId, array $values, array $context = []): array
+{
+    $fieldKey = sr_message_registration_field_key();
+    if (!array_key_exists($fieldKey, $values)) {
+        return ['saved' => false];
+    }
+
+    $receiveEnabled = (string) $values[$fieldKey] === '1';
+    sr_message_save_member_settings($pdo, $accountId, $receiveEnabled);
+
+    return [
+        'receive_enabled' => $receiveEnabled,
+        'source' => 'account_form',
+        'saved' => true,
+    ];
+}
+
 function sr_message_account_label(?string $displayName, int $accountId, bool $showIdentifier = false, ?array $config = null, ?string $accountStatus = null): string
 {
     $label = trim((string) $displayName);

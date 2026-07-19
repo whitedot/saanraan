@@ -432,6 +432,29 @@ sr_message_policy_assert(
     'Message registration save must store unchecked receive setting in the message-owned table.'
 );
 
+$messageRegistrationContract = require $root . '/modules/message/member-registration.php';
+$messageRegistrationFields = sr_member_registration_extension_fields($pdo, ['message' => $messageRegistrationContract]);
+$messageAccountFields = sr_member_registration_extension_account_fields($messageRegistrationFields, ['message' => $messageRegistrationContract]);
+$messageAccountValues = sr_member_registration_extension_account_values($pdo, ['message' => $messageRegistrationContract], 20);
+sr_message_policy_assert(
+    isset($messageAccountFields[sr_message_registration_field_key()])
+        && (string) ($messageAccountValues[sr_message_registration_field_key()] ?? '') === '0',
+    'Message registration setting must be readable through the member account form contract.'
+);
+$messageAccountMetadata = sr_member_registration_extension_account_save(
+    $pdo,
+    ['message' => $messageRegistrationContract],
+    20,
+    [sr_message_registration_field_key() => '1']
+);
+$receiveEnabled = (int) $pdo->query('SELECT receive_enabled FROM sr_message_member_settings WHERE account_id = 20')->fetchColumn();
+sr_message_policy_assert(
+    !empty($messageAccountMetadata['message']['saved'])
+        && !empty($messageAccountMetadata['message']['receive_enabled'])
+        && $receiveEnabled === 1,
+    'Message-owned registration setting must be editable from the member account form without moving data ownership.'
+);
+
 $pdo->prepare(
     'INSERT INTO sr_module_settings (module_id, setting_key, setting_value, value_type, created_at, updated_at)
      VALUES (1, :setting_key, :setting_value, :value_type, :created_at, :updated_at)

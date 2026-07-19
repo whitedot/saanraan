@@ -222,10 +222,10 @@ $memberSettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="modules_member_admin_settings_identity_account_security_required"><?php echo sr_e('계정보안작업 본인확인'); ?></label>
+                <label class="form-label" for="modules_member_admin_settings_identity_account_security_required"><?php echo sr_e('마이페이지·계정보안 본인확인'); ?></label>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_account_security_required', 'identity_account_security_required', '1', $memberIdentityAccountSecurityAvailable && !empty($settings['identity_account_security_required']), '사용', '', $memberIdentityAccountSecurityInputAttributes); ?>
-                    <small class="form-help">비밀번호 변경, 2차 인증 설정/해제 같은 보안 작업을 실행할 때마다 본인확인을 요구합니다.</small>
+                    <small class="form-help">로그인 세션에서 마이페이지에 처음 들어갈 때 비밀번호 또는 2차 인증 확인에 이어 본인확인을 요구합니다. 완료 결과는 같은 세션의 비밀번호 변경과 2차 인증 관리에도 적용됩니다.</small>
                     <?php echo sr_admin_module_reference_list_html($pdo, $memberIdentityModuleReferences); ?>
                 </div>
             </div>
