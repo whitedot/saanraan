@@ -1063,7 +1063,7 @@ return [
 
 - 배열을 반환하고 `helpers`, `options_function`, `tree_function`, `render_function`을 가진다.
 - `options_function`은 `function (PDO $pdo): array`, `tree_function`은 `function (PDO $pdo, string $menuKey): array`, `render_function`은 `function (PDO $pdo, string $menuKey, string $slot): string` 형식이다.
-- 소비 모듈은 provider helper를 직접 include하지 않고 안전 계약 로더를 통해 호출한다. provider가 비활성·비호환 상태이거나 호출 중 예외가 발생하면 선택지는 빈 배열, tree는 빈 배열, 렌더 결과는 빈 문자열로 처리한다.
+- 소비 모듈은 provider helper를 직접 include하지 않고 안전 계약 로더를 통해 호출한다. provider가 비활성·비호환 상태이거나 계약 helper 로딩·함수 호출 중 예외가 발생하면 선택지는 빈 배열, tree는 빈 배열, 렌더 결과는 빈 문자열로 처리한다. 호출 인자 배열은 key와 관계없이 계약 함수의 위치 인자로 전달한다.
 
 `output-slots.php`:
 

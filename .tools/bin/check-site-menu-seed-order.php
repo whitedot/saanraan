@@ -37,6 +37,8 @@ $siteMenuProvides = is_array($siteMenuMetadata['contracts']['provides'] ?? null)
 sr_site_menu_check_assert(in_array('site-menu-provider.php', $siteMenuProvides, true), 'Site menu module metadata must provide the site menu provider contract.');
 $coreSettingsSource = (string) file_get_contents(SR_ROOT . '/core/helpers/settings.php');
 sr_site_menu_check_assert(str_contains($coreSettingsSource, 'function sr_module_contract_invoke('), 'Core must expose a guarded module contract invocation helper.');
+sr_site_menu_check_assert(str_contains($coreSettingsSource, 'module_contract_helper_load_failed_'), 'Core contract function resolution must isolate provider helper load failures.');
+sr_site_menu_check_assert(str_contains($coreSettingsSource, '...array_values($arguments)'), 'Core contract invocation must pass consumer arguments positionally.');
 $siteMenuHelpersSource = (string) file_get_contents(SR_ROOT . '/modules/site_menu/helpers.php');
 sr_site_menu_check_assert(str_contains($siteMenuHelpersSource, 'site_menu_link_suggestions_failed_'), 'Site menu link providers must isolate callable failures.');
 
@@ -126,9 +128,25 @@ $pdo->exec(
 );
 $pdo->exec("CREATE TABLE sr_community_boards (id INTEGER PRIMARY KEY, board_key TEXT NOT NULL)");
 $pdo->exec("CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY, board_id INTEGER NOT NULL)");
+$pdo->exec("CREATE TABLE sr_modules (id INTEGER PRIMARY KEY, module_key TEXT NOT NULL, status TEXT NOT NULL)");
 $pdo->exec("INSERT INTO sr_community_boards (id, board_key) VALUES (1, 'free')");
 $pdo->exec("INSERT INTO sr_community_posts (id, board_id) VALUES (42, 1)");
+$pdo->exec("INSERT INTO sr_modules (id, module_key, status) VALUES (1, 'site_menu', 'enabled')");
 sr_site_menu_clear_cache();
+
+$contractTree = sr_module_contract_invoke(
+    $pdo,
+    'site_menu',
+    'site-menu-provider.php',
+    'tree_function',
+    ['selected_menu' => 'header'],
+    []
+);
+sr_site_menu_check_assert(
+    is_array($contractTree) && (string) ($contractTree['menu_key'] ?? '') === 'header',
+    'Site menu provider invocation must treat consumer argument arrays as positional values.'
+);
+sr_site_menu_clear_cache('header');
 
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 $_SERVER['REQUEST_URI'] = '/community/post?id=42';

@@ -596,7 +596,17 @@ function sr_module_contract_function(PDO $pdo, string $moduleKey, string $contra
             return '';
         }
 
-        require_once $helperPath;
+        try {
+            require_once $helperPath;
+        } catch (Throwable $exception) {
+            if (function_exists('sr_log_exception')) {
+                $helperLabel = preg_replace('/[^a-z0-9_]+/', '_', strtolower($helpers));
+                $helperLabel = is_string($helperLabel) ? trim($helperLabel, '_') : 'helper';
+                sr_log_exception($exception, 'module_contract_helper_load_failed_' . $moduleKey . '_' . $helperLabel);
+            }
+
+            return '';
+        }
     }
 
     $function = (string) ($contract[$functionKey] ?? '');
@@ -611,13 +621,13 @@ function sr_module_contract_invoke(
     array $arguments = [],
     mixed $fallback = null
 ): mixed {
-    $function = sr_module_contract_function($pdo, $moduleKey, $contractFile, $functionKey);
-    if ($function === '') {
-        return $fallback;
-    }
-
     try {
-        return $function($pdo, ...$arguments);
+        $function = sr_module_contract_function($pdo, $moduleKey, $contractFile, $functionKey);
+        if ($function === '') {
+            return $fallback;
+        }
+
+        return $function($pdo, ...array_values($arguments));
     } catch (Throwable $exception) {
         if (function_exists('sr_log_exception')) {
             $contractLabel = preg_replace('/[^a-z0-9_]+/', '_', strtolower($contractFile . '_' . $functionKey));
