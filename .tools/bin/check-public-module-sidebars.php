@@ -60,7 +60,7 @@ $contains('modules/content/helpers/sidebar.php', [
     "'site-menu-provider.php'",
     "'tree_function'",
     "'render_function'",
-    "sr_public_data_cache_read('public-side-menu', 'content.groups'",
+    "sr_public_data_cache_generation('public-side-menu', 'content.groups'",
     "p.status = 'published'",
     'p.asset_access_enabled <> 1 OR p.asset_access_amount <= 0',
     'c.is_secret = 0',
@@ -135,7 +135,7 @@ $contains('modules/quiz/helpers/sidebar.php', [
     "'site-menu-provider.php'",
     "'tree_function'",
     "'render_function'",
-    "sr_public_data_cache_read('public-side-menu', 'quiz.groups'",
+    "sr_public_data_cache_generation('public-side-menu', 'quiz.groups'",
     "q.status = 'active'",
     'q.comments_enabled = 1',
     'c.is_secret = 0',
@@ -198,7 +198,7 @@ $contains('modules/survey/helpers/sidebar.php', [
     "'site-menu-provider.php'",
     "'tree_function'",
     "'render_function'",
-    "sr_public_data_cache_read('public-side-menu', 'survey.groups'",
+    "sr_public_data_cache_generation('public-side-menu', 'survey.groups'",
     "s.status = 'active'",
     's.public_listed = 1',
     's.comments_enabled = 1',
@@ -285,7 +285,23 @@ $assert(($surveyMenuRows[0]['title'] ?? '') === '의견', 'survey sidebar group 
 $sidebarPdo->exec("UPDATE sr_content_groups SET title = 'DB만 변경' WHERE id = 1");
 unset($GLOBALS['sr_public_data_cache_memory']);
 $assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '뉴스', 'content sidebar group menu must reuse its file cache across request memory resets.');
+$staleContentGeneration = sr_public_data_cache_generation('public-side-menu', 'content.groups', 'content_sidebar_groups_v1');
+$quizGenerationBeforeContentUpdate = sr_public_data_cache_generation('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1');
 sr_content_update_group($sidebarPdo, 1, ['title' => '변경된 뉴스', 'description' => '', 'status' => 'enabled', 'sort_order' => 10]);
+$assert(
+    !sr_public_data_cache_write(
+        'public-side-menu',
+        'content.groups',
+        'content_sidebar_groups_v1',
+        [['group_key' => 'news', 'title' => '무효화 전 값']],
+        $staleContentGeneration
+    ),
+    'content sidebar cache must reject a stale writer after group invalidation.'
+);
+$assert(
+    hash_equals($quizGenerationBeforeContentUpdate, sr_public_data_cache_generation('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1')),
+    'content sidebar cache invalidation must not rotate the quiz cache entry generation.'
+);
 sr_quiz_save_group($sidebarPdo, ['title' => '변경된 상식', 'description' => '', 'status' => 'enabled', 'sort_order' => 10], 1);
 sr_survey_save_group($sidebarPdo, ['title' => '변경된 의견', 'description' => '', 'status' => 'enabled', 'sort_order' => 10], 1);
 $assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 뉴스', 'content group update must invalidate the sidebar menu cache.');
@@ -293,7 +309,18 @@ $assert((sr_quiz_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '�
 $assert((sr_survey_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 의견', 'survey group update must invalidate the sidebar menu cache.');
 sr_public_data_cache_write('public-side-menu', 'content.groups', 'content_sidebar_groups_v1', [['group_key' => '../invalid', 'title' => '손상값']]);
 $assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 뉴스', 'content sidebar must reject an invalid cached group row and reload the database value.');
+$staleSurveyGeneration = sr_public_data_cache_generation('public-side-menu', 'survey.groups', 'survey_sidebar_groups_v1');
 sr_public_data_cache_clear_namespace('public-side-menu');
+$assert(
+    !sr_public_data_cache_write(
+        'public-side-menu',
+        'survey.groups',
+        'survey_sidebar_groups_v1',
+        [['group_key' => 'opinion', 'title' => '무효화 전 값']],
+        $staleSurveyGeneration
+    ),
+    'namespace invalidation must reject writers holding an earlier namespace generation.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "public module sidebar checks failed:\n- " . implode("\n- ", $errors) . "\n");

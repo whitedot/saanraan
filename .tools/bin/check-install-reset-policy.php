@@ -173,8 +173,13 @@ file_put_contents($execRoot . '/config/config.php', "<?php\nreturn [];\n");
 file_put_contents($execRoot . '/storage/installed.lock', "{}\n");
 file_put_contents($execRoot . '/storage/update-failed.json', "{}\n");
 mkdir($execRoot . '/storage/cache/public-data/test-cache/aa', 0755, true);
+mkdir($execRoot . '/storage/cache/public-data/test-cache/.generations', 0755, true);
 $execPublicDataCacheFile = $execRoot . '/storage/cache/public-data/test-cache/aa/cache.json';
+$execPublicDataNamespaceGeneration = $execRoot . '/storage/cache/public-data/test-cache/.generation';
+$execPublicDataEntryGeneration = $execRoot . '/storage/cache/public-data/test-cache/.generations/cache.generation';
 file_put_contents($execPublicDataCacheFile, "{}\n");
+file_put_contents($execPublicDataNamespaceGeneration, str_repeat('a', 32) . "\n");
+file_put_contents($execPublicDataEntryGeneration, str_repeat('b', 32) . "\n");
 
 $execKeyA = 'cache/check-install-reset-policy/exec-a.txt';
 $execKeyB = 'cache/check-install-reset-policy/exec-b.txt';
@@ -231,8 +236,12 @@ if (sr_install_reset_existing_prefixed_tables($execPdo, 'sr_') !== []) {
 if (is_file($execRoot . '/config/config.php') || is_file($execRoot . '/storage/installed.lock') || is_file($execRoot . '/storage/update-failed.json')) {
     sr_install_reset_check_error('Install reset should remove install state files after DB/storage completion.');
 }
-if (is_file($execPublicDataCacheFile) || (int) ($thirdBatch['public_data_cache_files_deleted'] ?? 0) !== 1) {
-    sr_install_reset_check_error('Install reset should clear public data cache files after DB/storage completion.');
+if (is_file($execPublicDataCacheFile)
+    || is_file($execPublicDataNamespaceGeneration)
+    || is_file($execPublicDataEntryGeneration)
+    || (int) ($thirdBatch['public_data_cache_files_deleted'] ?? 0) !== 1
+) {
+    sr_install_reset_check_error('Install reset should clear public data cache payload and generation files after DB/storage completion.');
 }
 
 @unlink(SR_ROOT . '/storage/' . $execKeyA);
@@ -242,7 +251,10 @@ if (is_file($execPublicDataCacheFile) || (int) ($thirdBatch['public_data_cache_f
 @unlink($execRoot . '/storage/update-failed.json');
 @unlink($execRoot . '/storage/install-reset.lock');
 @unlink($execPublicDataCacheFile);
+@unlink($execPublicDataNamespaceGeneration);
+@unlink($execPublicDataEntryGeneration);
 @rmdir($execRoot . '/storage/cache/public-data/test-cache/aa');
+@rmdir($execRoot . '/storage/cache/public-data/test-cache/.generations');
 @rmdir($execRoot . '/storage/cache/public-data/test-cache');
 @rmdir($execRoot . '/storage/cache/public-data');
 @rmdir($execRoot . '/storage/cache');

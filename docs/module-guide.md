@@ -1788,7 +1788,7 @@ return [
 - 사이트 메뉴 항목의 URL은 같은 메뉴 안에서도 중복될 수 있다. 운영자는 같은 경로를 다른 라벨, 위치, 아이콘, 상위 항목 맥락으로 여러 번 배치할 수 있다.
 - 사이트 메뉴 항목은 선택적으로 `icon_name`을 저장해 공개 메뉴 라벨 앞에 아이콘을 표시할 수 있다. 선택지는 관리자 메뉴 아이콘 helper의 허용 심볼과 공개 출력 가능한 Material 공용 아이콘 키를 사용한다.
 - 번들 공개/콘텐츠/커뮤니티/퀴즈/설문 헤더는 주 메뉴의 2단계를 dropdown, 3단계를 flyout으로 표시한다. 데스크톱은 hover/focus, 터치/모바일은 첫 탭 펼침과 열린 상태 재탭 이동을 사용하며, Escape와 바깥 클릭으로 열린 메뉴를 닫는다. 관리자 메뉴는 이 헤더 전용 dropdown 스타일의 대상이 아니다.
-- 공개 렌더링은 동일 `menu_key`의 published enabled item tree와 메뉴명을 `site-menu-tree` 파일 캐시에 저장해 요청 사이에 재사용한다. 현재 URL 활성 표시, 로그인 `next` 보정, slot class, 최종 HTML은 캐시하지 않고 요청별 렌더 단계에서 계산한다. 초안 공개 반영 또는 seed 직후에는 `sr_site_menu_clear_cache()`로 요청 메모리와 영속 파일 캐시를 함께 무효화한다. 렌더링 중 요청 메모리만 비워야 하는 진단·테스트 흐름은 `sr_site_menu_clear_runtime_cache()`를 사용할 수 있다.
+- 공개 렌더링은 동일 `menu_key`의 published enabled item tree와 메뉴명을 `site-menu-tree` 파일 캐시에 저장해 요청 사이에 재사용한다. 현재 URL 활성 표시, 로그인 `next` 보정, slot class, 최종 HTML은 캐시하지 않고 요청별 렌더 단계에서 계산한다. 초안 공개 반영 또는 seed 직후에는 `sr_site_menu_clear_cache()`로 요청 메모리와 cache key generation을 함께 무효화한다. 무효화 전 generation을 잡은 요청의 뒤늦은 캐시 쓰기는 거부되며 이전 payload 삭제 실패는 새 generation의 읽기에 영향을 주지 않는다. 렌더링 중 요청 메모리만 비워야 하는 진단·테스트 흐름은 `sr_site_menu_clear_runtime_cache()`를 사용할 수 있다.
 - `asset_type`과 `asset_type_label`을 제공하면 항목 모달에서 서비스 안의 대상 종류를 나눠서 선택할 수 있다. 예를 들어 커뮤니티는 `게시판 그룹`, `게시판`, 콘텐츠는 `콘텐츠 그룹`, `콘텐츠`로 표시한다.
 - `url`은 선택 입력이다. 값을 넣으면 내부 상대 경로 또는 허용된 외부 URL이어야 하며, 비워 둔 항목은 공개 메뉴에서 링크를 만들지 않고 텍스트 항목으로 렌더링한다. 하위 항목이 있는 URL 없는 항목은 dropdown/flyout을 여는 컨트롤로만 동작한다.
 - 메뉴 항목에 연결할 링크 자산은 화면 위치가 아니므로 `extension-points.php`로 선언하지 않는다.

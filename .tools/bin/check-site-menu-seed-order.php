@@ -155,10 +155,28 @@ sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 1, 'Site menu runti
 sr_site_menu_clear_runtime_cache('header');
 sr_site_menu_render($pdo, 'header', 'navigation');
 sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 1, 'Site menu persistent cache must reuse the enabled item tree after runtime cache clear.');
+$staleHeaderGeneration = sr_public_data_cache_generation(
+    sr_site_menu_tree_cache_namespace(),
+    'header',
+    sr_site_menu_tree_cache_schema()
+);
+sr_site_menu_clear_cache('header');
+sr_site_menu_check_assert(
+    !sr_public_data_cache_write(
+        sr_site_menu_tree_cache_namespace(),
+        'header',
+        sr_site_menu_tree_cache_schema(),
+        ['menu_key' => 'header', 'label' => '무효화 전 메뉴', 'enabled' => true, 'items' => []],
+        $staleHeaderGeneration
+    ),
+    'Site menu cache must reject a stale writer after entry invalidation.'
+);
+sr_site_menu_render($pdo, 'header', 'navigation');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu entry generation invalidation must force the next tree lookup.');
 sr_public_data_cache_write(sr_site_menu_tree_cache_namespace(), 'header', sr_site_menu_tree_cache_schema(), ['menu_key' => 'wrong']);
 sr_site_menu_clear_runtime_cache('header');
 sr_site_menu_render($pdo, 'header', 'navigation');
-sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu renderer must reject an invalid persistent tree and reload it from the database.');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 3, 'Site menu renderer must reject an invalid persistent tree and reload it from the database.');
 sr_site_menu_clear_cache('header');
 $brokenCachePath = sr_public_data_cache_path(sr_site_menu_tree_cache_namespace(), 'header', sr_site_menu_tree_cache_schema());
 if (!is_dir(dirname($brokenCachePath))) {
@@ -166,10 +184,10 @@ if (!is_dir(dirname($brokenCachePath))) {
 }
 file_put_contents($brokenCachePath, "{\n");
 sr_site_menu_render($pdo, 'header', 'navigation');
-sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 3, 'Site menu renderer must discard a structurally invalid cache file and reload it from the database.');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 4, 'Site menu renderer must discard a structurally invalid cache file and reload it from the database.');
 sr_site_menu_clear_cache('header');
 sr_site_menu_render($pdo, 'header', 'navigation');
-sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 4, 'Site menu full cache clear must force the next tree lookup.');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 5, 'Site menu full cache clear must force the next tree lookup.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'footer', 'secondary_navigation') === '', 'Site menu render runtime fixture must skip disabled menus.');
 $emptyTree = sr_site_menu_tree($pdo, 'empty_menu');
 sr_site_menu_check_assert(($emptyTree['enabled'] ?? false) === true, 'Site menu tree helper must keep enabled menu state when a menu has no enabled items.');
@@ -226,6 +244,8 @@ sr_site_menu_check_assert(str_contains($siteMenuInstallSql, "VALUES ('header', '
 sr_site_menu_check_assert(str_contains($siteMenuDraftUpdateSql, 'site_menu_draft_menus'), 'Site menu update must create draft menu tables for existing installations.');
 sr_site_menu_check_assert(str_contains($siteMenuAction, 'publish_site_menus'), 'Site menu admin action must publish draft menus explicitly.');
 sr_site_menu_check_assert(str_contains($siteMenuAction, 'DELETE FROM sr_site_menus'), 'Site menu publish action must replace public menu rows from drafts.');
+sr_site_menu_check_assert(str_contains($siteMenuAction, 'if (!sr_site_menu_clear_cache())'), 'Site menu publish action must report cache generation invalidation failures.');
+sr_site_menu_check_assert(str_contains($siteMenuKo, "'action.admin.cache_invalidation_failed'"), 'Site menu must translate the cache invalidation failure notice.');
 sr_site_menu_check_assert(str_contains($siteMenuAdminView, 'sr_admin_form_label_help_html($modalId . \'_menu_key\''), 'Site menu identifier field must expose detailed operator help.');
 sr_site_menu_check_assert(str_contains($siteMenuAdminView, '식별값을 바꿔도 다른 설정에 저장된 선택값은 자동으로 바뀌지 않습니다.'), 'Site menu identifier help must warn that dependent layout selections are not renamed automatically.');
 sr_site_menu_check_assert(str_contains($siteMenuAdminView, '초안 순서 저장') && str_contains($siteMenuAdminView, '공개 반영'), 'Site menu order help must distinguish draft order saving from publishing.');

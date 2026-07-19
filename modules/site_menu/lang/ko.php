@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'action.admin.cache_invalidation_failed' => '공개 반영은 완료됐지만 메뉴 캐시 갱신에 실패했습니다. 저장소 쓰기 권한과 오류 로그를 확인하세요.',
     'action.admin.depth_limit' => '사이트 메뉴 항목은 최대 3단계까지만 구성할 수 있습니다.',
     'action.admin.descendant_depth_limit' => '하위 항목을 포함하면 최대 3단계를 초과합니다.',
     'action.admin.intent_invalid' => '요청한 작업을 처리할 수 없습니다.',

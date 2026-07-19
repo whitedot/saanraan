@@ -27,13 +27,20 @@ function sr_quiz_sidebar_group_menu_rows_from_cache(array $rows): ?array
 
 function sr_quiz_sidebar_group_menu_rows(PDO $pdo): array
 {
-    $cachedPayload = sr_public_data_cache_read('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1');
+    $cacheGeneration = sr_public_data_cache_generation('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1');
+    $cachedPayload = sr_public_data_cache_read(
+        'public-side-menu',
+        'quiz.groups',
+        'quiz_sidebar_groups_v1',
+        $cacheGeneration
+    );
     $cached = is_array($cachedPayload) ? sr_quiz_sidebar_group_menu_rows_from_cache($cachedPayload) : null;
     if (is_array($cached)) {
         return $cached;
     }
     if (is_array($cachedPayload)) {
         sr_quiz_sidebar_clear_group_menu_cache();
+        $cacheGeneration = sr_public_data_cache_generation('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1');
     }
 
     $groups = [];
@@ -47,7 +54,13 @@ function sr_quiz_sidebar_group_menu_rows(PDO $pdo): array
             'title' => (string) ($group['title'] ?? $groupKey),
         ];
     }
-    sr_public_data_cache_write('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1', $groups);
+    sr_public_data_cache_write(
+        'public-side-menu',
+        'quiz.groups',
+        'quiz_sidebar_groups_v1',
+        $groups,
+        $cacheGeneration
+    );
 
     return $groups;
 }

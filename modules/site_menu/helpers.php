@@ -583,7 +583,17 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
         return $cache[$pdoCacheKey][$menuKey];
     }
 
-    $persistentPayload = sr_public_data_cache_read(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
+    $cacheGeneration = sr_public_data_cache_generation(
+        sr_site_menu_tree_cache_namespace(),
+        $menuKey,
+        sr_site_menu_tree_cache_schema()
+    );
+    $persistentPayload = sr_public_data_cache_read(
+        sr_site_menu_tree_cache_namespace(),
+        $menuKey,
+        sr_site_menu_tree_cache_schema(),
+        $cacheGeneration
+    );
     $persistentTree = is_array($persistentPayload) ? sr_site_menu_tree_from_cache($persistentPayload, $menuKey) : null;
     if (is_array($persistentTree)) {
         $cache[$pdoCacheKey][$menuKey] = $persistentTree;
@@ -593,6 +603,11 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
     }
     if (is_array($persistentPayload)) {
         sr_public_data_cache_forget(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
+        $cacheGeneration = sr_public_data_cache_generation(
+            sr_site_menu_tree_cache_namespace(),
+            $menuKey,
+            sr_site_menu_tree_cache_schema()
+        );
     }
 
     $stmt = $pdo->prepare(
@@ -635,24 +650,26 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
         sr_site_menu_tree_cache_namespace(),
         $menuKey,
         sr_site_menu_tree_cache_schema(),
-        $cache[$pdoCacheKey][$menuKey]
+        $cache[$pdoCacheKey][$menuKey],
+        $cacheGeneration
     );
 
     return $cache[$pdoCacheKey][$menuKey];
 }
 
-function sr_site_menu_clear_cache(string $menuKey = ''): void
+function sr_site_menu_clear_cache(string $menuKey = ''): bool
 {
     sr_site_menu_clear_runtime_cache($menuKey);
     if ($menuKey === '') {
-        sr_public_data_cache_clear_namespace(sr_site_menu_tree_cache_namespace());
-        return;
+        return sr_public_data_cache_clear_namespace(sr_site_menu_tree_cache_namespace());
     }
 
     $menuKey = sr_site_menu_clean_key($menuKey);
     if ($menuKey !== '') {
-        sr_public_data_cache_forget(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
+        return sr_public_data_cache_forget(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
     }
+
+    return false;
 }
 
 function sr_site_menu_clear_runtime_cache(string $menuKey = ''): void

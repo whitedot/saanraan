@@ -495,7 +495,9 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === [] && $publicMenuChanged) {
-        sr_site_menu_clear_cache();
+        if (!sr_site_menu_clear_cache()) {
+            $notice .= ' ' . sr_t('site_menu::action.admin.cache_invalidation_failed');
+        }
     }
 
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/site-menus');

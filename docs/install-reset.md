@@ -49,7 +49,7 @@ Preview는 config env, site base URL, DB 이름, S3 bucket에서 production-look
 2. production-looking 경고와 unsafe/remote storage reference를 확인한다.
 3. storage reference를 batch 크기만큼 삭제한다. 남은 reference가 있으면 DB와 설치 상태 파일은 건드리지 않고 종료한다.
 4. 현재 DB introspection과 allowlist의 교집합 table을 batch 크기만큼 drop한다. 남은 table이 있으면 설치 상태 파일은 건드리지 않고 종료한다.
-5. DB/storage batch가 모두 끝난 뒤 `storage/cache/public-data`의 생성 JSON 캐시를 비운다.
+5. DB/storage batch가 모두 끝난 뒤 `storage/cache/public-data`의 생성 JSON 캐시와 namespace·cache key generation marker를 비운다.
 6. `storage/update-failed.json`, `storage/installed.lock`, `config/config.php`, `config/config-*.tmp.php`를 제거한다.
 
 ## 안전 기준
