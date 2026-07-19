@@ -19,7 +19,7 @@
 | 요청 단위 메모리 캐시 | 설정, 모듈 계약, 테이블 존재 여부처럼 한 요청 안에서 반복 조회되는 값에 사용한다. 요청이 끝나면 폐기된다. |
 | 정적 asset 브라우저 캐시 | CSS, JavaScript, 이미지, 폰트처럼 공개 정적 파일에 사용한다. URL version 또는 파일 수정 시각으로 갱신 가능해야 한다. |
 | 라이브러리 정의 캐시 | HTML Purifier 정의 캐시처럼 외부 라이브러리 성능 보조에 사용한다. 경로는 `storage/cache/htmlpurifier`처럼 vendor 밖이어야 한다. |
-| 공개 업로드 이미지 응답 캐시 | 회원 아바타처럼 공개 경로로 제공되는 업로드 이미지는 권한/개인정보별 HTML과 분리하고, 파일명 또는 query version으로 갱신되게 한다. 로컬 파일 응답은 `Cache-Control`, `ETag`, `Last-Modified`를 보내고 조건부 요청이 맞으면 `304 Not Modified`로 끝낼 수 있다. |
+| 공개 업로드 이미지 응답 캐시 | 회원 프로필 이미지처럼 공개 경로로 제공되는 업로드 이미지는 권한/개인정보별 HTML과 분리하고, 파일명 또는 query version으로 갱신되게 한다. 로컬 파일 응답은 `Cache-Control`, `ETag`, `Last-Modified`를 보내고 조건부 요청이 맞으면 `304 Not Modified`로 끝낼 수 있다. |
 | 공개 이미지 썸네일 캐시 | 원본이 공개로 노출 가능한 이미지일 때만 `storage/cache/thumbnails` 아래에 생성한다. 새 캐시는 `{module_key}/{hash-prefix}/{hash}_{variant}_{source_version}.{ext}` 형식을 사용하며, 배포 규칙은 생성 파일명 패턴의 JPEG/PNG/GIF/WebP만 직접 열 수 있게 제한해야 한다. 원본 교체 감지는 모듈 제공 `source_version`/checksum, S3 `VersionId`/ETag/LastModified, 로컬 mtime/size 순으로 산출한 source version이 담당한다. 호출자가 checksum/source version과 MIME을 제공하면 helper는 원본 파일 또는 S3 원본을 열기 전에 기존 cache file을 먼저 확인하고, cache hit이면 원본 검증/다운로드 없이 캐시 URL을 반환해야 한다. |
 | 내부 URL 임베드 fragment 캐시 | URL 임베드 helper가 `storage/cache/embeds` 아래에 sanitized HTML fragment를 저장해 같은 공개 baseline 내부 URL 임베드를 다시 렌더링할 때 대상 계약 실행을 건너뛸 수 있다. 직접 공개 URL로 제공하지 않으며, 대상 모듈이 `fragment_cache_public`을 명시하고 익명 공개/비유료/비권한 조건과 target cache version을 제공할 때만 생성한다. |
 | read-only 상태 점검 결과 기록 | `ops-status.php` 출력처럼 사람이 기록하는 운영 기록은 캐시가 아니라 점검 증거로 다룬다. |

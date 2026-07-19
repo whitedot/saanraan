@@ -199,7 +199,7 @@ $issueRoutes = [
     '189' => ['/admin/banners', '/admin/banners/new', '/admin/banners/settings', '/admin/popup-layers', '/admin/popup-layers/new', '/admin/popup-layers/settings', '/admin/site-menus', '/admin/logo-manager', '/admin/seo', '/admin/ckeditor/settings'],
     '190' => ['/admin/ui-kit', '/admin', '/admin/members', '/admin/content', '/admin/community/posts'],
     '191' => ['/', '/robots.txt', '/sitemap.xml', '/assets/module.css', '/content/example', '/community', '/community/board?key=free'],
-    '192' => ['/login', '/register', '/password/reset', '/password/reset/confirm?token=bad', '/email/verify?token=bad', '/email/verified', '/member/avatar?account=missing'],
+    '192' => ['/login', '/register', '/password/reset', '/password/reset/confirm?token=bad', '/email/verify?token=bad', '/email/verified', '/member/profile-image?account=missing'],
     '193' => ['/account', '/account/withdraw', '/account/privacy-requests'],
     '194' => ['/content/example', '/content/group?key=example', '/content/download?id=1'],
     '195' => ['/community', '/community/board?key=free', '/community/post?id=1', '/community/write?key=free', '/community/edit?id=1', '/community/attachment?id=1'],

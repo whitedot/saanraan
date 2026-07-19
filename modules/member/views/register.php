@@ -52,7 +52,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <?php } ?>
                 </div>
             <?php } ?>
-            <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
+            <form method="post" action="<?php echo sr_e(sr_url('/register')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form<?php echo !empty($profilePolicies['profile_image_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                 <?php echo sr_csrf_field(); ?>
                 <?php if (!empty($registrationIdentitySatisfied) && !empty($registrationIdentityReturnToken)) { ?>
                     <input type="hidden" name="identity_verification_token" value="<?php echo sr_e((string) $registrationIdentityReturnToken); ?>">
@@ -130,13 +130,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 </select>
                             </label>
                         </p>
-                    <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberRegisterProfileOrderItem['key'] ?? '') === 'avatar_path' && !empty($profilePolicies['avatar_path']['visible'])) { ?>
+                    <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberRegisterProfileOrderItem['key'] ?? '') === 'profile_image_path' && !empty($profilePolicies['profile_image_path']['visible'])) { ?>
                         <p>
-                            <label for="modules_member_register_avatar_file">
-                        <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['avatar_path']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                <input class="form-input" id="modules_member_register_avatar_file" type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) ? ' required' : ''; ?>>
+                            <label for="modules_member_register_profile_image_file">
+                        <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['profile_image_path']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                                <input class="form-input" id="modules_member_register_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) ? ' required' : ''; ?>>
                             </label>
-                            <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
+                            <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
                         </p>
                     <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'extra') { ?>
                         <?php echo sr_member_profile_extra_fields_form_html(

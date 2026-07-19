@@ -61,6 +61,17 @@ $surveyCommentPage = $surveyCommentsEnabled
     ? sr_survey_comment_page($pdo, (int) ($survey['id'] ?? 0), $surveyRequestedCommentPage, 20)
     : ['comments' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
 $surveyComments = is_array($surveyCommentPage['comments'] ?? null) ? $surveyCommentPage['comments'] : [];
+$surveyOwnerAccountId = (int) ($survey['created_by_account_id'] ?? 0);
+$surveyAuthorAvatarAccountIds = [$surveyOwnerAccountId];
+foreach ($surveyComments as $surveyAvatarComment) {
+    $surveyAuthorAvatarAccountIds[] = (int) ($surveyAvatarComment['author_account_id'] ?? 0);
+}
+$surveyAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $surveyAuthorAvatarAccountIds);
+$surveyPublicAvatarsEnabled = sr_member_public_profile_images_enabled($pdo);
+$surveyMemberSettings = sr_member_settings($pdo);
+$surveyPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $surveyMemberSettings);
+$surveyCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $surveyMemberSettings);
+$surveyOwnerPublicName = $surveyOwnerAccountId > 0 ? sr_member_public_name_for_account_id($pdo, $surveyOwnerAccountId, '운영자') : '';
 $surveyCommentNotice = (string) ($_SESSION['sr_survey_comment_notice'] ?? '');
 $surveyCommentErrors = (array) ($_SESSION['sr_survey_comment_errors'] ?? []);
 $surveyCommentBody = (string) ($_SESSION['sr_survey_comment_body'] ?? '');
@@ -200,6 +211,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
             <div class="survey-screen-frame">
                 <div class="survey-screen-main">
             <h1><?php echo sr_e((string) $survey['title']); ?></h1>
+            <?php if ($surveyOwnerAccountId > 0 && $surveyOwnerPublicName !== ''): ?>
+                <div class="sr-survey-author-meta" aria-label="설문 작성자">
+                    <?php echo sr_member_public_profile_image_html((string) ($surveyAuthorAvatarSources[$surveyOwnerAccountId] ?? ''), 'sr-survey-post-author-avatar', 'medium', $surveyPublicAvatarsEnabled ? $surveyOwnerPublicName : '', $surveyPostAvatarSizePixels); ?>
+                    <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, $surveyOwnerAccountId, $surveyOwnerPublicName, [
+                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                    ]); ?>
+                </div>
+            <?php endif; ?>
             <?php echo sr_survey_cover_image_html($survey, 'sr-survey-cover-image', (string) ($survey['title'] ?? '')); ?>
             <?php if ((string) ($survey['description'] ?? '') !== ''): ?>
                 <p><?php echo sr_e((string) $survey['description']); ?></p>
@@ -421,9 +440,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                 <li id="survey-comment-<?php echo sr_e((string) $surveyCommentId); ?>" class="sr-survey-comment-item sr-survey-comment-depth-<?php echo sr_e((string) $surveyCommentDepth); ?>">
                                     <div class="sr-survey-comment-meta">
                                         <?php $surveyCommentAuthorLabel = (string) ($surveyComment['author_public_name'] ?? $surveyComment['author_public_name_snapshot'] ?? '회원'); ?>
-                                        <div class="sr-survey-comment-author"><?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, (int) ($surveyComment['author_account_id'] ?? 0), $surveyCommentAuthorLabel, [
-                                            'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                        ]); ?></div>
+                                        <div class="sr-survey-comment-author">
+                                            <?php echo sr_member_public_profile_image_html((string) ($surveyAuthorAvatarSources[(int) ($surveyComment['author_account_id'] ?? 0)] ?? ''), 'sr-survey-comment-author-avatar', 'small', $surveyPublicAvatarsEnabled ? $surveyCommentAuthorLabel : '', $surveyCommentAvatarSizePixels); ?>
+                                            <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, (int) ($surveyComment['author_account_id'] ?? 0), $surveyCommentAuthorLabel, [
+                                                'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                            ]); ?>
+                                        </div>
                                         <span class="sr-survey-comment-date">
                                             <span class="sr-survey-comment-date-content">
                                                 <?php echo sr_survey_time_html((string) ($surveyComment['created_at'] ?? '')); ?>

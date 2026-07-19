@@ -7,7 +7,7 @@ return [
     'POST /login/mfa' => 'actions/login-mfa.php',
     'GET /register' => 'actions/register.php',
     'POST /register' => 'actions/register.php',
-    'GET /member/avatar' => 'actions/avatar.php',
+    'GET /member/profile-image' => 'actions/profile-image.php',
     'GET /member/mention-search' => 'actions/mention-search.php',
     'POST /member/follow' => 'actions/follow.php',
     'GET /account' => 'actions/account.php',

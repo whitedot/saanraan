@@ -211,18 +211,18 @@ if (sr_request_method() === 'POST') {
     $errors = array_merge($errors, sr_member_registration_policy_consent_validation_errors($registrationPolicyDocuments, $registrationConsentValues));
 
     if ($profileFieldsEnabled) {
-        foreach (sr_member_profile_validation_errors($profileValues, $profilePolicies, ['validate_avatar' => false]) as $profileError) {
+        foreach (sr_member_profile_validation_errors($profileValues, $profilePolicies, ['validate_profile_image' => false]) as $profileError) {
             $errors[] = $profileError;
         }
         foreach (sr_member_validate_profile_extra_field_values($profileExtraFieldDefinitions, $profileExtraValues) as $profileError) {
             $errors[] = $profileError;
         }
         if (
-            !empty($profilePolicies['avatar_path']['visible'])
-            && !empty($profilePolicies['avatar_path']['required'])
-            && !sr_member_avatar_upload_was_provided($_FILES['avatar_file'] ?? null)
+            !empty($profilePolicies['profile_image_path']['visible'])
+            && !empty($profilePolicies['profile_image_path']['required'])
+            && !sr_member_profile_image_upload_was_provided($_FILES['profile_image_file'] ?? null)
         ) {
-            $errors[] = sr_t('member::profile.error.avatar_required');
+            $errors[] = sr_t('member::profile.error.profile_image_required');
         }
     }
 
@@ -262,16 +262,16 @@ if (sr_request_method() === 'POST') {
     if ($errors === []) {
         $uploadedAvatarReference = '';
 
-        if (!empty($profilePolicies['avatar_path']['visible']) && sr_member_avatar_upload_was_provided($_FILES['avatar_file'] ?? null)) {
+        if (!empty($profilePolicies['profile_image_path']['visible']) && sr_member_profile_image_upload_was_provided($_FILES['profile_image_file'] ?? null)) {
             try {
-                $uploadedAvatar = sr_member_upload_avatar($_FILES['avatar_file']);
+                $uploadedAvatar = sr_member_upload_profile_image($_FILES['profile_image_file']);
                 if (is_array($uploadedAvatar)) {
                     $uploadedAvatarReference = (string) $uploadedAvatar['reference'];
-                    $profileValues['avatar_path'] = $uploadedAvatarReference;
+                    $profileValues['profile_image_path'] = $uploadedAvatarReference;
                 }
             } catch (Throwable $exception) {
                 sr_log_exception($exception, 'member_register_avatar_upload');
-                $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : sr_t('member::profile.error.avatar_upload_failed');
+                $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : sr_t('member::profile.error.profile_image_upload_failed');
             }
         }
 
@@ -282,8 +282,8 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors !== [] && $uploadedAvatarReference !== '') {
-            sr_member_delete_avatar_reference($uploadedAvatarReference);
-            $profileValues['avatar_path'] = '';
+            sr_member_delete_profile_image_reference($uploadedAvatarReference);
+            $profileValues['profile_image_path'] = '';
         }
     }
 
@@ -291,7 +291,7 @@ if (sr_request_method() === 'POST') {
         $accountId = null;
         $verificationMailSent = null;
         $verificationUrl = '';
-        $uploadedAvatarReference = (string) ($profileValues['avatar_path'] ?? '');
+        $uploadedAvatarReference = (string) ($profileValues['profile_image_path'] ?? '');
 
         try {
             $pdo->beginTransaction();
@@ -339,8 +339,8 @@ if (sr_request_method() === 'POST') {
 
             sr_member_log_auth($pdo, null, 'register', 'failure');
             if ($uploadedAvatarReference !== '') {
-                sr_member_delete_avatar_reference($uploadedAvatarReference);
-                $profileValues['avatar_path'] = '';
+                sr_member_delete_profile_image_reference($uploadedAvatarReference);
+                $profileValues['profile_image_path'] = '';
             }
             $extensionError = sr_member_registration_extension_exception_message($registrationExtensionContracts, $exception);
             if ($exception instanceof SrIdentityVerificationDuplicateException) {

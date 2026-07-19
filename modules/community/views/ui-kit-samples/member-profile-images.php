@@ -27,16 +27,16 @@ $memberAvatarSamples = [
     ['name' => 'Mina', 'initial' => 'M', 'hash' => '7e22ce' . str_repeat('0', 26)],
 ];
 ?>
-<div class="ui-kit-sample-section" data-ui-kit-sample="member-avatars">
+<div class="ui-kit-sample-section" data-ui-kit-sample="member-profile-images">
 <div class="container-fluid">
                     <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">기본 회원 아바타 색상표</h4>
+                                <h4 class="card-title">기본 회원 프로필 이미지 색상표</h4>
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-hint ui-kit-space-after-4">아바타 이미지가 없을 때 회원 공개 해시 앞 6글자와 가장 가까운 색상을 적용합니다.</p>
+                                <p class="ui-kit-hint ui-kit-space-after-4">프로필 이미지가 없을 때 회원 공개 해시 앞 6글자와 가장 가까운 색상을 적용합니다.</p>
 
                                 <div class="ui-kit-cluster ui-kit-wrap ui-kit-gap-3">
                                     <?php foreach ($memberAvatarPalette as $memberAvatarColorIndex => $memberAvatarColor) { ?>
@@ -57,7 +57,7 @@ $memberAvatarSamples = [
 
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">아바타 미리보기</h4>
+                                <h4 class="card-title">프로필 이미지 미리보기</h4>
                             </div>
 
                             <div class="card-body">
@@ -87,7 +87,7 @@ $memberAvatarSamples = [
                             </div>
 
                             <div class="card-body">
-                                <div class="dropdown-menu dropdown-menu-profile dropdown-menu-profile-preview" role="group" aria-label="기본 아바타 드롭다운 샘플">
+                                <div class="dropdown-menu dropdown-menu-profile dropdown-menu-profile-preview" role="group" aria-label="기본 프로필 이미지 드롭다운 샘플">
                                     <div class="dropdown-profile-header">
                                         <span class="dropdown-profile-avatar member-avatar-color-7" aria-hidden="true">S</span>
                                         <span class="dropdown-profile-identity">

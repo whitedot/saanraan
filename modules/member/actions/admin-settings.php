@@ -149,12 +149,42 @@ if (sr_request_method() === 'POST') {
     } else {
         $settings['member_skin_key'] = $memberSkinKey;
     }
+    $memberAvatarSizeLimits = sr_member_profile_image_size_limits();
+    $memberAvatarSizeValues = [];
+    foreach (sr_member_profile_image_size_setting_keys() as $memberAvatarSizeKey => $memberAvatarSizeSettingKey) {
+        $memberAvatarSizeValue = sr_admin_post_int_in_range(
+            $memberAvatarSizeSettingKey,
+            (int) $memberAvatarSizeLimits['min'],
+            (int) $memberAvatarSizeLimits['max']
+        );
+        if ($memberAvatarSizeValue === null) {
+            $errors[] = sr_t('member::action.admin_settings.profile_image_size_invalid', [
+                'label' => (string) (sr_member_profile_image_size_options()[$memberAvatarSizeKey] ?? $memberAvatarSizeKey),
+                'min' => (string) $memberAvatarSizeLimits['min'],
+                'max' => (string) $memberAvatarSizeLimits['max'],
+            ]);
+            continue;
+        }
+        $settings[$memberAvatarSizeSettingKey] = $memberAvatarSizeValue;
+        $memberAvatarSizeValues[$memberAvatarSizeKey] = $memberAvatarSizeValue;
+    }
+    if (
+        count($memberAvatarSizeValues) === 3
+        && (
+            $memberAvatarSizeValues['small'] > $memberAvatarSizeValues['medium']
+            || $memberAvatarSizeValues['medium'] > $memberAvatarSizeValues['large']
+        )
+    ) {
+        $errors[] = sr_t('member::action.admin_settings.profile_image_size_order_invalid');
+    }
     foreach (sr_member_profile_field_definitions() as $definition) {
         $enabledKey = (string) $definition['enabled_key'];
         $requiredKey = (string) $definition['required_key'];
         $settings[$enabledKey] = ($_POST[$enabledKey] ?? '') === '1';
         $settings[$requiredKey] = ($_POST[$requiredKey] ?? '') === '1';
-        if ($settings[$requiredKey] && !$settings[$enabledKey]) {
+        if ($enabledKey === 'profile_image_enabled' && !$settings[$enabledKey]) {
+            $settings[$requiredKey] = false;
+        } elseif ($settings[$requiredKey] && !$settings[$enabledKey]) {
             $settings[$enabledKey] = true;
         }
     }
@@ -242,6 +272,9 @@ if (sr_request_method() === 'POST') {
             ['registration_privacy_document_key', (string) $settings['registration_privacy_document_key'], 'string'],
             ['registration_marketing_document_key', (string) $settings['registration_marketing_document_key'], 'string'],
             ['member_skin_key', (string) $settings['member_skin_key'], 'string'],
+            ['profile_image_size_small', (string) $settings['profile_image_size_small'], 'int'],
+            ['profile_image_size_medium', (string) $settings['profile_image_size_medium'], 'int'],
+            ['profile_image_size_large', (string) $settings['profile_image_size_large'], 'int'],
             ['profile_fields_json', (string) ($settings['profile_fields_json'] ?? '[]'), 'json'],
             ['profile_field_order_json', (string) ($settings['profile_field_order_json'] ?? '[]'), 'json'],
         ];
@@ -297,6 +330,12 @@ if (sr_request_method() === 'POST') {
                 ],
                 'login_identifier' => (string) $settings['login_identifier'],
                 'member_skin_key' => (string) $settings['member_skin_key'],
+                'profile_image_enabled' => (bool) $settings['profile_image_enabled'],
+                'profile_image_sizes' => [
+                    'small' => (int) $settings['profile_image_size_small'],
+                    'medium' => (int) $settings['profile_image_size_medium'],
+                    'large' => (int) $settings['profile_image_size_large'],
+                ],
                 'profile_fields' => sr_member_profile_field_policies($settings),
                 'profile_extra_fields' => sr_member_profile_extra_field_definitions($settings),
                 'profile_field_order' => sr_member_profile_field_order_items($settings, sr_member_profile_extra_field_definitions($settings)),

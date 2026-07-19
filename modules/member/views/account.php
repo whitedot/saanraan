@@ -14,6 +14,8 @@ $memberMfaLoginMode = isset($memberMfaLoginMode) && is_string($memberMfaLoginMod
 $memberMfaTotpLoginAllowed = isset($memberMfaTotpLoginAllowed) ? (bool) $memberMfaTotpLoginAllowed : true;
 $memberMfaTotpSetupAllowed = isset($memberMfaTotpSetupAllowed) ? (bool) $memberMfaTotpSetupAllowed : $memberMfaTotpLoginAllowed;
 $memberMfaDisableAllowed = isset($memberMfaDisableAllowed) ? (bool) $memberMfaDisableAllowed : $memberMfaLoginMode !== 'required';
+$memberAvatarSizeKey = 'large';
+$memberAvatarSizePixels = sr_member_profile_image_size_pixels($memberAvatarSizeKey, $memberSettings);
 $memberAccountPages = [
     'overview' => [
         'label' => '요약',
@@ -203,7 +205,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             $memberAccountProfileExtraByKey[(string) ($memberAccountProfileExtraDefinition['key'] ?? '')] = $memberAccountProfileExtraDefinition;
                         }
                         ?>
-                        <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/profile')); ?>" class="member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['avatar_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
+                        <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/profile')); ?>" class="member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['profile_image_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
                             <?php echo sr_csrf_field(); ?>
                             <input type="hidden" name="intent" value="profile">
                             <?php foreach ($memberAccountProfileOrderItems as $memberAccountProfileOrderItem) { ?>
@@ -229,24 +231,24 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                             </label>
                                         </p>
                                     <?php } ?>
-                                <?php } elseif ((string) ($memberAccountProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberAccountProfileOrderItem['key'] ?? '') === 'avatar_path') { ?>
-                                    <?php if (!empty($profilePolicies['avatar_path']['visible'])) { ?>
-                                        <?php $avatarSrc = sr_member_avatar_src((string) $profile['avatar_path']); ?>
+                                <?php } elseif ((string) ($memberAccountProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberAccountProfileOrderItem['key'] ?? '') === 'profile_image_path') { ?>
+                                    <?php if (!empty($profilePolicies['profile_image_path']['visible'])) { ?>
+                                        <?php $avatarSrc = sr_member_profile_image_src((string) $profile['profile_image_path']); ?>
                                         <p>
-                                            <label for="modules_member_account_avatar_file">
-                                                <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                                <input class="form-input" id="modules_member_account_avatar_file" type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['avatar_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
+                                            <label for="modules_member_account_profile_image_file">
+                                                <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['profile_image_path']['required']) && $avatarSrc === '' ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
+                                                <input class="form-input" id="modules_member_account_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
                                             </label>
-                                            <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_avatar_upload_max_bytes())); ?></small>
+                                            <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
                                         </p>
                                         <?php if ($avatarSrc !== '') { ?>
                                             <p>
-                                                <img src="<?php echo sr_e($avatarSrc); ?>" alt="<?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?>" width="96" height="96">
+                                                <img class="member-skin-basic-avatar-preview member-profile-image-size-<?php echo sr_e($memberAvatarSizeKey); ?>" src="<?php echo sr_e($avatarSrc); ?>" alt="<?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?>" width="<?php echo sr_e((string) $memberAvatarSizePixels); ?>" height="<?php echo sr_e((string) $memberAvatarSizePixels); ?>" style="--member-profile-image-size: <?php echo sr_e((string) $memberAvatarSizePixels); ?>px">
                                             </p>
-                                            <?php if (empty($profilePolicies['avatar_path']['required'])) { ?>
+                                            <?php if (empty($profilePolicies['profile_image_path']['required'])) { ?>
                                                 <p>
-                                                    <label class="member-skin-basic-choice-label" for="modules_member_account_avatar_delete">
-                                                        <input id="modules_member_account_avatar_delete" type="checkbox" name="avatar_delete" value="1" class="form-checkbox member-skin-basic-choice-input">
+                                                    <label class="member-skin-basic-choice-label" for="modules_member_account_profile_image_delete">
+                                                        <input id="modules_member_account_profile_image_delete" type="checkbox" name="profile_image_delete" value="1" class="form-checkbox member-skin-basic-choice-input">
                                                         <?php echo sr_e(sr_t('member::ui.delete.c94ee577')); ?>
                                                     </label>
                                                 </p>

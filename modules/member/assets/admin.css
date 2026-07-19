@@ -88,6 +88,26 @@
     .admin-page-member-groups .admin-member-group-rule-filter-keyword{grid-column:auto}
     .admin-page-member-groups .admin-member-group-table :is(th,td:not(.admin-empty-state)):nth-child(1){display:none}
 }
+
+.member-admin-profile-image-size-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 3);
+}
+
+.member-admin-profile-image-size-field {
+    display: grid;
+    gap: calc(var(--spacing) * 1.5);
+}
+
+.member-admin-profile-image-size-field > span:first-child {
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.admin-form .member-admin-profile-image-size-field .admin-input-unit > .form-input {
+    width: 7rem;
+}
 .member-dashboard-summary {
     border: 1px solid var(--color-default-300);
     display: grid;

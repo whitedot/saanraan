@@ -510,6 +510,18 @@
     width: 9rem;
 }
 
+.community-board-table-author-content,
+.community-board-table-mobile-author {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
+    min-width: 0;
+}
+
+.community-board-table-author-content {
+    justify-content: center;
+}
+
 .community-board-table :is(th, td).community-board-table-date {
     text-align: center;
     width: 7rem;
@@ -1104,8 +1116,11 @@
 }
 
 .community-comment-author {
+    align-items: center;
     color: var(--community-text, var(--sr-text, #242424));
+    display: inline-flex;
     font-weight: var(--font-weight-semibold, 600);
+    gap: 8px;
     min-width: 0;
 }
 
@@ -1282,6 +1297,46 @@
     min-width: 0;
 }
 
+.community-list-author-profile-image,
+.community-post-author-avatar,
+.community-comment-author-avatar {
+    background: var(--sr-surface-muted, var(--community-surface-soft, #f5f7fb));
+    border: 1px solid var(--community-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
+    border-radius: 50%;
+    flex: 0 0 auto;
+    object-fit: cover;
+}
+
+.member-profile-image-fallback {
+    align-items: center;
+    background: var(--sr-member-avatar-bg, #4f46e5);
+    border-color: transparent;
+    color: var(--color-white, #fff);
+    display: inline-flex;
+    font-size: clamp(0.625rem, calc(var(--member-profile-image-size, 32px) * 0.375), 1.25rem);
+    font-weight: var(--font-weight-bold, 700);
+    justify-content: center;
+    line-height: 1;
+    overflow: hidden;
+}
+
+.member-profile-image {
+    height: var(--member-profile-image-size, 2rem);
+    width: var(--member-profile-image-size, 2rem);
+}
+
+.member-profile-image.member-profile-image-size-small {
+    --member-profile-image-size: 1.5rem;
+}
+
+.member-profile-image.member-profile-image-size-medium {
+    --member-profile-image-size: 2rem;
+}
+
+.member-profile-image.member-profile-image-size-large {
+    --member-profile-image-size: 2.5rem;
+}
+
 .community-post-meta-item + .community-post-meta-item::before {
     background: var(--community-border, var(--sr-border, #d8dde6));
     border-radius: 50%;
@@ -1324,6 +1379,12 @@
     gap: 8px;
     margin-inline: calc(-1 * var(--community-post-view-padding-inline));
     padding: 0 var(--community-post-view-padding-inline) 14px;
+}
+
+.community-post-view-actions-bottom {
+    border-bottom: 0;
+    border-top: 1px solid var(--community-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
+    padding-block: 14px 0;
 }
 
 .community-action-group {

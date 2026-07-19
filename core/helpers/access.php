@@ -130,7 +130,7 @@ function sr_site_member_only_public_system_route(string $method, string $path): 
 function sr_site_member_only_direct_public_route(string $path): bool
 {
     return in_array($path, [
-        '/member/avatar',
+        '/member/profile-image',
         '/logo-manager/image',
         '/seo/image',
         '/banner/image',

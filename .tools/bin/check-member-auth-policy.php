@@ -8,6 +8,7 @@ define('SR_ROOT', $root);
 
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/output.php';
+require_once $root . '/modules/member/helpers/settings.php';
 require_once $root . '/modules/member/helpers/accounts.php';
 require_once $root . '/modules/member/helpers/sessions.php';
 require_once $root . '/modules/member/helpers/tokens.php';
@@ -102,6 +103,22 @@ function sr_member_auth_policy_check_input_helper_fixtures(): void
 }
 
 sr_member_auth_policy_check_input_helper_fixtures();
+
+sr_member_auth_policy_assert(
+    sr_member_profile_image_size_key('small') === 'small'
+        && sr_member_profile_image_size_key('medium') === 'medium'
+        && sr_member_profile_image_size_key('large') === 'large'
+        && sr_member_profile_image_size_key('unexpected') === 'medium',
+    'Member avatar size normalization should accept small/medium/large and fall back to medium.'
+);
+sr_member_auth_policy_assert(
+    sr_member_profile_image_size_pixels('small') === 24
+        && sr_member_profile_image_size_pixels('medium') === 32
+        && sr_member_profile_image_size_pixels('large') === 40
+        && sr_member_profile_image_size_pixels('small', ['profile_image_size_small' => 27]) === 27
+        && sr_member_profile_image_size_pixels('large', ['profile_image_size_large' => 200]) === 128,
+    'Member avatar size pixels should use configurable small/medium/large values and enforce the supported bounds.'
+);
 
 $memberLang = sr_member_auth_policy_read('modules/member/lang/ko.php');
 $privacyLang = sr_member_auth_policy_read('modules/privacy/lang/ko.php');
@@ -625,18 +642,31 @@ if ($settingsHelper !== '') {
         strpos($settingsHelper, 'function sr_member_profile_field_setting_keys') !== false
             && strpos($settingsHelper, 'profile_birth_date_enabled') !== false
             && strpos($settingsHelper, 'profile_is_adult_enabled') !== false
-            && strpos($settingsHelper, 'profile_avatar_enabled') !== false
+            && strpos($settingsHelper, 'profile_image_enabled') !== false
             && strpos($settingsHelper, 'profile_fields_json') !== false
             && strpos($settingsHelper, 'profile_phone_enabled') === false
             && strpos($settingsHelper, 'profile_text_enabled') === false,
         'Member settings helper should keep birth date, adult status, and avatar as fixed optional profile fields and store dynamic profile fields separately.'
     );
     sr_member_auth_policy_assert(
+        strpos($settingsHelper, "'profile_image_size_small' => sr_member_profile_image_size_pixels('small', \$settings)") !== false
+            && strpos($settingsHelper, "'profile_image_size_medium' => sr_member_profile_image_size_pixels('medium', \$settings)") !== false
+            && strpos($settingsHelper, "'profile_image_size_large' => sr_member_profile_image_size_pixels('large', \$settings)") !== false
+            && strpos($settingsHelper, 'function sr_member_profile_image_size_key(mixed $value): string') !== false
+            && strpos($settingsHelper, "in_array(\$sizeKey, ['small', 'medium', 'large'], true)") !== false
+            && strpos($settingsHelper, 'function sr_member_profile_image_size_setting_keys(): array') !== false
+            && strpos($settingsHelper, 'function sr_member_profile_image_size_pixels(mixed $value, array $settings = []): int') !== false
+            && strpos($settingsHelper, "return ['min' => 16, 'max' => 128]") !== false
+            && strpos($settingsHelper, "'small' => 24") !== false
+            && strpos($settingsHelper, "'large' => 40") !== false,
+        'Member settings should normalize configurable small/medium/large avatar pixel values and enforce their bounds.'
+    );
+    sr_member_auth_policy_assert(
         strpos($settingsHelper, 'function sr_member_profile_field_settings') !== false
             && strpos($settingsHelper, 'function sr_member_profile_field_policies') !== false
             && strpos($settingsHelper, 'profile_birth_date_required') !== false
             && strpos($settingsHelper, 'profile_is_adult_required') !== false
-            && strpos($settingsHelper, 'profile_avatar_required') !== false
+            && strpos($settingsHelper, 'profile_image_required') !== false
             && strpos($settingsHelper, 'profile_phone_required') === false
             && strpos($settingsHelper, 'profile_text_required') === false,
         'Member settings helper should expose normalized fixed profile visibility and required policies.'
@@ -694,6 +724,34 @@ if ($profileHelper !== '') {
             && strpos($profileHelper, 'sr_member_merge_default_profile_extra_field_definitions') !== false,
         'Member profile helper should expose phone as a default dynamic profile field.'
     );
+    sr_member_auth_policy_assert(
+        strpos($profileHelper, 'function sr_member_public_profile_images_enabled(PDO $pdo): bool') !== false
+            && strpos($profileHelper, 'function sr_member_public_profile_image_sources(PDO $pdo, array $accountIds): array') !== false
+            && strpos($profileHelper, "empty(\$profilePolicies['profile_image_path']['visible'])") !== false
+            && strpos($profileHelper, '!sr_member_public_profile_images_enabled($pdo)') !== false
+            && strpos($profileHelper, "a.status NOT IN ('withdrawn', 'anonymized')") !== false
+            && strpos($profileHelper, 'array_slice(array_values($normalizedAccountIds), 0, 500)') !== false,
+        'Public avatar rendering and lookup should honor avatar visibility, exclude withdrawn/anonymized accounts, and batch bounded account IDs.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($profileHelper, 'function sr_member_public_profile_image_html(string $source, string $className = \'\', string $sizeKey = \'medium\', string $fallbackLabel = \'\', int $sizePixels = 0): string') !== false
+            && strpos($profileHelper, "preg_match('/\\A[a-zA-Z0-9_-]+\\z/', \$class)") !== false
+            && strpos($profileHelper, "sr_e(\$source)") !== false
+            && strpos($profileHelper, "sr_e(\$initial)") !== false
+            && strpos($profileHelper, "'member-profile-image-fallback'") !== false
+            && strpos($profileHelper, "'member-profile-image-size-' . \$sizeKey") !== false
+            && strpos($profileHelper, "--member-profile-image-size: ' . (string) \$sizePixels . 'px") !== false
+            && strpos($profileHelper, "width=\"' . (string) \$sizePixels") !== false
+            && strpos($profileHelper, 'alt=""') !== false,
+        'Public avatar markup should escape its source and fallback initial, accept only safe CSS classes, apply the configured size, and remain decorative.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($profileHelper, "'member/profile-images/' . \$datePath") !== false
+            && strpos($profileHelper, "'/storage/tmp/member-profile-images/' . \$datePath") !== false
+            && strpos($profileHelper, "'/member/profile-image?file='") !== false
+            && strpos($profileHelper, 'function sr_member_upload_profile_image(array $file): ?array') !== false,
+        'Member profile image uploads should store one canonical file under the profile-images key and use the profile-image delivery route.'
+    );
 }
 
 $memberModule = sr_member_auth_policy_read('modules/member/module.php');
@@ -710,6 +768,12 @@ sr_member_auth_policy_assert(
     strpos($memberModule, '\'profile_field_order_json\' => \'["extra:phone"]\'') > strpos($memberModule, '"key":"phone"'),
     'Member module default profile order should be defined after the default phone field exists.'
 );
+sr_member_auth_policy_assert(
+    strpos($memberModule, "'profile_image_size_small' => 24") !== false
+        && strpos($memberModule, "'profile_image_size_medium' => 32") !== false
+        && strpos($memberModule, "'profile_image_size_large' => 40") !== false,
+    'Member module defaults should provide independently configurable small/medium/large avatar pixels.'
+);
 
 $memberMfaProviders = sr_member_auth_policy_read('modules/member/member-mfa-providers.php');
 $loginMfaView = sr_member_auth_policy_read('modules/member/views/login-mfa.php');
@@ -724,6 +788,14 @@ sr_member_auth_policy_assert(
     strpos($memberInstallSql, 'phone VARCHAR') === false
         && strpos($memberInstallSql, 'profile_text') === false,
     'Member install schema should not keep legacy fixed phone or introduction profile columns.'
+);
+sr_member_auth_policy_assert(
+    strpos($memberInstallSql, 'profile_image_path VARCHAR(255)') !== false
+        && strpos($memberInstallSql, 'avatar_path VARCHAR(255)') === false
+        && strpos($memberUpdateSql, 'CHANGE COLUMN avatar_path profile_image_path') !== false
+        && strpos($memberUpdateSql, "'profile_image_enabled'") !== false
+        && strpos($memberUpdateSql, "'profile_avatar_enabled'") !== false,
+    'Member install and update schema should use profile_image identifiers and migrate the previous profile image column and settings.'
 );
 sr_member_auth_policy_assert(
     strpos($memberInstallSql, 'CREATE TABLE IF NOT EXISTS sr_member_mfa_factors') !== false
@@ -869,14 +941,14 @@ if ($accountAction !== '') {
             && strpos($accountAction, '$profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings)') !== false
             && strpos($accountAction, 'sr_member_profile_values_from_post($profilePolicies, $profile)') !== false
             && strpos($accountAction, 'sr_member_validate_profile_extra_field_values($profileExtraFieldDefinitions, $profileExtraFieldValues)') !== false
-            && strpos($accountAction, "['validate_avatar' => false]") !== false
+            && strpos($accountAction, "['validate_profile_image' => false]") !== false
             && strpos($accountAction, 'sr_member_profile_validation_errors($profile, $profilePolicies)') !== false,
         'Account action should update avatar and validate dynamic profile fields through normalized profile policies.'
     );
     sr_member_auth_policy_assert(
-        strpos($accountAction, 'sr_member_avatar_upload_was_provided($_FILES[\'avatar_file\'] ?? null)') !== false
-            && strpos($accountAction, 'sr_member_upload_avatar($_FILES[\'avatar_file\'])') !== false
-            && strpos($accountAction, 'sr_member_delete_avatar_reference($uploadedAvatarReference)') !== false,
+        strpos($accountAction, 'sr_member_profile_image_upload_was_provided($_FILES[\'profile_image_file\'] ?? null)') !== false
+            && strpos($accountAction, 'sr_member_upload_profile_image($_FILES[\'profile_image_file\'])') !== false
+            && strpos($accountAction, 'sr_member_delete_profile_image_reference($uploadedAvatarReference)') !== false,
         'Account action should handle member avatar as a validated upload instead of a submitted URL.'
     );
     sr_member_auth_policy_assert(
@@ -1375,6 +1447,14 @@ if ($adminSettingsAction !== '') {
         'Member settings action should save avatar visibility/required settings, dynamic profile fields, confirm removed extra field cleanup, and audit them.'
     );
     sr_member_auth_policy_assert(
+        strpos($adminSettingsAction, 'sr_member_profile_image_size_setting_keys()') !== false
+            && strpos($adminSettingsAction, 'sr_admin_post_int_in_range(') !== false
+            && strpos($adminSettingsAction, "\$memberAvatarSizeValues['small'] > \$memberAvatarSizeValues['medium']") !== false
+            && strpos($adminSettingsAction, "['profile_image_size_small', (string) \$settings['profile_image_size_small'], 'int']") !== false
+            && strpos($adminSettingsAction, "'profile_image_sizes' => [") !== false,
+        'Member settings action should validate, order-check, save, and audit independent small/medium/large avatar pixels.'
+    );
+    sr_member_auth_policy_assert(
         strpos($adminSettingsAction, 'sr_admin_post_int_in_range($key, (int) $limits[\'min\'], (int) $limits[\'max\'])') !== false
             && strpos($adminSettingsAction, '$integerValue === null') !== false
             && strpos($adminSettingsAction, '$settings[$key] = $integerValue;') !== false
@@ -1435,6 +1515,14 @@ if ($adminSettingsView !== '') {
         'Member settings view should expose avatar visibility/required settings, dynamic profile field builder, and removed field value cleanup confirmation.'
     );
     sr_member_auth_policy_assert(
+        strpos($adminSettingsView, 'data-member-profile-image-enabled-toggle') !== false
+            && strpos($adminSettingsView, 'sr_member_profile_image_size_setting_keys()') !== false
+            && strpos($adminSettingsView, 'sr_member_profile_image_size_limits()') !== false
+            && strpos($adminSettingsView, 'name="<?php echo sr_e($memberAvatarSizeSettingKey); ?>"') !== false
+            && strpos($adminSettingsView, "sr_t('member::settings.profile_image_size.help')") !== false,
+        'Member settings view should expose avatar usage and required pixel inputs for small/medium/large usage tiers.'
+    );
+    sr_member_auth_policy_assert(
         strpos($adminSettingsView, '$memberIdentityRegistrationAvailable') !== false
             && strpos($adminSettingsView, '$memberIdentityWithdrawalAvailable') !== false
             && strpos($adminSettingsView, '$memberIdentityAccountSecurityAvailable') !== false
@@ -1452,11 +1540,18 @@ if ($accountView !== '') {
         strpos($accountView, 'if ($profileFieldsEnabled)') !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['birth_date']['visible']))") !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['is_adult']['visible']))") !== false
-            && strpos($accountView, "if (!empty(\$profilePolicies['avatar_path']['visible']))") !== false
+            && strpos($accountView, "if (!empty(\$profilePolicies['profile_image_path']['visible']))") !== false
             && strpos($accountView, "if (!empty(\$profilePolicies['phone']['visible']))") === false
             && strpos($accountView, "if (!empty(\$profilePolicies['profile_text']['visible']))") === false
             && strpos($accountView, 'sr_member_profile_extra_fields_form_html') !== false
-            && strpos($accountView, 'name="avatar_file"') !== false
+            && strpos($accountView, 'name="profile_image_file"') !== false
+            && strpos($accountView, "\$memberAvatarSizeKey = 'large'") !== false
+            && strpos($accountView, 'sr_member_profile_image_size_pixels($memberAvatarSizeKey, $memberSettings)') !== false
+            && strpos($accountView, 'member-profile-image-size-<?php echo sr_e($memberAvatarSizeKey); ?>') !== false
+            && strpos($accountView, 'style="--member-profile-image-size: <?php echo sr_e((string) $memberAvatarSizePixels); ?>px"') !== false
+            && strpos(sr_member_auth_policy_read('modules/member/skins/basic/skin.css'), '.member-skin-basic-avatar-preview.member-profile-image-size-small') !== false
+            && strpos(sr_member_auth_policy_read('modules/member/skins/basic/skin.css'), '.member-skin-basic-avatar-preview.member-profile-image-size-medium') !== false
+            && strpos(sr_member_auth_policy_read('modules/member/skins/basic/skin.css'), '.member-skin-basic-avatar-preview.member-profile-image-size-large') !== false
             && strpos($accountView, '$memberAccountHasPassword') !== false
             && strpos($accountView, '비밀번호 설정') !== false,
         'Account view should render birth date, adult status, avatar, dynamic profile fields, and password setup without legacy phone/introduction inputs.'

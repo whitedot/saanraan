@@ -260,6 +260,31 @@ $memberSettingsSectionNavItems = [
                                 </select>
             </div>
         </div>
+        <div class="form-row">
+            <span class="form-label"><?php echo sr_e(sr_t('member::settings.profile_image_enabled.label')); ?></span>
+            <div class="form-field">
+                <?php echo sr_admin_switch_html('member_admin_settings_profile_image_enabled', 'profile_image_enabled', '1', !empty($settings['profile_image_enabled']), sr_t('member::settings.profile_image_enabled.choice'), '0', ' data-member-profile-image-enabled-toggle'); ?>
+                <small class="form-help"><?php echo sr_e(sr_t('member::settings.profile_image_enabled.help')); ?></small>
+            </div>
+        </div>
+        <div class="form-row">
+            <span class="form-label"><?php echo sr_e(sr_t('member::settings.profile_image_size.label')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
+            <div class="form-field">
+                <div class="member-admin-profile-image-size-fields">
+                    <?php $memberAvatarSizeLimits = sr_member_profile_image_size_limits(); ?>
+                    <?php foreach (sr_member_profile_image_size_setting_keys() as $memberAvatarSizeKey => $memberAvatarSizeSettingKey) { ?>
+                        <label class="member-admin-profile-image-size-field" for="member_admin_settings_<?php echo sr_e($memberAvatarSizeSettingKey); ?>">
+                            <span><?php echo sr_e((string) (sr_member_profile_image_size_options()[$memberAvatarSizeKey] ?? $memberAvatarSizeKey)); ?></span>
+                            <span class="input-group admin-input-unit">
+                                <input id="member_admin_settings_<?php echo sr_e($memberAvatarSizeSettingKey); ?>" class="form-input" type="number" name="<?php echo sr_e($memberAvatarSizeSettingKey); ?>" value="<?php echo sr_e((string) sr_member_profile_image_size_pixels($memberAvatarSizeKey, $settings)); ?>" min="<?php echo sr_e((string) $memberAvatarSizeLimits['min']); ?>" max="<?php echo sr_e((string) $memberAvatarSizeLimits['max']); ?>" required>
+                                <span class="input-group-text">px</span>
+                            </span>
+                        </label>
+                    <?php } ?>
+                </div>
+                <small class="form-help"><?php echo sr_e(sr_t('member::settings.profile_image_size.help')); ?></small>
+            </div>
+        </div>
     </section>
 
     <section id="member-settings-section-profile" class="card admin-list-card admin-list-form" data-admin-section-anchor data-member-profile-extra-fields-builder>
@@ -884,6 +909,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function memberProfileFixedFieldWrite(root, fixedFields) {
         var holder = root ? root.querySelector('[data-member-profile-fixed-field-inputs]') : null;
         var script = root ? root.querySelector('[data-member-profile-fixed-fields-json]') : null;
+        var avatarEnabledToggle = document.querySelector('[data-member-profile-image-enabled-toggle]');
         if (!holder) {
             return;
         }
@@ -896,6 +922,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 [field.enabled_key, field.enabled ? '1' : '0'],
                 [field.required_key, field.required ? '1' : '0']
             ].forEach(function (item) {
+                if (item[0] === 'profile_image_enabled' && avatarEnabledToggle) {
+                    avatarEnabledToggle.checked = item[1] === '1';
+                    return;
+                }
                 var input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = item[0];
@@ -1337,6 +1367,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!enabled.checked) {
                     required.checked = false;
                 }
+            });
+        }
+        var avatarEnabledToggle = document.querySelector('[data-member-profile-image-enabled-toggle]');
+        if (avatarEnabledToggle) {
+            avatarEnabledToggle.addEventListener('change', function () {
+                var fixedFields = memberProfileFixedFieldParse(root);
+                fixedFields.forEach(function (field) {
+                    if (field.key === 'profile_image_path') {
+                        field.enabled = avatarEnabledToggle.checked;
+                        if (!field.enabled) {
+                            field.required = false;
+                        }
+                    }
+                });
+                memberProfileExtraFieldWrite(root, memberProfileExtraFieldParse(textarea), memberProfileFieldOrderParse(root, fixedFields, memberProfileExtraFieldParse(textarea)), fixedFields);
+                memberProfileExtraFieldRender(root);
             });
         }
         var form = root.closest('form');

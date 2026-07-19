@@ -83,6 +83,17 @@ $quizCommentPage = $quizCommentsEnabled
     ? sr_quiz_comment_page($pdo, (int) ($quiz['id'] ?? 0), $quizRequestedCommentPage, 20)
     : ['comments' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
 $quizComments = is_array($quizCommentPage['comments'] ?? null) ? $quizCommentPage['comments'] : [];
+$quizOwnerAccountId = (int) ($quiz['created_by_account_id'] ?? 0);
+$quizAuthorAvatarAccountIds = [$quizOwnerAccountId];
+foreach ($quizComments as $quizAvatarComment) {
+    $quizAuthorAvatarAccountIds[] = (int) ($quizAvatarComment['author_account_id'] ?? 0);
+}
+$quizAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $quizAuthorAvatarAccountIds);
+$quizPublicAvatarsEnabled = sr_member_public_profile_images_enabled($pdo);
+$quizMemberSettings = sr_member_settings($pdo);
+$quizPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $quizMemberSettings);
+$quizCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $quizMemberSettings);
+$quizOwnerPublicName = $quizOwnerAccountId > 0 ? sr_member_public_name_for_account_id($pdo, $quizOwnerAccountId, '운영자') : '';
 $quizCommentNotice = (string) ($_SESSION['sr_quiz_comment_notice'] ?? '');
 $quizCommentErrors = (array) ($_SESSION['sr_quiz_comment_errors'] ?? []);
 $quizCommentBody = (string) ($_SESSION['sr_quiz_comment_body'] ?? '');
@@ -249,6 +260,14 @@ if ($quizEmbedded) {
                     <div class="quiz-screen-main">
             <?php endif; ?>
             <h1><?php echo sr_e((string) $quiz['title']); ?></h1>
+            <?php if ($quizOwnerAccountId > 0 && $quizOwnerPublicName !== ''): ?>
+                <div class="sr-quiz-author-meta" aria-label="퀴즈 작성자">
+                    <?php echo sr_member_public_profile_image_html((string) ($quizAuthorAvatarSources[$quizOwnerAccountId] ?? ''), 'sr-quiz-post-author-avatar', 'medium', $quizPublicAvatarsEnabled ? $quizOwnerPublicName : '', $quizPostAvatarSizePixels); ?>
+                    <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, $quizOwnerAccountId, $quizOwnerPublicName, [
+                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                    ]); ?>
+                </div>
+            <?php endif; ?>
             <?php echo sr_quiz_cover_image_html($quiz, 'sr-quiz-cover-image', (string) ($quiz['title'] ?? '')); ?>
             <?php if ((string) ($quiz['description'] ?? '') !== ''): ?>
                 <p><?php echo sr_e((string) $quiz['description']); ?></p>
@@ -408,9 +427,12 @@ if ($quizEmbedded) {
                                 <li id="quiz-comment-<?php echo sr_e((string) $quizCommentId); ?>" class="sr-quiz-comment-item sr-quiz-comment-depth-<?php echo sr_e((string) $quizCommentDepth); ?>">
                                     <div class="sr-quiz-comment-meta">
                                         <?php $quizCommentAuthorLabel = (string) ($quizComment['author_public_name'] ?? $quizComment['author_public_name_snapshot'] ?? '회원'); ?>
-                                        <div class="sr-quiz-comment-author"><?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, (int) ($quizComment['author_account_id'] ?? 0), $quizCommentAuthorLabel, [
-                                            'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                        ]); ?></div>
+                                        <div class="sr-quiz-comment-author">
+                                            <?php echo sr_member_public_profile_image_html((string) ($quizAuthorAvatarSources[(int) ($quizComment['author_account_id'] ?? 0)] ?? ''), 'sr-quiz-comment-author-avatar', 'small', $quizPublicAvatarsEnabled ? $quizCommentAuthorLabel : '', $quizCommentAvatarSizePixels); ?>
+                                            <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, (int) ($quizComment['author_account_id'] ?? 0), $quizCommentAuthorLabel, [
+                                                'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                            ]); ?>
+                                        </div>
                                         <span class="sr-quiz-comment-date">
                                             <span class="sr-quiz-comment-date-content">
                                                 <?php echo sr_quiz_time_html((string) ($quizComment['created_at'] ?? '')); ?>

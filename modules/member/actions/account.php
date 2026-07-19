@@ -187,15 +187,15 @@ if (sr_request_method() === 'POST') {
         }
 
         $profile = sr_member_profile($pdo, (int) $account['id']);
-        if (!sr_member_avatar_reference_is_valid((string) $profile['avatar_path'])) {
-            $profile['avatar_path'] = '';
+        if (!sr_member_profile_image_reference_is_valid((string) $profile['profile_image_path'])) {
+            $profile['profile_image_path'] = '';
         }
-        $previousAvatarPath = (string) $profile['avatar_path'];
+        $previousAvatarPath = (string) $profile['profile_image_path'];
         $profile = sr_member_profile_values_from_post($profilePolicies, $profile);
         $profileExtraFieldValues = sr_member_profile_extra_field_input_values($profileExtraFieldDefinitions);
         $submittedProfile = $profile;
 
-        foreach (sr_member_profile_validation_errors($profile, $profilePolicies, ['validate_avatar' => false]) as $profileError) {
+        foreach (sr_member_profile_validation_errors($profile, $profilePolicies, ['validate_profile_image' => false]) as $profileError) {
             $errors[] = $profileError;
         }
         foreach (sr_member_validate_profile_extra_field_values($profileExtraFieldDefinitions, $profileExtraFieldValues) as $profileError) {
@@ -204,24 +204,24 @@ if (sr_request_method() === 'POST') {
 
         $uploadedAvatarReference = '';
         $avatarReferenceToDelete = '';
-        if ($errors === [] && !empty($profilePolicies['avatar_path']['visible'])) {
-            $deleteAvatar = ($_POST['avatar_delete'] ?? '') === '1';
-            if ($deleteAvatar && empty($profilePolicies['avatar_path']['required'])) {
-                $profile['avatar_path'] = '';
+        if ($errors === [] && !empty($profilePolicies['profile_image_path']['visible'])) {
+            $deleteAvatar = ($_POST['profile_image_delete'] ?? '') === '1';
+            if ($deleteAvatar && empty($profilePolicies['profile_image_path']['required'])) {
+                $profile['profile_image_path'] = '';
                 $avatarReferenceToDelete = $previousAvatarPath;
             }
 
-            if (sr_member_avatar_upload_was_provided($_FILES['avatar_file'] ?? null)) {
+            if (sr_member_profile_image_upload_was_provided($_FILES['profile_image_file'] ?? null)) {
                 try {
-                    $uploadedAvatar = sr_member_upload_avatar($_FILES['avatar_file']);
+                    $uploadedAvatar = sr_member_upload_profile_image($_FILES['profile_image_file']);
                     if (is_array($uploadedAvatar)) {
                         $uploadedAvatarReference = (string) $uploadedAvatar['reference'];
-                        $profile['avatar_path'] = $uploadedAvatarReference;
+                        $profile['profile_image_path'] = $uploadedAvatarReference;
                         $avatarReferenceToDelete = $previousAvatarPath;
                     }
                 } catch (Throwable $exception) {
                     sr_log_exception($exception, 'member_account_avatar_upload');
-                    $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : sr_t('member::profile.error.avatar_upload_failed');
+                    $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : sr_t('member::profile.error.profile_image_upload_failed');
                 }
             }
         }
@@ -233,8 +233,8 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors !== [] && $uploadedAvatarReference !== '') {
-            sr_member_delete_avatar_reference($uploadedAvatarReference);
-            $profile['avatar_path'] = $previousAvatarPath;
+            sr_member_delete_profile_image_reference($uploadedAvatarReference);
+            $profile['profile_image_path'] = $previousAvatarPath;
             $submittedProfile = $profile;
         }
 
@@ -249,12 +249,12 @@ if (sr_request_method() === 'POST') {
                     $pdo->rollBack();
                 }
                 if ($uploadedAvatarReference !== '') {
-                    sr_member_delete_avatar_reference($uploadedAvatarReference);
+                    sr_member_delete_profile_image_reference($uploadedAvatarReference);
                 }
                 throw $exception;
             }
-            if ($avatarReferenceToDelete !== '' && $avatarReferenceToDelete !== (string) $profile['avatar_path']) {
-                sr_member_delete_avatar_reference($avatarReferenceToDelete);
+            if ($avatarReferenceToDelete !== '' && $avatarReferenceToDelete !== (string) $profile['profile_image_path']) {
+                sr_member_delete_profile_image_reference($avatarReferenceToDelete);
             }
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -642,8 +642,8 @@ $account['nickname'] = is_array($submittedBasics) && $errors !== []
     ? (string) ($submittedBasics['nickname'] ?? '')
     : sr_member_nickname($pdo, (int) $account['id']);
 $profile = sr_member_profile($pdo, (int) $account['id']);
-if (!sr_member_avatar_reference_is_valid((string) $profile['avatar_path'])) {
-    $profile['avatar_path'] = '';
+if (!sr_member_profile_image_reference_is_valid((string) $profile['profile_image_path'])) {
+    $profile['profile_image_path'] = '';
 }
 if (is_array($submittedProfile) && $errors !== []) {
     $profile = array_merge($profile, $submittedProfile);

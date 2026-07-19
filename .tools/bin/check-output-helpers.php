@@ -534,6 +534,23 @@ if (is_string($commonUiScript)) {
         'Custom time tooltip script should remove native title attributes to prevent duplicate tooltips.'
     );
 }
+foreach ([
+    '/assets/common.css',
+    '/modules/admin/assets/common.css',
+    '/modules/content/theme/basic/assets/common.css',
+    '/modules/content/theme/basic/assets/module.css',
+    '/modules/community/theme/basic/assets/common.css',
+    '/modules/quiz/theme/basic/assets/common.css',
+    '/modules/survey/theme/basic/assets/common.css',
+] as $timeTooltipStylesheetPath) {
+    $timeTooltipStylesheet = file_get_contents($root . $timeTooltipStylesheetPath);
+    sr_output_helper_assert(
+        is_string($timeTooltipStylesheet)
+            && str_contains($timeTooltipStylesheet, '.sr-time-floating-tooltip')
+            && str_contains($timeTooltipStylesheet, 'box-shadow: 0 2px 8px rgba(15, 23, 42, .14);'),
+        'Absolute time tooltip should keep its subtle shadow: ' . $timeTooltipStylesheetPath
+    );
+}
 $layoutPdo = new SrOutputHelperCheckPdo('sqlite::memory:');
 $layoutPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $layoutPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);

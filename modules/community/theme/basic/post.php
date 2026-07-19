@@ -66,6 +66,14 @@ if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && functio
 }
 $memberSettings = sr_member_settings($pdo);
 $config = isset($config) && is_array($config) ? $config : sr_runtime_config();
+$communityPublicAvatarsEnabled = sr_member_public_profile_images_enabled($pdo);
+$communityPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $memberSettings);
+$communityCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $memberSettings);
+$communityAuthorAvatarAccountIds = [(int) ($post['author_account_id'] ?? 0)];
+foreach ((array) ($comments ?? []) as $communityAvatarComment) {
+    $communityAuthorAvatarAccountIds[] = (int) ($communityAvatarComment['author_account_id'] ?? 0);
+}
+$communityAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $communityAuthorAvatarAccountIds);
 if (!$communityCommentFragmentResponse) {
     $pageTitle = (string) $post['title'];
     $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
@@ -142,7 +150,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                     <?php } ?>
                     <?php $communityPostAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
                     <span class="community-post-meta-item">
-                        <span class="community-post-meta-label"><?php echo sr_e('작성자'); ?></span>
+                        <?php echo sr_member_public_profile_image_html((string) ($communityAuthorAvatarSources[(int) ($post['author_account_id'] ?? 0)] ?? ''), 'community-post-author-avatar', 'medium', $communityPublicAvatarsEnabled ? $communityPostAuthorLabel : '', $communityPostAvatarSizePixels); ?>
                         <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($post['author_account_id'] ?? 0), $communityPostAuthorLabel, [
                             'community_board_key' => (string) $post['board_key'],
                             'community_board_accessible' => is_array($postBoard ?? null),
@@ -151,7 +159,6 @@ unset($_SESSION['sr_member_follow_feedback']);
                         ]); ?>
                     </span>
                     <span class="community-post-meta-item">
-                        <span class="community-post-meta-label"><?php echo sr_e('작성일'); ?></span>
                         <?php echo sr_community_time_html((string) $post['created_at']); ?>
                     </span>
                     <span class="community-post-meta-item">
@@ -436,6 +443,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                 ?>
                 <?php echo sr_reaction_render_widget($pdo, 'community', 'post', (string) (int) ($post['id'] ?? 0), is_array($account ?? null) ? $account : null, $communityPostReactionOptions); ?>
             <?php } ?>
+            <?php include SR_ROOT . '/modules/community/views/post-bottom-actions.php'; ?>
 
             <?php if ($fileAttachments !== []) { ?>
                 <section>
@@ -560,6 +568,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                             <div class="community-comment-meta">
                                 <?php $communityCommentAuthorLabel = sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
                                 <div class="community-comment-author">
+                                    <?php echo sr_member_public_profile_image_html((string) ($communityAuthorAvatarSources[(int) ($comment['author_account_id'] ?? 0)] ?? ''), 'community-comment-author-avatar', 'small', $communityPublicAvatarsEnabled ? $communityCommentAuthorLabel : '', $communityCommentAvatarSizePixels); ?>
                                     <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($comment['author_account_id'] ?? 0), $communityCommentAuthorLabel, [
                                         'community_board_key' => (string) $post['board_key'],
                                         'community_board_accessible' => is_array($postBoard ?? null),

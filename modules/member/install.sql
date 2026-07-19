@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS sr_member_profiles (
     account_id BIGINT UNSIGNED NOT NULL,
     birth_date DATE NULL,
     is_adult TINYINT(1) NULL,
-    avatar_path VARCHAR(255) NOT NULL DEFAULT '',
+    profile_image_path VARCHAR(255) NOT NULL DEFAULT '',
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),

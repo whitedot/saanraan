@@ -95,6 +95,13 @@ $contains('modules/content/theme/basic/assets/module.css', [
 ]);
 $contains('modules/content/theme/basic/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
 $contains('modules/content/views/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
+foreach (['modules/content/theme/basic/content.php', 'modules/content/views/content.php'] as $contentViewFile) {
+    $contentViewSource = $source($contentViewFile);
+    $assert(substr_count($contentViewSource, 'class="content-view-actions') === 2, $contentViewFile . ' must render top and bottom content action rows.');
+    $reactionPosition = strpos($contentViewSource, "sr_reaction_render_widget(\$pdo, 'content', 'content'");
+    $bottomActionsPosition = strpos($contentViewSource, 'class="content-view-actions content-view-actions-bottom"');
+    $assert(is_int($reactionPosition) && is_int($bottomActionsPosition) && $bottomActionsPosition > $reactionPosition, $contentViewFile . ' must render bottom actions after the content reaction widget position.');
+}
 $contains('modules/content/helpers.php', ["'content.form'", 'sidebar_enabled', 'sidebar_menu_type']);
 
 $excerpt = sr_content_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);

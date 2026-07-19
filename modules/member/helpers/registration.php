@@ -299,7 +299,7 @@ function sr_member_registration_extension_fields(PDO $pdo, array $contracts): ar
         'privacy_consent',
         'marketing_consent',
         'birth_date',
-        'avatar_file',
+        'profile_image_file',
     ], true);
 
     foreach ($contracts as $moduleKey => $contract) {

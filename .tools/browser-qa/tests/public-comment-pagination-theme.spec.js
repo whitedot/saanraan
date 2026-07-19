@@ -86,6 +86,8 @@ const panelFixtures = [
     count: 'community-comments-count',
     list: 'community-comment-list',
     item: 'community-comment-item',
+    author: 'community-comment-author',
+    avatar: 'community-comment-author-avatar',
     form: 'community-comment-form',
   },
   {
@@ -99,6 +101,8 @@ const panelFixtures = [
     count: 'content-comments-count',
     list: '',
     item: 'content-comment-item',
+    author: 'content-comment-author',
+    avatar: 'content-comment-author-avatar',
     form: 'content-comment-form',
   },
   {
@@ -112,6 +116,8 @@ const panelFixtures = [
     count: 'sr-quiz-comments-count',
     list: 'sr-quiz-comment-list',
     item: 'sr-quiz-comment-item',
+    author: 'sr-quiz-comment-author',
+    avatar: 'sr-quiz-comment-author-avatar',
     form: 'sr-quiz-comment-form',
   },
   {
@@ -125,6 +131,8 @@ const panelFixtures = [
     count: 'sr-survey-comments-count',
     list: 'sr-survey-comment-list',
     item: 'sr-survey-comment-item',
+    author: 'sr-survey-comment-author',
+    avatar: 'sr-survey-comment-author-avatar',
     form: 'sr-survey-comment-form',
   },
 ];
@@ -161,7 +169,7 @@ for (const fixture of panelFixtures) {
         <section class="${fixture.panel}">
           <div class="${fixture.header}"><h2 data-comment-title>댓글 <span class="${fixture.count}">2</span></h2></div>
           <ul${listClass}>
-            <li class="${fixture.item}"><div>첫 댓글</div></li>
+            <li class="${fixture.item}"><div class="${fixture.author}" data-comment-author><img class="member-profile-image member-profile-image-size-medium ${fixture.avatar}" data-comment-avatar alt="" width="32" height="32"><span class="member-profile-image member-profile-image-size-medium member-profile-image-fallback member-default-avatar member-avatar-color-8 ${fixture.avatar}" data-comment-avatar-fallback aria-hidden="true">작</span><span>작성자</span></div><div>첫 댓글</div></li>
             <li class="${fixture.item}" data-comment-second><div>둘째 댓글</div></li>
           </ul>
           <form class="${fixture.form}"><p data-comment-form-copy>댓글 작성</p><button type="button">등록</button></form>
@@ -176,6 +184,9 @@ for (const fixture of panelFixtures) {
       const header = getComputedStyle(document.querySelector('[data-comment-title]').parentElement);
       const title = getComputedStyle(document.querySelector('[data-comment-title]'));
       const second = getComputedStyle(document.querySelector('[data-comment-second]'));
+      const author = getComputedStyle(document.querySelector('[data-comment-author]'));
+      const avatar = getComputedStyle(document.querySelector('[data-comment-avatar]'));
+      const avatarFallback = getComputedStyle(document.querySelector('[data-comment-avatar-fallback]'));
       const form = getComputedStyle(document.querySelector('form'));
       const formCopy = getComputedStyle(document.querySelector('[data-comment-form-copy]'));
       return {
@@ -188,6 +199,23 @@ for (const fixture of panelFixtures) {
         titleMarginBottom: title.marginBottom,
         itemDivider: second.borderTopColor,
         itemPaddingTop: second.paddingTop,
+        authorDisplay: author.display,
+        authorAlign: author.alignItems,
+        authorGap: author.gap,
+        avatarSize: [avatar.width, avatar.height],
+        avatarRadius: avatar.borderTopLeftRadius,
+        avatarBorder: avatar.borderTopColor,
+        avatarBackground: avatar.backgroundColor,
+        avatarObjectFit: avatar.objectFit,
+        avatarFallbackSize: [avatarFallback.width, avatarFallback.height],
+        avatarFallbackRadius: avatarFallback.borderTopLeftRadius,
+        avatarFallbackBorder: avatarFallback.borderTopColor,
+        avatarFallbackBackground: avatarFallback.backgroundColor,
+        avatarFallbackColor: avatarFallback.color,
+        avatarFallbackDisplay: avatarFallback.display,
+        avatarFallbackAlign: avatarFallback.alignItems,
+        avatarFallbackJustify: avatarFallback.justifyContent,
+        avatarFallbackFontWeight: avatarFallback.fontWeight,
         formDivider: form.borderTopColor,
         formPaddingTop: form.paddingTop,
         formCopyColor: formCopy.color,
@@ -207,11 +235,53 @@ for (const fixture of panelFixtures) {
       expect(styles.panelPaddingBottom).toBe('22px');
       expect(styles.titleMarginBottom).toBe('0px');
       expect(styles.itemPaddingTop).toBe('18px');
+      expect(styles.authorDisplay).toBe('inline-flex');
+      expect(styles.authorAlign).toBe('center');
+      expect(styles.authorGap).toBe('8px');
+      expect(styles.avatarSize).toEqual(['32px', '32px']);
+      expect(styles.avatarRadius).toBe('50%');
+      expect(styles.avatarBorder).toBe(scheme === 'dark' ? 'rgb(52, 65, 84)' : 'rgb(227, 232, 239)');
+      expect(styles.avatarBackground).toBe(scheme === 'dark' ? 'rgb(31, 41, 55)' : 'rgb(243, 246, 250)');
+      expect(styles.avatarObjectFit).toBe('cover');
+      expect(styles.avatarFallbackSize).toEqual(['32px', '32px']);
+      expect(styles.avatarFallbackRadius).toBe('50%');
+      expect(styles.avatarFallbackBorder).toBe('rgba(0, 0, 0, 0)');
+      expect(styles.avatarFallbackBackground).toBe('rgb(79, 70, 229)');
+      expect(styles.avatarFallbackColor).toBe('rgb(255, 255, 255)');
+      expect(styles.avatarFallbackDisplay).toBe('inline-flex');
+      expect(styles.avatarFallbackAlign).toBe('center');
+      expect(styles.avatarFallbackJustify).toBe('center');
+      expect(styles.avatarFallbackFontWeight).toBe('700');
       expect(styles.formPaddingTop).toBe('20px');
       expect(styles.formCopyColor).toBe(scheme === 'dark' ? 'rgb(229, 236, 245)' : 'rgb(23, 32, 51)');
       expect(styles.formCopyMarginBottom).toBe('0px');
       expect(styles.headerDivider).toBe(styles.itemDivider);
       expect(styles.formDivider).toBe(styles.itemDivider);
     }
+
+    await page.locator('[data-comment-avatar]').evaluate((element) => {
+      element.classList.remove('member-profile-image-size-medium');
+      element.classList.add('member-profile-image-size-small');
+    });
+    await page.locator('[data-comment-avatar-fallback]').evaluate((element) => {
+      element.classList.remove('member-profile-image-size-medium');
+      element.classList.add('member-profile-image-size-small');
+    });
+    expect((await computed()).avatarSize).toEqual(['24px', '24px']);
+    expect((await computed()).avatarFallbackSize).toEqual(['24px', '24px']);
+    await page.locator('[data-comment-avatar]').evaluate((element) => {
+      element.classList.remove('member-profile-image-size-small');
+      element.classList.add('member-profile-image-size-large');
+    });
+    await page.locator('[data-comment-avatar-fallback]').evaluate((element) => {
+      element.classList.remove('member-profile-image-size-small');
+      element.classList.add('member-profile-image-size-large');
+    });
+    expect((await computed()).avatarSize).toEqual(['40px', '40px']);
+    expect((await computed()).avatarFallbackSize).toEqual(['40px', '40px']);
+    await page.locator('[data-comment-avatar]').evaluate((element) => element.style.setProperty('--member-profile-image-size', '29px'));
+    await page.locator('[data-comment-avatar-fallback]').evaluate((element) => element.style.setProperty('--member-profile-image-size', '29px'));
+    expect((await computed()).avatarSize).toEqual(['29px', '29px']);
+    expect((await computed()).avatarFallbackSize).toEqual(['29px', '29px']);
   });
 }

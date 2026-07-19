@@ -476,7 +476,7 @@ $allowedCacheControlHeaders = [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
     ],
-    'modules/member/actions/avatar.php' => [
+    'modules/member/actions/profile-image.php' => [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
     ],

@@ -49,8 +49,11 @@ function sr_member_default_settings(): array
         'profile_birth_date_required' => (bool) ($settings['profile_birth_date_required'] ?? false),
         'profile_is_adult_enabled' => (bool) ($settings['profile_is_adult_enabled'] ?? true),
         'profile_is_adult_required' => (bool) ($settings['profile_is_adult_required'] ?? false),
-        'profile_avatar_enabled' => (bool) ($settings['profile_avatar_enabled'] ?? true),
-        'profile_avatar_required' => (bool) ($settings['profile_avatar_required'] ?? false),
+        'profile_image_enabled' => (bool) ($settings['profile_image_enabled'] ?? true),
+        'profile_image_required' => (bool) ($settings['profile_image_required'] ?? false),
+        'profile_image_size_small' => sr_member_profile_image_size_pixels('small', $settings),
+        'profile_image_size_medium' => sr_member_profile_image_size_pixels('medium', $settings),
+        'profile_image_size_large' => sr_member_profile_image_size_pixels('large', $settings),
         'profile_fields_json' => is_string($settings['profile_fields_json'] ?? null) ? (string) $settings['profile_fields_json'] : '[]',
         'profile_field_order_json' => is_string($settings['profile_field_order_json'] ?? null) ? (string) $settings['profile_field_order_json'] : '[]',
         'nickname_enabled' => (bool) ($settings['nickname_enabled'] ?? true),
@@ -72,6 +75,9 @@ function sr_member_settings(PDO $pdo): array
     $settings['mfa_login_providers_json'] = sr_member_mfa_provider_keys_json(sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["email","totp"]'));
     $settings['nickname_enabled'] = (bool) ($settings['nickname_enabled'] ?? true);
     $settings['nickname_required'] = $settings['nickname_enabled'];
+    foreach (sr_member_profile_image_size_setting_keys() as $avatarSizeKey => $avatarSizeSettingKey) {
+        $settings[$avatarSizeSettingKey] = sr_member_profile_image_size_pixels($avatarSizeKey, $settings);
+    }
     $settings['login_identifier'] = sr_member_normalize_login_identifier_setting($settings['login_identifier'] ?? 'both');
     $settings['member_skin_key'] = sr_member_skin_key($settings);
     foreach (['registration_terms_document_key', 'registration_privacy_document_key', 'registration_marketing_document_key'] as $policyDocumentSettingKey) {
@@ -111,6 +117,57 @@ function sr_member_identity_requirement_mode(mixed $value): string
 {
     $mode = is_scalar($value) ? strtolower(trim((string) $value)) : '';
     return in_array($mode, ['required', 'optional', 'disabled'], true) ? $mode : 'disabled';
+}
+
+function sr_member_profile_image_size_key(mixed $value): string
+{
+    $sizeKey = is_scalar($value) ? strtolower(trim((string) $value)) : '';
+
+    return in_array($sizeKey, ['small', 'medium', 'large'], true) ? $sizeKey : 'medium';
+}
+
+function sr_member_profile_image_size_options(): array
+{
+    return [
+        'small' => sr_t('member::settings.profile_image_size.small'),
+        'medium' => sr_t('member::settings.profile_image_size.medium'),
+        'large' => sr_t('member::settings.profile_image_size.large'),
+    ];
+}
+
+function sr_member_profile_image_size_setting_keys(): array
+{
+    return [
+        'small' => 'profile_image_size_small',
+        'medium' => 'profile_image_size_medium',
+        'large' => 'profile_image_size_large',
+    ];
+}
+
+function sr_member_profile_image_size_default_pixels(mixed $value): int
+{
+    return match (sr_member_profile_image_size_key($value)) {
+        'small' => 24,
+        'large' => 40,
+        default => 32,
+    };
+}
+
+function sr_member_profile_image_size_limits(): array
+{
+    return ['min' => 16, 'max' => 128];
+}
+
+function sr_member_profile_image_size_pixels(mixed $value, array $settings = []): int
+{
+    $sizeKey = sr_member_profile_image_size_key($value);
+    $settingKey = sr_member_profile_image_size_setting_keys()[$sizeKey];
+    $pixels = is_scalar($settings[$settingKey] ?? null)
+        ? (int) $settings[$settingKey]
+        : sr_member_profile_image_size_default_pixels($sizeKey);
+    $limits = sr_member_profile_image_size_limits();
+
+    return sr_member_clamp_int($pixels, (int) $limits['min'], (int) $limits['max']);
 }
 
 function sr_member_identity_registration_mode_options(): array
@@ -375,10 +432,10 @@ function sr_member_profile_field_definitions(): array
             'enabled_key' => 'profile_is_adult_enabled',
             'required_key' => 'profile_is_adult_required',
         ],
-        'avatar_path' => [
-            'label' => sr_t('member::settings.profile.avatar'),
-            'enabled_key' => 'profile_avatar_enabled',
-            'required_key' => 'profile_avatar_required',
+        'profile_image_path' => [
+            'label' => sr_t('member::settings.profile.profile_image'),
+            'enabled_key' => 'profile_image_enabled',
+            'required_key' => 'profile_image_required',
         ],
     ];
 }

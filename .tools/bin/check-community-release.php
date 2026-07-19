@@ -873,6 +873,22 @@ sr_community_release_file_contains('modules/community/theme/basic/post.php', [
     'btn btn-outline-danger',
     "sr_ui_arrow_icon_html('down', 'dropdown-icon')",
 ], 'Community post view action UI kit controls');
+sr_community_release_file_contains('modules/community/theme/basic/post.php', [
+    "include SR_ROOT . '/modules/community/views/post-bottom-actions.php';",
+], 'Community theme post bottom actions');
+sr_community_release_file_contains('modules/community/skins/basic/view.php', [
+    "include SR_ROOT . '/modules/community/views/post-bottom-actions.php';",
+], 'Community skin post bottom actions');
+sr_community_release_file_contains('modules/community/views/post-bottom-actions.php', [
+    'community-post-view-actions community-post-view-actions-bottom',
+    '게시글 하단 작업',
+    'community_report_post_bottom_modal_',
+    'community_post_bottom_management_menu_',
+    'modules_community_view_bottom_guest_post_password',
+    'community-action-group community-action-group-leading',
+    'community-action-group community-action-group-trailing',
+    'btn btn-outline-default community-post-comments-jump',
+], 'Community shared post bottom action controls');
 sr_community_release_file_contains('modules/community/actions/admin-boards.php', [
     'sr_community_can_delete_board($pdo, $boardId)',
     'delete_confirm_text',

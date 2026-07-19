@@ -193,13 +193,19 @@ function sr_community_home_member_summary(PDO $pdo, ?array $account, array $sett
     $nextLevelRemaining = $nextLevelMinScore > $scoreValue ? $nextLevelMinScore - $scoreValue : 0;
     $levelScoreRange = max(1, $nextLevelMinScore - $currentLevelMinScore);
     $progressPercent = $nextLevelMinScore > 0 ? min(100, max(0, (int) floor((($scoreValue - $currentLevelMinScore) / $levelScoreRange) * 100))) : 100;
-    $avatarSrc = sr_member_avatar_src((string) ($profile['avatar_path'] ?? ''));
+    $memberProfilePolicies = sr_member_profile_field_policies($memberSettings);
+    $avatarSrc = !empty($memberProfilePolicies['profile_image_path']['visible'])
+        ? sr_member_profile_image_src((string) ($profile['profile_image_path'] ?? ''))
+        : '';
+    $avatarSizeKey = 'large';
     $config = sr_runtime_config();
 
     return [
         'display_name' => $displayName,
         'initial' => $initial,
         'avatar_src' => $avatarSrc,
+        'avatar_size_key' => $avatarSizeKey,
+        'avatar_size_pixels' => sr_member_profile_image_size_pixels($avatarSizeKey, $memberSettings),
         'avatar_color_class' => sr_member_default_avatar_color_class(sr_member_public_account_hash($config, $accountId)),
         'level_value' => $levelValue,
         'level_label' => sr_community_level_label_for_value($pdo, $levelValue, $settings, true),

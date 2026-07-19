@@ -282,7 +282,21 @@
 .member-skin-basic-avatar-preview {
     border-radius: 999px;
     display: block;
+    height: var(--member-profile-image-size, 2.5rem);
     object-fit: cover;
+    width: var(--member-profile-image-size, 2.5rem);
+}
+
+.member-skin-basic-avatar-preview.member-profile-image-size-small {
+    --member-profile-image-size: 1.5rem;
+}
+
+.member-skin-basic-avatar-preview.member-profile-image-size-medium {
+    --member-profile-image-size: 2rem;
+}
+
+.member-skin-basic-avatar-preview.member-profile-image-size-large {
+    --member-profile-image-size: 2.5rem;
 }
 
 @media (max-width: 640px) {

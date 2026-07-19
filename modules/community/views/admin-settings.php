@@ -371,7 +371,7 @@ $communitySettingsSectionNavItems = [
                 <label class="form-label" for="community_admin_settings_level_short_label">레벨 약칭</label>
                 <div class="form-field">
                     <input id="community_admin_settings_level_short_label" type="text" name="level_short_label" maxlength="20" value="<?php echo sr_e((string) ($settings['level_short_label'] ?? 'Lv.')); ?>" class="form-input">
-                    <p class="form-help">아바타 아래나 회원 드롭다운처럼 좁은 곳에서 쓰는 짧은 이름입니다. 비워 두면 표시명을 사용합니다.</p>
+                    <p class="form-help">프로필 이미지 아래나 회원 드롭다운처럼 좁은 곳에서 쓰는 짧은 이름입니다. 비워 두면 표시명을 사용합니다.</p>
                 </div>
             </div>
             <div class="form-row" data-community-level-dependent-field>

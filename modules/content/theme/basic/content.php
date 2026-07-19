@@ -24,7 +24,10 @@ if ($contentCommentEditorKey === 'ckeditor') {
     $contentCommentEditorAttributes .= ' data-sr-editor-body-theme="content.' . sr_e(sr_content_theme_key((string) ($contentLayoutSettings['theme_key'] ?? 'basic'))) . '"';
 }
 $contentImageFiles = isset($contentImageFiles) && is_array($contentImageFiles) ? $contentImageFiles : [];
-$contentPublisherName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
+$contentPublisherAccountId = (int) ($page['created_by'] ?? 0);
+$contentPublisherName = $contentPublisherAccountId > 0
+    ? sr_member_public_name_for_account_id($pdo, $contentPublisherAccountId, sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null))
+    : sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) ($page['updated_at'] ?? '');
 $contentStylesheets = sr_enabled_module_asset_paths($pdo ?? null, [
@@ -59,6 +62,15 @@ if (
         is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
     );
 }
+$contentAuthorAvatarAccountIds = [$contentPublisherAccountId];
+foreach ((array) ($contentComments ?? []) as $contentAvatarComment) {
+    $contentAuthorAvatarAccountIds[] = (int) ($contentAvatarComment['author_account_id'] ?? 0);
+}
+$contentAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $contentAuthorAvatarAccountIds);
+$contentPublicAvatarsEnabled = sr_member_public_profile_images_enabled($pdo);
+$contentMemberSettings = sr_member_settings($pdo);
+$contentPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $contentMemberSettings);
+$contentCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $contentMemberSettings);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.view',
     'scripts' => is_array($account ?? null) && !empty($pageAccess['allowed']) ? ['/assets/mention-input.js'] : [],
@@ -95,7 +107,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <p><?php echo sr_e((string) $page['summary']); ?></p>
             <?php } ?>
             <div class="content-meta" aria-label="<?php echo sr_e('콘텐츠 정보'); ?>">
-                <span><?php echo sr_e($contentPublisherName); ?></span>
+                <span class="content-author-identity">
+                    <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[$contentPublisherAccountId] ?? ''), 'content-post-author-avatar', 'medium', $contentPublicAvatarsEnabled ? $contentPublisherName : '', $contentPostAvatarSizePixels); ?>
+                    <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $contentPublisherAccountId, $contentPublisherName, [
+                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                    ]); ?>
+                </span>
                 <?php if ($contentDateText !== '') { ?>
                     <span><?php echo sr_content_time_html($contentDateText); ?></span>
                 <?php } ?>
@@ -179,6 +196,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             </div>
             <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && empty($contentAdminPreview)) { ?>
                 <?php echo sr_reaction_render_widget($pdo, 'content', 'content', (string) (int) ($page['id'] ?? 0), is_array($account ?? null) ? $account : null); ?>
+            <?php } ?>
+            <?php if ((string) ($contentEditUrl ?? '') !== '') { ?>
+                <div class="content-view-actions content-view-actions-bottom" aria-label="콘텐츠 하단 작업">
+                    <div class="content-view-action-group content-view-action-group-trailing">
+                        <?php include SR_ROOT . '/modules/content/views/content-edit-link.php'; ?>
+                    </div>
+                </div>
             <?php } ?>
             <?php if (is_array($contentSeriesContext ?? null) && is_array($contentSeriesContext['items'] ?? null) && $contentSeriesContext['items'] !== []) { ?>
                 <nav class="content-series-nav" aria-label="<?php echo sr_e('시리즈 콘텐츠'); ?>">
@@ -340,9 +364,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 ?>
                                 <div class="content-comment-meta">
                                     <?php $contentCommentAuthorLabel = (string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원'); ?>
-                                    <div class="content-comment-author"><?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
-                                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                    ]); ?></div>
+                                    <div class="content-comment-author">
+                                        <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[(int) ($contentComment['author_account_id'] ?? 0)] ?? ''), 'content-comment-author-avatar', 'small', $contentPublicAvatarsEnabled ? $contentCommentAuthorLabel : '', $contentCommentAvatarSizePixels); ?>
+                                        <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
+                                            'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                        ]); ?>
+                                    </div>
                                     <?php if ($contentCommentCreatedAt !== '') { ?>
                                         <span class="content-comment-date">
                                             <span class="content-comment-date-content">

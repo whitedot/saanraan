@@ -8,7 +8,7 @@
                             </div>
 
                             <div class="card-body">
-                                <p class="ui-kit-hint ui-kit-space-after-4">아바타, 상태 배지, 액션 행, 인라인 토글을 포함한 드롭다운 메뉴 스타일입니다.</p>
+                                <p class="ui-kit-hint ui-kit-space-after-4">프로필 이미지, 상태 배지, 액션 행, 인라인 토글을 포함한 드롭다운 메뉴 스타일입니다.</p>
 
                                 <div class="dropdown-menu dropdown-menu-profile dropdown-menu-profile-preview" role="group" aria-label="회원 드롭다운 메뉴 샘플">
                                     <div class="dropdown-profile-header">

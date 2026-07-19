@@ -112,6 +112,7 @@
 .sr-time-floating-tooltip {
     background: rgba(255, 255, 255, .94);
     border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .14);
     color: #111;
     font-size: var(--type-meta-size);
     font-weight: 700;
@@ -162,6 +163,53 @@
     line-height: var(--type-meta-line-height);
 }
 
+.content-author-identity,
+.content-comment-author {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
+    min-width: 0;
+}
+
+.content-post-author-avatar,
+.content-comment-author-avatar {
+    background: var(--sr-surface-muted, var(--content-surface-soft, #f5f7fb));
+    border: 1px solid var(--content-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
+    border-radius: 50%;
+    flex: 0 0 auto;
+    object-fit: cover;
+}
+
+.member-profile-image-fallback {
+    align-items: center;
+    background: var(--sr-member-avatar-bg, #4f46e5);
+    border-color: transparent;
+    color: var(--color-white, #fff);
+    display: inline-flex;
+    font-size: clamp(0.625rem, calc(var(--member-profile-image-size, 32px) * 0.375), 1.25rem);
+    font-weight: var(--font-weight-bold, 700);
+    justify-content: center;
+    line-height: 1;
+    overflow: hidden;
+}
+
+.member-profile-image {
+    height: var(--member-profile-image-size, 2rem);
+    width: var(--member-profile-image-size, 2rem);
+}
+
+.member-profile-image.member-profile-image-size-small {
+    --member-profile-image-size: 1.5rem;
+}
+
+.member-profile-image.member-profile-image-size-medium {
+    --member-profile-image-size: 2rem;
+}
+
+.member-profile-image.member-profile-image-size-large {
+    --member-profile-image-size: 2.5rem;
+}
+
 .content-view-actions {
     align-items: center;
     display: flex;
@@ -188,6 +236,12 @@
     font-size: var(--type-meta-size);
     line-height: var(--type-meta-line-height);
     padding-inline: 0.45rem;
+}
+
+.content-view-actions-bottom {
+    border-top: 1px solid var(--content-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
+    margin-top: 24px;
+    padding-top: 14px;
 }
 
 .content-meta span + span::before,
@@ -593,7 +647,6 @@
 .content-comment-author {
     color: var(--content-text, var(--sr-text, #20242a));
     font-weight: var(--font-weight-semibold, 600);
-    min-width: 0;
 }
 
 .content-comment-meta > :not(:first-child) {
