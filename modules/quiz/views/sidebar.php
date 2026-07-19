@@ -31,7 +31,7 @@ if (!empty($quizSidebarContext['enabled'])) {
                     <?php foreach ($quizSidebarComments as $sidebarComment) { ?>
                         <li>
                             <a href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) ($sidebarComment['quiz_key'] ?? '')) . '?result=1#quiz-comment-' . (string) (int) ($sidebarComment['id'] ?? 0))); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
-                            <span><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?> · <?php echo sr_quiz_time_html((string) ($sidebarComment['created_at'] ?? '')); ?></span>
+                            <span class="quiz-sidebar-comment-byline"><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?> · <?php echo sr_quiz_time_html((string) ($sidebarComment['created_at'] ?? '')); ?></span>
                         </li>
                     <?php } ?>
                 </ul></div>

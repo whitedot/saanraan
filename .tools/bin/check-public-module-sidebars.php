@@ -64,6 +64,9 @@ $contains('modules/content/theme/basic/sidebar.php', [
     '<aside class="content-sidebar"',
     '인기 콘텐츠',
     '최신댓글',
+    'content-sidebar-comment-byline',
+    'content-sidebar-comment-content',
+    "['content_title']",
     "'point_key' => 'content.sidebar.summary'",
 ]);
 foreach ([
@@ -80,12 +83,18 @@ foreach (['modules/content/views/home.php', 'modules/content/theme/basic/home.ph
     $assert(!str_contains($source($homeFile), 'sidebar.php'), $homeFile . ' must not render the content sidebar.');
 }
 $contains('modules/content/theme/basic/assets/module.css', [
+    '.content-page-view',
+    '.content-reading-panel',
     '.content-screen-frame',
     '.content-sidebar',
+    '.content-sidebar-comment-byline',
+    'white-space: nowrap',
     'var(--sr-text',
     'var(--sr-muted',
     '@media (max-width: 1024px)',
 ]);
+$contains('modules/content/theme/basic/content.php', ['content-page-view', 'content-reading-panel', 'content-comments']);
+$contains('modules/content/views/content.php', ['content-page-view', 'content-reading-panel', 'content-comments']);
 $contains('modules/content/helpers.php', ["'content.form'", 'sidebar_enabled', 'sidebar_menu_type']);
 
 $excerpt = sr_content_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
@@ -119,6 +128,7 @@ $contains('modules/quiz/views/sidebar.php', [
     '<aside class="quiz-sidebar"',
     '인기 퀴즈',
     '최신댓글',
+    'quiz-sidebar-comment-byline',
     "'point_key' => 'quiz.sidebar.summary'",
 ]);
 foreach ([
@@ -135,6 +145,7 @@ $contains('modules/quiz/theme/basic/view.php', ['if (!$quizEmbedded)', "'quiz.si
 $contains('modules/quiz/theme/basic/assets/module.css', [
     '.quiz-screen-frame',
     '.quiz-sidebar',
+    '.quiz-sidebar-comment-byline',
     'var(--sr-text',
     'var(--sr-muted',
     '@media (max-width: 1024px)',
@@ -176,6 +187,7 @@ $contains('modules/survey/views/sidebar.php', [
     '<aside class="survey-sidebar"',
     '인기 설문',
     '최신댓글',
+    'survey-sidebar-comment-byline',
     "'point_key' => 'survey.sidebar.summary'",
 ]);
 foreach ([
@@ -191,6 +203,7 @@ $contains('modules/survey/skins/basic/home.php', ['if ($surveyScreenIsList)', "'
 $contains('modules/survey/theme/basic/assets/module.css', [
     '.survey-screen-frame',
     '.survey-sidebar',
+    '.survey-sidebar-comment-byline',
     'var(--sr-text',
     'var(--sr-muted',
     '@media (max-width: 1024px)',

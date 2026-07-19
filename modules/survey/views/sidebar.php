@@ -31,7 +31,7 @@ if (!empty($surveySidebarContext['enabled'])) {
                     <?php foreach ($surveySidebarComments as $sidebarComment) { ?>
                         <li>
                             <a href="<?php echo sr_e(sr_url('/survey/' . rawurlencode((string) ($sidebarComment['survey_key'] ?? '')) . '?submitted=1#survey-comment-' . (string) (int) ($sidebarComment['id'] ?? 0))); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
-                            <span><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?> · <?php echo sr_survey_time_html((string) ($sidebarComment['created_at'] ?? '')); ?></span>
+                            <span class="survey-sidebar-comment-byline"><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?> · <?php echo sr_survey_time_html((string) ($sidebarComment['created_at'] ?? '')); ?></span>
                         </li>
                     <?php } ?>
                 </ul></div>

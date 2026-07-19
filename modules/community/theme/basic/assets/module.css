@@ -1027,7 +1027,7 @@
 
 .community-comments-panel-header {
     align-items: center;
-    border-bottom: 1px solid var(--community-border, var(--sr-border, #d8dde6));
+    border-bottom: 1px solid var(--community-divider, var(--sr-border-soft, var(--sr-border, #d8dde6)));
     display: flex;
     gap: 12px;
     justify-content: space-between;
@@ -2211,7 +2211,10 @@ a.community-post-title:focus,
     background: var(--community-surface);
 }
 
-.community-comments-panel-header,
+.community-comments-panel-header {
+    border-color: var(--community-divider, var(--sr-border-soft, var(--community-border)));
+}
+
 .community-screen th {
     border-color: var(--community-border);
 }

@@ -70,7 +70,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     ],
 ]));
 ?>
-<main class="content-page content-page-basic">
+<main class="content-page content-page-basic content-page-view">
     <div class="content-screen-frame">
         <div class="content-screen-main">
     <?php if (function_exists('sr_popup_layer_render_public_layer') && sr_module_enabled($pdo, 'popup_layer')) { ?>

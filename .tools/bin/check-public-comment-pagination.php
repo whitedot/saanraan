@@ -125,6 +125,41 @@ foreach ([
     );
 }
 
+foreach ([
+    'modules/community/theme/basic/assets/module.css' => [
+        '.community-comments-pagination',
+        'border-bottom: 1px solid var(--community-divider',
+    ],
+    'modules/content/theme/basic/assets/module.css' => [
+        '.content-comments-pagination',
+        'border-bottom: 1px solid var(--content-divider',
+    ],
+    'modules/quiz/theme/basic/assets/module.css' => [
+        '.quiz-comments-pagination',
+        '.sr-quiz-page .quiz-page-main .sr-quiz-comments-panel-header h2',
+        '.sr-quiz-page .quiz-page-main .sr-quiz-comment-form > p',
+        'border-bottom: 1px solid var(--sr-quiz-comment-divider',
+    ],
+    'modules/survey/theme/basic/assets/module.css' => [
+        '.survey-comments-pagination',
+        '.sr-survey-page .survey-page-main .sr-survey-comments-panel-header h2',
+        '.sr-survey-page .survey-page-main .sr-survey-comment-form > p',
+        'border-bottom: 1px solid var(--sr-survey-comment-divider',
+    ],
+] as $commentStylesheetPath => $markers) {
+    $contents = file_get_contents($root . '/' . $commentStylesheetPath);
+    foreach ($markers as $marker) {
+        $assert(
+            is_string($contents) && str_contains($contents, $marker),
+            $commentStylesheetPath . ' must keep the community comment surface marker: ' . $marker
+        );
+    }
+    $assert(
+        is_string($contents) && preg_match('/\.(?:community|content|quiz|survey)-comments-pagination\s*\{[^}]*gap:\s*8px;[^}]*justify-content:\s*center;/s', $contents) === 1,
+        $commentStylesheetPath . ' must keep community-style centered comment pagination spacing.'
+    );
+}
+
 foreach (['content', 'quiz', 'survey'] as $moduleKey) {
     $action = file_get_contents($root . '/modules/' . $moduleKey . '/actions/comment.php');
     $assert(
