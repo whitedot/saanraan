@@ -495,7 +495,7 @@ if (sr_request_method() === 'POST') {
     }
 
     if ($errors === [] && $publicMenuChanged) {
-        sr_site_menu_clear_runtime_cache();
+        sr_site_menu_clear_cache();
     }
 
     sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/site-menus');

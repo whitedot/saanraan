@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/public-data-cache.php';
+
+function sr_content_sidebar_clear_group_menu_cache(): void
+{
+    sr_public_data_cache_forget('public-side-menu', 'content.groups', 'content_sidebar_groups_v1');
+}
+
 function sr_content_group_statuses(): array
 {
     return ['enabled', 'disabled', 'archived'];
@@ -586,6 +593,8 @@ function sr_content_create_group(PDO $pdo, array $data): int
         'updated_at' => $now,
     ]);
 
+    sr_content_sidebar_clear_group_menu_cache();
+
     return (int) $pdo->lastInsertId();
 }
 
@@ -608,6 +617,7 @@ function sr_content_update_group(PDO $pdo, int $groupId, array $data): void
         'updated_at' => sr_now(),
         'id' => $groupId,
     ]);
+    sr_content_sidebar_clear_group_menu_cache();
 }
 
 function sr_content_set_group_setting(PDO $pdo, int $groupId, string $settingKey, string $settingValue, string $valueType = 'string'): void
@@ -751,6 +761,7 @@ function sr_content_delete_group(PDO $pdo, int $groupId): array
 
     $check['deleted_settings'] = $deletedSettings;
     $check['detached_contents'] = $detachedContents;
+    sr_content_sidebar_clear_group_menu_cache();
     return $check;
 }
 

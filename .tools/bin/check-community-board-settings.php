@@ -841,7 +841,7 @@ sr_check_community_board_settings_contains('modules/community/helpers/boards.php
     "'title' => \$menuTitle",
     ": '커뮤니티'",
     ": '그룹 없음'",
-    "\$siteMenu['label']",
+    "\$siteMenuTree['label']",
 ], 'community board sidebar menu public title');
 sr_check_community_board_settings_contains('modules/community/theme/basic/home-summary-aside.php', [
     'board-sidebar-menu.php',

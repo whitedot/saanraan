@@ -395,6 +395,7 @@ $allowedStorageCacheFiles = [
     '.tools/bin/check-storage-helpers.php' => true,
     'core/helpers/storage.php' => true,
     'core/helpers/output.php' => true,
+    'core/helpers/public-data-cache.php' => true,
     'modules/community/helpers/boards.php' => true,
     'modules/community/helpers/feed-cache.php' => true,
     'core/helpers/url-embed.php' => true,

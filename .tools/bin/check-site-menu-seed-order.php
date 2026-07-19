@@ -112,6 +112,7 @@ $pdo->exec("CREATE TABLE sr_community_boards (id INTEGER PRIMARY KEY, board_key 
 $pdo->exec("CREATE TABLE sr_community_posts (id INTEGER PRIMARY KEY, board_id INTEGER NOT NULL)");
 $pdo->exec("INSERT INTO sr_community_boards (id, board_key) VALUES (1, 'free')");
 $pdo->exec("INSERT INTO sr_community_posts (id, board_id) VALUES (42, 1)");
+sr_site_menu_clear_cache();
 
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 $_SERVER['REQUEST_URI'] = '/community/post?id=42';
@@ -137,10 +138,14 @@ sr_site_menu_check_assert(!str_contains($html, '비활성'), 'Site menu render r
 sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 1, 'Site menu runtime cache must reuse the enabled item tree within the same request.');
 sr_site_menu_clear_runtime_cache('header');
 sr_site_menu_render($pdo, 'header', 'navigation');
-sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu runtime cache clear must force the next tree lookup.');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 1, 'Site menu persistent cache must reuse the enabled item tree after runtime cache clear.');
+sr_site_menu_clear_cache('header');
+sr_site_menu_render($pdo, 'header', 'navigation');
+sr_site_menu_check_assert($pdo->siteMenuTreePrepareCount === 2, 'Site menu full cache clear must force the next tree lookup.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'footer', 'secondary_navigation') === '', 'Site menu render runtime fixture must skip disabled menus.');
 $emptyTree = sr_site_menu_tree($pdo, 'empty_menu');
 sr_site_menu_check_assert(($emptyTree['enabled'] ?? false) === true, 'Site menu tree helper must keep enabled menu state when a menu has no enabled items.');
+sr_site_menu_check_assert(($emptyTree['label'] ?? '') === '빈 메뉴', 'Site menu tree cache must retain the published menu label.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'empty_menu', 'navigation') === '', 'Site menu render runtime fixture must render empty enabled menus as empty output.');
 
 $_SERVER['REQUEST_URI'] = '/quiz/qa260611p1530_category';
@@ -199,6 +204,7 @@ sr_site_menu_check_assert(str_contains($siteMenuAdminView, '초안 순서 저장
 sr_site_menu_check_assert(str_contains($siteMenuKo, "'ui.menu.key.20cd5d6a' => '메뉴 식별값'"), 'Site menu operator copy must use an easy Korean label for the menu key.');
 
 if ($errors !== []) {
+    sr_site_menu_clear_cache();
     fwrite(STDERR, "site menu checks failed:\n");
     foreach ($errors as $error) {
         fwrite(STDERR, '- ' . $error . "\n");
@@ -206,4 +212,5 @@ if ($errors !== []) {
     exit(1);
 }
 
+sr_site_menu_clear_cache();
 echo "site menu seed order checks completed.\n";

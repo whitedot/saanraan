@@ -233,6 +233,9 @@ if (sr_request_method() === 'POST') {
                     $changedCount++;
                 }
                 $pdo->commit();
+                if ($changedCount > 0) {
+                    sr_content_sidebar_clear_group_menu_cache();
+                }
 
                 sr_audit_log($pdo, [
                     'actor_account_id' => (int) $account['id'],

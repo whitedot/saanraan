@@ -1800,9 +1800,8 @@ function sr_community_board_sidebar_menu_context(PDO $pdo, array $board, ?array 
             return ['type' => $menuType, 'title' => '', 'html' => ''];
         }
         require_once SR_ROOT . '/modules/site_menu/helpers.php';
-        $siteMenuOptions = function_exists('sr_site_menu_options') ? sr_site_menu_options($pdo) : [];
-        $siteMenu = is_array($siteMenuOptions[$siteMenuKey] ?? null) ? $siteMenuOptions[$siteMenuKey] : [];
-        $menuTitle = trim((string) ($siteMenu['label'] ?? ''));
+        $siteMenuTree = function_exists('sr_site_menu_tree') ? sr_site_menu_tree($pdo, $siteMenuKey) : [];
+        $menuTitle = trim((string) ($siteMenuTree['label'] ?? ''));
         $html = function_exists('sr_site_menu_render')
             ? sr_site_menu_render($pdo, $siteMenuKey, 'community_board_sidebar')
             : '';

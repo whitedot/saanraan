@@ -7,6 +7,7 @@ $root = dirname(__DIR__, 2);
 if (!defined('SR_ROOT')) {
     define('SR_ROOT', $root);
 }
+require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/quiz/helpers.php';
 require_once $root . '/modules/survey/helpers.php';
@@ -55,6 +56,8 @@ $contains('modules/content/views/admin-settings.php', [
 ]);
 $contains('modules/content/helpers/sidebar.php', [
     'function sr_content_sidebar_context(',
+    'function sr_content_sidebar_group_menu_rows(',
+    "sr_public_data_cache_read('public-side-menu', 'content.groups'",
     "p.status = 'published'",
     'p.asset_access_enabled <> 1 OR p.asset_access_amount <= 0',
     'c.is_secret = 0',
@@ -125,6 +128,8 @@ $contains('modules/quiz/views/admin-settings.php', [
 ]);
 $contains('modules/quiz/helpers/sidebar.php', [
     'function sr_quiz_sidebar_context(',
+    'function sr_quiz_sidebar_group_menu_rows(',
+    "sr_public_data_cache_read('public-side-menu', 'quiz.groups'",
     "q.status = 'active'",
     'q.comments_enabled = 1',
     'c.is_secret = 0',
@@ -183,6 +188,8 @@ $contains('modules/survey/views/admin-settings.php', [
 ]);
 $contains('modules/survey/helpers/sidebar.php', [
     'function sr_survey_sidebar_context(',
+    'function sr_survey_sidebar_group_menu_rows(',
+    "sr_public_data_cache_read('public-side-menu', 'survey.groups'",
     "s.status = 'active'",
     's.public_listed = 1',
     's.comments_enabled = 1',
@@ -222,6 +229,35 @@ $contains('modules/survey/actions/list.php', [
 ]);
 $surveyExcerpt = sr_survey_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
 $assert($surveyExcerpt === '태그 제거', 'survey sidebar excerpt must remove HTML tags.');
+
+$sidebarPdo = new PDO('sqlite::memory:');
+$sidebarPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$sidebarPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$sidebarPdo->exec("CREATE TABLE sr_content_groups (id INTEGER PRIMARY KEY, group_key TEXT, title TEXT, description TEXT, status TEXT, sort_order INTEGER, created_at TEXT, updated_at TEXT)");
+$sidebarPdo->exec("CREATE TABLE sr_quiz_groups (id INTEGER PRIMARY KEY, group_key TEXT, title TEXT, description TEXT, status TEXT, sort_order INTEGER, created_at TEXT, updated_at TEXT)");
+$sidebarPdo->exec("CREATE TABLE sr_quiz_sets (id INTEGER PRIMARY KEY, quiz_group_id INTEGER, deleted_at TEXT)");
+$sidebarPdo->exec("CREATE TABLE sr_survey_groups (id INTEGER PRIMARY KEY, group_key TEXT, title TEXT, description TEXT, status TEXT, sort_order INTEGER, created_at TEXT, updated_at TEXT)");
+$sidebarPdo->exec("CREATE TABLE sr_survey_forms (id INTEGER PRIMARY KEY, survey_group_id INTEGER, deleted_at TEXT)");
+$sidebarPdo->exec("INSERT INTO sr_content_groups VALUES (1, 'news', '뉴스', '', 'enabled', 10, '2026-07-19 00:00:00', '2026-07-19 00:00:00')");
+$sidebarPdo->exec("INSERT INTO sr_quiz_groups VALUES (1, 'knowledge', '상식', '', 'enabled', 10, '2026-07-19 00:00:00', '2026-07-19 00:00:00')");
+$sidebarPdo->exec("INSERT INTO sr_survey_groups VALUES (1, 'opinion', '의견', '', 'enabled', 10, '2026-07-19 00:00:00', '2026-07-19 00:00:00')");
+sr_public_data_cache_clear_namespace('public-side-menu');
+$contentMenuRows = sr_content_sidebar_group_menu_rows($sidebarPdo);
+$quizMenuRows = sr_quiz_sidebar_group_menu_rows($sidebarPdo);
+$surveyMenuRows = sr_survey_sidebar_group_menu_rows($sidebarPdo);
+$assert(($contentMenuRows[0]['title'] ?? '') === '뉴스', 'content sidebar group menu cache must store enabled group rows.');
+$assert(($quizMenuRows[0]['title'] ?? '') === '상식', 'quiz sidebar group menu cache must store enabled group rows.');
+$assert(($surveyMenuRows[0]['title'] ?? '') === '의견', 'survey sidebar group menu cache must store enabled group rows.');
+$sidebarPdo->exec("UPDATE sr_content_groups SET title = 'DB만 변경' WHERE id = 1");
+unset($GLOBALS['sr_public_data_cache_memory']);
+$assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '뉴스', 'content sidebar group menu must reuse its file cache across request memory resets.');
+sr_content_update_group($sidebarPdo, 1, ['title' => '변경된 뉴스', 'description' => '', 'status' => 'enabled', 'sort_order' => 10]);
+sr_quiz_save_group($sidebarPdo, ['title' => '변경된 상식', 'description' => '', 'status' => 'enabled', 'sort_order' => 10], 1);
+sr_survey_save_group($sidebarPdo, ['title' => '변경된 의견', 'description' => '', 'status' => 'enabled', 'sort_order' => 10], 1);
+$assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 뉴스', 'content group update must invalidate the sidebar menu cache.');
+$assert((sr_quiz_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 상식', 'quiz group update must invalidate the sidebar menu cache.');
+$assert((sr_survey_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 의견', 'survey group update must invalidate the sidebar menu cache.');
+sr_public_data_cache_clear_namespace('public-side-menu');
 
 if ($errors !== []) {
     fwrite(STDERR, "public module sidebar checks failed:\n- " . implode("\n- ", $errors) . "\n");

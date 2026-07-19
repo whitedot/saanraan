@@ -3,6 +3,30 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/core/helpers/public-data-cache.php';
+
+function sr_quiz_sidebar_group_menu_rows(PDO $pdo): array
+{
+    $cached = sr_public_data_cache_read('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1');
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    $groups = [];
+    foreach (sr_quiz_groups($pdo, true) as $group) {
+        $groupKey = (string) ($group['group_key'] ?? '');
+        if (!sr_quiz_group_key_is_valid($groupKey)) {
+            continue;
+        }
+        $groups[] = [
+            'group_key' => $groupKey,
+            'title' => (string) ($group['title'] ?? $groupKey),
+        ];
+    }
+    sr_public_data_cache_write('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1', $groups);
+
+    return $groups;
+}
 
 function sr_quiz_sidebar_excerpt(string $value, int $length = 72): string
 {
@@ -117,17 +141,16 @@ function sr_quiz_sidebar_menu_context(PDO $pdo, array $settings, string $current
             return ['title' => '', 'html' => ''];
         }
         require_once SR_ROOT . '/modules/site_menu/helpers.php';
-        $options = function_exists('sr_site_menu_options') ? sr_site_menu_options($pdo) : [];
-        $option = is_array($options[$menuKey] ?? null) ? $options[$menuKey] : [];
+        $tree = function_exists('sr_site_menu_tree') ? sr_site_menu_tree($pdo, $menuKey) : [];
 
         return [
-            'title' => trim((string) ($option['label'] ?? '메뉴')),
+            'title' => trim((string) ($tree['label'] ?? '메뉴')),
             'html' => function_exists('sr_site_menu_render') ? sr_site_menu_render($pdo, $menuKey, 'quiz_sidebar') : '',
         ];
     }
 
     $html = '<nav class="quiz-sidebar-nav" aria-label="퀴즈 그룹"><ul>';
-    foreach (sr_quiz_groups($pdo, true) as $group) {
+    foreach (sr_quiz_sidebar_group_menu_rows($pdo) as $group) {
         $groupKey = (string) ($group['group_key'] ?? '');
         if (!sr_quiz_group_key_is_valid($groupKey)) {
             continue;

@@ -3,6 +3,17 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/admin/helpers.php';
+require_once SR_ROOT . '/core/helpers/public-data-cache.php';
+
+function sr_site_menu_tree_cache_namespace(): string
+{
+    return 'site-menu-tree';
+}
+
+function sr_site_menu_tree_cache_schema(): string
+{
+    return 'site_menu_tree_v2';
+}
 
 function sr_site_menu_clean_key(string $value): string
 {
@@ -253,8 +264,9 @@ function sr_site_menu_seed_default_header_menu(PDO $pdo, array $mainPageOptionsB
             // Older installations without draft tables can continue; module updates create them.
         }
 
-        sr_site_menu_clear_runtime_cache('header');
     }
+
+    sr_site_menu_clear_cache('header');
 
     return $created;
 }
@@ -527,8 +539,16 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
         return $cache[$pdoCacheKey][$menuKey];
     }
 
+    $persistentTree = sr_public_data_cache_read(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
+    if (is_array($persistentTree)) {
+        $cache[$pdoCacheKey][$menuKey] = $persistentTree;
+        $GLOBALS['sr_site_menu_runtime_tree_cache'] = $cache;
+
+        return $persistentTree;
+    }
+
     $stmt = $pdo->prepare(
-        "SELECT m.id AS menu_id, i.id, i.parent_id, i.label, i.url, i.icon_name, i.target
+        "SELECT m.id AS menu_id, m.label AS menu_label, i.id, i.parent_id, i.label, i.url, i.icon_name, i.target
          FROM sr_site_menus m
          LEFT JOIN sr_site_menu_items i ON i.menu_id = m.id AND i.status = 'enabled'
          WHERE m.menu_key = :menu_key
@@ -540,11 +560,16 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
     $items = [];
     $itemsByParent = [];
     $menuEnabled = false;
+    $menuLabel = '';
     foreach ($stmt->fetchAll() as $row) {
         $menuEnabled = (int) ($row['menu_id'] ?? 0) > 0;
+        if ($menuEnabled) {
+            $menuLabel = sr_site_menu_clean_label((string) ($row['menu_label'] ?? $menuKey));
+        }
         if ((int) ($row['id'] ?? 0) <= 0) {
             continue;
         }
+        unset($row['menu_label']);
         $items[] = $row;
         $parentId = (int) ($row['parent_id'] ?? 0);
         $itemsByParent[$parentId][] = $row;
@@ -552,13 +577,34 @@ function sr_site_menu_tree(PDO $pdo, string $menuKey): array
 
     $cache[$pdoCacheKey][$menuKey] = [
         'menu_key' => $menuKey,
+        'label' => $menuLabel,
         'enabled' => $menuEnabled,
         'items' => $items,
         'items_by_parent' => $itemsByParent,
     ];
     $GLOBALS['sr_site_menu_runtime_tree_cache'] = $cache;
+    sr_public_data_cache_write(
+        sr_site_menu_tree_cache_namespace(),
+        $menuKey,
+        sr_site_menu_tree_cache_schema(),
+        $cache[$pdoCacheKey][$menuKey]
+    );
 
     return $cache[$pdoCacheKey][$menuKey];
+}
+
+function sr_site_menu_clear_cache(string $menuKey = ''): void
+{
+    sr_site_menu_clear_runtime_cache($menuKey);
+    if ($menuKey === '') {
+        sr_public_data_cache_clear_namespace(sr_site_menu_tree_cache_namespace());
+        return;
+    }
+
+    $menuKey = sr_site_menu_clean_key($menuKey);
+    if ($menuKey !== '') {
+        sr_public_data_cache_forget(sr_site_menu_tree_cache_namespace(), $menuKey, sr_site_menu_tree_cache_schema());
+    }
 }
 
 function sr_site_menu_clear_runtime_cache(string $menuKey = ''): void

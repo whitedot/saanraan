@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/core/version.php';
 require_once SR_ROOT . '/core/helpers/common.php';
+require_once SR_ROOT . '/core/helpers/public-data-cache.php';
 require_once SR_ROOT . '/core/helpers/runtime.php';
 require_once SR_ROOT . '/core/helpers/settings.php';
 require_once SR_ROOT . '/core/helpers/delivery-templates.php';

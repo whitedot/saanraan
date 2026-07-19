@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/core/helpers/public-data-cache.php';
+
+function sr_quiz_sidebar_clear_group_menu_cache(): void
+{
+    sr_public_data_cache_forget('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1');
+}
+
 function sr_quiz_group_statuses(): array
 {
     return ['enabled', 'disabled', 'archived'];
@@ -148,6 +155,7 @@ function sr_quiz_save_group(PDO $pdo, array $values, int $groupId = 0): int
             'updated_at' => $now,
             'id' => $groupId,
         ]);
+        sr_quiz_sidebar_clear_group_menu_cache();
         return $groupId;
     }
     $stmt = $pdo->prepare('INSERT INTO sr_quiz_groups (group_key, title, description, status, sort_order, created_at, updated_at) VALUES (:group_key, :title, :description, :status, :sort_order, :created_at, :updated_at)');
@@ -160,6 +168,7 @@ function sr_quiz_save_group(PDO $pdo, array $values, int $groupId = 0): int
         'created_at' => $now,
         'updated_at' => $now,
     ]);
+    sr_quiz_sidebar_clear_group_menu_cache();
     return (int) $pdo->lastInsertId();
 }
 
@@ -188,6 +197,7 @@ function sr_quiz_delete_group(PDO $pdo, int $groupId): bool
         }
         throw $exception;
     }
+    sr_quiz_sidebar_clear_group_menu_cache();
     return true;
 }
 
