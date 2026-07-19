@@ -3,62 +3,6 @@
  * Owns this module public service screen styles.
  */
 
-.member-profile-menu {
-    display: inline-block;
-    position: relative;
-}
-
-.member-profile-menu > summary {
-    color: var(--sr-text, var(--text-strong, #242424));
-    cursor: pointer;
-    display: inline-flex;
-    font-weight: 700;
-    list-style: none;
-}
-
-.member-profile-menu > summary::-webkit-details-marker {
-    display: none;
-}
-
-.member-profile-menu-dropdown {
-    background: var(--sr-surface, #fff);
-    border: 1px solid var(--sr-border, #d9e0ea);
-    border-radius: 8px;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, .16);
-    display: grid;
-    gap: 2px;
-    left: 0;
-    min-width: 9rem;
-    padding: 6px;
-    position: absolute;
-    top: calc(100% + 6px);
-    z-index: 30;
-}
-
-.member-profile-menu-item {
-    background: transparent;
-    border: 0;
-    border-radius: 6px;
-    color: var(--sr-text, var(--text-strong, #242424));
-    display: block;
-    font: inherit;
-    padding: 8px 10px;
-    text-align: left;
-    text-decoration: none;
-    white-space: nowrap;
-    width: 100%;
-}
-
-.member-profile-menu-item:hover,
-.member-profile-menu-item:focus {
-    background: var(--sr-surface-muted, #f5f7fb);
-    color: var(--sr-text, var(--text-strong, #242424));
-}
-
-.member-profile-menu-form {
-    margin: 0;
-}
-
 .sr-quiz-author-meta,
 .sr-quiz-comment-author {
     align-items: center;
@@ -81,36 +25,6 @@
     border-radius: 50%;
     flex: 0 0 auto;
     object-fit: cover;
-}
-
-.member-profile-image-fallback {
-    align-items: center;
-    background: var(--sr-member-avatar-bg, #4f46e5);
-    border-color: transparent;
-    color: var(--color-white, #fff);
-    display: inline-flex;
-    font-size: clamp(0.625rem, calc(var(--member-profile-image-size, 32px) * 0.375), 1.25rem);
-    font-weight: var(--font-weight-bold, 700);
-    justify-content: center;
-    line-height: 1;
-    overflow: hidden;
-}
-
-.member-profile-image {
-    height: var(--member-profile-image-size, 2rem);
-    width: var(--member-profile-image-size, 2rem);
-}
-
-.member-profile-image.member-profile-image-size-small {
-    --member-profile-image-size: 1.5rem;
-}
-
-.member-profile-image.member-profile-image-size-medium {
-    --member-profile-image-size: 2rem;
-}
-
-.member-profile-image.member-profile-image-size-large {
-    --member-profile-image-size: 2.5rem;
 }
 
 .sr-quiz-dialog {

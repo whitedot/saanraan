@@ -18,3 +18,4 @@ require_once SR_ROOT . '/modules/member/helpers/admin-help.php';
 require_once SR_ROOT . '/modules/member/helpers/registration.php';
 require_once SR_ROOT . '/modules/member/helpers/feedback.php';
 require_once SR_ROOT . '/modules/member/helpers/notifications.php';
+require_once SR_ROOT . '/modules/member/helpers/public-identity.php';

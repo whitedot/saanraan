@@ -95,7 +95,7 @@ $communityBoardSidebarSiteMenuSelectOptions = static function (string $selectedM
     <?php } ?>
     <?php
 };
-$communityBoardReactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+$communityBoardReactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
 $communityBoardReactionInputAttributes = $communityBoardReactionAvailable
     ? ''
     : ' disabled aria-describedby="community-board-reaction-unavailable"';

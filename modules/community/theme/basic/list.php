@@ -15,26 +15,10 @@ $seo = sr_community_board_seo_meta($pdo, $board, [
     'category_invalid' => !empty($categoryInvalid),
 ]);
 $pageTitle = (string) $seo['title'];
-if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
-    require_once SR_ROOT . '/modules/banner/helpers.php';
-}
-if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
-    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
-}
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityBoardReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, $board, $communityLayoutSettings);
 $communityListReactionVisible = $communityBoardReactionsEnabled && sr_module_enabled($pdo, 'reaction');
-if ($communityListReactionVisible && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
-}
 $memberSettings = sr_member_settings($pdo);
-$communityListProfileImagesEnabled = !empty(sr_member_profile_field_policies($memberSettings)['profile_image_path']['visible']);
-$communityListProfileImageSizePixels = sr_member_profile_image_size_pixels('small', $memberSettings);
-$communityListProfileImageAccountIds = [];
-foreach ((array) ($posts ?? []) as $communityListProfileImagePost) {
-    $communityListProfileImageAccountIds[] = (int) ($communityListProfileImagePost['author_account_id'] ?? 0);
-}
-$communityListProfileImageSources = sr_member_public_profile_image_sources($pdo, $communityListProfileImageAccountIds);
 $communityBoardPaidReadConfig = sr_community_asset_event_config($pdo, $board, $communityLayoutSettings, 'paid_read', 'once');
 $communityBoardHomeExcerptAllowed = !sr_community_asset_event_required($communityBoardPaidReadConfig);
 $communityListReactionCounts = $communityListReactionVisible && is_array($posts ?? null)
@@ -42,8 +26,8 @@ $communityListReactionCounts = $communityListReactionVisible && is_array($posts 
     : [];
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.list',
-    'scripts' => ['/modules/member/assets/profile-menu.js'],
-    'stylesheets' => sr_community_skin_stylesheets($skinKey ?? 'basic'),
+    'scripts' => array_merge((array) ($communityListPublicIdentityAssets['scripts'] ?? []), (array) ($communityReactionPublicAssets['scripts'] ?? [])),
+    'stylesheets' => array_merge((array) ($communityListPublicIdentityAssets['stylesheets'] ?? []), (array) ($communityBannerPublicAssets['stylesheets'] ?? []), (array) ($communityPopupLayerPublicAssets['stylesheets'] ?? []), (array) ($communityReactionPublicAssets['stylesheets'] ?? []), sr_community_skin_stylesheets($skinKey ?? 'basic')),
     'output_slots' => [
         ['module_key' => 'community', 'point_key' => 'community.board.list', 'slot_key' => 'before_list'],
         ['module_key' => 'community', 'point_key' => 'community.board.list', 'slot_key' => 'after_list'],
@@ -164,13 +148,15 @@ $communityFrameModifier = 'list';
                                 $postUrl = sr_url('/community/post?id=' . (string) $postId);
                                 $postAuthorAccountId = (int) ($post['author_account_id'] ?? 0);
                                 $postAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo);
-                                $postAuthorProfileImageHtml = sr_member_public_profile_image_html(
-                                    (string) ($communityListProfileImageSources[$postAuthorAccountId] ?? ''),
-                                    'community-list-author-profile-image',
-                                    'small',
-                                    $communityListProfileImagesEnabled ? $postAuthorLabel : '',
-                                    $communityListProfileImageSizePixels
-                                );
+                                $postAuthorIdentity = sr_member_public_identity_parts($pdo, $communityListPublicIdentityContext, $postAuthorAccountId, $postAuthorLabel, [
+                                    'size' => 'small',
+                                    'image_class' => 'community-list-author-profile-image',
+                                    'menu_options' => [
+                                        'community_board_key' => (string) $board['board_key'],
+                                        'community_board_accessible' => true,
+                                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+                                    ],
+                                ]);
                                 $postExcerpt = !empty($post['is_secret']) || !$communityBoardHomeExcerptAllowed || empty($listExcerptEnabled)
                                     ? ''
                                     : sr_community_body_excerpt((string) ($post['body_text'] ?? ''), sr_community_post_body_format($pdo, $post, $settings), (int) $listExcerptLength);
@@ -201,7 +187,7 @@ $communityFrameModifier = 'list';
                                             <p class="community-board-table-excerpt"><?php echo sr_e($postExcerpt); ?></p>
                                         <?php } ?>
                                         <div class="community-board-table-mobile-meta">
-                                            <span class="community-board-table-mobile-author"><?php echo $postAuthorProfileImageHtml; ?><span><?php echo sr_e($postAuthorLabel); ?></span></span>
+                                            <span class="community-board-table-mobile-author"><?php echo $postAuthorIdentity['profile_image_html']; ?><span><?php echo sr_e($postAuthorLabel); ?></span></span>
                                             <span aria-hidden="true">&middot;</span>
                                             <?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?>
                                             <span aria-hidden="true">&middot;</span>
@@ -214,12 +200,8 @@ $communityFrameModifier = 'list';
                                     </td>
                                     <td class="community-board-table-author">
                                         <div class="community-board-table-author-content">
-                                            <?php echo $postAuthorProfileImageHtml; ?>
-                                            <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $postAuthorAccountId, $postAuthorLabel, [
-                                                'community_board_key' => (string) $board['board_key'],
-                                                'community_board_accessible' => true,
-                                                'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                            ]); ?>
+                                            <?php echo $postAuthorIdentity['profile_image_html']; ?>
+                                            <?php echo $postAuthorIdentity['name_html']; ?>
                                         </div>
                                     </td>
                                     <td class="community-board-table-date"><?php echo sr_community_time_html((string) ($post['created_at'] ?? '')); ?></td>

@@ -28,18 +28,21 @@ $contentPublisherAccountId = (int) ($page['created_by'] ?? 0);
 $contentPublisherName = $contentPublisherAccountId > 0
     ? sr_member_public_name_for_account_id($pdo, $contentPublisherAccountId, sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null))
     : sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
+$contentPublisherIdentity = sr_member_public_identity_parts($pdo, $contentPublicIdentityContext, $contentPublisherAccountId, $contentPublisherName, [
+    'size' => 'medium',
+    'image_class' => 'content-post-author-avatar',
+    'menu_options' => ['return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/')],
+]);
 $contentPublishedAt = (string) ($page['published_at'] ?? '');
 $contentDateText = $contentPublishedAt !== '' ? $contentPublishedAt : (string) ($page['updated_at'] ?? '');
-$contentStylesheets = sr_enabled_module_asset_paths($pdo ?? null, [
-    'banner' => '/modules/banner/assets/module.css',
-    'popup_layer' => '/modules/popup_layer/assets/module.css',
-    'reaction' => '/modules/reaction/assets/module.css',
-]);
+$contentStylesheets = array_merge(
+    (array) ($contentBannerPublicAssets['stylesheets'] ?? []),
+    (array) ($contentPopupLayerPublicAssets['stylesheets'] ?? []),
+    (array) ($contentReactionPublicAssets['stylesheets'] ?? [])
+);
 $contentStylesheets = array_merge($contentStylesheets, sr_content_body_embed_stylesheets($page, $contentLayoutSettings, $pdo ?? null));
 $contentStylesheets = array_merge($contentStylesheets, sr_content_comment_body_stylesheets($pdo, $contentLayoutSettings));
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
-}
+$contentStylesheets = array_merge((array) ($contentPublicIdentityAssets['stylesheets'] ?? []), $contentStylesheets);
 $contentReactionCommentTargets = [];
 if (
     sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets')
@@ -62,17 +65,9 @@ if (
         is_array($account ?? null) ? (int) ($account['id'] ?? 0) : 0
     );
 }
-$contentAuthorAvatarAccountIds = [$contentPublisherAccountId];
-foreach ((array) ($contentComments ?? []) as $contentAvatarComment) {
-    $contentAuthorAvatarAccountIds[] = (int) ($contentAvatarComment['author_account_id'] ?? 0);
-}
-$contentAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $contentAuthorAvatarAccountIds);
-$contentMemberSettings = sr_member_settings($pdo);
-$contentPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $contentMemberSettings);
-$contentCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $contentMemberSettings);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.view',
-    'scripts' => array_merge(['/modules/member/assets/profile-menu.js'], is_array($account ?? null) && !empty($pageAccess['allowed']) ? ['/assets/mention-input.js'] : []),
+    'scripts' => array_merge((array) ($contentPublicIdentityAssets['scripts'] ?? []), (array) ($contentReactionPublicAssets['scripts'] ?? []), is_array($account ?? null) && !empty($pageAccess['allowed']) ? ['/assets/mention-input.js'] : []),
     'stylesheets' => $contentStylesheets,
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'before_content'],
@@ -107,10 +102,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <?php } ?>
             <div class="content-meta" aria-label="<?php echo sr_e('콘텐츠 정보'); ?>">
                 <span class="content-author-identity">
-                    <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[$contentPublisherAccountId] ?? ''), 'content-post-author-avatar', 'medium', $contentPublisherName, $contentPostAvatarSizePixels); ?>
-                    <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $contentPublisherAccountId, $contentPublisherName, [
-                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                    ]); ?>
+                    <?php echo $contentPublisherIdentity['profile_image_html']; ?>
+                    <?php echo $contentPublisherIdentity['name_html']; ?>
                 </span>
                 <?php if ($contentDateText !== '') { ?>
                     <span><?php echo sr_content_time_html($contentDateText); ?></span>
@@ -363,11 +356,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 ?>
                                 <div class="content-comment-meta">
                                     <?php $contentCommentAuthorLabel = (string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원'); ?>
+                                    <?php $contentCommentAuthorIdentity = sr_member_public_identity_parts($pdo, $contentPublicIdentityContext, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
+                                        'size' => 'small',
+                                        'image_class' => 'content-comment-author-avatar',
+                                        'menu_options' => ['return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/')],
+                                    ]); ?>
                                     <div class="content-comment-author">
-                                        <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[(int) ($contentComment['author_account_id'] ?? 0)] ?? ''), 'content-comment-author-avatar', 'small', $contentCommentAuthorLabel, $contentCommentAvatarSizePixels); ?>
-                                        <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
-                                            'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                        ]); ?>
+                                        <?php echo $contentCommentAuthorIdentity['profile_image_html']; ?>
+                                        <?php echo $contentCommentAuthorIdentity['name_html']; ?>
                                     </div>
                                     <?php if ($contentCommentCreatedAt !== '') { ?>
                                         <span class="content-comment-date">
@@ -548,8 +544,5 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
 </main>
 <?php if (is_array($account ?? null) && !$contentAdminPreview) { ?>
     <?php echo sr_editor_assets_html($pdo, $contentCommentEditorKey, $contentCommentToolbarPreset); ?>
-<?php } ?>
-<?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
-    <?php echo sr_reaction_public_script_html(); ?>
 <?php } ?>
 <?php sr_public_layout_end(); ?>

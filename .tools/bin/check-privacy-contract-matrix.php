@@ -669,16 +669,24 @@ foreach ([
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
     'modules/quiz/theme/basic/layout.php' => [
-        '/modules/privacy/assets/cookie-consent.css',
+        '/modules/privacy/public-cookie-consent.php',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
+        'sr_privacy_cookie_consent_public_assets()',
     ],
     'modules/content/theme/basic/layout.php' => [
-        '/modules/privacy/assets/cookie-consent.css',
+        '/modules/privacy/public-cookie-consent.php',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
+        'sr_privacy_cookie_consent_public_assets()',
     ],
     'modules/community/theme/basic/layout.php' => [
-        '/modules/privacy/assets/cookie-consent.css',
+        '/modules/privacy/public-cookie-consent.php',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
+        'sr_privacy_cookie_consent_public_assets()',
+    ],
+    'modules/survey/theme/basic/layout.php' => [
+        '/modules/privacy/public-cookie-consent.php',
+        'sr_privacy_cookie_consent_public_html($layoutPdo)',
+        'sr_privacy_cookie_consent_public_assets()',
     ],
     'modules/popup_layer/helpers.php' => [
         'function sr_popup_layer_cookie_name(int $popupId): string',

@@ -1373,19 +1373,19 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         ] as $modulePublicNamespaceRoot) {
             foreach (sr_check_files($modulePublicNamespaceRoot, 'php') as $modulePublicNamespaceFile) {
                 $modulePublicNamespaceSource = file_get_contents($modulePublicNamespaceFile);
-                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
+                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-(?![a-z0-9_-]+\.php\b)[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
                     sr_check_add_error('Module public asset must not use public-prefixed classes: ' . $modulePublicNamespaceFile);
                 }
             }
             foreach (sr_check_files($modulePublicNamespaceRoot, 'css') as $modulePublicNamespaceFile) {
                 $modulePublicNamespaceSource = file_get_contents($modulePublicNamespaceFile);
-                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
+                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-(?![a-z0-9_-]+\.php\b)[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
                     sr_check_add_error('Module public asset must not use public-prefixed classes: ' . $modulePublicNamespaceFile);
                 }
             }
             foreach (sr_check_files($modulePublicNamespaceRoot, 'js') as $modulePublicNamespaceFile) {
                 $modulePublicNamespaceSource = file_get_contents($modulePublicNamespaceFile);
-                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
+                if (is_string($modulePublicNamespaceSource) && preg_match('/\b(?:public|sr-public)-(?![a-z0-9_-]+\.php\b)[a-z0-9_-]+/', $modulePublicNamespaceSource) === 1) {
                     sr_check_add_error('Module public asset must not use public-prefixed classes: ' . $modulePublicNamespaceFile);
                 }
             }
@@ -1491,7 +1491,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             sr_check_add_error('Module UI kit action must include selected theme UI kit view: ' . $uiKitActionFile);
         }
 
-        if (preg_match('/\b(?:public|sr-public)-[a-z0-9_-]+/', $source) === 1) {
+        if (preg_match('/\b(?:public|sr-public)-(?![a-z0-9_-]+\.php\b)[a-z0-9_-]+/', $source) === 1) {
             sr_check_add_error('Module public layout helper must not use public-prefixed classes: ' . $helperFile);
         }
     }
@@ -1899,6 +1899,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-action-security.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-module-upload-action-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-module-source-file-policy.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-module-feature-contracts.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-antispam-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-release.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-message-policy.php'));

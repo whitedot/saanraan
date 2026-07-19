@@ -124,7 +124,7 @@ function sr_quiz_check_schema(): void
     }
 
     sr_quiz_check_file_contains('modules/quiz/module.php', [
-        "'version' => '2026.07.007'",
+        "'version' => '2026.07.008'",
     ]);
     sr_quiz_check_file_contains('modules/quiz/paths.php', [
         "'GET /admin/quiz/groups'",

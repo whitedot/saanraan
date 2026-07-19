@@ -5,14 +5,14 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
-if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
-    require_once SR_ROOT . '/modules/banner/helpers.php';
+if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/public-banner.php')) {
+    require_once SR_ROOT . '/modules/banner/public-banner.php';
 }
-if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
-    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
+if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/public-popup-layer.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/public-popup-layer.php';
 }
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+    require_once SR_ROOT . '/modules/reaction/public-reaction.php';
 }
 
 $account = sr_member_require_login($pdo);

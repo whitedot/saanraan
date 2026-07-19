@@ -4,9 +4,9 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
 $quizReactionAvailable = sr_module_enabled($pdo, 'reaction')
-    && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+    && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
 if ($quizReactionAvailable) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
+    require_once SR_ROOT . '/modules/reaction/public-reaction.php';
 }
 $quizIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');

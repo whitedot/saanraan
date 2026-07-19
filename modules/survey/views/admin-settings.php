@@ -56,7 +56,7 @@ $surveyIdentityViewAdultInputAttributes = $surveyIdentityViewAdultAvailable
     : ' disabled aria-describedby="survey-settings-identity-adult-unavailable"';
 $surveyReactionAvailable = isset($surveyReactionAvailable)
     ? (bool) $surveyReactionAvailable
-    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php'));
 $surveyReactionInputAttributes = $surveyReactionAvailable
     ? ''
     : ' disabled aria-describedby="survey-settings-reaction-unavailable"';

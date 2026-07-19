@@ -2,9 +2,21 @@
 
 declare(strict_types=1);
 
-require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/public-identity.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/public-banner.php')) {
+    require_once SR_ROOT . '/modules/banner/public-banner.php';
+}
+if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/public-popup-layer.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/public-popup-layer.php';
+}
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+    require_once SR_ROOT . '/modules/reaction/public-reaction.php';
+}
+$communityBannerPublicAssets = function_exists('sr_banner_public_assets') ? sr_banner_public_assets() : [];
+$communityPopupLayerPublicAssets = function_exists('sr_popup_layer_public_assets') ? sr_popup_layer_public_assets() : [];
+$communityReactionPublicAssets = function_exists('sr_reaction_public_assets') ? sr_reaction_public_assets() : [];
 
 $boardKey = sr_get_string('key', 60);
 $board = sr_community_board_by_key($pdo, $boardKey);
@@ -68,6 +80,12 @@ if ($page > $totalPages) {
     $page = $totalPages;
 }
 $posts = $categoryInvalid ? [] : sr_community_board_posts($pdo, (int) $board['id'], $postsPerPage, ($page - 1) * $postsPerPage, $keyword, $selectedCategoryId, $listDefaultSort, $authorFilterAccountId, $searchField);
+$communityListAuthorAccountIds = array_map(
+    static fn (array $post): int => (int) ($post['author_account_id'] ?? 0),
+    $posts
+);
+$communityListPublicIdentityContext = sr_member_public_identity_context($pdo, is_array($account) ? $account : null, $communityListAuthorAccountIds);
+$communityListPublicIdentityAssets = sr_member_public_identity_assets();
 $boardNotice = '';
 if (isset($_SESSION['sr_community_board_notice']) && is_string($_SESSION['sr_community_board_notice'])) {
     $boardNotice = $_SESSION['sr_community_board_notice'];

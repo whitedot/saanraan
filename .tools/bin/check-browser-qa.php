@@ -141,6 +141,7 @@ sr_browser_qa_require_markers('.tools/browser-qa/tests/public-comment-pagination
     'comment panel follows community divider metrics',
     'headerDivider',
     'formDivider',
+    'modules/member/assets/public-identity.css',
 ]);
 
 sr_browser_qa_require_markers('docs/smoke-test.md', [

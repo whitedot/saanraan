@@ -2,7 +2,7 @@
 
 return [
     'name' => '배너',
-    'version' => '2026.06.002',
+    'version' => '2026.06.003',
     'type' => 'module',
     'description' => '공개 출력 슬롯용 배너 관리 모듈입니다.',
     'admin' => [
@@ -27,6 +27,7 @@ return [
             'admin-menu.php',
             'retention-targets.php',
             'output-slots.php',
+            'public-banner.php',
         ],
         'consumes' => [
             'extension-points.php',

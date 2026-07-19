@@ -796,6 +796,14 @@ function sr_popup_layer_render_public_layer(PDO $pdo, int $popupLayerId): string
     return sr_popup_layer_render_stack([$popup], $skinKey, true, $pdo);
 }
 
+function sr_popup_layer_public_assets(): array
+{
+    return [
+        'stylesheets' => ['/modules/popup_layer/assets/module.css'],
+        'scripts' => [],
+    ];
+}
+
 function sr_popup_layer_render(PDO $pdo, array $context, bool $includeScript = true): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');

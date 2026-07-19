@@ -68,7 +68,7 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
     $siteMenuAvailable = !empty($context['site_menu_available']);
     $siteMenuOptions = is_array($context['site_menu_options'] ?? null) ? $context['site_menu_options'] : [];
     $afterSave = is_callable($context['after_save'] ?? null) ? $context['after_save'] : null;
-    $reactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+    $reactionAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
     $privacyConsentPolicyDocumentsAvailable = sr_community_privacy_consent_policy_documents_available($pdo);
         $boardKey = strtolower(trim(sr_post_string('board_key', 60)));
         $title = sr_post_string('title', 120);

@@ -66,7 +66,7 @@ $communityIdentityVerificationInputAttributes = $communityIdentityRestrictedBoar
     : ' disabled aria-describedby="community-settings-identity-unavailable"';
 $communityReactionAvailable = isset($communityReactionAvailable)
     ? (bool) $communityReactionAvailable
-    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php'));
 $communityReactionInputAttributes = $communityReactionAvailable
     ? ''
     : ' disabled aria-describedby="community-settings-reaction-unavailable"';

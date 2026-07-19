@@ -19,9 +19,6 @@ $seo = [
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
     'consumer_target' => $surveyScreenTarget,
     'body_class' => 'sr-survey-page',
-    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-    ]),
     'output_slots' => [
         ['module_key' => 'survey', 'point_key' => $surveyScreenTarget, 'slot_key' => 'screen'],
         ['module_key' => 'survey', 'point_key' => 'survey.sidebar.summary', 'slot_key' => 'after_summary'],

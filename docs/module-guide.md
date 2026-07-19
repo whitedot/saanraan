@@ -130,6 +130,14 @@ modules/{module_key}/
 - report-targets.php (optional)
 - operational-status.php (optional)
 - retention-targets.php (optional)
+- public-identity.php (optional)
+- public-banner.php (optional)
+- public-popup-layer.php (optional)
+- public-reaction.php (optional)
+- public-branding.php (optional)
+- public-cookie-consent.php (optional)
+- public-message-summary.php (optional)
+- public-notification-summary.php (optional)
 - actions/ (optional)
 - views/ (optional)
 - layouts/ (optional)
@@ -468,7 +476,7 @@ return [
 
 관리자 모듈 설치/활성화 흐름은 `enabled` 상태로 만들기 전에 의존 모듈이 활성화되어 있는지 확인한다. `module_key => version` 형태를 쓰면 최소 버전도 확인한다. 설치 후 `disabled` 상태로 둘 때는 의존성 검사를 강제하지 않는다.
 
-의존성은 실행 순서가 아니라 운영 조건이다. 의존성 선언만으로 다른 모듈 파일을 자동 include하지 않는다.
+의존성은 실행 순서가 아니라 운영 조건이다. 의존성 선언만으로 다른 모듈 파일을 자동 include하지 않는다. `requires.contracts`에 특정 제공 모듈의 계약을 선언하면 제공 모듈은 `requires.modules`에도, 계약 파일은 `contracts.consumes`에도 함께 선언해야 한다. 메타데이터 검사와 `.tools/bin/check-module-feature-contracts.php`가 이 관계를 검증한다.
 
 ## 6. 요청 흐름과 `paths.php`
 
@@ -489,6 +497,21 @@ index.php
 ```
 
 `core/request-bootstrap.php`는 자동 dispatcher나 service provider가 아니다. 요청 준비 함수를 담는 파일이며, 실제 호출 순서는 `index.php`에 남긴다.
+
+다른 모듈의 공개 기능 계약을 사용하는 action은 계약 선언만으로 자동 연결하지 않는다. action과 view를 순서대로 읽었을 때 다음 흐름이 보여야 한다.
+
+```text
+paths.php
+-> action에서 제공 모듈 계약 파일 require_once
+-> 대상 ID 수집
+-> 단건 또는 일괄 context 준비
+-> 계약이 제공한 stylesheet/script 목록 준비
+-> view/theme include
+-> view에서 asset 목록을 layout context에 명시적으로 병합
+-> 계약 renderer로 출력
+```
+
+계약 renderer가 전역 layout context에 에셋을 암묵적으로 추가하거나 manifest를 런타임 service locator로 사용하면 안 된다. 자동 검사는 이 실행 흐름을 대신 만들지 않고, 미선언 소비와 계약 우회를 거부한다.
 
 `paths.php`는 단순 배열만 반환한다.
 
@@ -1022,6 +1045,14 @@ return [
 - `notification-events.php`: 계정 이벤트 알림 생성 후보
 - `url-embed-targets.php`: URL 기반 임베딩 resolver와 renderer 후보. 공개 렌더링은 이 계약으로 canonical URL, target allowlist, snapshot, 모듈별 표시 HTML, 대상 모듈 전용 `embed_stylesheet`, fragment cache schema를 결정한다.
 - `report-targets.php`: 신고 모듈이 특정 target type/id의 공개 가능 제목, URL, 소유자, 신고 가능 상태를 확인할 때 쓰는 대상 resolver 후보
+- `public-identity.php`: 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업, 공통 stylesheet/script를 한 번에 제공하는 회원 모듈 공개 표현 계약
+- `public-banner.php`: 선택된 공개 배너의 조회·렌더링, 관리자 선택 후보, 공통 stylesheet를 배너 모듈이 제공하는 계약
+- `public-popup-layer.php`: 선택된 공개 팝업레이어의 조회·렌더링, 관리자 선택 후보, 공통 stylesheet를 팝업레이어 모듈이 제공하는 계약
+- `public-reaction.php`: 리액션 대상 batch resolve·집계·렌더링, preset 설정, 삭제 정리와 공통 stylesheet/script를 리액션 모듈이 제공하는 계약
+- `public-branding.php`: 공개 레이아웃의 데스크톱·모바일·심볼 로고와 favicon 렌더링을 로고 매니저가 제공하는 계약
+- `public-cookie-consent.php`: 쿠키 동의 안내 마크업과 필요한 stylesheet를 개인정보 모듈이 함께 제공하는 계약
+- `public-message-summary.php`: 공개 회원 메뉴의 쪽지 사용 상태와 읽지 않은 개수를 쪽지 모듈이 제공하는 계약
+- `public-notification-summary.php`: 공개 헤더의 알림 요약, 링크 속성, 표시 문구와 상대 시각을 알림 모듈이 제공하는 계약
 
 계약 파일 규칙:
 
@@ -1057,6 +1088,47 @@ return [
 - 배열을 반환한다.
 - 각 항목은 `label`, `url`을 가진 배열이다.
 - `url`은 내부 상대 경로(`/board`) 또는 허용된 `http/https` URL이다.
+
+`public-identity.php`:
+
+- 회원 모듈이 `context_function`, `parts_function`, `assets_function`을 제공한다.
+- 요청 action은 작성자 계정 ID를 모아 `context_function`을 한 번 호출한다. 목록 item loop에서 회원 프로필, 공개 정책, 팔로우 상태를 다시 조회하지 않는다.
+- 소비 view는 도메인이 결정한 공개 작성자 label과 배치용 class, `small`/`medium`/`large` 크기만 `parts_function`에 전달한다. 이미지 공개 여부, 이미지 없음, 탈퇴 계정 처리와 첫 글자 fallback은 회원 계약이 결정한다.
+- `assets_function`은 회원 모듈 소유 `/modules/member/assets/public-identity.css`와 `/modules/member/assets/profile-menu.js`를 반환한다. 소비 view는 이 목록을 layout context에 명시적으로 병합하며 경로를 직접 적지 않는다.
+- 콘텐츠, 커뮤니티, 퀴즈, 설문은 하위 `sr_member_public_profile_image_*`, `sr_member_follow_statuses`, `sr_member_public_name_menu_html` 함수를 직접 조립하지 않는다.
+
+`public-banner.php`:
+
+- 배너 모듈이 공개 렌더러, 관리자 선택 후보와 필요한 stylesheet 목록을 제공한다.
+
+`public-popup-layer.php`:
+
+- 팝업레이어 모듈이 공개 렌더러, 관리자 선택 후보와 필요한 stylesheet 목록을 제공한다.
+
+`public-reaction.php`:
+
+- 리액션 모듈이 대상 batch/context 함수, 공개 렌더러, preset 설정·삭제 함수와 필요한 stylesheet/script 목록을 함께 제공한다.
+- 소비 action은 공개 계약 파일을 명시적으로 로드하고 asset 목록을 준비한 뒤 view를 include한다. view와 layout은 소유 모듈의 `helpers.php` 또는 `/modules/{provider}/assets/...` 경로를 직접 적지 않는다.
+- 출력 슬롯에서 뒤늦게 생성된 배너·팝업 마크업의 stylesheet가 필요하면 layout shell은 `sr_module_contract_function()`으로 해당 공개 계약의 `assets_function`을 읽는다.
+- 리액션 목록·댓글은 item loop 안에서 대상 정책과 집계를 다시 조회하지 않고 계약의 batch resolve·summary 결과를 renderer에 전달한다.
+
+`public-branding.php`:
+
+- 로고 매니저가 공개 위치별 로고·심볼 로고 renderer와 favicon renderer를 제공한다.
+
+`public-cookie-consent.php`:
+
+- 개인정보 모듈이 쿠키 동의 안내 renderer와 필요한 stylesheet 목록을 제공한다.
+
+`public-message-summary.php`:
+
+- 쪽지 모듈이 기능 사용 상태와 계정별 미확인 개수 함수를 제공한다.
+
+`public-notification-summary.php`:
+
+- 알림 모듈이 계정별 헤더 요약, 항목 링크 속성, 한 줄 문구와 표시 시각 함수를 제공한다.
+- 공개 layout shell은 선택 기능이 활성화된 경우 해당 소유 모듈의 공개 계약 파일을 명시적으로 로드한다. 소유 모듈의 `helpers.php`나 asset 경로를 직접 참조하지 않는다.
+- 선택 기능이 비활성 상태이면 기존 텍스트 로고, 빈 안내/요약 같은 layout 기본값을 유지하며 다른 모듈의 정책을 복제하지 않는다.
 - 신규 설치에서 `site_menu`가 선택되면 설치 후 seed helper가 `service_domain.main_page`를 선언한 설치 모듈의 메인 페이지를 기본 `header` 메뉴에 추가한다. 메뉴 항목 표시명은 모듈명이나 초기화면 후보 표시명과 분리된 `service_domain.main_page.menu_label`을 우선하고, 선언이 없을 때만 `label`로 대체한다. 번들 기본값은 `Home`, `Contents`, `Community`, `Quiz`, `Survey`다. `menu-links.php` 후보 전체를 자동 등록하지 않으며, 로그인/회원가입 링크도 기본 header에 자동 삽입하지 않는다.
 
 `site-menu-provider.php`:
@@ -1464,6 +1536,14 @@ return [
 | `member-only-routes.php` | core member-only guard | 사이트 회원전용 모드 비로그인 요청 판단 | 모듈 공개 화면 route/prefix와 파일성 보호 route |
 | `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장 | 서비스 모듈이 회원가입 시 필요한 추가 입력 |
 | `member-mfa-providers.php` | `member` 모듈 | 로그인 MFA 운영자 설정, 로그인 challenge provider 결정, 회원 보안 화면 등록 가능 여부 판단 | TOTP, 이메일, SMS, 다른 OTP 같은 로그인 2차 인증 방식 후보 |
+| `public-identity.php` | `content`, `community`, `quiz`, `survey` 모듈 | 목록·읽기·댓글의 작성자 context 일괄 준비와 렌더링 | 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업 및 공통 stylesheet/script |
+| `public-banner.php` | `content`, `community` 모듈과 공개 layout shell | 선택 배너 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 배너 공개 정책, 마크업과 공통 stylesheet |
+| `public-popup-layer.php` | `content`, `community`, `quiz`, `survey` 모듈과 공개 layout shell | 선택 팝업레이어 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 팝업 공개 기간·상태 정책, 마크업과 공통 stylesheet |
+| `public-reaction.php` | `content`, `community`, `quiz`, `survey` 모듈 | 리액션 대상 batch resolve·집계, widget 렌더링, 설정 후보와 삭제 정리 | 리액션 정책·원장·마크업과 공통 stylesheet/script |
+| `public-branding.php` | `content`, `community`, `quiz`, `survey` 공개 layout shell | 공개 로고와 favicon 렌더링 | 로고 선택·기간·대상 정책과 마크업 |
+| `public-cookie-consent.php` | `content`, `community`, `quiz`, `survey` 공개 layout shell | 쿠키 동의 안내 렌더링과 asset 병합 | 동의 상태·안내 마크업과 공통 stylesheet |
+| `public-message-summary.php` | `content`, `community`, `quiz`, `survey` 공개 layout shell | 회원 메뉴의 쪽지 사용 상태와 미확인 수 표시 | 쪽지 사용 정책과 미확인 집계 |
+| `public-notification-summary.php` | `content`, `community`, `quiz`, `survey` 공개 layout shell | 헤더 알림 목록과 미확인 수 표시 | 알림 조회·링크·문구·시각 표시 정책 |
 | `homepage-candidates.php` | core/admin | `available_function`으로 저장값 사용 가능 여부 확인. `available_function`은 가능 `true`, 소유 경로의 불가 `false`, 미소유 경로 `null`을 반환 | 과거 저장값이나 모듈 소유 공개 경로 검증 |
 | `editor-options.php` | core editor helper | 관리자/공개 textarea 에디터 설정과 렌더링 | 플러그인별 textarea 강화 에디터 후보 |
 | `markdown-renderer.php` | core body renderer | Markdown 본문 출력, plain text 추출, 스타일시트 수집 | Markdown 렌더러와 스타일 프로파일 |
@@ -1497,42 +1577,42 @@ return [
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
 | `admin` | `paths.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php` | `notification-events.php`, `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php`, `public-identity.php` | `notification-events.php`, `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |
 | `identity_verification` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `operational-status.php` | `identity-provider.php` |
 | `identity_kcp` | `identity-provider.php` | 없음 |
 | `identity_inicis` | `identity-provider.php` | 없음 |
-| `privacy` | `paths.php`, `admin-menu.php` | `privacy-export.php`, `admin-notification-events.php` |
+| `privacy` | `paths.php`, `admin-menu.php`, `public-cookie-consent.php` | `privacy-export.php`, `admin-notification-events.php` |
 | `policy_documents` | `paths.php`, `admin-menu.php`, `delivery-templates.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | 없음 |
 | `asset_ledger` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | `member-assets.php`, `asset-recovery-targets.php` |
 | `payment_ledger` | `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | `payment-ledger-targets.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `site-menu-provider.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `dashboard.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `layout-options.php`, `url-embed-targets.php`, `reaction-targets.php`, `payment-ledger-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php` |
-| `logo_manager` | `paths.php`, `admin-menu.php`, `site-setting-references.php` | `logo-positions.php` |
-| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `retention-targets.php` | `extension-points.php`, `coupon-targets.php`, `banner-references.php` |
-| `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php` | `extension-points.php`, `popup-layer-references.php`, `coupon-targets.php` |
-| `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `notification-events.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` | 없음 |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `dashboard.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `layout-options.php`, `url-embed-targets.php`, `reaction-targets.php`, `payment-ledger-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `public-identity.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
+| `logo_manager` | `paths.php`, `admin-menu.php`, `site-setting-references.php`, `public-branding.php` | `logo-positions.php` |
+| `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `retention-targets.php`, `public-banner.php` | `extension-points.php`, `coupon-targets.php`, `banner-references.php` |
+| `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `public-popup-layer.php` | `extension-points.php`, `popup-layer-references.php`, `coupon-targets.php` |
+| `notification` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `notification-events.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php`, `public-notification-summary.php` | 없음 |
 | `point` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `dashboard.php`, `operational-status.php` | `notification-events.php` |
 | `deposit` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `asset_exchange` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-action-rows.php`, `dashboard.php` | `asset-exchange.php`, `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-withdrawal-assets.php`, `member-summary-rows.php`, `coupon-references.php`, `dashboard.php`, `url-embed-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php` |
-| `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `member-registration.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php` | `member-assets.php`, `notification-events.php` |
-| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php` |
-| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php` |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php`, `public-identity.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
+| `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `member-registration.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php`, `public-message-summary.php` | `member-assets.php`, `notification-events.php` |
+| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
+| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
 | `antispam` | `paths.php`, `admin-menu.php` | `antispam-targets.php`, `antispam-providers.php` |
 | `antispam_captcha_providers` | `antispam-providers.php` | 없음 |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | 없음 |
 | `markdown_editor` | `paths.php`, `admin-menu.php`, `editor-options.php`, `markdown-renderer.php` | 없음 |
-| `reaction` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `reaction-targets.php`, `notification-events.php` |
+| `reaction` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `public-reaction.php` | `reaction-targets.php`, `notification-events.php` |
 
 모듈 메타데이터 작성 기준:
 
 - 실제 파일을 제공하면 `contracts.provides`에 반드시 선언한다.
-- 다른 모듈의 계약 파일을 직접 읽으면 `contracts.consumes`에 기록한다.
+- 다른 모듈의 계약 파일을 직접 읽으면 `contracts.consumes`에 기록한다. 특정 제공 모듈이 반드시 필요하면 같은 파일을 `requires.contracts`에, 제공 모듈을 `requires.modules`에 함께 선언한다.
 - `sr_render_output_slot()`처럼 코어 helper를 호출해 출력 renderer를 실행하는 경우, 화면 소유 모듈은 어떤 point/slot을 호출하는지 view에서 명시한다. 본문 slot은 `sr_public_layout_begin()` layout context의 `output_slots`에도 같은 point/slot을 선언해 slot provider의 public asset을 head 렌더링 전에 합류시킨다. `output-slots.php` 파일 탐색 자체는 core helper가 담당한다.
 - 계약 파일을 읽는 모듈은 반환 구조를 다시 검증하고, 깨진 계약 파일 하나 때문에 전체 화면이 500으로 죽지 않게 안전 로더를 사용한다.
 - 계약 파일 소비 관계가 새로 생기면 이 표와 `module.php`의 `contracts.consumes`를 함께 갱신한다.
@@ -1698,7 +1778,7 @@ return [
 
 콘텐츠·퀴즈·설문 삭제 정책은 일반 삭제(redaction)와 영구 물리 삭제를 분리한다. 저장소 파일 삭제는 일반 삭제에서 pending cleanup row 선기록, DB commit, commit 후 storage delete, cleaned/pending 전이 순서로 처리하고, 영구 삭제는 파일 최초 삭제를 맡지 않는다. 퀴즈와 설문은 콘텐츠의 `sr_content_storage_cleanup_failures` 모델을 기준으로 `sr_quiz_storage_cleanup_failures`, `sr_survey_storage_cleanup_failures`를 둔다. 테이블별 삭제/보존 매트릭스와 reward grant 보존 기준은 [이슈 #404 삭제 상태와 영구 삭제 계약](records/issue-404-delete-state-permanent-delete-contract-2026-07-05.md)을 따른다.
 CKEditor 본문 이미지는 다운로드 파일과 DB 참조 테이블 없이 콘텐츠 모듈의 로컬 경로 `storage/content/body/tmp/{upload_token}`와 `storage/content/body/{content_id}`가 소유한다. 콘텐츠 저장 시 정화된 HTML의 `/content/body-file?tmp=...&file=...` 참조를 다시 파싱해 콘텐츠별 경로로 옮기고, 저장된 HTML에 남지 않은 같은 콘텐츠 경로의 파일은 정리한다. 커뮤니티 게시글 본문 이미지는 기존 첨부파일과 분리해 `community/body/tmp/{upload_token}`와 shard가 포함된 `community/body/{shard1}/{shard2}/{post_id}` storage key를 소유하며, 현재 storage driver가 S3이면 프록시 URL에 `d=s3`를 보존해 저장/수정/복사/삭제/전달 흐름이 같은 driver를 사용한다. 기존 `d` 없는 커뮤니티 본문 이미지 URL은 로컬 저장소 참조로 해석한다. S3의 `community/body/tmp/` 임시 객체는 서버 파일 스캔 cleanup 대상이 아니므로 S3 lifecycle rule로 1-2일 만료를 설정해야 한다. 팝업레이어 본문 이미지는 `storage/popup_layer/body/tmp/{upload_token}`와 `storage/popup_layer/body/{popup_layer_id}` 경로가 소유하며, 팝업레이어 저장/복사/삭제 흐름에서 자신의 경로로 보존하거나 정리한다. 콘텐츠/커뮤니티/팝업레이어의 로컬 임시 본문 이미지는 업로드 요청에서 만료된 항목을 소량 opportunistic cleanup으로 정리한다. 관리자 설정형 rich textarea는 레코드 ID가 없으므로 공통 저장소를 자동으로 쓰지 않고, 실제 설정 필드가 생길 때 소유 모듈이 안정적인 setting subject key를 경로로 정해 명시적으로 upload endpoint를 붙인다. 본문 이미지 프록시는 각 소유 모듈의 공개/권한 정책을 확인하고, 저장 전 temporary 이미지는 업로드 권한이 있는 현재 사용자에게만 보여준다.
-콘텐츠 그룹은 여러 콘텐츠를 묶어 공개 목록, 사이트 메뉴 연결 자산, sitemap 후보로 노출하는 운영 단위다. 콘텐츠 그룹은 개별 콘텐츠 설정 기본값을 제공하지 않으며, 콘텐츠 그룹 목록이나 콘텐츠 목록의 그룹 필터에서 새 콘텐츠를 만들면 그룹 ID만 선택된 상태로 시작한다. 콘텐츠별 `sr_content_setting_sources`는 기존 호환과 적용 상태 기록에 사용한다. 사용 상태의 콘텐츠 그룹은 `/content/group?key={group_key}` 공개 목록, 사이트 메뉴 연결 자산, sitemap 후보로 노출된다. 콘텐츠 메인은 사용 상태 그룹별 최신 콘텐츠를 그룹 섹션으로 나누고, 사용 가능한 공개 그룹이 없는 콘텐츠는 `최근 콘텐츠` 섹션에 따로 표시한다. 그룹 섹션 제목과 콘텐츠 카드의 그룹명은 해당 공개 그룹 목록으로 연결한다. 콘텐츠 그룹 목록도 메인과 같은 카드 그리드와 사이드바 프레임을 사용한다. 메인과 그룹 목록 카드의 작성자는 `created_by` 계정의 공개 이름 정책을 따른다. 프로필 이미지 공개가 켜져 있고 회원이 등록한 이미지가 있으면 소형 프로필 이미지를 표시하고, 등록 이미지가 없거나 공개되지 않으면 작성자 공개 이름의 첫 글자 fallback을 표시한다. 같은 fallback 기준은 콘텐츠 읽기와 퀴즈·설문 상세의 본문 작성자 및 댓글 작성자에도 적용한다. 작성자 이름은 회원 모듈의 공통 프로필 메뉴를 사용하고, 바깥 클릭과 `Escape` 닫힘 동작은 회원 모듈의 `assets/profile-menu.js`가 소유한다. 콘텐츠별 공개 레이아웃은 현재 콘텐츠에 저장하고, 편집 화면의 `그룹`/`전체` 적용은 선택값을 대상 콘텐츠에 한 번 복사한다. 빈 legacy `layout_key`는 콘텐츠 환경설정의 기본 레이아웃을 따르며 명시적인 `content.none`만 레이아웃 없음으로 해석한다. 콘텐츠나 커뮤니티 게시판처럼 공용 배너/팝업레이어를 직접 선택하는 관리자 화면은 선택 영역 근처에 배너/팝업레이어 관리 화면으로 이동하는 링크를 제공한다. 사이트 설정의 초기화면 후보는 콘텐츠 개별/그룹이 아니라 콘텐츠 서비스 메인으로 제한하며, 기본 홈페이지 자체의 본문 구성은 public layout/theme의 홈 템플릿 책임이다.
+콘텐츠 그룹은 여러 콘텐츠를 묶어 공개 목록, 사이트 메뉴 연결 자산, sitemap 후보로 노출하는 운영 단위다. 콘텐츠 그룹은 개별 콘텐츠 설정 기본값을 제공하지 않으며, 콘텐츠 그룹 목록이나 콘텐츠 목록의 그룹 필터에서 새 콘텐츠를 만들면 그룹 ID만 선택된 상태로 시작한다. 콘텐츠별 `sr_content_setting_sources`는 기존 호환과 적용 상태 기록에 사용한다. 사용 상태의 콘텐츠 그룹은 `/content/group?key={group_key}` 공개 목록, 사이트 메뉴 연결 자산, sitemap 후보로 노출된다. 콘텐츠 메인은 사용 상태 그룹별 최신 콘텐츠를 그룹 섹션으로 나누고, 사용 가능한 공개 그룹이 없는 콘텐츠는 `최근 콘텐츠` 섹션에 따로 표시한다. 그룹 섹션 제목과 콘텐츠 카드의 그룹명은 해당 공개 그룹 목록으로 연결한다. 콘텐츠 그룹 목록도 메인과 같은 카드 그리드와 사이드바 프레임을 사용한다. 메인과 그룹 목록 카드의 작성자는 `created_by` 계정의 공개 이름 정책을 따른다. 콘텐츠·커뮤니티·퀴즈·설문의 목록, 읽기와 댓글 작성자 표현은 회원 모듈의 `public-identity.php` 계약을 사용한다. 프로필 이미지 공개가 켜져 있고 회원이 등록한 이미지가 있으면 사용 단계에 맞는 이미지를 표시하고, 등록 이미지가 없거나 공개되지 않으면 작성자 공개 이름의 첫 글자 fallback을 표시한다. 공개 정책, fallback, 팔로우 상태, 프로필 메뉴 마크업과 공통 에셋은 회원 계약이 소유하며 소비 화면은 작성자 ID, 공개 label, 크기와 배치 class만 전달한다. 바깥 클릭과 `Escape` 닫힘 동작은 계약이 반환하는 회원 모듈 `assets/profile-menu.js`가 소유한다. 콘텐츠별 공개 레이아웃은 현재 콘텐츠에 저장하고, 편집 화면의 `그룹`/`전체` 적용은 선택값을 대상 콘텐츠에 한 번 복사한다. 빈 legacy `layout_key`는 콘텐츠 환경설정의 기본 레이아웃을 따르며 명시적인 `content.none`만 레이아웃 없음으로 해석한다. 콘텐츠나 커뮤니티 게시판처럼 공용 배너/팝업레이어를 직접 선택하는 관리자 화면은 선택 영역 근처에 배너/팝업레이어 관리 화면으로 이동하는 링크를 제공한다. 사이트 설정의 초기화면 후보는 콘텐츠 개별/그룹이 아니라 콘텐츠 서비스 메인으로 제한하며, 기본 홈페이지 자체의 본문 구성은 public layout/theme의 홈 템플릿 책임이다.
 
 콘텐츠 공개 사이드바는 콘텐츠 메인, 그룹·검색 목록, 상세 읽기, 회원 콘텐츠 작성/수정 화면에 렌더링한다. 메뉴는 사용 중인 콘텐츠 그룹 또는 선택한 사이트 메뉴 계약을 사용한다. 공개 그룹 메뉴 원본은 `public-side-menu` 파일 캐시에서 재사용하며 그룹 생성·수정·삭제·상태 일괄 변경 직후 무효화한다. 인기 콘텐츠는 공개 가능한 콘텐츠만 조회하며 현재 콘텐츠는 제외할 수 있다. 최신 댓글은 공개 콘텐츠의 공개 댓글만 후보로 삼고 비밀 댓글은 제외하며, 저장 형식과 관계없이 태그를 제거한 plain text 요약만 escape해 출력한다. 사이드바 출력은 `content.sidebar.summary` output point로 확장할 수 있고, 좁은 화면에서는 본문 아래 한 열로 이동한다.
 

@@ -1,11 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../helpers.php';
-require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
-}
 
 $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
 $basePath = rtrim(sr_base_path(), '/');
@@ -62,15 +58,18 @@ $surveyCommentPage = $surveyCommentsEnabled
     : ['comments' => [], 'page' => 1, 'per_page' => 20, 'total' => 0, 'total_pages' => 1, 'has_previous' => false, 'has_next' => false];
 $surveyComments = is_array($surveyCommentPage['comments'] ?? null) ? $surveyCommentPage['comments'] : [];
 $surveyOwnerAccountId = (int) ($survey['created_by_account_id'] ?? 0);
-$surveyAuthorAvatarAccountIds = [$surveyOwnerAccountId];
-foreach ($surveyComments as $surveyAvatarComment) {
-    $surveyAuthorAvatarAccountIds[] = (int) ($surveyAvatarComment['author_account_id'] ?? 0);
+$surveyAuthorAccountIds = [$surveyOwnerAccountId];
+foreach ($surveyComments as $surveyAuthorComment) {
+    $surveyAuthorAccountIds[] = (int) ($surveyAuthorComment['author_account_id'] ?? 0);
 }
-$surveyAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $surveyAuthorAvatarAccountIds);
-$surveyMemberSettings = sr_member_settings($pdo);
-$surveyPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $surveyMemberSettings);
-$surveyCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $surveyMemberSettings);
+$surveyPublicIdentityContext = sr_member_public_identity_context($pdo, is_array($currentAccount) ? $currentAccount : null, $surveyAuthorAccountIds);
+$surveyPublicIdentityAssets = sr_member_public_identity_assets();
 $surveyOwnerPublicName = $surveyOwnerAccountId > 0 ? sr_member_public_name_for_account_id($pdo, $surveyOwnerAccountId, '운영자') : '';
+$surveyOwnerIdentity = sr_member_public_identity_parts($pdo, $surveyPublicIdentityContext, $surveyOwnerAccountId, $surveyOwnerPublicName, [
+    'size' => 'medium',
+    'image_class' => 'sr-survey-post-author-avatar',
+    'menu_options' => ['return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/')],
+]);
 $surveyCommentNotice = (string) ($_SESSION['sr_survey_comment_notice'] ?? '');
 $surveyCommentErrors = (array) ($_SESSION['sr_survey_comment_errors'] ?? []);
 $surveyCommentBody = (string) ($_SESSION['sr_survey_comment_body'] ?? '');
@@ -186,11 +185,8 @@ $surveyConsumerTarget = ($submittedScreen || $submitResult !== null) ? 'survey.c
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layout_context($settings, [
     'consumer_target' => $surveyConsumerTarget,
     'body_class' => 'sr-survey-page',
-    'scripts' => array_merge(['/modules/member/assets/profile-menu.js'], $surveyCommentsEnabled && is_array($currentAccount) ? ['/assets/mention-input.js'] : []),
-    'stylesheets' => array_merge(sr_enabled_module_asset_paths($pdo ?? null, [
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-        'reaction' => '/modules/reaction/assets/module.css',
-    ]), sr_survey_comment_body_stylesheets($pdo, $settings)),
+    'scripts' => array_merge((array) ($surveyPublicIdentityAssets['scripts'] ?? []), (array) ($surveyReactionPublicAssets['scripts'] ?? []), $surveyCommentsEnabled && is_array($currentAccount) ? ['/assets/mention-input.js'] : []),
+    'stylesheets' => array_merge((array) ($surveyPublicIdentityAssets['stylesheets'] ?? []), (array) ($surveyReactionPublicAssets['stylesheets'] ?? []), sr_survey_comment_body_stylesheets($pdo, $settings)),
     'output_slots' => [
         ['module_key' => 'survey', 'point_key' => 'survey.view', 'slot_key' => 'screen'],
         ['module_key' => 'survey', 'point_key' => 'survey.sidebar.summary', 'slot_key' => 'after_summary'],
@@ -212,10 +208,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
             <h1><?php echo sr_e((string) $survey['title']); ?></h1>
             <?php if ($surveyOwnerAccountId > 0 && $surveyOwnerPublicName !== ''): ?>
                 <div class="sr-survey-author-meta" aria-label="설문 작성자">
-                    <?php echo sr_member_public_profile_image_html((string) ($surveyAuthorAvatarSources[$surveyOwnerAccountId] ?? ''), 'sr-survey-post-author-avatar', 'medium', $surveyOwnerPublicName, $surveyPostAvatarSizePixels); ?>
-                    <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, $surveyOwnerAccountId, $surveyOwnerPublicName, [
-                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                    ]); ?>
+                    <?php echo $surveyOwnerIdentity['profile_image_html']; ?>
+                    <?php echo $surveyOwnerIdentity['name_html']; ?>
                 </div>
             <?php endif; ?>
             <?php echo sr_survey_cover_image_html($survey, 'sr-survey-cover-image', (string) ($survey['title'] ?? '')); ?>
@@ -439,11 +433,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                 <li id="survey-comment-<?php echo sr_e((string) $surveyCommentId); ?>" class="sr-survey-comment-item sr-survey-comment-depth-<?php echo sr_e((string) $surveyCommentDepth); ?>">
                                     <div class="sr-survey-comment-meta">
                                         <?php $surveyCommentAuthorLabel = (string) ($surveyComment['author_public_name'] ?? $surveyComment['author_public_name_snapshot'] ?? '회원'); ?>
+                                        <?php $surveyCommentAuthorIdentity = sr_member_public_identity_parts($pdo, $surveyPublicIdentityContext, (int) ($surveyComment['author_account_id'] ?? 0), $surveyCommentAuthorLabel, [
+                                            'size' => 'small',
+                                            'image_class' => 'sr-survey-comment-author-avatar',
+                                            'menu_options' => ['return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/')],
+                                        ]); ?>
                                         <div class="sr-survey-comment-author">
-                                            <?php echo sr_member_public_profile_image_html((string) ($surveyAuthorAvatarSources[(int) ($surveyComment['author_account_id'] ?? 0)] ?? ''), 'sr-survey-comment-author-avatar', 'small', $surveyCommentAuthorLabel, $surveyCommentAvatarSizePixels); ?>
-                                            <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, (int) ($surveyComment['author_account_id'] ?? 0), $surveyCommentAuthorLabel, [
-                                                'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                            ]); ?>
+                                            <?php echo $surveyCommentAuthorIdentity['profile_image_html']; ?>
+                                            <?php echo $surveyCommentAuthorIdentity['name_html']; ?>
                                         </div>
                                         <span class="sr-survey-comment-date">
                                             <span class="sr-survey-comment-date-content">
@@ -608,8 +605,5 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
 <?php
 if ($surveyCommentsEnabled && is_array($currentAccount)) {
     echo sr_editor_assets_html($pdo, $surveyCommentEditorKey, $surveyCommentToolbarPreset);
-}
-if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) {
-    echo sr_reaction_public_script_html();
 }
 sr_public_layout_end();

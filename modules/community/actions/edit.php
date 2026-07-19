@@ -5,6 +5,14 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/public-banner.php')) {
+    require_once SR_ROOT . '/modules/banner/public-banner.php';
+}
+if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/public-popup-layer.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/public-popup-layer.php';
+}
+$communityBannerPublicAssets = function_exists('sr_banner_public_assets') ? sr_banner_public_assets() : [];
+$communityPopupLayerPublicAssets = function_exists('sr_popup_layer_public_assets') ? sr_popup_layer_public_assets() : [];
 
 $account = sr_member_current_account($pdo);
 $isPostRequest = sr_request_method() === 'POST';

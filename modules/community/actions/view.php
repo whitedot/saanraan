@@ -2,9 +2,20 @@
 
 declare(strict_types=1);
 
-require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/public-identity.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/public-banner.php')) {
+    require_once SR_ROOT . '/modules/banner/public-banner.php';
+}
+if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/public-popup-layer.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/public-popup-layer.php';
+}
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+    require_once SR_ROOT . '/modules/reaction/public-reaction.php';
+}
+$communityBannerPublicAssets = function_exists('sr_banner_public_assets') ? sr_banner_public_assets() : [];
+$communityPopupLayerPublicAssets = function_exists('sr_popup_layer_public_assets') ? sr_popup_layer_public_assets() : [];
 if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
     require_once SR_ROOT . '/modules/antispam/helpers.php';
 }
@@ -12,6 +23,7 @@ if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 }
+$communityReactionPublicAssets = function_exists('sr_reaction_public_assets') ? sr_reaction_public_assets() : [];
 
 $postIdValue = sr_request_method() === 'POST' ? sr_post_string('id', 20) : sr_get_string('id', 20);
 $postId = preg_match('/\A[1-9][0-9]*\z/', $postIdValue) === 1 ? (int) $postIdValue : 0;
@@ -319,9 +331,8 @@ $communityCommentAuthorAccountIds = [(int) ($post['author_account_id'] ?? 0)];
 foreach ($comments as $communityCommentAuthorRow) {
     $communityCommentAuthorAccountIds[] = (int) ($communityCommentAuthorRow['author_account_id'] ?? 0);
 }
-$communityFollowStatuses = is_array($account) && function_exists('sr_member_follow_statuses')
-    ? sr_member_follow_statuses($pdo, (int) $account['id'], $communityCommentAuthorAccountIds)
-    : [];
+$communityPublicIdentityContext = sr_member_public_identity_context($pdo, is_array($account) ? $account : null, $communityCommentAuthorAccountIds);
+$communityPublicIdentityAssets = sr_member_public_identity_assets();
 $post['published_comment_count'] = $paidReadConfirmationRequired || $paidReadBlocked || !$canViewPostBody
     ? 0
     : (int) ($commentPage['total'] ?? 0);

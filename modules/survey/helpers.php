@@ -906,7 +906,7 @@ function sr_survey_settings_validation_errors(PDO $pdo, array $settings): array
         $errors[] = '설문 참여 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 설문 성인 참여 목적 제공자를 설정하세요.';
     }
     $reactionAvailable = sr_module_enabled($pdo, 'reaction')
-        && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+        && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
     if (!$reactionAvailable && ((string) ($settings['reaction_preset_key'] ?? '') !== '' || (string) ($settings['reaction_comment_preset_key'] ?? '') !== '')) {
         $errors[] = '설문 리액션 기본값을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.';
     }

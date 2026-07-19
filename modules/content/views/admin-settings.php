@@ -139,7 +139,7 @@ foreach ($assetModuleOptions as $assetModuleKey => $assetModuleOption) {
 $reactionPresetOptions = isset($reactionPresetOptions) && is_array($reactionPresetOptions) ? $reactionPresetOptions : ['' => '리액션 기본값'];
 $contentReactionAvailable = isset($contentReactionAvailable)
     ? (bool) $contentReactionAvailable
-    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php'));
 $contentReactionInputAttributes = $contentReactionAvailable
     ? ''
     : ' disabled aria-describedby="content-settings-reaction-unavailable"';

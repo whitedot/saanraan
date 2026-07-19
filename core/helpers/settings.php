@@ -1089,6 +1089,14 @@ function sr_module_known_contract_files(): array
         'report-targets.php',
         'operational-status.php',
         'retention-targets.php',
+        'public-identity.php',
+        'public-banner.php',
+        'public-popup-layer.php',
+        'public-reaction.php',
+        'public-branding.php',
+        'public-cookie-consent.php',
+        'public-message-summary.php',
+        'public-notification-summary.php',
     ];
 }
 
@@ -1224,6 +1232,40 @@ function sr_module_metadata_errors(array $metadata): array
                 $errors[] = 'module.php의 contracts.' . $contractKey . ' 계약 파일 선언이 올바르지 않습니다.';
                 break;
             }
+        }
+    }
+
+    $requires = isset($metadata['requires']) && is_array($metadata['requires']) ? $metadata['requires'] : [];
+    $requiredModules = isset($requires['modules']) && is_array($requires['modules']) ? $requires['modules'] : [];
+    $requiredModuleKeys = [];
+    foreach ($requiredModules as $key => $value) {
+        $requiredModuleKey = is_string($key) ? $key : (is_string($value) ? $value : '');
+        if ($requiredModuleKey !== '') {
+            $requiredModuleKeys[] = $requiredModuleKey;
+        }
+    }
+    $consumedContracts = sr_module_declared_contract_files($metadata, 'consumes');
+    $requiredContracts = isset($requires['contracts']) && is_array($requires['contracts']) ? $requires['contracts'] : [];
+    foreach ($requiredContracts as $requiredContract) {
+        if (!is_array($requiredContract)) {
+            $errors[] = 'requires.contracts 계약 선언이 올바르지 않습니다.';
+            continue;
+        }
+
+        $requiredModuleKey = is_string($requiredContract['module'] ?? null) ? (string) $requiredContract['module'] : '';
+        $requiredContractFile = is_string($requiredContract['file'] ?? null) ? (string) $requiredContract['file'] : '';
+        if (
+            !sr_is_safe_module_key($requiredModuleKey)
+            || !in_array($requiredContractFile, $knownContractFiles, true)
+        ) {
+            $errors[] = 'requires.contracts 계약 선언이 올바르지 않습니다.';
+            continue;
+        }
+        if (!in_array($requiredModuleKey, $requiredModuleKeys, true)) {
+            $errors[] = 'requires.contracts의 제공 모듈은 requires.modules에도 선언해야 합니다.';
+        }
+        if (!in_array($requiredContractFile, $consumedContracts, true)) {
+            $errors[] = 'requires.contracts의 계약 파일은 contracts.consumes에도 선언해야 합니다.';
         }
     }
 

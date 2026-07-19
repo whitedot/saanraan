@@ -5,10 +5,6 @@ $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings :
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.home',
     'layout_key' => (string) ($communityLayoutKey ?? ''),
-    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
-        'banner' => '/modules/banner/assets/module.css',
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-    ]),
     'output_slots' => [
         ['module_key' => 'community', 'point_key' => 'community.sidebar.summary', 'slot_key' => 'after_latest_comments'],
     ],

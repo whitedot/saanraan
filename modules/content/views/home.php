@@ -14,18 +14,8 @@ $seo = [
 ];
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 $contentAuthorFallbackName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
-$contentHomeAccount = sr_member_current_account($pdo);
 $contentHomeSections = isset($contentHomeSections) && is_array($contentHomeSections) ? $contentHomeSections : [];
 $contentHomeMemberSettings = sr_member_settings($pdo);
-$contentHomeProfileImageSizePixels = sr_member_profile_image_size_pixels('small', $contentHomeMemberSettings);
-$contentHomeAuthorAccountIds = [];
-foreach ($contentHomeSections as $contentHomeAuthorSection) {
-    foreach ((array) ($contentHomeAuthorSection['contents'] ?? []) as $contentHomeAuthorItem) {
-        $contentHomeAuthorAccountIds[] = (int) ($contentHomeAuthorItem['author_account_id'] ?? $contentHomeAuthorItem['created_by'] ?? 0);
-    }
-}
-$contentHomeProfileImageSources = sr_member_public_profile_image_sources($pdo, $contentHomeAuthorAccountIds);
-$contentHomeFollowStatuses = sr_member_follow_statuses($pdo, (int) ($contentHomeAccount['id'] ?? 0), $contentHomeAuthorAccountIds);
 $contentHomeDateText = static function (array $content): string {
     return (string) ($content['published_at'] ?? '') !== ''
         ? (string) $content['published_at']
@@ -49,10 +39,8 @@ $contentHomeLayoutClass = 'content-home-layout' . (!empty($contentSidebarContext
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.home',
     'layout_key' => (string) ($contentHomeLayoutKey ?? ''),
-    'stylesheets' => sr_enabled_module_asset_paths($pdo ?? null, [
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-    ]),
-    'scripts' => ['/modules/member/assets/profile-menu.js'],
+    'stylesheets' => (array) ($contentHomePublicIdentityAssets['stylesheets'] ?? []),
+    'scripts' => (array) ($contentHomePublicIdentityAssets['scripts'] ?? []),
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.home', 'slot_key' => 'screen'],
         ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
@@ -113,7 +101,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                     <?php $contentHomeExcerpt = $contentHomeExcerptText($contentHomeItem); ?>
                                     <?php $contentHomeAuthorAccountId = (int) ($contentHomeItem['author_account_id'] ?? $contentHomeItem['created_by'] ?? 0); ?>
                                     <?php $contentHomeAuthorName = sr_content_public_author_name($contentHomeItem, $contentHomeMemberSettings, $contentAuthorFallbackName); ?>
-                                    <?php $contentHomeAuthorProfileImageHtml = sr_member_public_profile_image_html((string) ($contentHomeProfileImageSources[$contentHomeAuthorAccountId] ?? ''), 'content-list-author-profile-image', 'small', $contentHomeAuthorName, $contentHomeProfileImageSizePixels); ?>
+                                    <?php $contentHomeAuthorIdentity = sr_member_public_identity_parts($pdo, $contentHomePublicIdentityContext, $contentHomeAuthorAccountId, $contentHomeAuthorName, [
+                                        'size' => 'small',
+                                        'image_class' => 'content-list-author-profile-image',
+                                        'menu_options' => ['return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/content')],
+                                    ]); ?>
                                     <article class="content-home-latest-item card">
                                         <a<?php echo sr_content_entry_link_attributes($contentHomeAccess, 'content-home-latest-media', (string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>>
                                             <?php echo sr_content_cover_image_html($contentHomeItem, 'content-home-latest-image card-img-top', (string) ($contentHomeItem['title'] ?? '')); ?>
@@ -121,11 +113,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         <div class="content-home-latest-copy card-body">
                                             <div class="content-home-latest-meta">
                                                 <span class="content-list-author">
-                                                    <?php echo $contentHomeAuthorProfileImageHtml; ?>
-                                                    <?php echo sr_member_public_name_menu_html($pdo, is_array($contentHomeAccount) ? $contentHomeAccount : null, $contentHomeAuthorAccountId, $contentHomeAuthorName, [
-                                                        'is_following' => (string) ($contentHomeFollowStatuses[$contentHomeAuthorAccountId] ?? '') === 'active',
-                                                        'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/content'),
-                                                    ]); ?>
+                                                    <?php echo $contentHomeAuthorIdentity['profile_image_html']; ?>
+                                                    <?php echo $contentHomeAuthorIdentity['name_html']; ?>
                                                 </span>
                                             </div>
                                             <h3><a<?php echo sr_content_entry_link_attributes($contentHomeAccess); ?>><?php echo sr_e((string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?></a></h3>

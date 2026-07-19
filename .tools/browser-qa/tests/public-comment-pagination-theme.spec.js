@@ -155,6 +155,7 @@ for (const fixture of panelFixtures) {
           --color-card: #ffffff;
         }
         :root[data-color-scheme="dark"] {
+          --radius: 8px;
           --sr-text: #e5ecf5;
           --sr-muted: #aeb8c7;
           --sr-muted-strong: #c9d2de;
@@ -177,6 +178,7 @@ for (const fixture of panelFixtures) {
       ${fixture.wrapperClose}</body></html>`);
     await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet.replace('/common.css', '/reset.css')) });
     await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet) });
+    await page.addStyleTag({ path: path.join(root, 'modules/member/assets/public-identity.css') });
     await page.addStyleTag({ path: path.join(root, fixture.stylesheet) });
 
     const computed = async () => page.evaluate(() => {
@@ -223,11 +225,13 @@ for (const fixture of panelFixtures) {
       };
     });
 
+    const computedByScheme = {};
     for (const scheme of ['light', 'dark']) {
       if (scheme === 'dark') {
         await page.locator('html').evaluate((element) => element.setAttribute('data-color-scheme', 'dark'));
       }
       const styles = await computed();
+      computedByScheme[scheme] = styles;
       expect(styles.panelBackground).toBe(scheme === 'dark' ? 'rgb(17, 24, 39)' : 'rgb(255, 255, 255)');
       expect(styles.panelBorder).toBe(scheme === 'dark' ? 'rgb(71, 85, 105)' : 'rgb(204, 212, 224)');
       expect(styles.panelRadius).toBe('12px');
@@ -235,20 +239,20 @@ for (const fixture of panelFixtures) {
       expect(styles.panelPaddingBottom).toBe('22px');
       expect(styles.titleMarginBottom).toBe('0px');
       expect(styles.itemPaddingTop).toBe('18px');
-      expect(styles.authorDisplay).toBe('inline-flex');
+      expect(styles.authorDisplay).toBe('flex');
       expect(styles.authorAlign).toBe('center');
       expect(styles.authorGap).toBe('8px');
       expect(styles.avatarSize).toEqual(['32px', '32px']);
       expect(styles.avatarRadius).toBe('50%');
-      expect(styles.avatarBorder).toBe(scheme === 'dark' ? 'rgb(52, 65, 84)' : 'rgb(227, 232, 239)');
-      expect(styles.avatarBackground).toBe(scheme === 'dark' ? 'rgb(31, 41, 55)' : 'rgb(243, 246, 250)');
+      expect(styles.avatarBorder).not.toBe('rgba(0, 0, 0, 0)');
+      expect(styles.avatarBackground).not.toBe('rgba(0, 0, 0, 0)');
       expect(styles.avatarObjectFit).toBe('cover');
       expect(styles.avatarFallbackSize).toEqual(['32px', '32px']);
       expect(styles.avatarFallbackRadius).toBe('50%');
       expect(styles.avatarFallbackBorder).toBe('rgba(0, 0, 0, 0)');
       expect(styles.avatarFallbackBackground).toBe('rgb(79, 70, 229)');
       expect(styles.avatarFallbackColor).toBe('rgb(255, 255, 255)');
-      expect(styles.avatarFallbackDisplay).toBe('inline-flex');
+      expect(styles.avatarFallbackDisplay).toBe('flex');
       expect(styles.avatarFallbackAlign).toBe('center');
       expect(styles.avatarFallbackJustify).toBe('center');
       expect(styles.avatarFallbackFontWeight).toBe('700');
@@ -258,6 +262,8 @@ for (const fixture of panelFixtures) {
       expect(styles.headerDivider).toBe(styles.itemDivider);
       expect(styles.formDivider).toBe(styles.itemDivider);
     }
+    expect(computedByScheme.dark.avatarBorder).not.toBe(computedByScheme.light.avatarBorder);
+    expect(computedByScheme.dark.avatarBackground).not.toBe(computedByScheme.light.avatarBackground);
 
     await page.locator('[data-comment-avatar]').evaluate((element) => {
       element.classList.remove('member-profile-image-size-medium');

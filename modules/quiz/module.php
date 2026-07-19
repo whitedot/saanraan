@@ -2,7 +2,7 @@
 
 return [
     'name' => '퀴즈·테스트',
-    'version' => '2026.07.007',
+    'version' => '2026.07.008',
     'type' => 'module',
     'description' => '퀴즈 응시, 채점, 콘텐츠 연계 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -20,6 +20,9 @@ return [
     ],
     'requires' => [
         'modules' => ['member', 'admin', 'content'],
+        'contracts' => [
+            ['module' => 'member', 'file' => 'public-identity.php'],
+        ],
     ],
     'settings' => [
         'layout_key' => 'quiz.basic',
@@ -79,6 +82,13 @@ return [
             'site-menu-provider.php',
             'member-assets.php',
             'notification-events.php',
+            'public-identity.php',
+            'public-popup-layer.php',
+            'public-reaction.php',
+            'public-branding.php',
+            'public-cookie-consent.php',
+            'public-message-summary.php',
+            'public-notification-summary.php',
         ],
     ],
     'service_domain' => [

@@ -228,3 +228,11 @@ function sr_privacy_cookie_consent_public_html(?PDO $pdo = null): string
 
     return is_string($html) ? $html : '';
 }
+
+function sr_privacy_cookie_consent_public_assets(): array
+{
+    return [
+        'stylesheets' => ['/modules/privacy/assets/cookie-consent.css'],
+        'scripts' => [],
+    ];
+}

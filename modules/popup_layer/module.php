@@ -2,7 +2,7 @@
 
 return [
     'name' => '팝업레이어',
-    'version' => '2026.06.002',
+    'version' => '2026.06.003',
     'type' => 'module',
     'description' => '팝업레이어 관리와 출력 모듈입니다.',
     'admin' => [
@@ -26,6 +26,7 @@ return [
             'paths.php',
             'admin-menu.php',
             'output-slots.php',
+            'public-popup-layer.php',
         ],
         'consumes' => [
             'extension-points.php',

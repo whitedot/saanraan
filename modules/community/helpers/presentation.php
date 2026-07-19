@@ -824,8 +824,8 @@ function sr_community_home_chrome_data(PDO $pdo, ?array $account, array $setting
     sort($readableBoardIds, SORT_NUMERIC);
     $publicFeedCacheBoardIds = sr_community_home_public_feed_cache_board_ids($summaryFeedBoards, $homeExcerptAllowedByBoardId);
     $latestCommentsUsePublicCache = $readableBoardIds !== [] && $readableBoardIds === $publicFeedCacheBoardIds;
-    if (!empty($settings['reaction_enabled']) && sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
-        require_once SR_ROOT . '/modules/reaction/helpers.php';
+    if (!empty($settings['reaction_enabled']) && sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+        require_once SR_ROOT . '/modules/reaction/public-reaction.php';
         $popularPostReactionCounts = sr_community_post_reaction_count_map($pdo, array_map(static fn (array $post): int => (int) ($post['id'] ?? 0), $popularPosts));
     }
     sr_community_home_debug_timing_add('reaction counts', (microtime(true) - $stageStartedAt) * 1000);

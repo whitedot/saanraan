@@ -1155,6 +1155,14 @@ function sr_banner_render_public_banner(PDO $pdo, int $bannerId): string
     return is_array($banner) && $skinKey !== null ? sr_banner_render_item($banner, $skinKey) : '';
 }
 
+function sr_banner_public_assets(): array
+{
+    return [
+        'stylesheets' => ['/modules/banner/assets/module.css'],
+        'scripts' => [],
+    ];
+}
+
 function sr_banner_render_slot(PDO $pdo, array $context): string
 {
     $moduleKey = (string) ($context['module_key'] ?? '');

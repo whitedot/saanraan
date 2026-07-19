@@ -6,8 +6,8 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
 require_once SR_ROOT . '/modules/survey/helpers/admin-surveys.php';
 require_once SR_ROOT . '/core/helpers/url-embed.php';
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+    require_once SR_ROOT . '/modules/reaction/public-reaction.php';
 }
 
 $account = sr_member_require_login($pdo);

@@ -51,19 +51,11 @@ $seo = [
     'canonical' => $formAction,
     'robots' => 'noindex, nofollow',
 ];
-if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
-    require_once SR_ROOT . '/modules/banner/helpers.php';
-}
-if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
-    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
-}
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.form',
-    'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), sr_enabled_module_asset_paths($pdo ?? null, [
-        'banner' => '/modules/banner/assets/module.css',
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-    ])),
+    'scripts' => array_merge((array) ($communityBannerPublicAssets['scripts'] ?? []), (array) ($communityPopupLayerPublicAssets['scripts'] ?? [])),
+    'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), (array) ($communityBannerPublicAssets['stylesheets'] ?? []), (array) ($communityPopupLayerPublicAssets['stylesheets'] ?? [])),
     'output_slots' => [
         ['module_key' => 'community', 'point_key' => 'community.post.form', 'slot_key' => 'before_form'],
         ['module_key' => 'community', 'point_key' => 'community.post.form', 'slot_key' => 'after_form'],

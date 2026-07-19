@@ -2,7 +2,7 @@
 
 return [
     'name' => '로고 매니저',
-    'version' => '2026.07.001',
+    'version' => '2026.07.002',
     'type' => 'module',
     'description' => '용도별 로고와 적용 기간을 관리합니다.',
     'admin' => [
@@ -26,6 +26,7 @@ return [
             'paths.php',
             'admin-menu.php',
             'site-setting-references.php',
+            'public-branding.php',
         ],
         'consumes' => [
             'logo-positions.php',

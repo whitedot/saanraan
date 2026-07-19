@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.07.002',
+    'version' => '2026.07.003',
     'type' => 'module',
     'description' => '회원 계정, 인증, 마이페이지 모듈입니다.',
     'admin' => [
@@ -34,6 +34,7 @@ return [
             'member-group-references.php',
             'antispam-targets.php',
             'member-mfa-providers.php',
+            'public-identity.php',
         ],
         'consumes' => [
             'notification-events.php',

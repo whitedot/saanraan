@@ -699,6 +699,15 @@ $checks = [
         ],
     ],
     [
+        'label' => 'member public identity stylesheet',
+        'path' => '/modules/member/assets/public-identity.css',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.member-profile-menu',
+            '.member-profile-image-fallback',
+        ],
+    ],
+    [
         'label' => 'member profile menu script',
         'path' => '/modules/member/assets/profile-menu.js',
         'allowed_statuses' => [200],

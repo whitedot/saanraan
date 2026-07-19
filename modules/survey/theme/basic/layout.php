@@ -49,8 +49,8 @@ $layoutModuleBeforeFooterHtml = '';
 $layoutAfterLayoutHtml = '';
 $layoutBusinessInfoVisible = !array_key_exists('business_info_visible', $layoutContext) || !empty($layoutContext['business_info_visible']);
 $layoutBusinessInfoHtml = $layoutBusinessInfoVisible ? sr_site_business_info_html($layoutPdo, 'survey-layout') : '';
-if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/helpers.php')) {
-    require_once SR_ROOT . '/modules/logo_manager/helpers.php';
+if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') && is_file(SR_ROOT . '/modules/logo_manager/public-branding.php')) {
+    require_once SR_ROOT . '/modules/logo_manager/public-branding.php';
     $layoutBrandLogoHtml = sr_logo_manager_render_logo($layoutPdo, 'public.header.desktop', $layoutSite, [
         'class' => 'survey-layout-brand-logo survey-layout-brand-logo-desktop',
         'fallback_position_key' => 'public.header.mobile',
@@ -95,11 +95,13 @@ if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
 }
 $layoutPrivacyCookieConsentHtml = '';
-if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_file(SR_ROOT . '/modules/privacy/helpers.php')) {
-    require_once SR_ROOT . '/modules/privacy/helpers.php';
+if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_file(SR_ROOT . '/modules/privacy/public-cookie-consent.php')) {
+    require_once SR_ROOT . '/modules/privacy/public-cookie-consent.php';
     $layoutPrivacyCookieConsentHtml = sr_privacy_cookie_consent_public_html($layoutPdo);
     if ($layoutPrivacyCookieConsentHtml !== '') {
-        $layoutStylesheets[] = '/modules/privacy/assets/cookie-consent.css';
+        $layoutPrivacyAssets = sr_privacy_cookie_consent_public_assets();
+        $layoutStylesheets = array_merge($layoutStylesheets, (array) ($layoutPrivacyAssets['stylesheets'] ?? []));
+        $layoutScripts = array_merge($layoutScripts, (array) ($layoutPrivacyAssets['scripts'] ?? []));
     }
 }
 if ($layoutPdo instanceof PDO) {
@@ -143,8 +145,8 @@ if (
         $layoutMemberInitialSource = $layoutMemberDisplayName !== '' ? $layoutMemberDisplayName : ($layoutMemberEmail !== '' ? $layoutMemberEmail : 'M');
         $layoutMemberInitial = function_exists('mb_substr') ? mb_substr($layoutMemberInitialSource, 0, 1) : substr($layoutMemberInitialSource, 0, 1);
         $layoutMemberAvatarColorClass = sr_member_default_avatar_color_class(sr_member_public_account_hash($layoutRuntimeConfig, $layoutCurrentAccountId));
-        if (sr_module_enabled($layoutPdo, 'message') && is_file(SR_ROOT . '/modules/message/helpers.php')) {
-            require_once SR_ROOT . '/modules/message/helpers.php';
+        if (sr_module_enabled($layoutPdo, 'message') && is_file(SR_ROOT . '/modules/message/public-message-summary.php')) {
+            require_once SR_ROOT . '/modules/message/public-message-summary.php';
             $layoutCommunityMemberMenuEnabled = true;
             try {
                 $layoutUnreadCommunityMessageCount = function_exists('sr_message_unread_count') ? sr_message_unread_count($layoutPdo, $layoutCurrentAccountId) : 0;
@@ -180,21 +182,25 @@ if (
     $layoutPdo instanceof PDO
     && sr_module_enabled($layoutPdo, 'notification')
     && $layoutMemberEnabled
-    && is_file(SR_ROOT . '/modules/notification/helpers.php')
+    && is_file(SR_ROOT . '/modules/notification/public-notification-summary.php')
 ) {
     $layoutNotificationEnabled = true;
-    require_once SR_ROOT . '/modules/notification/helpers.php';
+    require_once SR_ROOT . '/modules/notification/public-notification-summary.php';
     if (is_array($layoutCurrentAccount)) {
         $layoutNotificationSummary = sr_notification_public_header_summary($layoutPdo, (int) $layoutCurrentAccount['id'], 5);
         $layoutNotificationHasAccount = true;
     }
 }
 $layoutRenderedAssetMarkup = implode('', [$layoutContent, $layoutBeforeLayoutHtml, $layoutModuleBeforeLayoutHtml, $layoutModuleBeforeFooterHtml, $layoutAfterLayoutHtml]);
-if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'banner') && str_contains($layoutRenderedAssetMarkup, 'class="sr-banner')) {
-    $layoutStylesheets[] = '/modules/banner/assets/module.css';
+if ($layoutPdo instanceof PDO && str_contains($layoutRenderedAssetMarkup, 'class="sr-banner')) {
+    $layoutBannerAssetsFunction = sr_module_contract_function($layoutPdo, 'banner', 'public-banner.php', 'assets_function');
+    $layoutBannerAssets = $layoutBannerAssetsFunction !== '' ? $layoutBannerAssetsFunction() : [];
+    $layoutStylesheets = array_merge($layoutStylesheets, (array) ($layoutBannerAssets['stylesheets'] ?? []));
 }
-if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'popup_layer') && str_contains($layoutRenderedAssetMarkup, 'data-sr-popup-layer')) {
-    $layoutStylesheets[] = '/modules/popup_layer/assets/module.css';
+if ($layoutPdo instanceof PDO && str_contains($layoutRenderedAssetMarkup, 'data-sr-popup-layer')) {
+    $layoutPopupLayerAssetsFunction = sr_module_contract_function($layoutPdo, 'popup_layer', 'public-popup-layer.php', 'assets_function');
+    $layoutPopupLayerAssets = $layoutPopupLayerAssetsFunction !== '' ? $layoutPopupLayerAssetsFunction() : [];
+    $layoutStylesheets = array_merge($layoutStylesheets, (array) ($layoutPopupLayerAssets['stylesheets'] ?? []));
 }
 ?>
 <!doctype html>

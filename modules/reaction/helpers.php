@@ -867,6 +867,14 @@ function sr_reaction_public_script_html(): string
 
     return '<script src="' . sr_e(sr_asset_url('/modules/reaction/assets/public.js')) . '" defer></script>';
 }
+
+function sr_reaction_public_assets(): array
+{
+    return [
+        'stylesheets' => ['/modules/reaction/assets/module.css'],
+        'scripts' => ['/modules/reaction/assets/public.js'],
+    ];
+}
 function sr_reaction_create_account_event(PDO $pdo, int $recipientAccountId, int $actorAccountId, array $target, string $reactionKey): bool
 {
     if ($recipientAccountId < 1 || $actorAccountId < 1 || $recipientAccountId === $actorAccountId) {

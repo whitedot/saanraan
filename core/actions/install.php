@@ -26,7 +26,7 @@ $addInstallError = function (string $message, string $stepKey, array $fieldNames
 $requiredModules = [
     'member' => [
         'name' => '회원',
-        'version' => '2026.07.002',
+        'version' => '2026.07.003',
         'label' => sr_t('install.module.member.label'),
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
@@ -44,7 +44,7 @@ $requiredModules = [
     ],
     'privacy' => [
         'name' => '개인정보',
-        'version' => '2026.07.001',
+        'version' => '2026.07.002',
         'label' => sr_t('install.module.privacy.label'),
         'description' => '운영자 개인정보 대응 기록과 개인정보 사본 제공 보조 기능을 제공합니다.',
     ],
@@ -92,19 +92,19 @@ $optionalModules = [
     ],
     'logo_manager' => [
         'name' => '로고 매니저',
-        'version' => '2026.07.001',
+        'version' => '2026.07.002',
         'label' => sr_t('install.module.logo_manager.label'),
         'description' => '관리자/공개 화면 로고와 기간별 대체 적용을 관리합니다.',
     ],
     'banner' => [
         'name' => '배너',
-        'version' => '2026.06.002',
+        'version' => '2026.06.003',
         'label' => sr_t('install.module.banner.label'),
         'description' => '공통 노출 위치에 표시할 배너와 노출 규칙을 관리합니다.',
     ],
     'popup_layer' => [
         'name' => '팝업레이어',
-        'version' => '2026.06.002',
+        'version' => '2026.06.003',
         'label' => sr_t('install.module.popup_layer.label'),
         'description' => '화면별 팝업 노출 규칙과 관리자 등록 화면을 설치합니다.',
     ],
@@ -122,7 +122,7 @@ $optionalModules = [
     ],
     'message' => [
         'name' => '쪽지',
-        'version' => '2026.07.002',
+        'version' => '2026.07.003',
         'label' => '쪽지',
         'description' => '회원 간 쪽지 수발신과 수신 설정을 설치합니다.',
     ],
@@ -200,37 +200,37 @@ $optionalModules = [
     ],
     'notification' => [
         'name' => '알림',
-        'version' => '2026.07.004',
+        'version' => '2026.07.005',
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
     ],
     'reaction' => [
         'name' => '리액션',
-        'version' => '2026.06.001',
+        'version' => '2026.06.002',
         'label' => '리액션',
         'description' => '콘텐츠, 커뮤니티, 퀴즈, 설문이 함께 사용하는 공통 리액션 정의와 원장을 설치합니다.',
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.07.008',
+        'version' => '2026.07.009',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.07.010',
+        'version' => '2026.07.011',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 스크랩 기능을 설치합니다.',
     ],
     'quiz' => [
         'name' => '퀴즈·테스트',
-        'version' => '2026.07.007',
+        'version' => '2026.07.008',
         'label' => '퀴즈·테스트',
         'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
     ],
     'survey' => [
         'name' => '설문·여론조사',
-        'version' => '2026.07.007',
+        'version' => '2026.07.008',
         'label' => '설문·여론조사',
         'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
     ],

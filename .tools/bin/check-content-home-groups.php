@@ -147,16 +147,27 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     $groupRows = sr_content_published_contents_for_group($pdo, 1);
     $assert(array_column($groupRows, 'id') === [2, 3, 1], 'group content query must remain newest-first.');
     $assert((int) ($groupRows[0]['author_account_id'] ?? 0) === 21, 'group content rows must include the author account id.');
-    $profileImageSources = sr_member_public_profile_image_sources($pdo, array_column($groupRows, 'author_account_id'));
-    $assert(isset($profileImageSources[21]) && str_contains((string) $profileImageSources[21], '/member/profile-image?file='), 'content list author lookup must return the uploaded public profile image URL.');
-    $profileImageHtml = sr_member_public_profile_image_html((string) ($profileImageSources[21] ?? ''), 'content-list-author-profile-image', 'small', '공개 닉네임', 24);
-    $assert(str_contains($profileImageHtml, '<img') && str_contains($profileImageHtml, 'content-list-author-profile-image'), 'content list author markup must render the uploaded profile image.');
-    $fallbackProfileImageHtml = sr_member_public_profile_image_html('', 'content-list-author-profile-image', 'small', '공개 닉네임', 24);
-    $assert(str_contains($fallbackProfileImageHtml, 'member-profile-image-fallback') && str_contains($fallbackProfileImageHtml, '>공</span>'), 'content lists must render a visible name-initial fallback when an uploaded profile image is unavailable.');
+    $publicIdentityContext = sr_member_public_identity_context($pdo, null, array_column($groupRows, 'author_account_id'));
+    $publicIdentityParts = sr_member_public_identity_parts($pdo, $publicIdentityContext, 21, '공개 닉네임', [
+        'size' => 'small',
+        'image_class' => 'content-list-author-profile-image',
+        'menu' => false,
+    ]);
+    $assert(str_contains((string) ($publicIdentityParts['profile_image_html'] ?? ''), '<img') && str_contains((string) ($publicIdentityParts['profile_image_html'] ?? ''), 'content-list-author-profile-image'), 'content list identity contract must render the uploaded profile image.');
+    $fallbackIdentityParts = sr_member_public_identity_parts($pdo, [
+        'viewer_account' => null,
+        'profile_image_sources' => [],
+        'follow_statuses' => [],
+        'size_pixels' => ['small' => 24, 'medium' => 32, 'large' => 40],
+    ], 21, '공개 닉네임', ['size' => 'small', 'menu' => false]);
+    $assert(str_contains((string) ($fallbackIdentityParts['profile_image_html'] ?? ''), 'member-profile-image-fallback') && str_contains((string) ($fallbackIdentityParts['profile_image_html'] ?? ''), '>공</span>'), 'content list identity contract must render a visible name-initial fallback when an uploaded profile image is unavailable.');
 }
 
 $sourceContains('modules/content/actions/home.php', [
     'sr_content_home_sections($pdo, $contentHomeGroups, 6)',
+    "require_once SR_ROOT . '/modules/member/public-identity.php'",
+    'sr_member_public_identity_context(',
+    'sr_member_public_identity_assets()',
 ]);
 foreach (['modules/content/views/home.php', 'modules/content/theme/basic/home.php'] as $viewFile) {
     $sourceContains($viewFile, [
@@ -168,9 +179,8 @@ foreach (['modules/content/views/home.php', 'modules/content/theme/basic/home.ph
         '<div class="content-home-latest-meta">',
         'content-list-author-profile-image',
         'sr_content_public_author_name(',
-        'sr_member_public_profile_image_html(',
-        'sr_member_public_name_menu_html(',
-        '/modules/member/assets/profile-menu.js',
+        'sr_member_public_identity_parts(',
+        '$contentHomePublicIdentityAssets',
         'class="content-home-latest-group-link"',
         "include SR_ROOT . '/modules/content/theme/basic/sidebar.php'",
         '최근 콘텐츠',
@@ -188,9 +198,8 @@ foreach (['modules/content/views/group.php', 'modules/content/theme/basic/group.
         '<div class="content-home-latest-meta">',
         'content-list-author-profile-image',
         'sr_content_public_author_name(',
-        'sr_member_public_profile_image_html(',
-        'sr_member_public_name_menu_html(',
-        '/modules/member/assets/profile-menu.js',
+        'sr_member_public_identity_parts(',
+        '$contentGroupPublicIdentityAssets',
         "include SR_ROOT . '/modules/content/theme/basic/sidebar.php'",
     ]);
     $sourceNotContains($viewFile, [
@@ -208,8 +217,6 @@ $sourceContains('modules/content/theme/basic/assets/module.css', [
     '.content-group-card-grid',
     '.content-list-author',
     '.content-list-author-profile-image',
-    '.content-list-author-profile-image.member-profile-image-fallback',
-    'background: var(--sr-member-avatar-bg, #4f46e5);',
     'var(--content-text, var(--sr-text',
     'var(--content-muted, var(--sr-muted',
 ]);
@@ -217,6 +224,17 @@ $sourceContains('modules/member/assets/profile-menu.js', [
     ".member-profile-menu[open]",
     "target.closest('.member-profile-menu')",
     "event.key === 'Escape'",
+]);
+$sourceContains('modules/member/assets/public-identity.css', [
+    '.member-profile-menu',
+    '.member-profile-image-fallback',
+    '.member-profile-image.member-profile-image-size-small',
+]);
+$sourceContains('modules/member/helpers/public-identity.php', [
+    'function sr_member_public_identity_context(',
+    'function sr_member_public_identity_parts(',
+    "'/modules/member/assets/public-identity.css'",
+    "'/modules/member/assets/profile-menu.js'",
 ]);
 $sourceNotContains('assets/common-ui.js', [
     ".member-profile-menu[open]",
@@ -237,8 +255,14 @@ foreach ([
     'modules/survey/skins/basic/view.php',
 ] as $memberProfileMenuConsumerView) {
     $sourceContains($memberProfileMenuConsumerView, [
-        '/modules/member/assets/profile-menu.js',
+        'sr_member_public_identity_parts(',
+        'PublicIdentityAssets',
+    ]);
+    $sourceNotContains($memberProfileMenuConsumerView, [
+        'sr_member_public_profile_image_sources(',
+        'sr_member_public_profile_image_html(',
         'sr_member_public_name_menu_html(',
+        '/modules/member/assets/profile-menu.js',
     ]);
 }
 $sourceContains('docs/module-guide.md', [

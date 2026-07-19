@@ -12,9 +12,6 @@ if ($communityCommentEditorKey === 'ckeditor') {
     $communityCommentEditorAttributes .= ' data-sr-editor-body-theme="community.' . sr_e(sr_community_theme_key((string) ($communityLayoutSettings['theme_key'] ?? 'basic'))) . '"';
 }
 $communityReactionsEnabled = sr_community_effective_board_reaction_enabled($pdo, is_array($postBoard ?? null) ? $postBoard : null, $communityLayoutSettings);
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php')) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
-}
 $communityReactionCommentTargets = [];
 $communityReactionCommentSummaries = [];
 $communityReactionPostSummary = null;
@@ -66,31 +63,13 @@ if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && functio
 }
 $memberSettings = sr_member_settings($pdo);
 $config = isset($config) && is_array($config) ? $config : sr_runtime_config();
-$communityPublicAvatarsEnabled = sr_member_public_profile_images_enabled($pdo);
-$communityPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $memberSettings);
-$communityCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $memberSettings);
-$communityAuthorAvatarAccountIds = [(int) ($post['author_account_id'] ?? 0)];
-foreach ((array) ($comments ?? []) as $communityAvatarComment) {
-    $communityAuthorAvatarAccountIds[] = (int) ($communityAvatarComment['author_account_id'] ?? 0);
-}
-$communityAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $communityAuthorAvatarAccountIds);
 if (!$communityCommentFragmentResponse) {
     $pageTitle = (string) $post['title'];
     $seo = sr_community_post_seo_meta($pdo, $post, empty($paidReadConfirmationRequired) && empty($paidReadBlocked) && !empty($canViewPostBody));
-    if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
-        require_once SR_ROOT . '/modules/banner/helpers.php';
-    }
-    if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
-        require_once SR_ROOT . '/modules/popup_layer/helpers.php';
-    }
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.post',
-    'scripts' => array_merge(['/modules/member/assets/profile-menu.js'], is_array($account ?? null) ? ['/assets/mention-input.js'] : []),
-    'stylesheets' => array_merge(sr_community_skin_stylesheets($skinKey ?? 'basic'), sr_enabled_module_asset_paths($pdo ?? null, [
-        'banner' => '/modules/banner/assets/module.css',
-        'popup_layer' => '/modules/popup_layer/assets/module.css',
-        'reaction' => '/modules/reaction/assets/module.css',
-    ]), sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null), is_array($postBoard ?? null) ? sr_community_comment_body_stylesheets($pdo, $postBoard, $communityLayoutSettings) : []),
+    'scripts' => array_merge((array) ($communityPublicIdentityAssets['scripts'] ?? []), (array) ($communityReactionPublicAssets['scripts'] ?? []), is_array($account ?? null) ? ['/assets/mention-input.js'] : []),
+    'stylesheets' => array_merge((array) ($communityPublicIdentityAssets['stylesheets'] ?? []), (array) ($communityBannerPublicAssets['stylesheets'] ?? []), (array) ($communityPopupLayerPublicAssets['stylesheets'] ?? []), (array) ($communityReactionPublicAssets['stylesheets'] ?? []), sr_community_skin_stylesheets($skinKey ?? 'basic'), sr_community_post_body_embed_stylesheets($post, $communityLayoutSettings, $pdo ?? null), is_array($postBoard ?? null) ? sr_community_comment_body_stylesheets($pdo, $postBoard, $communityLayoutSettings) : []),
     'output_slots' => [
         ['module_key' => 'community', 'point_key' => 'community.post.view', 'slot_key' => 'before_content'],
         ['module_key' => 'community', 'point_key' => 'community.post.view', 'slot_key' => 'after_content'],
@@ -134,14 +113,18 @@ unset($_SESSION['sr_member_follow_feedback']);
                         <span class="community-post-meta-item community-post-meta-status"><?php echo sr_e('비밀글'); ?></span>
                     <?php } ?>
                     <?php $communityPostAuthorLabel = sr_community_author_label_from_row($post, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
-                    <span class="community-post-meta-item">
-                        <?php echo sr_member_public_profile_image_html((string) ($communityAuthorAvatarSources[(int) ($post['author_account_id'] ?? 0)] ?? ''), 'community-post-author-avatar', 'medium', $communityPublicAvatarsEnabled ? $communityPostAuthorLabel : '', $communityPostAvatarSizePixels); ?>
-                        <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($post['author_account_id'] ?? 0), $communityPostAuthorLabel, [
+                    <?php $communityPostAuthorIdentity = sr_member_public_identity_parts($pdo, $communityPublicIdentityContext, (int) ($post['author_account_id'] ?? 0), $communityPostAuthorLabel, [
+                        'size' => 'medium',
+                        'image_class' => 'community-post-author-avatar',
+                        'menu_options' => [
                             'community_board_key' => (string) $post['board_key'],
                             'community_board_accessible' => is_array($postBoard ?? null),
                             'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                            'is_following' => (string) ($communityFollowStatuses[(int) ($post['author_account_id'] ?? 0)] ?? '') === 'active',
-                        ]); ?>
+                        ],
+                    ]); ?>
+                    <span class="community-post-meta-item">
+                        <?php echo $communityPostAuthorIdentity['profile_image_html']; ?>
+                        <?php echo $communityPostAuthorIdentity['name_html']; ?>
                     </span>
                     <span class="community-post-meta-item">
                         <?php echo sr_community_time_html((string) $post['created_at']); ?>
@@ -535,14 +518,18 @@ unset($_SESSION['sr_member_follow_feedback']);
                             ?>
                             <div class="community-comment-meta">
                                 <?php $communityCommentAuthorLabel = sr_community_author_label_from_row($comment, $config, $canViewMemberIdentifiers, $memberSettings, $pdo); ?>
-                                <div class="community-comment-author">
-                                    <?php echo sr_member_public_profile_image_html((string) ($communityAuthorAvatarSources[(int) ($comment['author_account_id'] ?? 0)] ?? ''), 'community-comment-author-avatar', 'small', $communityPublicAvatarsEnabled ? $communityCommentAuthorLabel : '', $communityCommentAvatarSizePixels); ?>
-                                    <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($comment['author_account_id'] ?? 0), $communityCommentAuthorLabel, [
+                                <?php $communityCommentAuthorIdentity = sr_member_public_identity_parts($pdo, $communityPublicIdentityContext, (int) ($comment['author_account_id'] ?? 0), $communityCommentAuthorLabel, [
+                                    'size' => 'small',
+                                    'image_class' => 'community-comment-author-avatar',
+                                    'menu_options' => [
                                         'community_board_key' => (string) $post['board_key'],
                                         'community_board_accessible' => is_array($postBoard ?? null),
                                         'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
-                                        'is_following' => (string) ($communityFollowStatuses[(int) ($comment['author_account_id'] ?? 0)] ?? '') === 'active',
-                                    ]); ?>
+                                    ],
+                                ]); ?>
+                                <div class="community-comment-author">
+                                    <?php echo $communityCommentAuthorIdentity['profile_image_html']; ?>
+                                    <?php echo $communityCommentAuthorIdentity['name_html']; ?>
                                 </div>
                                 <?php if ($communityCommentCreatedAt !== '') { ?>
                                     <span class="community-comment-meta-item community-comment-date">
@@ -869,9 +856,6 @@ unset($_SESSION['sr_member_follow_feedback']);
         <?php } ?>
 <?php if (!$communityCommentFragmentResponse) { ?>
     <?php include SR_ROOT . '/modules/community/theme/basic/home-frame-end.php'; ?>
-    <?php if ($communityReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_public_script_html')) { ?>
-        <?php echo sr_reaction_public_script_html(); ?>
-    <?php } ?>
     <?php echo sr_editor_assets_html($pdo, $communityCommentEditorKey, $communityCommentToolbarPreset); ?>
     <?php sr_public_layout_end(); ?>
 <?php } ?>

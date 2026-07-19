@@ -66,7 +66,7 @@ $quizIdentityViewAdultInputAttributes = $quizIdentityViewAdultAvailable
     : ' disabled aria-describedby="quiz-settings-identity-adult-unavailable"';
 $quizReactionAvailable = isset($quizReactionAvailable)
     ? (bool) $quizReactionAvailable
-    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/helpers.php'));
+    : (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php'));
 $quizReactionInputAttributes = $quizReactionAvailable
     ? ''
     : ' disabled aria-describedby="quiz-settings-reaction-unavailable"';

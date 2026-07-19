@@ -62,8 +62,8 @@ $assertContains(
 );
 $assertContains(
     $contentDeleteAction,
-    "require_once SR_ROOT . '/modules/reaction/helpers.php'",
-    'Content permanent delete action must load reaction helpers when reaction is enabled.'
+    "require_once SR_ROOT . '/modules/reaction/public-reaction.php'",
+    'Content permanent delete action must load the reaction public contract when reaction is enabled.'
 );
 $assertContains(
     $contentRecords,

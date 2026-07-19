@@ -2,7 +2,7 @@
 
 return [
     'name' => '쪽지',
-    'version' => '2026.07.002',
+    'version' => '2026.07.003',
     'type' => 'module',
     'description' => '회원 간 쪽지 수발신을 제공하는 모듈입니다.',
     'admin' => [
@@ -30,6 +30,7 @@ return [
             'privacy-export.php',
             'privacy-cleanup.php',
             'report-targets.php',
+            'public-message-summary.php',
         ],
         'consumes' => [
             'notification-events.php',

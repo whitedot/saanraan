@@ -4,17 +4,23 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/content/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers/member-groups.php';
-require_once SR_ROOT . '/modules/member/helpers.php';
+require_once SR_ROOT . '/modules/member/public-identity.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
-if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/helpers.php')) {
-    require_once SR_ROOT . '/modules/banner/helpers.php';
+if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/public-banner.php')) {
+    require_once SR_ROOT . '/modules/banner/public-banner.php';
 }
-if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/helpers.php')) {
-    require_once SR_ROOT . '/modules/popup_layer/helpers.php';
+if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_layer/public-popup-layer.php')) {
+    require_once SR_ROOT . '/modules/popup_layer/public-popup-layer.php';
 }
+if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+    require_once SR_ROOT . '/modules/reaction/public-reaction.php';
+}
+$contentBannerPublicAssets = function_exists('sr_banner_public_assets') ? sr_banner_public_assets() : [];
+$contentPopupLayerPublicAssets = function_exists('sr_popup_layer_public_assets') ? sr_popup_layer_public_assets() : [];
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 }
+$contentReactionPublicAssets = function_exists('sr_reaction_public_assets') ? sr_reaction_public_assets() : [];
 
 $slug = sr_content_slug_from_request_path();
 $page = $slug !== '' ? sr_content_by_slug($pdo, $slug) : null;
@@ -153,6 +159,13 @@ $memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_arra
     ? $_SESSION['sr_member_follow_feedback']
     : ['notice' => '', 'errors' => []];
 unset($_SESSION['sr_member_follow_feedback']);
+
+$contentAuthorAccountIds = [(int) ($page['created_by'] ?? 0)];
+foreach ($contentComments as $contentAuthorComment) {
+    $contentAuthorAccountIds[] = (int) ($contentAuthorComment['author_account_id'] ?? 0);
+}
+$contentPublicIdentityContext = sr_member_public_identity_context($pdo, is_array($account) ? $account : null, $contentAuthorAccountIds);
+$contentPublicIdentityAssets = sr_member_public_identity_assets();
 
 $contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/content.php';
 include sr_content_public_view_file($pdo, $contentLayoutSettings, 'content.php');

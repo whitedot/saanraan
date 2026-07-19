@@ -12,16 +12,8 @@ $seo = [
 ];
 $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayoutSettings) ? $contentLayoutSettings : sr_content_settings($pdo);
 $contentAuthorFallbackName = sr_site_display_name(is_array($site ?? null) ? $site : null, $pdo ?? null);
-$contentGroupAccount = sr_member_current_account($pdo);
 $contentGroupItems = isset($groupContents) && is_array($groupContents) ? $groupContents : [];
 $contentGroupMemberSettings = sr_member_settings($pdo);
-$contentGroupProfileImageSizePixels = sr_member_profile_image_size_pixels('small', $contentGroupMemberSettings);
-$contentGroupAuthorAccountIds = array_map(
-    static fn (array $content): int => (int) ($content['author_account_id'] ?? $content['created_by'] ?? 0),
-    $contentGroupItems
-);
-$contentGroupProfileImageSources = sr_member_public_profile_image_sources($pdo, $contentGroupAuthorAccountIds);
-$contentGroupFollowStatuses = sr_member_follow_statuses($pdo, (int) ($contentGroupAccount['id'] ?? 0), $contentGroupAuthorAccountIds);
 $contentGroupDateText = static function (array $content): string {
     return (string) ($content['published_at'] ?? '') !== ''
         ? (string) $content['published_at']
@@ -44,7 +36,8 @@ $contentSidebarContext = sr_content_sidebar_context($pdo, $contentLayoutSettings
 $contentGroupLayoutClass = 'content-home-layout' . (!empty($contentSidebarContext['enabled']) ? '' : ' content-home-layout-main-only');
 $contentGroupLayoutContext = [
     'consumer_target' => 'content.group',
-    'scripts' => ['/modules/member/assets/profile-menu.js'],
+    'stylesheets' => (array) ($contentGroupPublicIdentityAssets['stylesheets'] ?? []),
+    'scripts' => (array) ($contentGroupPublicIdentityAssets['scripts'] ?? []),
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
@@ -84,7 +77,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         $groupContentExcerpt = $contentGroupExcerptText($groupContent);
                         $groupContentAuthorAccountId = (int) ($groupContent['author_account_id'] ?? $groupContent['created_by'] ?? 0);
                         $groupContentAuthorName = sr_content_public_author_name($groupContent, $contentGroupMemberSettings, $contentAuthorFallbackName);
-                        $groupContentAuthorProfileImageHtml = sr_member_public_profile_image_html((string) ($contentGroupProfileImageSources[$groupContentAuthorAccountId] ?? ''), 'content-list-author-profile-image', 'small', $groupContentAuthorName, $contentGroupProfileImageSizePixels);
+                        $groupContentAuthorIdentity = sr_member_public_identity_parts($pdo, $contentGroupPublicIdentityContext, $groupContentAuthorAccountId, $groupContentAuthorName, [
+                            'size' => 'small',
+                            'image_class' => 'content-list-author-profile-image',
+                            'menu_options' => [
+                                'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? sr_content_group_path((string) ($pageGroup['group_key'] ?? ''))),
+                            ],
+                        ]);
                         ?>
                         <article class="content-home-latest-item card">
                             <a<?php echo sr_content_entry_link_attributes($groupContentAccess, 'content-home-latest-media', (string) ($groupContent['title'] ?? $groupContentSlug)); ?>>
@@ -93,11 +92,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             <div class="content-home-latest-copy card-body">
                                 <div class="content-home-latest-meta">
                                     <span class="content-list-author">
-                                        <?php echo $groupContentAuthorProfileImageHtml; ?>
-                                        <?php echo sr_member_public_name_menu_html($pdo, is_array($contentGroupAccount) ? $contentGroupAccount : null, $groupContentAuthorAccountId, $groupContentAuthorName, [
-                                            'is_following' => (string) ($contentGroupFollowStatuses[$groupContentAuthorAccountId] ?? '') === 'active',
-                                            'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? sr_content_group_path((string) ($pageGroup['group_key'] ?? ''))),
-                                        ]); ?>
+                                        <?php echo $groupContentAuthorIdentity['profile_image_html']; ?>
+                                        <?php echo $groupContentAuthorIdentity['name_html']; ?>
                                     </span>
                                 </div>
                                 <h2><a<?php echo sr_content_entry_link_attributes($groupContentAccess); ?>><?php echo sr_e((string) ($groupContent['title'] ?? $groupContentSlug)); ?></a></h2>

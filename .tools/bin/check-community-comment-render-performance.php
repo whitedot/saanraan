@@ -82,11 +82,14 @@ $assert($adminPermissionSnapshotCalls === 1 && $boardPermissionSnapshotCalls ===
 $viewAction = file_get_contents($root . '/modules/community/actions/view.php');
 $commentAction = file_get_contents($root . '/modules/community/actions/comment.php');
 $memberFollowHelper = file_get_contents($root . '/modules/member/helpers/follows.php');
+$memberPublicIdentityHelper = file_get_contents($root . '/modules/member/helpers/public-identity.php');
 $reactionHelper = file_get_contents($root . '/modules/reaction/helpers.php');
-$assert(is_string($viewAction) && str_contains($viewAction, 'sr_member_follow_statuses('), 'Community post view must batch follow statuses for comment authors.');
+$assert(is_string($viewAction) && str_contains($viewAction, 'sr_member_public_identity_context('), 'Community post view must batch public identity context for comment authors.');
 $assert(is_string($viewAction) && str_contains($viewAction, 'sr_community_comment_permission_context('), 'Community post view must prepare one comment permission context.');
 $assert(is_string($commentAction) && str_contains($commentAction, "'_member_reply'"), 'Logged-in comment replies must verify the shared reply antispam form key.');
 $assert(is_string($memberFollowHelper) && str_contains($memberFollowHelper, "array_key_exists('is_following', \$options)"), 'Member name menu must accept a prepared follow state.');
+$assert(is_string($memberPublicIdentityHelper) && str_contains($memberPublicIdentityHelper, 'sr_member_follow_statuses('), 'Member public identity context must batch follow statuses.');
+$assert(is_string($memberPublicIdentityHelper) && str_contains($memberPublicIdentityHelper, "\$menuOptions['is_following']"), 'Member public identity parts must pass prepared follow states to the member menu.');
 $assert(is_string($reactionHelper) && str_contains($reactionHelper, 'function sr_reaction_record_summaries('), 'Reaction helper must expose batch target summaries.');
 $assert(is_string($reactionHelper) && str_contains($reactionHelper, "array_key_exists('my_record', \$options)"), 'Reaction widget must accept a prepared viewer record.');
 
@@ -96,7 +99,7 @@ foreach ([
 ] as $viewFile) {
     $view = file_get_contents($root . '/' . $viewFile);
     $assert(is_string($view) && str_contains($view, 'sr_reaction_record_summaries('), $viewFile . ' must batch comment reaction summaries.');
-    $assert(is_string($view) && str_contains($view, "'is_following' =>"), $viewFile . ' must pass prepared follow states to the member menu.');
+    $assert(is_string($view) && str_contains($view, 'sr_member_public_identity_parts('), $viewFile . ' must render names through the prepared member public identity context.');
     $assert(is_string($view) && str_contains($view, "\$communityCommentPermissionContext ?? []"), $viewFile . ' must reuse the prepared comment permission context.');
     $assert(is_string($view) && substr_count($view, 'id="community_comment_edit_modal"') === 1, $viewFile . ' must render one shared member comment edit modal.');
     $assert(is_string($view) && substr_count($view, 'id="community_comment_reply_modal"') === 1, $viewFile . ' must render one shared member comment reply modal.');

@@ -2,7 +2,7 @@
 
 return [
     'name' => '설문·여론조사',
-    'version' => '2026.07.007',
+    'version' => '2026.07.008',
     'type' => 'module',
     'description' => '설문 작성, 공개 응답 수집, 응답 보상을 관리하는 모듈입니다.',
     'admin' => [
@@ -20,6 +20,9 @@ return [
     ],
     'requires' => [
         'modules' => ['member', 'admin'],
+        'contracts' => [
+            ['module' => 'member', 'file' => 'public-identity.php'],
+        ],
     ],
     'settings' => [
         'layout_key' => 'survey.basic',
@@ -71,6 +74,13 @@ return [
             'site-menu-provider.php',
             'member-assets.php',
             'notification-events.php',
+            'public-identity.php',
+            'public-popup-layer.php',
+            'public-reaction.php',
+            'public-branding.php',
+            'public-cookie-consent.php',
+            'public-message-summary.php',
+            'public-notification-summary.php',
         ],
     ],
     'service_domain' => [

@@ -6,9 +6,9 @@ require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
 $contentReactionAvailable = sr_module_enabled($pdo, 'reaction')
-    && is_file(SR_ROOT . '/modules/reaction/helpers.php');
+    && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
 if ($contentReactionAvailable) {
-    require_once SR_ROOT . '/modules/reaction/helpers.php';
+    require_once SR_ROOT . '/modules/reaction/public-reaction.php';
 }
 $contentIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');

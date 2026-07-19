@@ -26,6 +26,8 @@ require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/output.php';
 require_once $root . '/core/helpers/storage.php';
 require_once $root . '/modules/member/helpers/profile.php';
+require_once $root . '/modules/member/helpers/follows.php';
+require_once $root . '/modules/member/helpers/public-identity.php';
 require_once $root . '/modules/content/helpers/comments.php';
 require_once $root . '/modules/quiz/helpers/comments.php';
 require_once $root . '/modules/survey/helpers/comments.php';
@@ -70,6 +72,39 @@ $customSmallAvatarHtml = sr_member_public_profile_image_html((string) ($avatarSo
 $assert(str_contains($smallAvatarHtml, 'member-profile-image-size-small') && str_contains($smallAvatarHtml, 'width="24" height="24"'), 'Small public avatar markup must use the 24px size contract.');
 $assert(str_contains($largeAvatarHtml, 'member-profile-image-size-large') && str_contains($largeAvatarHtml, 'width="40" height="40"'), 'Large public avatar markup must use the 40px size contract.');
 $assert(str_contains($customSmallAvatarHtml, 'width="29" height="29"') && str_contains($customSmallAvatarHtml, '--member-profile-image-size: 29px'), 'Public avatar markup must apply the configured usage-tier pixels to attributes and CSS.');
+$identityParts = sr_member_public_identity_parts($pdo, [
+    'viewer_account' => null,
+    'profile_image_sources' => [1 => (string) ($avatarSources[1] ?? '')],
+    'follow_statuses' => [],
+    'size_pixels' => ['small' => 29, 'medium' => 32, 'large' => 40],
+], 1, '작성자', [
+    'size' => 'small',
+    'image_class' => 'fixture-identity-image',
+    'menu' => false,
+]);
+$assert(
+    str_contains((string) ($identityParts['profile_image_html'] ?? ''), 'fixture-identity-image')
+        && str_contains((string) ($identityParts['profile_image_html'] ?? ''), 'width="29" height="29"')
+        && (string) ($identityParts['name_html'] ?? '') === '작성자',
+    'Public identity contract must return profile-image and name parts from one normalized context.'
+);
+$identityFallbackParts = sr_member_public_identity_parts($pdo, [
+    'viewer_account' => null,
+    'profile_image_sources' => [],
+    'follow_statuses' => [],
+    'size_pixels' => ['small' => 24, 'medium' => 32, 'large' => 40],
+], 2, '대체 이름', ['size' => 'small', 'menu' => false]);
+$assert(
+    str_contains((string) ($identityFallbackParts['profile_image_html'] ?? ''), 'member-profile-image-fallback')
+        && str_contains((string) ($identityFallbackParts['profile_image_html'] ?? ''), '>대</span>'),
+    'Public identity contract must preserve the name-initial fallback when no public image source exists.'
+);
+$identityAssets = sr_member_public_identity_assets();
+$assert(
+    in_array('/modules/member/assets/public-identity.css', (array) ($identityAssets['stylesheets'] ?? []), true)
+        && in_array('/modules/member/assets/profile-menu.js', (array) ($identityAssets['scripts'] ?? []), true),
+    'Public identity contract must expose its member-owned stylesheet and script.'
+);
 foreach ([
     'content' => ['table' => 'sr_content_comments', 'foreign_key' => 'content_id'],
     'quiz' => ['table' => 'sr_quiz_comments', 'foreign_key' => 'quiz_id'],
@@ -160,12 +195,12 @@ foreach (['modules/community/theme/basic/list.php', 'modules/community/skins/bas
     $contents = file_get_contents($root . '/' . $communityListViewPath);
     $assert(
         is_string($contents)
-            && str_contains($contents, 'sr_member_public_profile_image_sources($pdo, $communityListProfileImageAccountIds)')
-            && str_contains($contents, "sr_member_profile_image_size_pixels('small', \$memberSettings)")
-            && str_contains($contents, '$communityListProfileImagesEnabled ? $postAuthorLabel : \'\'')
+            && str_contains($contents, 'sr_member_public_identity_parts(')
+            && str_contains($contents, "'size' => 'small'")
+            && str_contains($contents, '$postAuthorLabel')
             && str_contains($contents, 'community-board-table-author-content')
             && str_contains($contents, 'community-board-table-mobile-author'),
-        $communityListViewPath . ' must batch profile image lookups and render the uploaded image or initial fallback in desktop and mobile author metadata.'
+        $communityListViewPath . ' must render desktop and mobile author metadata through the public identity contract.'
     );
 }
 
@@ -178,46 +213,39 @@ foreach ([
     'modules/quiz/skins/basic/view.php' => ['$quizPostAvatarSizePixels', '$quizCommentAvatarSizePixels'],
     'modules/survey/theme/basic/view.php' => ['$surveyPostAvatarSizePixels', '$surveyCommentAvatarSizePixels'],
     'modules/survey/skins/basic/view.php' => ['$surveyPostAvatarSizePixels', '$surveyCommentAvatarSizePixels'],
-] as $avatarViewPath => $avatarSizeMarkers) {
+] as $avatarViewPath => $_avatarSizeMarkers) {
     $contents = file_get_contents($root . '/' . $avatarViewPath);
     $assert(
         is_string($contents)
-            && str_contains($contents, $avatarSizeMarkers[0])
-            && str_contains($contents, $avatarSizeMarkers[1])
-            && str_contains($contents, "sr_member_profile_image_size_pixels('medium'")
-            && str_contains($contents, "sr_member_profile_image_size_pixels('small'")
+            && str_contains($contents, 'sr_member_public_identity_parts(')
+            && str_contains($contents, "'size' => 'medium'")
+            && str_contains($contents, "'size' => 'small'")
             && (
                 str_contains($contents, 'AuthorLabel')
                 || str_contains($contents, 'OwnerPublicName')
                 || str_contains($contents, 'PublisherName')
             ),
-        $avatarViewPath . ' must apply medium profile-image pixels to post authors and small pixels to comment authors.'
+        $avatarViewPath . ' must request medium post identities and small comment identities from the public identity contract.'
     );
 }
 
 foreach ([
-    'modules/community/theme/basic/post.php',
-    'modules/community/skins/basic/view.php',
-] as $communityAvatarViewPath) {
-    $contents = file_get_contents($root . '/' . $communityAvatarViewPath);
-    $assert(is_string($contents) && str_contains($contents, 'PublicAvatarsEnabled'), $communityAvatarViewPath . ' must keep its existing community avatar visibility behavior.');
-}
-
-foreach ([
-    'modules/content/theme/basic/content.php' => ["'medium', \$contentPublisherName", "'small', \$contentCommentAuthorLabel"],
-    'modules/content/views/content.php' => ["'medium', \$contentPublisherName", "'small', \$contentCommentAuthorLabel"],
-    'modules/quiz/theme/basic/view.php' => ["'medium', \$quizOwnerPublicName", "'small', \$quizCommentAuthorLabel"],
-    'modules/quiz/skins/basic/view.php' => ["'medium', \$quizOwnerPublicName", "'small', \$quizCommentAuthorLabel"],
-    'modules/survey/theme/basic/view.php' => ["'medium', \$surveyOwnerPublicName", "'small', \$surveyCommentAuthorLabel"],
-    'modules/survey/skins/basic/view.php' => ["'medium', \$surveyOwnerPublicName", "'small', \$surveyCommentAuthorLabel"],
+    'modules/community/theme/basic/post.php' => ['$communityPostAuthorLabel', '$communityCommentAuthorLabel'],
+    'modules/community/skins/basic/view.php' => ['$communityPostAuthorLabel', '$communityCommentAuthorLabel'],
+    'modules/content/theme/basic/content.php' => ['$contentPublisherName', '$contentCommentAuthorLabel'],
+    'modules/content/views/content.php' => ['$contentPublisherName', '$contentCommentAuthorLabel'],
+    'modules/quiz/theme/basic/view.php' => ['$quizOwnerPublicName', '$quizCommentAuthorLabel'],
+    'modules/quiz/skins/basic/view.php' => ['$quizOwnerPublicName', '$quizCommentAuthorLabel'],
+    'modules/survey/theme/basic/view.php' => ['$surveyOwnerPublicName', '$surveyCommentAuthorLabel'],
+    'modules/survey/skins/basic/view.php' => ['$surveyOwnerPublicName', '$surveyCommentAuthorLabel'],
 ] as $fallbackProfileImageViewPath => $fallbackLabelMarkers) {
     $contents = file_get_contents($root . '/' . $fallbackProfileImageViewPath);
     $assert(
         is_string($contents)
-            && !str_contains($contents, 'PublicAvatarsEnabled')
+            && str_contains($contents, 'sr_member_public_identity_parts(')
             && str_contains($contents, $fallbackLabelMarkers[0])
             && str_contains($contents, $fallbackLabelMarkers[1]),
-        $fallbackProfileImageViewPath . ' must always pass the public author name so read-screen and comment profile-image fallbacks remain visible.'
+        $fallbackProfileImageViewPath . ' must pass author labels to the public identity contract so image fallbacks remain visible.'
     );
 }
 
@@ -247,30 +275,18 @@ foreach ([
         '.community-board-table-mobile-author',
         '.community-post-author-avatar',
         '.community-comment-author-avatar',
-        '.member-profile-image.member-profile-image-size-small',
-        '.member-profile-image.member-profile-image-size-medium',
-        '.member-profile-image.member-profile-image-size-large',
-        '.member-profile-image-fallback',
         'border-bottom: 1px solid var(--community-divider',
     ],
     'modules/content/theme/basic/assets/module.css' => [
         '.content-comments-pagination',
         '.content-post-author-avatar',
         '.content-comment-author-avatar',
-        '.member-profile-image.member-profile-image-size-small',
-        '.member-profile-image.member-profile-image-size-medium',
-        '.member-profile-image.member-profile-image-size-large',
-        '.member-profile-image-fallback',
         'border-bottom: 1px solid var(--content-divider',
     ],
     'modules/quiz/theme/basic/assets/module.css' => [
         '.quiz-comments-pagination',
         '.sr-quiz-author-meta',
         '.sr-quiz-comment-author-avatar',
-        '.member-profile-image.member-profile-image-size-small',
-        '.member-profile-image.member-profile-image-size-medium',
-        '.member-profile-image.member-profile-image-size-large',
-        '.member-profile-image-fallback',
         '.sr-quiz-page .quiz-page-main .sr-quiz-comments-panel-header h2',
         '.sr-quiz-page .quiz-page-main .sr-quiz-comment-form > p',
         'border-bottom: 1px solid var(--sr-quiz-comment-divider',
@@ -279,10 +295,6 @@ foreach ([
         '.survey-comments-pagination',
         '.sr-survey-author-meta',
         '.sr-survey-comment-author-avatar',
-        '.member-profile-image.member-profile-image-size-small',
-        '.member-profile-image.member-profile-image-size-medium',
-        '.member-profile-image.member-profile-image-size-large',
-        '.member-profile-image-fallback',
         '.sr-survey-page .survey-page-main .sr-survey-comments-panel-header h2',
         '.sr-survey-page .survey-page-main .sr-survey-comment-form > p',
         'border-bottom: 1px solid var(--sr-survey-comment-divider',
@@ -298,6 +310,20 @@ foreach ([
     $assert(
         is_string($contents) && preg_match('/\.(?:community|content|quiz|survey)-comments-pagination\s*\{[^}]*gap:\s*8px;[^}]*justify-content:\s*center;/s', $contents) === 1,
         $commentStylesheetPath . ' must keep community-style centered comment pagination spacing.'
+    );
+}
+
+$memberIdentityStylesheet = file_get_contents($root . '/modules/member/assets/public-identity.css');
+foreach ([
+    '.member-profile-menu',
+    '.member-profile-image.member-profile-image-size-small',
+    '.member-profile-image.member-profile-image-size-medium',
+    '.member-profile-image.member-profile-image-size-large',
+    '.member-profile-image-fallback',
+] as $memberIdentityStyleMarker) {
+    $assert(
+        is_string($memberIdentityStylesheet) && str_contains($memberIdentityStylesheet, $memberIdentityStyleMarker),
+        'Member public identity stylesheet must own the shared marker: ' . $memberIdentityStyleMarker
     );
 }
 
