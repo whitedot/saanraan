@@ -956,28 +956,6 @@
     });
   }
 
-  function closeMemberProfileMenus(exceptMenu) {
-    Array.prototype.slice.call(document.querySelectorAll('.member-profile-menu[open]')).forEach(function (menu) {
-      if (menu !== exceptMenu) {
-        menu.removeAttribute('open');
-      }
-    });
-  }
-
-  function initMemberProfileMenus() {
-    document.addEventListener('click', function (event) {
-      var target = event.target;
-      var currentMenu = target instanceof Element ? target.closest('.member-profile-menu') : null;
-      closeMemberProfileMenus(currentMenu);
-    });
-
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') {
-        closeMemberProfileMenus(null);
-      }
-    });
-  }
-
   function init() {
     initImageLayer();
     initToasts();
@@ -987,7 +965,6 @@
     initCommentSharedModals();
     initCommentPagination();
     initDeferredSummary();
-    initMemberProfileMenus();
   }
 
   if (document.readyState === 'loading') {

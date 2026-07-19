@@ -186,13 +186,38 @@ foreach ([
             && str_contains($contents, $avatarSizeMarkers[1])
             && str_contains($contents, "sr_member_profile_image_size_pixels('medium'")
             && str_contains($contents, "sr_member_profile_image_size_pixels('small'")
-            && str_contains($contents, 'PublicAvatarsEnabled')
             && (
                 str_contains($contents, 'AuthorLabel')
                 || str_contains($contents, 'OwnerPublicName')
                 || str_contains($contents, 'PublisherName')
             ),
-        $avatarViewPath . ' must honor public avatar visibility and apply medium pixels to post authors and small pixels to comment authors.'
+        $avatarViewPath . ' must apply medium profile-image pixels to post authors and small pixels to comment authors.'
+    );
+}
+
+foreach ([
+    'modules/community/theme/basic/post.php',
+    'modules/community/skins/basic/view.php',
+] as $communityAvatarViewPath) {
+    $contents = file_get_contents($root . '/' . $communityAvatarViewPath);
+    $assert(is_string($contents) && str_contains($contents, 'PublicAvatarsEnabled'), $communityAvatarViewPath . ' must keep its existing community avatar visibility behavior.');
+}
+
+foreach ([
+    'modules/content/theme/basic/content.php' => ["'medium', \$contentPublisherName", "'small', \$contentCommentAuthorLabel"],
+    'modules/content/views/content.php' => ["'medium', \$contentPublisherName", "'small', \$contentCommentAuthorLabel"],
+    'modules/quiz/theme/basic/view.php' => ["'medium', \$quizOwnerPublicName", "'small', \$quizCommentAuthorLabel"],
+    'modules/quiz/skins/basic/view.php' => ["'medium', \$quizOwnerPublicName", "'small', \$quizCommentAuthorLabel"],
+    'modules/survey/theme/basic/view.php' => ["'medium', \$surveyOwnerPublicName", "'small', \$surveyCommentAuthorLabel"],
+    'modules/survey/skins/basic/view.php' => ["'medium', \$surveyOwnerPublicName", "'small', \$surveyCommentAuthorLabel"],
+] as $fallbackProfileImageViewPath => $fallbackLabelMarkers) {
+    $contents = file_get_contents($root . '/' . $fallbackProfileImageViewPath);
+    $assert(
+        is_string($contents)
+            && !str_contains($contents, 'PublicAvatarsEnabled')
+            && str_contains($contents, $fallbackLabelMarkers[0])
+            && str_contains($contents, $fallbackLabelMarkers[1]),
+        $fallbackProfileImageViewPath . ' must always pass the public author name so read-screen and comment profile-image fallbacks remain visible.'
     );
 }
 

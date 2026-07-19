@@ -355,7 +355,7 @@ $contentSettingsSectionNavItems = [
             <span class="form-label">콘텐츠 사이드</span>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_sidebar_enabled', 'sidebar_enabled', '1', !empty($settings['sidebar_enabled']), '사용'); ?>
-                <p class="form-help">콘텐츠 메인을 제외한 그룹·검색 목록, 콘텐츠 읽기, 회원 콘텐츠 작성 화면에 사이드를 표시합니다.</p>
+                <p class="form-help">콘텐츠 메인, 그룹·검색 목록, 콘텐츠 읽기, 회원 콘텐츠 작성 화면에 사이드를 표시합니다.</p>
             </div>
         </div>
         <div class="form-row">

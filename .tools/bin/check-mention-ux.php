@@ -101,7 +101,7 @@ foreach ([
     '/modules/community/theme/basic/post.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
-    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => is_array(\$account ?? null) ? ['/assets/mention-input.js'] : []"), 'community post view should request mention input only for a signed-in account: ' . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "is_array(\$account ?? null) ? ['/assets/mention-input.js'] : []"), 'community post view should request mention input only for a signed-in account: ' . $viewPath);
 }
 
 foreach ([
@@ -109,7 +109,7 @@ foreach ([
     '/modules/content/theme/basic/content.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
-    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => is_array(\$account ?? null) && !empty(\$pageAccess['allowed']) ? ['/assets/mention-input.js'] : []"), 'content view should request mention input only when a signed-in account can view the content: ' . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "is_array(\$account ?? null) && !empty(\$pageAccess['allowed']) ? ['/assets/mention-input.js'] : []"), 'content view should request mention input only when a signed-in account can view the content: ' . $viewPath);
 }
 
 foreach ([
@@ -117,7 +117,7 @@ foreach ([
     '/modules/quiz/theme/basic/view.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
-    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => \$quizCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'quiz view should request mention input only when a signed-in account can use comments: ' . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "\$quizCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'quiz view should request mention input only when a signed-in account can use comments: ' . $viewPath);
 }
 
 foreach ([
@@ -125,7 +125,7 @@ foreach ([
     '/modules/survey/theme/basic/view.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
-    sr_mention_check_assert(is_string($view) && str_contains($view, "'scripts' => \$surveyCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'survey view should request mention input only when a signed-in account can use comments: ' . $viewPath);
+    sr_mention_check_assert(is_string($view) && str_contains($view, "\$surveyCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'survey view should request mention input only when a signed-in account can use comments: ' . $viewPath);
 }
 
 $messageWriteView = file_get_contents($root . '/modules/message/views/message-write.php');

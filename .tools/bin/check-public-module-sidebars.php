@@ -56,7 +56,7 @@ $contains('modules/content/actions/admin-settings.php', [
     "sr_admin_post_int_in_range('sidebar_comments_limit', 1, 10)",
 ]);
 $contains('modules/content/views/admin-settings.php', [
-    '콘텐츠 메인을 제외한 그룹·검색 목록, 콘텐츠 읽기, 회원 콘텐츠 작성 화면',
+    '콘텐츠 메인, 그룹·검색 목록, 콘텐츠 읽기, 회원 콘텐츠 작성 화면',
     "'sidebar_menu_type'",
     'name="sidebar_popular_limit"',
     'name="sidebar_comments_limit"',
@@ -90,13 +90,12 @@ foreach ([
     'modules/content/views/search.php',
     'modules/content/views/content.php',
     'modules/content/views/account-content.php',
+    'modules/content/views/home.php',
     'modules/content/theme/basic/group.php',
     'modules/content/theme/basic/content.php',
+    'modules/content/theme/basic/home.php',
 ] as $screenFile) {
     $contains($screenFile, ['sidebar.php']);
-}
-foreach (['modules/content/views/home.php', 'modules/content/theme/basic/home.php'] as $homeFile) {
-    $assert(!str_contains($source($homeFile), 'sidebar.php'), $homeFile . ' must not render the content sidebar.');
 }
 $contains('modules/content/theme/basic/assets/module.css', [
     '.content-page-view',
@@ -109,6 +108,14 @@ $contains('modules/content/theme/basic/assets/module.css', [
     'var(--sr-muted',
     '@media (max-width: 1024px)',
 ]);
+$contentModuleCss = $source('modules/content/theme/basic/assets/module.css');
+$contentSidebarRuleMatched = preg_match('/\.content-sidebar\s*\{([^}]*)\}/s', $contentModuleCss, $contentSidebarRuleMatches) === 1;
+$assert($contentSidebarRuleMatched, 'content sidebar base CSS rule must exist.');
+if ($contentSidebarRuleMatched) {
+    $contentSidebarRule = (string) ($contentSidebarRuleMatches[1] ?? '');
+    $assert(!str_contains($contentSidebarRule, 'position: sticky'), 'content sidebar must remain in normal document flow.');
+    $assert(!preg_match('/\btop\s*:/', $contentSidebarRule), 'content sidebar must not keep a sticky top offset.');
+}
 $contains('modules/content/theme/basic/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
 $contains('modules/content/views/content.php', ['content-page-view', 'content-reading-panel', 'content-view-actions', 'content-view-action-group-trailing', 'content-comments']);
 foreach (['modules/content/theme/basic/content.php', 'modules/content/views/content.php'] as $contentViewFile) {

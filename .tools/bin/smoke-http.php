@@ -699,6 +699,15 @@ $checks = [
         ],
     ],
     [
+        'label' => 'member profile menu script',
+        'path' => '/modules/member/assets/profile-menu.js',
+        'allowed_statuses' => [200],
+        'must_contain' => [
+            '.member-profile-menu[open]',
+            "event.key === 'Escape'",
+        ],
+    ],
+    [
         'label' => 'ckeditor plugin script',
         'path' => '/modules/ckeditor/assets/saanraan-ckeditor.js',
         'allowed_statuses' => [200],

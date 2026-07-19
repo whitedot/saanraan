@@ -42,6 +42,7 @@ $communityListReactionCounts = $communityListReactionVisible && is_array($posts 
     : [];
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.list',
+    'scripts' => ['/modules/member/assets/profile-menu.js'],
     'stylesheets' => sr_community_skin_stylesheets($skinKey ?? 'basic'),
     'output_slots' => [
         ['module_key' => 'community', 'point_key' => 'community.board.list', 'slot_key' => 'before_list'],

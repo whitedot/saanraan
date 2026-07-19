@@ -1407,12 +1407,14 @@ function sr_content_published_contents_for_group(PDO $pdo, int $groupId): array
 
     sr_content_publish_due_scheduled($pdo);
 
+    $authorQuery = sr_content_public_author_query_parts($pdo);
     $stmt = $pdo->prepare(
-        "SELECT *
-         FROM sr_content_items
-         WHERE content_group_id = :group_id
-           AND status = 'published'
-         ORDER BY published_at DESC, updated_at DESC, id DESC"
+        "SELECT p.*, " . $authorQuery['select'] . "
+         FROM sr_content_items p
+         " . $authorQuery['join'] . "
+         WHERE p.content_group_id = :group_id
+           AND p.status = 'published'
+         ORDER BY p.published_at DESC, p.updated_at DESC, p.id DESC"
     );
     $stmt->execute(['group_id' => $groupId]);
 
@@ -1427,11 +1429,14 @@ function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
 
     sr_content_publish_due_scheduled($pdo);
 
+    $authorQuery = sr_content_public_author_query_parts($pdo);
     $stmt = $pdo->query(
         "SELECT p.*,
-                g.group_key AS content_group_key, g.title AS content_group_title
+                g.group_key AS content_group_key, g.title AS content_group_title,
+                " . $authorQuery['select'] . "
          FROM sr_content_items p
          LEFT JOIN sr_content_groups g ON g.id = p.content_group_id AND g.status = 'enabled'
+         " . $authorQuery['join'] . "
          WHERE p.status = 'published'
          ORDER BY p.published_at DESC, p.updated_at DESC, p.id DESC
          LIMIT " . $limit
@@ -1440,6 +1445,167 @@ function sr_content_recent_published_contents(PDO $pdo, int $limit = 20): array
     return array_map(static function (array $row) use ($pdo): array {
         return sr_content_with_effective_settings($pdo, $row);
     }, $stmt->fetchAll());
+}
+
+function sr_content_home_sections_from_rows(array $groups, array $contentsByGroupId, array $ungroupedContents): array
+{
+    $sections = [];
+    $usedGroupIds = [];
+    foreach ($groups as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        $groupId = (int) ($group['id'] ?? 0);
+        $groupKey = (string) ($group['group_key'] ?? '');
+        if ($groupId < 1
+            || isset($usedGroupIds[$groupId])
+            || (string) ($group['status'] ?? '') !== 'enabled'
+            || !sr_content_group_key_is_valid($groupKey)
+        ) {
+            continue;
+        }
+        $usedGroupIds[$groupId] = true;
+
+        $contents = array_values(array_filter(
+            is_array($contentsByGroupId[$groupId] ?? null) ? $contentsByGroupId[$groupId] : [],
+            static fn (mixed $content): bool => is_array($content) && sr_content_slug_is_valid((string) ($content['slug'] ?? ''))
+        ));
+        if ($contents === []) {
+            continue;
+        }
+
+        $sections[] = [
+            'is_grouped' => true,
+            'group_id' => $groupId,
+            'group_key' => $groupKey,
+            'group_title' => trim((string) ($group['title'] ?? '')),
+            'contents' => $contents,
+        ];
+    }
+
+    $ungroupedContents = array_values(array_filter(
+        $ungroupedContents,
+        static fn (mixed $content): bool => is_array($content) && sr_content_slug_is_valid((string) ($content['slug'] ?? ''))
+    ));
+    if ($ungroupedContents !== []) {
+        $sections[] = [
+            'is_grouped' => false,
+            'group_id' => 0,
+            'group_key' => '',
+            'group_title' => '최근 콘텐츠',
+            'contents' => $ungroupedContents,
+        ];
+    }
+
+    return $sections;
+}
+
+function sr_content_home_sections(PDO $pdo, array $groups, int $contentsPerSection = 6): array
+{
+    $contentsPerSection = max(1, min(12, $contentsPerSection));
+    sr_content_publish_due_scheduled($pdo);
+
+    $publicGroups = [];
+    $publicGroupIds = [];
+    foreach ($groups as $group) {
+        if (!is_array($group)) {
+            continue;
+        }
+
+        $groupId = (int) ($group['id'] ?? 0);
+        $groupKey = (string) ($group['group_key'] ?? '');
+        if ($groupId < 1
+            || isset($publicGroupIds[$groupId])
+            || (string) ($group['status'] ?? '') !== 'enabled'
+            || !sr_content_group_key_is_valid($groupKey)
+        ) {
+            continue;
+        }
+
+        $publicGroups[] = $group;
+        $publicGroupIds[$groupId] = $groupId;
+    }
+
+    $authorQuery = sr_content_public_author_query_parts($pdo);
+    $groupContentsStmt = $pdo->prepare(
+        "SELECT p.*, " . $authorQuery['select'] . "
+         FROM sr_content_items p
+         " . $authorQuery['join'] . "
+         WHERE p.content_group_id = :group_id
+           AND p.status = 'published'
+         ORDER BY p.published_at DESC, p.updated_at DESC, p.id DESC
+         LIMIT :limit_value"
+    );
+    $contentsByGroupId = [];
+    foreach ($publicGroups as $group) {
+        $groupId = (int) $group['id'];
+        $groupContentsStmt->bindValue('group_id', $groupId, PDO::PARAM_INT);
+        $groupContentsStmt->bindValue('limit_value', $contentsPerSection, PDO::PARAM_INT);
+        $groupContentsStmt->execute();
+
+        $contentsByGroupId[$groupId] = array_map(static function (array $row) use ($pdo, $group): array {
+            $row['content_group_key'] = (string) ($group['group_key'] ?? '');
+            $row['content_group_title'] = (string) ($group['title'] ?? '');
+            return sr_content_with_effective_settings($pdo, $row);
+        }, $groupContentsStmt->fetchAll());
+    }
+
+    $ungroupedWhere = ['p.status = \'published\''];
+    $ungroupedParams = [];
+    if ($publicGroupIds !== []) {
+        $placeholders = [];
+        foreach (array_values($publicGroupIds) as $index => $groupId) {
+            $paramKey = 'public_group_id_' . (string) $index;
+            $placeholders[] = ':' . $paramKey;
+            $ungroupedParams[$paramKey] = $groupId;
+        }
+        $ungroupedWhere[] = '(p.content_group_id IS NULL OR p.content_group_id NOT IN (' . implode(', ', $placeholders) . '))';
+    }
+
+    $ungroupedStmt = $pdo->prepare(
+        'SELECT p.*, ' . $authorQuery['select'] . '
+         FROM sr_content_items p
+         ' . $authorQuery['join'] . '
+         WHERE ' . implode(' AND ', $ungroupedWhere) . '
+         ORDER BY p.published_at DESC, p.updated_at DESC, p.id DESC
+         LIMIT :limit_value'
+    );
+    foreach ($ungroupedParams as $paramKey => $groupId) {
+        $ungroupedStmt->bindValue($paramKey, $groupId, PDO::PARAM_INT);
+    }
+    $ungroupedStmt->bindValue('limit_value', $contentsPerSection, PDO::PARAM_INT);
+    $ungroupedStmt->execute();
+    $ungroupedContents = array_map(static function (array $row) use ($pdo): array {
+        $row['content_group_key'] = '';
+        $row['content_group_title'] = '';
+        return sr_content_with_effective_settings($pdo, $row);
+    }, $ungroupedStmt->fetchAll());
+
+    return sr_content_home_sections_from_rows($publicGroups, $contentsByGroupId, $ungroupedContents);
+}
+
+function sr_content_public_author_query_parts(PDO $pdo): array
+{
+    $nicknamesSupported = sr_member_nicknames_table_exists($pdo);
+
+    return [
+        'select' => 'author.id AS author_account_id,
+                     author.display_name AS author_display_name,
+                     ' . ($nicknamesSupported ? 'author_nickname.nickname' : "''") . ' AS author_nickname,
+                     author.status AS author_account_status',
+        'join' => 'LEFT JOIN sr_member_accounts author ON author.id = p.created_by'
+            . ($nicknamesSupported ? ' LEFT JOIN sr_member_nicknames author_nickname ON author_nickname.account_id = author.id' : ''),
+    ];
+}
+
+function sr_content_public_author_name(array $content, array $memberSettings, string $fallback = '회원'): string
+{
+    return sr_member_public_name([
+        'display_name' => (string) ($content['author_display_name'] ?? ''),
+        'nickname' => (string) ($content['author_nickname'] ?? ''),
+        'status' => (string) ($content['author_account_status'] ?? ''),
+    ], $memberSettings, $fallback);
 }
 
 function sr_content_search_like_pattern(string $keyword): string

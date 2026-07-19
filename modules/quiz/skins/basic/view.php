@@ -89,7 +89,6 @@ foreach ($quizComments as $quizAvatarComment) {
     $quizAuthorAvatarAccountIds[] = (int) ($quizAvatarComment['author_account_id'] ?? 0);
 }
 $quizAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $quizAuthorAvatarAccountIds);
-$quizPublicAvatarsEnabled = sr_member_public_profile_images_enabled($pdo);
 $quizMemberSettings = sr_member_settings($pdo);
 $quizPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $quizMemberSettings);
 $quizCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $quizMemberSettings);
@@ -206,7 +205,7 @@ $quizConsumerTarget = $submitResult !== null ? 'quiz.result' : 'quiz.view';
 $quizLayoutContext = sr_quiz_public_layout_context($quizSettings, [
     'consumer_target' => $quizConsumerTarget,
     'body_class' => $quizEmbedded ? 'sr-quiz-page sr-quiz-embed-page' : 'sr-quiz-page',
-    'scripts' => $quizCommentsEnabled && is_array($currentAccount) ? ['/assets/mention-input.js'] : [],
+    'scripts' => array_merge(['/modules/member/assets/profile-menu.js'], $quizCommentsEnabled && is_array($currentAccount) ? ['/assets/mention-input.js'] : []),
     'stylesheets' => array_merge(sr_enabled_module_asset_paths($pdo ?? null, [
         'popup_layer' => '/modules/popup_layer/assets/module.css',
         'reaction' => '/modules/reaction/assets/module.css',
@@ -262,7 +261,7 @@ if ($quizEmbedded) {
             <h1><?php echo sr_e((string) $quiz['title']); ?></h1>
             <?php if ($quizOwnerAccountId > 0 && $quizOwnerPublicName !== ''): ?>
                 <div class="sr-quiz-author-meta" aria-label="퀴즈 작성자">
-                    <?php echo sr_member_public_profile_image_html((string) ($quizAuthorAvatarSources[$quizOwnerAccountId] ?? ''), 'sr-quiz-post-author-avatar', 'medium', $quizPublicAvatarsEnabled ? $quizOwnerPublicName : '', $quizPostAvatarSizePixels); ?>
+                    <?php echo sr_member_public_profile_image_html((string) ($quizAuthorAvatarSources[$quizOwnerAccountId] ?? ''), 'sr-quiz-post-author-avatar', 'medium', $quizOwnerPublicName, $quizPostAvatarSizePixels); ?>
                     <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, $quizOwnerAccountId, $quizOwnerPublicName, [
                         'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
                     ]); ?>
@@ -428,7 +427,7 @@ if ($quizEmbedded) {
                                     <div class="sr-quiz-comment-meta">
                                         <?php $quizCommentAuthorLabel = (string) ($quizComment['author_public_name'] ?? $quizComment['author_public_name_snapshot'] ?? '회원'); ?>
                                         <div class="sr-quiz-comment-author">
-                                            <?php echo sr_member_public_profile_image_html((string) ($quizAuthorAvatarSources[(int) ($quizComment['author_account_id'] ?? 0)] ?? ''), 'sr-quiz-comment-author-avatar', 'small', $quizPublicAvatarsEnabled ? $quizCommentAuthorLabel : '', $quizCommentAvatarSizePixels); ?>
+                                            <?php echo sr_member_public_profile_image_html((string) ($quizAuthorAvatarSources[(int) ($quizComment['author_account_id'] ?? 0)] ?? ''), 'sr-quiz-comment-author-avatar', 'small', $quizCommentAuthorLabel, $quizCommentAvatarSizePixels); ?>
                                             <?php echo sr_member_public_name_menu_html($pdo, is_array($currentAccount) ? $currentAccount : null, (int) ($quizComment['author_account_id'] ?? 0), $quizCommentAuthorLabel, [
                                                 'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
                                             ]); ?>

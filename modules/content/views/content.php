@@ -67,13 +67,12 @@ foreach ((array) ($contentComments ?? []) as $contentAvatarComment) {
     $contentAuthorAvatarAccountIds[] = (int) ($contentAvatarComment['author_account_id'] ?? 0);
 }
 $contentAuthorAvatarSources = sr_member_public_profile_image_sources($pdo, $contentAuthorAvatarAccountIds);
-$contentPublicAvatarsEnabled = sr_member_public_profile_images_enabled($pdo);
 $contentMemberSettings = sr_member_settings($pdo);
 $contentPostAvatarSizePixels = sr_member_profile_image_size_pixels('medium', $contentMemberSettings);
 $contentCommentAvatarSizePixels = sr_member_profile_image_size_pixels('small', $contentMemberSettings);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, [
     'consumer_target' => 'content.view',
-    'scripts' => is_array($account ?? null) && !empty($pageAccess['allowed']) ? ['/assets/mention-input.js'] : [],
+    'scripts' => array_merge(['/modules/member/assets/profile-menu.js'], is_array($account ?? null) && !empty($pageAccess['allowed']) ? ['/assets/mention-input.js'] : []),
     'stylesheets' => $contentStylesheets,
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'before_content'],
@@ -108,7 +107,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
             <?php } ?>
             <div class="content-meta" aria-label="<?php echo sr_e('콘텐츠 정보'); ?>">
                 <span class="content-author-identity">
-                    <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[$contentPublisherAccountId] ?? ''), 'content-post-author-avatar', 'medium', $contentPublicAvatarsEnabled ? $contentPublisherName : '', $contentPostAvatarSizePixels); ?>
+                    <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[$contentPublisherAccountId] ?? ''), 'content-post-author-avatar', 'medium', $contentPublisherName, $contentPostAvatarSizePixels); ?>
                     <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, $contentPublisherAccountId, $contentPublisherName, [
                         'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
                     ]); ?>
@@ -365,7 +364,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                 <div class="content-comment-meta">
                                     <?php $contentCommentAuthorLabel = (string) ($contentComment['author_public_name'] ?? $contentComment['author_display_name'] ?? '회원'); ?>
                                     <div class="content-comment-author">
-                                        <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[(int) ($contentComment['author_account_id'] ?? 0)] ?? ''), 'content-comment-author-avatar', 'small', $contentPublicAvatarsEnabled ? $contentCommentAuthorLabel : '', $contentCommentAvatarSizePixels); ?>
+                                        <?php echo sr_member_public_profile_image_html((string) ($contentAuthorAvatarSources[(int) ($contentComment['author_account_id'] ?? 0)] ?? ''), 'content-comment-author-avatar', 'small', $contentCommentAuthorLabel, $contentCommentAvatarSizePixels); ?>
                                         <?php echo sr_member_public_name_menu_html($pdo, is_array($account ?? null) ? $account : null, (int) ($contentComment['author_account_id'] ?? 0), $contentCommentAuthorLabel, [
                                             'return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/'),
                                         ]); ?>
