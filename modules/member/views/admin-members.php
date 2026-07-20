@@ -337,7 +337,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.text.4ca2f9ab'), $memberAdminHelp['public_hash']['id'], $memberAdminHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?></span></span>
                     <div class="form-field">
-                        <code><?php echo sr_e($memberEditPublicHash); ?></code>
+                        <input id="member_admin_edit_public_hash" type="text" value="<?php echo sr_e($memberEditPublicHash); ?>" class="form-input form-control-full" aria-label="<?php echo sr_e(sr_t('member::ui.text.4ca2f9ab')); ?>" disabled>
                     </div>
                 </div>
                 <div class="form-row">

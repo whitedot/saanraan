@@ -1093,6 +1093,13 @@ if ($adminMembersAction !== '' && $adminMembersView !== '') {
             && strpos($adminMembersView, 'syncSelfPasswordValidation') !== false,
         'Admin member edit should expose and process password changes only for the currently logged-in account with reauthentication, session rotation, audit, and notification handling.'
     );
+    sr_member_auth_policy_assert(
+        strpos($adminMembersView, 'id="member_admin_edit_public_hash"') !== false
+            && strpos($adminMembersView, 'class="form-input form-control-full"') !== false
+            && strpos($adminMembersView, 'aria-label="<?php echo sr_e(sr_t(\'member::ui.text.4ca2f9ab\')); ?>" disabled') !== false
+            && strpos($adminMembersView, '<code><?php echo sr_e($memberEditPublicHash); ?></code>') === false,
+        'Admin member edit should render the public hash as a disabled full-width form control instead of editable or code-styled text.'
+    );
 }
 
 $messagePrivacyCleanup = sr_member_auth_policy_read('modules/message/privacy-cleanup.php');
