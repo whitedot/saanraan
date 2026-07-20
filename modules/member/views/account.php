@@ -18,8 +18,19 @@ $memberAccountAccessState = isset($memberAccountAccessState) && is_array($member
 $memberAccountAccessCredentialVerified = sr_member_account_access_credential_verified($memberAccountAccessState);
 
 if ($memberAccountPage === 'verify') {
+    $memberAccountAccessTitle = !empty($memberAccountHasPassword)
+        ? '비밀번호 확인'
+        : (!empty($memberAccountHasMfaReauth) ? '2차 인증 확인' : '로그인 확인');
+    $memberAccountAccessDescription = '개인정보 보호를 위해 마이페이지에 들어가기 전 현재 계정을 다시 확인합니다.';
+    if (!empty($memberSecurityIdentityRequired) && !$memberAccountAccessCredentialVerified) {
+        $memberAccountAccessDescription .= ' 계정 확인 후 본인확인을 이어서 진행합니다.';
+    }
+    if ($memberAccountAccessCredentialVerified && !empty($memberSecurityIdentityRequired) && empty($memberSecurityIdentitySatisfied)) {
+        $memberAccountAccessTitle = '본인확인';
+        $memberAccountAccessDescription = '개인정보 보호를 위해 본인확인을 완료해 주세요.';
+    }
     $seo = [
-        'title' => '마이페이지 확인 - ' . $pageTitle,
+        'title' => $memberAccountAccessTitle . ' - ' . $pageTitle,
         'robots' => 'noindex, nofollow',
     ];
     $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
@@ -27,29 +38,12 @@ if ($memberAccountPage === 'verify') {
     ?>
     <main class="member-skin-basic-page member-skin-basic-page-narrow">
         <?php echo sr_member_feedback_toasts($notice, $errors); ?>
-        <section class="card member-skin-basic-access-card">
-            <div class="member-skin-basic-access-icon" aria-hidden="true">
-                <span class="material-symbols-outlined" data-sr-material-icon>shield_lock</span>
+        <section class="card">
+            <div class="card-header">
+                <h1 class="card-title"><?php echo sr_e($memberAccountAccessTitle); ?></h1>
             </div>
-            <div class="member-skin-basic-stack">
-                <div class="member-skin-basic-access-heading">
-                    <p class="member-skin-basic-eyebrow">계정 보호</p>
-                    <h1 class="card-title member-skin-basic-card-title"><?php echo sr_e(sr_t('member::ui.account.reauth_title')); ?></h1>
-                    <p class="member-skin-basic-muted">마이페이지에는 개인정보와 보안 설정이 포함되어 있어 로그인 후 처음 들어올 때 한 번 더 확인합니다.</p>
-                </div>
-
-                <ol class="member-skin-basic-access-steps" aria-label="마이페이지 확인 단계">
-                    <li class="is-active<?php echo $memberAccountAccessCredentialVerified ? ' is-complete' : ''; ?>">
-                        <span>1</span>
-                        <strong><?php echo sr_e(!empty($memberAccountHasPassword) ? '비밀번호 확인' : (!empty($memberAccountHasMfaReauth) ? '2차 인증 확인' : '로그인 확인')); ?></strong>
-                    </li>
-                    <?php if (!empty($memberSecurityIdentityRequired)) { ?>
-                        <li class="<?php echo $memberAccountAccessCredentialVerified ? 'is-active' : ''; ?><?php echo !empty($memberSecurityIdentitySatisfied) ? ' is-complete' : ''; ?>">
-                            <span>2</span>
-                            <strong>본인확인</strong>
-                        </li>
-                    <?php } ?>
-                </ol>
+            <div class="card-body member-skin-basic-stack">
+                <p class="member-skin-basic-muted type-small"><?php echo sr_e($memberAccountAccessDescription); ?></p>
 
                 <?php if (!$memberAccountAccessCredentialVerified) { ?>
                     <form method="post" action="<?php echo sr_e(sr_url('/mypage/verify')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form>
@@ -76,7 +70,7 @@ if ($memberAccountPage === 'verify') {
                                 <p>이 계정에는 확인할 비밀번호나 등록된 인증 앱이 없습니다. 현재 소셜 로그인 세션으로 계속합니다.</p>
                             </div>
                         <?php } ?>
-                        <button class="btn btn-solid-primary member-skin-basic-access-submit" type="submit">
+                        <button class="btn btn-solid-primary btn-block" type="submit">
                             <?php echo sr_e(!empty($memberSecurityIdentityRequired) ? '확인하고 다음' : (!empty($memberAccountHasPassword) || !empty($memberAccountHasMfaReauth) ? sr_t('member::ui.password.61081c91') : '마이페이지 계속하기')); ?>
                         </button>
                     </form>
@@ -85,14 +79,13 @@ if ($memberAccountPage === 'verify') {
                         <p><?php echo sr_e(!empty($memberAccountIdentityStartUrl) ? '환경설정에 따라 본인확인을 한 번 더 완료해 주세요.' : '본인확인 기능이 준비되지 않아 마이페이지에 진입할 수 없습니다.'); ?></p>
                     </div>
                     <?php if (!empty($memberAccountIdentityStartUrl)) { ?>
-                        <a class="btn btn-solid-primary member-skin-basic-access-submit" href="<?php echo sr_e((string) $memberAccountIdentityStartUrl); ?>">본인확인 계속하기</a>
+                        <a class="btn btn-solid-primary btn-block" href="<?php echo sr_e((string) $memberAccountIdentityStartUrl); ?>">본인확인 계속하기</a>
                     <?php } ?>
                 <?php } ?>
 
-                <a class="member-skin-basic-access-back" href="<?php echo sr_e(sr_url('/')); ?>">
-                    <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>arrow_back</span>
-                    사이트로 돌아가기
-                </a>
+                <div class="member-skin-basic-actions">
+                    <a class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url('/')); ?>">사이트로 돌아가기</a>
+                </div>
             </div>
         </section>
     </main>

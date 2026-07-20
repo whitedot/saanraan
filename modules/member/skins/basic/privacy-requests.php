@@ -20,14 +20,16 @@ $seo = [
 $memberSkinKey = isset($memberSettings) && is_array($memberSettings) ? sr_member_skin_key($memberSettings) : 'basic';
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_context($memberSkinKey));
 ?>
-    <main class="ui-page">
+    <main class="member-skin-basic-page member-skin-basic-page-narrow">
         <section class="card">
             <div class="card-header">
                 <h1 class="card-title"><?php echo sr_e($pageTitle); ?></h1>
             </div>
-            <div class="card-body ui-card-body-stack">
-                <p class="type-body">개인정보 요청 화면은 개인정보 모듈이 활성화된 경우 사용할 수 있습니다.</p>
-                <p><a href="<?php echo sr_e(sr_url('/mypage/privacy')); ?>">개인정보 화면으로 이동</a></p>
+            <div class="card-body member-skin-basic-stack">
+                <p class="member-skin-basic-muted type-small">개인정보 요청 화면은 개인정보 모듈이 활성화된 경우 사용할 수 있습니다.</p>
+                <div class="member-skin-basic-actions">
+                    <a class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url('/mypage/privacy')); ?>">개인정보 화면으로 이동</a>
+                </div>
             </div>
         </section>
     </main>

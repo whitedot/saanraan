@@ -688,6 +688,35 @@ sr_skin_theme_check_not_contains('assets/module.css', [
     'overflow-y: hidden;',
 ], 'Initial public screen artificial overflow');
 
+$memberStandardAccessViewPaths = [
+    'modules/member/views/account.php',
+    'modules/member/views/email-verified.php',
+    'modules/member/views/login.php',
+    'modules/member/views/login-mfa.php',
+    'modules/member/views/password-reset-request.php',
+    'modules/member/views/password-reset.php',
+    'modules/member/views/register.php',
+    'modules/member/views/withdraw.php',
+    'modules/member/skins/basic/privacy-requests.php',
+    'modules/member_oauth/views/complete.php',
+];
+foreach ($memberStandardAccessViewPaths as $memberStandardAccessViewPath) {
+    sr_skin_theme_check_contains($memberStandardAccessViewPath, [
+        '<main class="member-skin-basic-page',
+        '<section class="card">',
+        '<div class="card-header">',
+        '<div class="card-body member-skin-basic-stack">',
+    ], 'Member public access screen standard card structure');
+    sr_skin_theme_check_not_contains($memberStandardAccessViewPath, [
+        '<main class="ui-page">',
+        'class="type-page-title"',
+        'ui-card-body-stack',
+        'member-skin-basic-access-card',
+        'member-skin-basic-access-icon',
+        'member-skin-basic-access-steps',
+    ], 'Member public access screen standalone presentation');
+}
+
 sr_skin_theme_check_contains('modules/member/views/password-reset-request.php', [
     'class="btn btn-solid-primary btn-block" type="submit"',
     'class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url(\'/login\')); ?>"',
@@ -716,6 +745,11 @@ sr_skin_theme_check_contains('modules/member/views/withdraw.php', [
     'class="btn btn-solid-primary btn-block" type="submit"',
     'class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url(\'/account\')); ?>"',
 ], 'Member withdrawal full-width actions');
+
+sr_skin_theme_check_contains('modules/member_oauth/views/complete.php', [
+    'class="member-skin-basic-form"',
+    'class="btn btn-solid-primary btn-block">가입 완료</button>',
+], 'Member OAuth completion standard access screen');
 
 foreach ([
     'core/views/theme/basic/home.php',

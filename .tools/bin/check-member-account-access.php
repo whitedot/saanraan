@@ -48,6 +48,25 @@ $assert(is_string($action) && str_contains($action, 'sr_member_account_access_st
 $assert(is_string($action) && str_contains($action, 'sr_member_reauth_throttle_status(') && str_contains($action, "'account_page_reauth'"), 'Member account password verification failures must use reauth throttling and auth logs.');
 $assert(is_string($action) && str_contains($action, '$memberAccountIdentityStartUrl') && str_contains($action, '$memberSecurityIdentityRequired'), 'Member account access must layer configured identity verification after credential verification.');
 $assert(is_string($view) && str_contains($view, 'name="intent" value="account_access_verify"') && str_contains($view, 'autocomplete="current-password"'), 'Member account verification view must expose an accessible current-password form.');
+$assert(
+    is_string($view)
+        && str_contains($view, '$memberAccountAccessTitle')
+        && str_contains($view, '<section class="card">')
+        && str_contains($view, '<div class="card-header">')
+        && str_contains($view, '<div class="card-body member-skin-basic-stack">')
+        && str_contains($view, 'btn btn-solid-primary btn-block'),
+    'Member account verification must use the same card and full-width action pattern as other member access screens.'
+);
+$assert(
+    is_string($view)
+        && !str_contains($view, 'member-skin-basic-access-card')
+        && !str_contains($view, 'member-skin-basic-access-icon')
+        && !str_contains($view, 'member-skin-basic-access-steps')
+        && !str_contains($view, 'member-skin-basic-access-submit')
+        && !str_contains($view, 'member-skin-basic-access-back'),
+    'Member account verification must not retain a separate decorative access-screen presentation.'
+);
+$assert(is_string($skin) && !str_contains($skin, '.member-skin-basic-access-'), 'Member skin must not retain unused account verification presentation rules.');
 $assert(is_string($view) && str_contains($view, 'card member-skin-basic-side-nav') && str_contains($view, 'card-header') && str_contains($view, 'card-body member-skin-basic-side-nav-body'), 'Member account pages must retain the navigation in the shared card sidebar structure.');
 $assert(is_string($skin) && str_contains($skin, 'grid-template-areas: "main sidebar";') && str_contains($skin, 'grid-area: sidebar;'), 'Member account pages must place the card sidebar to the right of the main panel.');
 $memberSideNavRuleMatched = is_string($skin) && preg_match('/\.member-skin-basic-side-nav\s*\{([^}]*)\}/s', $skin, $memberSideNavRuleMatches) === 1;
