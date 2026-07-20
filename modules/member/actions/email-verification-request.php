@@ -14,6 +14,14 @@ if (sr_request_method() !== 'POST') {
 sr_require_csrf();
 
 if (!empty($memberSettings['email_verification_enabled']) && $account['email_verified_at'] === null) {
+    if (!sr_member_email_delivery_available($pdo)) {
+        $_SESSION['sr_member_account_flash'] = [
+            'notice' => '',
+            'errors' => [sr_t('member::action.email_delivery.unavailable')],
+        ];
+        sr_redirect('/account');
+    }
+
     $throttle = sr_member_email_verification_throttle_status($pdo, (int) $account['id']);
 
     if (!empty($throttle['limited'])) {
@@ -30,7 +38,7 @@ if (!empty($memberSettings['email_verification_enabled']) && $account['email_ver
     } else {
         $token = sr_member_create_email_verification($pdo, $config, (int) $account['id'], (string) $account['email']);
         $verificationUrl = sr_absolute_url($site, '/email/verify?token=' . rawurlencode($token));
-        $mailSent = sr_delivery_template_send_mail($pdo, $site, 'member.email_verification', (string) $account['email'], [
+        $mailSent = sr_member_send_delivery_template_mail($pdo, $site, 'member.email_verification', (string) $account['email'], [
             'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
             'verification_url' => $verificationUrl,
             'expires_minutes' => '30',

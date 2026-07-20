@@ -231,7 +231,7 @@ function sr_member_mfa_active_factor_provider_keys(PDO $pdo, int $accountId, arr
 
 function sr_member_mfa_email_provider_available(PDO $pdo, int $accountId): bool
 {
-    if ($accountId < 1) {
+    if ($accountId < 1 || !sr_member_email_delivery_available($pdo)) {
         return false;
     }
 
@@ -461,7 +461,7 @@ function sr_member_mfa_send_email_challenge(PDO $pdo, array $site, array $config
         return ['sent' => false, 'reason' => 'challenge_expired'];
     }
 
-    $mailSent = sr_delivery_template_send_mail($pdo, $site, 'member.login_mfa_email_code', $email, [
+    $mailSent = sr_member_send_delivery_template_mail($pdo, $site, 'member.login_mfa_email_code', $email, [
         'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
         'mfa_code' => $code,
         'expires_minutes' => (string) max(1, (int) ceil(($expiresAt - time()) / 60)),

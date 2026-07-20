@@ -19,18 +19,23 @@ $resetUrl = (string) ($flash['reset_url'] ?? '');
 $showResetUrl = !empty($flash['show_reset_url']);
 $email = (string) ($flash['email'] ?? '');
 $memberSettings = sr_member_settings($pdo);
+$emailDeliveryAvailable = sr_member_email_delivery_available($pdo);
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
 
-    $email = sr_post_string_without_truncation('email', 255);
-    if ($email === null) {
-        $errors[] = sr_t('member::action.register.email_too_long');
-        $email = '';
-    }
+    if (!$emailDeliveryAvailable) {
+        $errors[] = sr_t('member::action.email_delivery.unavailable');
+    } else {
+        $email = sr_post_string_without_truncation('email', 255);
+        if ($email === null) {
+            $errors[] = sr_t('member::action.register.email_too_long');
+            $email = '';
+        }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = sr_t('member::action.register.email_invalid');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = sr_t('member::action.register.email_invalid');
+        }
     }
 
     if ($errors === []) {
@@ -53,7 +58,7 @@ if (sr_request_method() === 'POST') {
             $token = sr_member_create_password_reset($pdo, $config, (int) $activeAccount['id']);
             $resetUrl = sr_absolute_url($site, '/password/reset/confirm?token=' . rawurlencode($token));
             $showResetUrl = !empty($config['debug']) && sr_is_local_host((string) ($site['base_url'] ?? ''));
-            $mailSent = sr_delivery_template_send_mail($pdo, $site, 'member.password_reset', (string) $activeAccount['email'], [
+            $mailSent = sr_member_send_delivery_template_mail($pdo, $site, 'member.password_reset', (string) $activeAccount['email'], [
                 'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
                 'reset_url' => $resetUrl,
                 'expires_minutes' => '30',

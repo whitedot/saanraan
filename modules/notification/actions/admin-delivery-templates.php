@@ -92,6 +92,10 @@ foreach ($deliveryTemplateContracts as $templateKey => $contract) {
     $row = is_array($effective) ? $effective : $contract;
     $row['template_key'] = (string) $templateKey;
     $row['label'] = sr_delivery_template_display_label($contract, (string) $templateKey);
+    $ownerModuleKey = (string) ($row['owner_module'] ?? '');
+    $ownerModuleMetadata = sr_module_metadata($ownerModuleKey);
+    $ownerModuleName = trim((string) ($ownerModuleMetadata['name'] ?? ''));
+    $row['owner_module_label'] = $ownerModuleName !== '' ? sr_admin_module_name_label($ownerModuleName) : '알 수 없는 모듈';
     $row['variables'] = isset($contract['variables']) && is_array($contract['variables']) ? $contract['variables'] : [];
     $row['required_variables'] = isset($contract['required_variables']) && is_array($contract['required_variables']) ? $contract['required_variables'] : [];
     $row['has_override'] = !empty($row['has_override']);
@@ -102,7 +106,7 @@ foreach ($deliveryTemplateContracts as $templateKey => $contract) {
 
 $deliveryTemplateSortOptions = [
     'label' => static fn(array $row): string => (string) ($row['label'] ?? ''),
-    'module' => static fn(array $row): string => (string) ($row['owner_module'] ?? ''),
+    'module' => static fn(array $row): string => (string) ($row['owner_module_label'] ?? ''),
     'status' => static fn(array $row): string => (string) ($row['status'] ?? ''),
     'source' => static fn(array $row): string => !empty($row['has_override']) ? 'override' : 'default',
 ];

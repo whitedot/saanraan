@@ -635,6 +635,35 @@ sr_skin_theme_check_not_contains('assets/module.css', [
     'overflow-y: hidden;',
 ], 'Initial public screen artificial overflow');
 
+sr_skin_theme_check_contains('modules/member/views/password-reset-request.php', [
+    'class="btn btn-solid-primary btn-block" type="submit"',
+    'class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url(\'/login\')); ?>"',
+], 'Password reset request full-width actions');
+
+sr_skin_theme_check_not_contains('modules/member/views/password-reset-request.php', [
+    'class="btn btn-solid-primary" type="submit"',
+    'class="btn btn-outline-default" href="<?php echo sr_e(sr_url(\'/login\')); ?>"',
+], 'Password reset request narrow actions');
+
+sr_skin_theme_check_contains('modules/member/views/password-reset.php', [
+    'class="btn btn-solid-primary btn-block" type="submit"',
+    'class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url(\'/login\')); ?>"',
+], 'Password reset confirmation full-width actions');
+
+sr_skin_theme_check_contains('modules/member/views/email-verified.php', [
+    'class="btn btn-solid-primary btn-block" href="<?php echo sr_e(sr_url(\'/account\')); ?>"',
+], 'Email verification completion full-width action');
+
+sr_skin_theme_check_contains('modules/member/views/register.php', [
+    'class="btn btn-solid-primary btn-block" type="submit"',
+    'class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url(\'/login\')); ?>"',
+], 'Member registration full-width actions');
+
+sr_skin_theme_check_contains('modules/member/views/withdraw.php', [
+    'class="btn btn-solid-primary btn-block" type="submit"',
+    'class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url(\'/account\')); ?>"',
+], 'Member withdrawal full-width actions');
+
 foreach ([
     'core/views/theme/basic/home.php',
     'modules/content/theme/basic/home.php',

@@ -65,9 +65,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <tr>
                         <td class="admin-table-break">
                             <strong><?php echo sr_e($label); ?></strong>
-                            <small><?php echo sr_e($templateKey); ?></small>
                         </td>
-                        <td class="admin-table-nowrap"><?php echo sr_e((string) ($templateRow['owner_module'] ?? '')); ?></td>
+                        <td class="admin-table-nowrap"><?php echo sr_e((string) ($templateRow['owner_module_label'] ?? '알 수 없는 모듈')); ?></td>
                         <td class="admin-table-nowrap">
                             <span class="badge-status <?php echo $hasOverride ? 'is-warning' : 'is-info'; ?>"><?php echo sr_e($hasOverride ? '사용자 수정' : '기본값'); ?></span>
                         </td>

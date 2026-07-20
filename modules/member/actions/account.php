@@ -157,6 +157,7 @@ if ($memberAccountCurrentPath === '/mypage/profile' && sr_request_method() === '
 }
 
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
+$emailDeliveryAvailable = sr_member_email_delivery_available($pdo);
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies) || $profileExtraFieldDefinitions !== [];
@@ -272,6 +273,12 @@ if (sr_request_method() === 'POST') {
             $errors[] = sr_t('member::action.register.email_too_long');
         } elseif (!filter_var($basics['email'], FILTER_VALIDATE_EMAIL)) {
             $errors[] = sr_t('member::action.register.email_invalid');
+        } elseif (
+            $emailVerificationEnabled
+            && !$emailDeliveryAvailable
+            && sr_normalize_identifier((string) ($account['email'] ?? '')) !== $basics['email']
+        ) {
+            $errors[] = sr_t('member::action.email_delivery.email_change_unavailable');
         }
         if ($loginIdInput === null) {
             $errors[] = sr_t('member::action.register.login_id_too_long');

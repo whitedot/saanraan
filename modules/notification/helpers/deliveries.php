@@ -262,6 +262,40 @@ function sr_notification_mail_config_from_settings(array $settings): array
     ];
 }
 
+function sr_notification_transactional_email_status(PDO $pdo): array
+{
+    $settings = sr_notification_settings($pdo);
+    $enabled = !empty($settings['email_channel_enabled']);
+
+    return [
+        'enabled' => $enabled,
+        'reason' => $enabled ? '' : 'email_channel_disabled',
+    ];
+}
+
+function sr_notification_send_transactional_email(
+    PDO $pdo,
+    ?array $site,
+    string $templateKey,
+    string $recipient,
+    array $metadata
+): bool {
+    $settings = sr_notification_settings($pdo);
+    if (empty($settings['email_channel_enabled'])) {
+        return false;
+    }
+
+    $previousConfig = sr_runtime_config();
+    $deliveryConfig = $previousConfig;
+    $deliveryConfig['mail'] = sr_notification_mail_config_from_settings($settings);
+    sr_set_runtime_config($deliveryConfig);
+    try {
+        return sr_delivery_template_send_mail($pdo, $site, $templateKey, $recipient, $metadata);
+    } finally {
+        sr_set_runtime_config($previousConfig);
+    }
+}
+
 function sr_notification_external_provider_options(): array
 {
     return [

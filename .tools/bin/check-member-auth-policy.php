@@ -1370,7 +1370,7 @@ if ($registerAction !== '') {
     $registerTransaction = strpos($registerAction, '$pdo->beginTransaction();');
     $registerConsent = strpos($registerAction, 'sr_member_record_registration_policy_consents($pdo, $accountId, $transactionPolicyDocuments, $registrationConsentValues);');
     $registerCommit = strpos($registerAction, '$pdo->commit();');
-    $registerMail = strpos($registerAction, '$verificationMailSent = sr_delivery_template_send_mail');
+    $registerMail = strpos($registerAction, '$verificationMailSent = sr_member_send_delivery_template_mail');
     sr_member_auth_policy_assert(
         $registerTransaction !== false
             && $registerConsent !== false
@@ -1667,9 +1667,9 @@ if ($passwordResetRequestAction !== '') {
         'Password reset request action should reject overlong raw email inputs instead of truncating them.'
     );
     sr_member_auth_policy_assert(
-        strpos($passwordResetRequestAction, '$mailSent = sr_delivery_template_send_mail') !== false
+        strpos($passwordResetRequestAction, '$mailSent = sr_member_send_delivery_template_mail') !== false
             && strpos($passwordResetRequestAction, "'mail_sent' => \$mailSent") !== false,
-        'Password reset request action should audit reset mail delivery result.'
+        'Password reset request action should use the member email delivery contract and audit its result.'
     );
     sr_member_auth_policy_assert(
         strpos($passwordResetRequestAction, 'password_reset_mail_failed') !== false,
@@ -1725,7 +1725,58 @@ if ($passwordResetRequestView !== '') {
             && strpos($passwordResetRequestView, '!empty($config[\'debug\'])') === false,
         'Password reset request view should not decide public token exposure directly from debug config.'
     );
+    sr_member_auth_policy_assert(
+        strpos($passwordResetRequestView, 'action.email_delivery.password_reset_unavailable') !== false
+            && strpos($passwordResetRequestView, "!\$emailDeliveryAvailable ? ' disabled' : ''") !== false,
+        'Password reset request view should explain and disable email controls when delivery is unavailable.'
+    );
 }
+
+$memberEmailDeliveryHelper = sr_member_auth_policy_read('modules/member/helpers/email-delivery.php');
+sr_member_auth_policy_assert(
+    strpos($memberEmailDeliveryHelper, "sr_module_contract_function(\$pdo, 'notification', 'email-delivery.php', 'status_function')") !== false
+        && strpos($memberEmailDeliveryHelper, "sr_module_contract_function(\$pdo, 'notification', 'email-delivery.php', 'send_function')") !== false,
+    'Member email delivery helper should consume status and send functions through the notification contract.'
+);
+foreach ([
+    'modules/member/actions/email-verification-request.php',
+    'modules/member/actions/login.php',
+    'modules/member/actions/register.php',
+    'modules/member/actions/password-reset-request.php',
+    'modules/member/helpers/sessions.php',
+] as $memberEmailCallerPath) {
+    $memberEmailCaller = sr_member_auth_policy_read($memberEmailCallerPath);
+    sr_member_auth_policy_assert(
+        strpos($memberEmailCaller, 'sr_delivery_template_send_mail(') === false,
+        'Member email callers must not bypass the notification delivery contract: ' . $memberEmailCallerPath
+    );
+}
+
+$emailVerificationRequestAction = sr_member_auth_policy_read('modules/member/actions/email-verification-request.php');
+$registerAction = sr_member_auth_policy_read('modules/member/actions/register.php');
+$accountAction = sr_member_auth_policy_read('modules/member/actions/account.php');
+$accountView = sr_member_auth_policy_read('modules/member/views/account.php');
+$memberSessionHelper = sr_member_auth_policy_read('modules/member/helpers/sessions.php');
+sr_member_auth_policy_assert(
+    strpos($emailVerificationRequestAction, 'if (!sr_member_email_delivery_available($pdo))') !== false
+        && strpos($emailVerificationRequestAction, 'sr_member_create_email_verification(') > strpos($emailVerificationRequestAction, 'if (!sr_member_email_delivery_available($pdo))'),
+    'Email verification requests should stop before token creation when email delivery is unavailable.'
+);
+sr_member_auth_policy_assert(
+    strpos($registerAction, '(!$emailVerificationEnabled || $emailDeliveryAvailable)') !== false
+        && strpos($registerAction, 'action.email_delivery.registration_unavailable') !== false,
+    'Registration should be unavailable with an explanation when required email verification cannot be delivered.'
+);
+sr_member_auth_policy_assert(
+    strpos($accountAction, 'action.email_delivery.email_change_unavailable') !== false
+        && strpos($accountView, "!\$emailDeliveryAvailable ? ' readonly' : ''") !== false
+        && strpos($accountView, "!\$emailDeliveryAvailable ? ' disabled' : ''") !== false,
+    'Account email changes and verification requests should be blocked in the action and disabled in the view when delivery is unavailable.'
+);
+sr_member_auth_policy_assert(
+    strpos($memberSessionHelper, '$accountId < 1 || !sr_member_email_delivery_available($pdo)') !== false,
+    'Email MFA should not be offered when transactional email delivery is unavailable.'
+);
 
 if ($errors !== []) {
     fwrite(STDERR, "member auth policy checks failed:\n");

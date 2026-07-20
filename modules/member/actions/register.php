@@ -23,13 +23,16 @@ $registrationExtensionContracts = sr_member_registration_extension_contracts($pd
 $registrationExtensionFields = sr_member_registration_extension_fields($pdo, $registrationExtensionContracts);
 $registrationAllowed = (bool) $memberSettings['allow_registration'];
 $emailVerificationEnabled = (bool) $memberSettings['email_verification_enabled'];
+$emailDeliveryAvailable = sr_member_email_delivery_available($pdo);
 $profilePolicies = sr_member_profile_field_policies($memberSettings);
 $profileExtraFieldDefinitions = sr_member_profile_extra_field_definitions($memberSettings);
 $profileFieldsEnabled = sr_member_profile_has_visible_fields($profilePolicies) || $profileExtraFieldDefinitions !== [];
 $registrationPolicyDocumentState = $registrationAllowed ? sr_member_registration_policy_documents($pdo) : ['documents' => [], 'errors' => []];
 $registrationPolicyDocuments = $registrationPolicyDocumentState['documents'];
 $registrationPolicyErrors = $registrationPolicyDocumentState['errors'];
-$registrationReady = $registrationAllowed && $registrationPolicyErrors === [];
+$registrationReady = $registrationAllowed
+    && $registrationPolicyErrors === []
+    && (!$emailVerificationEnabled || $emailDeliveryAvailable);
 $registrationIdentityMode = sr_member_identity_requirement_mode($memberSettings['identity_registration_mode'] ?? 'disabled');
 $registrationIdentityPurpose = 'member.registration';
 $registrationIdentityAvailable = function_exists('sr_identity_verification_available')
@@ -96,6 +99,9 @@ if (sr_request_method() === 'POST') {
 
     if (!$registrationAllowed) {
         $errors[] = sr_t('member::action.register.disabled');
+    }
+    if ($emailVerificationEnabled && !$emailDeliveryAvailable) {
+        $errors[] = sr_t('member::action.email_delivery.registration_unavailable');
     }
     if ($registrationPolicyErrors !== []) {
         $errors = array_merge($errors, $registrationPolicyErrors);
@@ -352,7 +358,7 @@ if (sr_request_method() === 'POST') {
 
         if ($errors === [] && $accountId !== null) {
             if ($emailVerificationEnabled) {
-                $verificationMailSent = sr_delivery_template_send_mail($pdo, $site, 'member.email_verification', $values['email'], [
+                $verificationMailSent = sr_member_send_delivery_template_mail($pdo, $site, 'member.email_verification', $values['email'], [
                     'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
                     'verification_url' => $verificationUrl,
                     'expires_minutes' => '30',

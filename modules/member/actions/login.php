@@ -58,8 +58,13 @@ if (sr_request_method() === 'POST') {
         ($passwordVerified = sr_member_verify_login_password($account, $password))
         && sr_member_email_verification_blocks_login($memberSettings, $account)
     ) {
-        $verificationThrottle = sr_member_email_verification_throttle_status($pdo, (int) $account['id']);
-        if (!empty($verificationThrottle['limited'])) {
+        $emailDeliveryAvailable = sr_member_email_delivery_available($pdo);
+        $verificationThrottle = $emailDeliveryAvailable
+            ? sr_member_email_verification_throttle_status($pdo, (int) $account['id'])
+            : ['limited' => false];
+        if (!$emailDeliveryAvailable) {
+            $errors[] = sr_t('member::action.email_delivery.unavailable');
+        } elseif (!empty($verificationThrottle['limited'])) {
             sr_member_log_auth($pdo, (int) $account['id'], 'email_verification_request_blocked', 'failure');
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
@@ -73,7 +78,7 @@ if (sr_request_method() === 'POST') {
         } else {
             $verificationToken = sr_member_create_email_verification($pdo, $config, (int) $account['id'], (string) $account['email']);
             $verificationUrl = sr_absolute_url($site, '/email/verify?token=' . rawurlencode($verificationToken));
-            $mailSent = sr_delivery_template_send_mail($pdo, $site, 'member.email_verification', (string) $account['email'], [
+            $mailSent = sr_member_send_delivery_template_mail($pdo, $site, 'member.email_verification', (string) $account['email'], [
                 'site_name' => (string) ($site['site_name'] ?? $site['name'] ?? 'saanraan'),
                 'verification_url' => $verificationUrl,
                 'expires_minutes' => '30',

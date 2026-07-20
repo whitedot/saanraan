@@ -78,10 +78,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 </label>
                 <small><?php echo sr_e(sr_t('member::action.withdraw.confirm_help', ['phrase' => sr_t('member::action.withdraw.confirm_text')])); ?></small>
             </p>
-            <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.text.871d2076')); ?></button>
+            <button class="btn btn-solid-primary btn-block" type="submit"><?php echo sr_e(sr_t('member::ui.text.871d2076')); ?></button>
         </form>
                 <div class="member-skin-basic-actions">
-                    <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('member::ui.text.13b28045')); ?></a>
+                    <a class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('member::ui.text.13b28045')); ?></a>
                 </div>
             </div>
         </section>

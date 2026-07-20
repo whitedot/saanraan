@@ -15,7 +15,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             </div>
             <div class="card-body member-skin-basic-stack">
                 <p class="member-skin-basic-muted type-small"><?php echo sr_e(sr_t('member::ui.email.87682e59')); ?></p>
-                <p><a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('member::ui.text.13b28045')); ?></a></p>
+                <p><a class="btn btn-solid-primary btn-block" href="<?php echo sr_e(sr_url('/account')); ?>"><?php echo sr_e(sr_t('member::ui.text.13b28045')); ?></a></p>
             </div>
         </section>
     </main>

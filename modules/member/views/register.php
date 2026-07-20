@@ -164,8 +164,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 <?php if (function_exists('sr_antispam_challenge_render')) { ?>
                     <?php echo sr_antispam_challenge_render($pdo, 'member.register', 'member_register', $antispamRegisterContext ?? ['account' => null]); ?>
                 <?php } ?>
-                <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.text.ac31175f')); ?></button>
+                <button class="btn btn-solid-primary btn-block" type="submit"><?php echo sr_e(sr_t('member::ui.text.ac31175f')); ?></button>
             </form>
+        <?php } elseif ($registrationAllowed && $emailVerificationEnabled && !$emailDeliveryAvailable) { ?>
+            <div class="alert alert-warning">
+                <p><?php echo sr_e(sr_t('member::action.email_delivery.registration_unavailable')); ?></p>
+            </div>
         <?php } elseif ($registrationAllowed) { ?>
             <p><?php echo sr_e(sr_t('member::ui.policy_documents_unavailable')); ?></p>
         <?php } else { ?>
@@ -174,7 +178,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
         <?php echo sr_render_output_slot($pdo, ['module_key' => 'member', 'point_key' => 'member.register', 'slot_key' => 'after_form']); ?>
 
                 <div class="member-skin-basic-actions">
-                    <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a>
+                    <a class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a>
                 </div>
             </div>
         </section>

@@ -17,7 +17,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             <div class="card-body member-skin-basic-stack">
 
         <?php if ($notice !== '') { ?>
-            <p><a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
+            <p><a class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url('/login')); ?>"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></a></p>
         <?php } else { ?>
             <form method="post" action="<?php echo sr_e(sr_url('/password/reset/confirm')); ?>" class="member-skin-basic-form" data-sr-validate-form data-member-autofocus-form>
                 <?php echo sr_csrf_field(); ?>
@@ -33,7 +33,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <input class="form-input" id="modules_member_password_reset_password_confirm" type="password" name="password_confirm" required>
                     </label>
                 </p>
-                <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.password.settings.2e9da95f')); ?></button>
+                <button class="btn btn-solid-primary btn-block" type="submit"><?php echo sr_e(sr_t('member::ui.password.settings.2e9da95f')); ?></button>
             </form>
         <?php } ?>
             </div>

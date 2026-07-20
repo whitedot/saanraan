@@ -2,7 +2,7 @@
 
 return [
     'name' => '알림',
-    'version' => '2026.07.005',
+    'version' => '2026.07.006',
     'type' => 'module',
     'description' => '사이트 알림과 알림 발송 작업을 관리합니다.',
     'admin' => [
@@ -31,6 +31,7 @@ return [
             'privacy-export.php',
             'privacy-cleanup.php',
             'notification-events.php',
+            'email-delivery.php',
             'admin-notification-events.php',
             'public-notification-summary.php',
         ],

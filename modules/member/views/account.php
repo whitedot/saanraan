@@ -281,9 +281,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <p>
                                 <label for="modules_member_account_email">
                                     <span><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_email" type="email" name="email" value="<?php echo sr_e((string) $memberAccountBasicValues['email']); ?>" maxlength="255" autocomplete="email" required>
+                                    <input class="form-input" id="modules_member_account_email" type="email" name="email" value="<?php echo sr_e((string) $memberAccountBasicValues['email']); ?>" maxlength="255" autocomplete="email" required<?php echo $emailVerificationEnabled && !$emailDeliveryAvailable ? ' readonly' : ''; ?>>
                                 </label>
-                                <?php if ($emailVerificationEnabled) { ?>
+                                <?php if ($emailVerificationEnabled && !$emailDeliveryAvailable) { ?>
+                                    <small><?php echo sr_e(sr_t('member::action.email_delivery.email_change_unavailable')); ?></small>
+                                <?php } elseif ($emailVerificationEnabled) { ?>
                                     <small>이메일을 변경하면 인증 상태가 초기화되며 새 주소로 다시 인증해야 합니다.</small>
                                 <?php } ?>
                             </p>
@@ -420,9 +422,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             </div>
                             <div class="card-body member-skin-basic-stack">
                                 <?php if ($account['email_verified_at'] === null) { ?>
+                                    <?php if (!$emailDeliveryAvailable) { ?>
+                                        <div class="alert alert-warning">
+                                            <p><?php echo sr_e(sr_t('member::action.email_delivery.verification_unavailable')); ?></p>
+                                        </div>
+                                    <?php } ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/account/email-verification')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                                         <?php echo sr_csrf_field(); ?>
-                                        <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.text.9938eea0')); ?></button>
+                                        <button class="btn btn-solid-primary" type="submit"<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.9938eea0')); ?></button>
                                     </form>
                                     <?php if ($emailVerificationUrl !== '') { ?>
                                         <p><a href="<?php echo sr_e($emailVerificationUrl); ?>"><?php echo sr_e(sr_t('member::ui.email.849a4197')); ?></a></p>

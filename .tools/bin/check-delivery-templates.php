@@ -14,6 +14,7 @@ require_once $root . '/core/helpers/settings.php';
 require_once $root . '/core/helpers/delivery-templates.php';
 require_once $root . '/modules/notification/helpers.php';
 require_once $root . '/modules/notification/helpers/event-template-admin.php';
+require_once $root . '/modules/member/helpers/email-delivery.php';
 
 if (!function_exists('sr_e')) {
     function sr_e(?string $value): string
@@ -236,6 +237,47 @@ $pdo = sr_delivery_template_check_pdo();
 sr_delivery_template_check_seed_notification_events($pdo);
 $contracts = sr_delivery_template_contracts($pdo);
 
+$notificationEmailStatus = sr_notification_transactional_email_status($pdo);
+sr_delivery_template_check_assert(
+    empty($notificationEmailStatus['enabled'])
+        && (string) ($notificationEmailStatus['reason'] ?? '') === 'email_channel_disabled',
+    'transactional email status must reflect the disabled notification email channel.'
+);
+sr_delivery_template_check_assert(
+    sr_notification_send_transactional_email($pdo, [], 'member.password_reset', 'member@example.test', []) === false,
+    'transactional email sender must stop before rendering or transport when the notification email channel is disabled.'
+);
+$memberEmailStatus = sr_member_email_delivery_status($pdo);
+sr_delivery_template_check_assert(
+    empty($memberEmailStatus['enabled']) && !empty($memberEmailStatus['managed_by_notification']),
+    'member email delivery status must use the enabled notification module contract.'
+);
+$notificationEmailContractFunction = sr_module_contract_function($pdo, 'notification', 'email-delivery.php', 'send_function');
+sr_delivery_template_check_assert(
+    $notificationEmailContractFunction === 'sr_notification_send_transactional_email',
+    'notification email delivery contract must expose its transactional sender.'
+);
+
+$notificationModuleSource = (string) file_get_contents($root . '/modules/notification/module.php');
+$memberModuleSource = (string) file_get_contents($root . '/modules/member/module.php');
+$notificationDeliverySource = (string) file_get_contents($root . '/modules/notification/helpers/deliveries.php');
+$memberEmailDeliverySource = (string) file_get_contents($root . '/modules/member/helpers/email-delivery.php');
+sr_delivery_template_check_assert(
+    str_contains($notificationModuleSource, "'email-delivery.php'")
+        && str_contains($memberModuleSource, "'email-delivery.php'"),
+    'notification and member module metadata must declare the email delivery contract relationship.'
+);
+sr_delivery_template_check_assert(
+    str_contains($notificationDeliverySource, "\$deliveryConfig['mail'] = sr_notification_mail_config_from_settings(\$settings);")
+        && str_contains($notificationDeliverySource, 'sr_set_runtime_config($previousConfig);'),
+    'transactional email delivery must apply notification mail settings and restore runtime configuration.'
+);
+sr_delivery_template_check_assert(
+    str_contains($memberEmailDeliverySource, "sr_module_contract_function(\$pdo, 'notification', 'email-delivery.php', 'send_function')")
+        && str_contains($memberEmailDeliverySource, 'sr_delivery_template_send_mail($pdo, $site, $templateKey, $recipient, $metadata)'),
+    'member transactional mail must use the notification contract while retaining the optional-module fallback.'
+);
+
 sr_delivery_template_check_assert(
     !function_exists('sr_delivery_template_legacy_notification_contracts'),
     'delivery template core must not expose the retired notification event compatibility collector.'
@@ -342,7 +384,11 @@ sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '
 sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '값이 전달되지 않은 변수는 문구에 그대로 보일 수 있으므로'), 'notification/mail admin variable help must explain unresolved event placeholders.');
 sr_delivery_template_check_assert(str_contains($notificationEventTemplateView, '코드를 저장해도 템플릿 등록이나 승인이 이루어지지는 않습니다.'), 'notification/mail admin alimtalk help must explain that provider approval is separate.');
 $deliveryTemplateView = (string) file_get_contents($root . '/modules/notification/views/admin-delivery-templates.php');
+$deliveryTemplateAction = (string) file_get_contents($root . '/modules/notification/actions/admin-delivery-templates.php');
 sr_delivery_template_check_assert(str_contains($deliveryTemplateView, '$showChannelSelector = $availableChannels !== [\'email\'];'), 'central delivery template admin must hide channel selector for email-only transactional mail rows.');
+sr_delivery_template_check_assert(!str_contains($deliveryTemplateView, '<small><?php echo sr_e($templateKey); ?></small>'), 'central delivery template admin list must not expose internal template keys.');
+sr_delivery_template_check_assert(str_contains($deliveryTemplateAction, "\$ownerModuleMetadata = sr_module_metadata(\$ownerModuleKey);") && str_contains($deliveryTemplateAction, "\$row['owner_module_label'] = \$ownerModuleName !== '' ? sr_admin_module_name_label(\$ownerModuleName) : '알 수 없는 모듈';"), 'central delivery template admin must resolve owner module display names from module metadata.');
+sr_delivery_template_check_assert(str_contains($deliveryTemplateView, "\$templateRow['owner_module_label'] ?? '알 수 없는 모듈'") && !str_contains($deliveryTemplateView, "\$templateRow['owner_module'] ?? ''"), 'central delivery template admin list must show the localized owner module label instead of its internal key.');
 sr_delivery_template_check_assert(str_contains($deliveryTemplateView, "sr_admin_sort_header_html('문구 출처'") && str_contains($deliveryTemplateView, "sr_admin_sort_header_html('상태'"), 'central delivery template admin must label override storage separately from enabled status.');
 sr_delivery_template_check_assert(str_contains($deliveryTemplateView, '자동 메일 본문에 이 주소가 저절로 붙지는 않습니다.'), 'central delivery template help must explain that link metadata is not automatically appended to email bodies.');
 sr_delivery_template_check_assert(str_contains($deliveryTemplateView, '이후 모듈 업데이트로 기본 문구가 바뀌면 그 변경도 적용됩니다.'), 'central delivery template help must explain that restored defaults follow module updates.');
