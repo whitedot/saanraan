@@ -257,6 +257,7 @@ if (sr_request_method() === 'POST') {
 
     if ($errors === [] && $intent === 'basics') {
         $memberAccountPage = 'account';
+        $saveProfileWithBasics = $profileFieldsEnabled && sr_post_string('save_profile', 1) === '1';
         $emailInput = sr_post_string_without_truncation('email', 255);
         $loginIdInput = sr_post_string_without_truncation('login_id', 40);
         $basics = [
@@ -304,6 +305,61 @@ if (sr_request_method() === 'POST') {
             ['site' => $site, 'account' => $account, 'values' => $basics]
         ));
 
+        $uploadedAvatarReference = '';
+        $avatarReferenceToDelete = '';
+        if ($saveProfileWithBasics) {
+            $profile = sr_member_profile($pdo, (int) $account['id']);
+            if (!sr_member_profile_image_reference_is_valid((string) $profile['profile_image_path'])) {
+                $profile['profile_image_path'] = '';
+            }
+            $previousAvatarPath = (string) $profile['profile_image_path'];
+            $profile = sr_member_profile_values_from_post($profilePolicies, $profile);
+            $profileExtraFieldValues = sr_member_profile_extra_field_input_values($profileExtraFieldDefinitions);
+            $submittedProfile = $profile;
+
+            foreach (sr_member_profile_validation_errors($profile, $profilePolicies, ['validate_profile_image' => false]) as $profileError) {
+                $errors[] = $profileError;
+            }
+            foreach (sr_member_validate_profile_extra_field_values($profileExtraFieldDefinitions, $profileExtraFieldValues) as $profileError) {
+                $errors[] = $profileError;
+            }
+
+            if ($errors === [] && !empty($profilePolicies['profile_image_path']['visible'])) {
+                $deleteAvatar = ($_POST['profile_image_delete'] ?? '') === '1';
+                if ($deleteAvatar && empty($profilePolicies['profile_image_path']['required'])) {
+                    $profile['profile_image_path'] = '';
+                    $avatarReferenceToDelete = $previousAvatarPath;
+                }
+
+                if (sr_member_profile_image_upload_was_provided($_FILES['profile_image_file'] ?? null)) {
+                    try {
+                        $uploadedAvatar = sr_member_upload_profile_image($_FILES['profile_image_file']);
+                        if (is_array($uploadedAvatar)) {
+                            $uploadedAvatarReference = (string) $uploadedAvatar['reference'];
+                            $profile['profile_image_path'] = $uploadedAvatarReference;
+                            $avatarReferenceToDelete = $previousAvatarPath;
+                        }
+                    } catch (Throwable $exception) {
+                        sr_log_exception($exception, 'member_account_avatar_upload');
+                        $errors[] = $exception instanceof RuntimeException ? $exception->getMessage() : sr_t('member::profile.error.profile_image_upload_failed');
+                    }
+                }
+            }
+
+            if ($errors === []) {
+                foreach (sr_member_profile_validation_errors($profile, $profilePolicies) as $profileError) {
+                    $errors[] = $profileError;
+                }
+            }
+
+            if ($errors !== [] && $uploadedAvatarReference !== '') {
+                sr_member_delete_profile_image_reference($uploadedAvatarReference);
+                $uploadedAvatarReference = '';
+                $profile['profile_image_path'] = $previousAvatarPath;
+                $submittedProfile = $profile;
+            }
+        }
+
         $accountDetailsResult = [];
         if ($errors === []) {
             $pdo->beginTransaction();
@@ -330,10 +386,20 @@ if (sr_request_method() === 'POST') {
                     $registrationAccountExtensionValues,
                     ['site' => $site, 'account' => $account, 'values' => $basics]
                 );
+                if ($saveProfileWithBasics) {
+                    sr_member_save_profile($pdo, (int) $account['id'], $profile);
+                    sr_member_save_profile_extra_field_values($pdo, (int) $account['id'], $profileExtraFieldDefinitions, $profileExtraFieldValues);
+                }
                 $pdo->commit();
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
+                }
+                if ($uploadedAvatarReference !== '') {
+                    sr_member_delete_profile_image_reference($uploadedAvatarReference);
+                    $uploadedAvatarReference = '';
+                    $profile['profile_image_path'] = $previousAvatarPath;
+                    $submittedProfile = $profile;
                 }
                 $knownMessages = [
                     'member_account_email_duplicate' => '이미 사용 중인 이메일입니다.',
@@ -352,6 +418,9 @@ if (sr_request_method() === 'POST') {
         }
 
         if ($errors === []) {
+            if ($saveProfileWithBasics && $avatarReferenceToDelete !== '' && $avatarReferenceToDelete !== (string) $profile['profile_image_path']) {
+                sr_member_delete_profile_image_reference($avatarReferenceToDelete);
+            }
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'member',
@@ -367,8 +436,21 @@ if (sr_request_method() === 'POST') {
                     'login_id_changed' => !empty($accountDetailsResult['login_id_changed']),
                     'login_id_set' => !empty($accountDetailsResult['login_id_set']),
                     'registration_extensions_updated' => array_keys($registrationAccountExtensionValues),
+                    'profile_updated' => $saveProfileWithBasics,
                 ],
             ]);
+
+            if ($saveProfileWithBasics) {
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'member',
+                    'event_type' => 'member.profile.updated',
+                    'target_type' => 'member_account',
+                    'target_id' => (string) $account['id'],
+                    'result' => 'success',
+                    'message' => 'Member profile updated with account details.',
+                ]);
+            }
 
             if (!empty($accountDetailsResult['email_changed'])) {
                 unset($_SESSION['sr_debug_email_verification_url']);
@@ -854,7 +936,7 @@ if (is_array($submittedProfile) && $errors !== []) {
     $profile = array_merge($profile, $submittedProfile);
 }
 if ($profileExtraFieldDefinitions !== []) {
-    if ($intent === 'profile' && $errors !== []) {
+    if (is_array($submittedProfile) && $errors !== []) {
         $profileExtraValues = $profileExtraFieldValues;
     } else {
         $profileExtraValues = sr_member_profile_extra_field_plain_values($pdo, (int) $account['id']);

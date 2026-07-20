@@ -91,12 +91,20 @@
     min-width: 0;
 }
 
+.member-skin-basic-account-form {
+    display: grid;
+    gap: calc(var(--spacing) * 5);
+}
+
+.member-skin-basic-account-submit {
+    display: flex;
+    justify-content: flex-start;
+}
+
 .member-skin-basic-side-nav {
     align-self: start;
     grid-area: sidebar;
     min-width: 0;
-    position: sticky;
-    top: calc(var(--public-layout-header-height, 4.25rem) + 1rem);
     width: 100%;
 }
 

@@ -88,6 +88,7 @@ modules/{module_key}/
 - helpers/ (optional)
 - paths.php (optional)
 - admin-menu.php (optional)
+- admin-account-role.php (optional)
 - output-slots.php (optional)
 - extension-points.php (optional)
 - privacy-export.php (optional)
@@ -1021,6 +1022,7 @@ return [
 대표 계약 파일:
 
 - `admin-menu.php`: 관리자 메뉴 항목
+- `admin-account-role.php`: 계정의 소유자 역할 판별
 - `menu-links.php`: 사이트 메뉴 항목에 연결할 링크 자산
 - `output-slots.php`: 출력 renderer
 - `extension-points.php`: 확장 가능한 화면/기능 위치
@@ -1083,6 +1085,12 @@ return [
 - 각 항목은 `label`, `path`, 선택 `order`를 가진 배열이다.
 - `path`는 `/admin/...` 형식이어야 한다.
 - 같은 모듈의 `paths.php`에 `GET {path}`가 있어야 한다.
+
+`admin-account-role.php`:
+
+- `admin` 모듈이 `is_owner_function`을 제공한다.
+- callable 형식은 `function (PDO $pdo, int $accountId): bool`이다.
+- 소비 모듈은 관리자 역할 테이블을 직접 조회하지 않고 이 계약으로 소유자 여부만 확인한다.
 
 `menu-links.php`:
 
@@ -1525,6 +1533,7 @@ return [
 | `paths.php` | core front controller | 모든 요청의 route 매칭 | 활성 모듈 action include 허용 목록 |
 | `paths.php` | `admin` 모듈 | 관리자 내비게이션 구성 | `admin-menu.php` path가 실제 GET route인지 확인 |
 | `admin-menu.php` | `admin` 모듈 | 관리자 레이아웃/내비게이션 구성 | 활성 모듈 관리자 메뉴 노출 |
+| `admin-account-role.php` | `member` 모듈 | 이메일 인증 로그인 정책과 기존 세션 재검증 | 소유자 계정 여부를 판별해 이메일 인증 로그인 예외를 제한적으로 적용 |
 | `menu-links.php` | `site_menu` 모듈 | 사이트 메뉴 관리자 화면 | 운영자가 메뉴 항목에 연결할 수 있는 링크 자산 |
 | `site-menu-provider.php` | `content`, `community`, `quiz`, `survey` 모듈 | 공개 사이드 메뉴 렌더링과 사이트 메뉴 선택값 검증 | 활성·호환 상태인 `site_menu` 모듈의 메뉴 선택지, published tree, 렌더러 호출 |
 | `extension-points.php` | `banner` 모듈 | 배너 관리자 대상 선택 | content slot 대상 목록 |
@@ -1586,8 +1595,8 @@ return [
 
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
-| `admin` | `paths.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
-| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php`, `public-identity.php` | `notification-events.php`, `email-delivery.php`, `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
+| `admin` | `paths.php`, `admin-account-role.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
+| `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php`, `public-identity.php` | `admin-account-role.php`, `notification-events.php`, `email-delivery.php`, `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |
 | `identity_verification` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `operational-status.php` | `identity-provider.php` |

@@ -1047,6 +1047,7 @@ function sr_module_known_contract_files(): array
     return [
         'paths.php',
         'admin-menu.php',
+        'admin-account-role.php',
         'output-slots.php',
         'extension-points.php',
         'privacy-export.php',

@@ -28,7 +28,7 @@ if (!is_array($challengeAccount) || (string) ($challengeAccount['status'] ?? '')
     sr_redirect('/login');
 }
 
-if (sr_member_email_verification_blocks_login($memberSettings, $challengeAccount)) {
+if (sr_member_email_verification_blocks_login($pdo, $memberSettings, $challengeAccount)) {
     sr_member_mfa_clear_challenge();
     sr_redirect('/login');
 }

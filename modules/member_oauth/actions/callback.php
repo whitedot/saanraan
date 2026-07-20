@@ -106,7 +106,7 @@ if ((string) $state['flow_type'] === 'link') {
 if (is_array($oauthAccount)) {
     $account = sr_member_find_by_id($pdo, (int) $oauthAccount['account_id']);
     $memberSettings = sr_member_settings($pdo);
-    if (!is_array($account) || (string) ($account['status'] ?? '') !== 'active' || sr_member_email_verification_blocks_login($memberSettings, $account)) {
+    if (!is_array($account) || (string) ($account['status'] ?? '') !== 'active' || sr_member_email_verification_blocks_login($pdo, $memberSettings, $account)) {
         sr_member_log_auth($pdo, is_array($account) ? (int) $account['id'] : null, 'oauth_login_blocked', 'failure');
         sr_audit_log($pdo, [
             'actor_account_id' => is_array($account) ? (int) $account['id'] : null,

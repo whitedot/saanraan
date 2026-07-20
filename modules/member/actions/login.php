@@ -56,7 +56,7 @@ if (sr_request_method() === 'POST') {
         $errors[] = sr_t('member::action.login.throttled');
     } elseif (
         ($passwordVerified = sr_member_verify_login_password($account, $password))
-        && sr_member_email_verification_blocks_login($memberSettings, $account)
+        && sr_member_email_verification_blocks_login($pdo, $memberSettings, $account)
     ) {
         $emailDeliveryAvailable = sr_member_email_delivery_available($pdo);
         $verificationThrottle = $emailDeliveryAvailable

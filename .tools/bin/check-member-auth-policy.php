@@ -122,8 +122,17 @@ sr_member_auth_policy_assert(
 
 $memberLang = sr_member_auth_policy_read('modules/member/lang/ko.php');
 $privacyLang = sr_member_auth_policy_read('modules/privacy/lang/ko.php');
+$adminModule = sr_member_auth_policy_read('modules/admin/module.php');
+$adminAccountRoleContract = sr_member_auth_policy_read('modules/admin/admin-account-role.php');
 $memberModule = sr_member_auth_policy_read('modules/member/module.php');
 $memberMfaProviders = sr_member_auth_policy_read('modules/member/member-mfa-providers.php');
+sr_member_auth_policy_assert(
+    strpos($adminModule, "'admin-account-role.php'") !== false
+        && strpos($memberModule, "'admin-account-role.php'") !== false
+        && strpos($adminAccountRoleContract, 'function sr_admin_account_role_is_owner(PDO $pdo, int $accountId): bool') !== false
+        && strpos($adminAccountRoleContract, "'is_owner_function' => 'sr_admin_account_role_is_owner'") !== false,
+    'Admin should expose owner-role lookup through the declared contract consumed by member authentication.'
+);
 sr_member_auth_policy_assert(
     strpos($memberModule, "'mfa_login_mode' => 'disabled'") !== false
         && strpos($memberModule, "'mfa_login_enabled' => false") !== false
@@ -147,21 +156,43 @@ $verifiedAccount = [
     'status' => 'active',
     'email_verified_at' => '2026-04-01 00:00:00',
 ];
+$unverifiedOwnerAccount = [
+    'id' => 2,
+    'status' => 'active',
+    'email_verified_at' => null,
+];
+$unverifiedStaffAccount = [
+    'id' => 3,
+    'status' => 'active',
+    'email_verified_at' => null,
+];
+$emailVerificationPolicyPdo = new PDO('sqlite::memory:');
+$emailVerificationPolicyPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$emailVerificationPolicyPdo->exec('CREATE TABLE sr_admin_account_roles (account_id INTEGER NOT NULL, role_key TEXT NOT NULL)');
+$emailVerificationPolicyPdo->exec("INSERT INTO sr_admin_account_roles (account_id, role_key) VALUES (2, 'owner'), (3, 'staff')");
 
 sr_member_auth_policy_assert(
-    sr_member_email_verification_blocks_login(['email_verification_enabled' => true], $unverifiedAccount),
+    sr_member_email_verification_blocks_login($emailVerificationPolicyPdo, ['email_verification_enabled' => true], $unverifiedAccount),
     'Email verification should block active unverified accounts when enabled.'
 );
 sr_member_auth_policy_assert(
-    !sr_member_email_verification_blocks_login(['email_verification_enabled' => false], $unverifiedAccount),
+    !sr_member_email_verification_blocks_login($emailVerificationPolicyPdo, ['email_verification_enabled' => true], $unverifiedOwnerAccount),
+    'Email verification should not block an active owner account.'
+);
+sr_member_auth_policy_assert(
+    sr_member_email_verification_blocks_login($emailVerificationPolicyPdo, ['email_verification_enabled' => true], $unverifiedStaffAccount),
+    'Email verification should continue to block an unverified staff account.'
+);
+sr_member_auth_policy_assert(
+    !sr_member_email_verification_blocks_login($emailVerificationPolicyPdo, ['email_verification_enabled' => false], $unverifiedAccount),
     'Email verification should not block login when disabled.'
 );
 sr_member_auth_policy_assert(
-    !sr_member_email_verification_blocks_login(['email_verification_enabled' => true], $verifiedAccount),
+    !sr_member_email_verification_blocks_login($emailVerificationPolicyPdo, ['email_verification_enabled' => true], $verifiedAccount),
     'Verified account should not be blocked by email verification policy.'
 );
 sr_member_auth_policy_assert(
-    !sr_member_email_verification_blocks_login(['email_verification_enabled' => true], null),
+    !sr_member_email_verification_blocks_login($emailVerificationPolicyPdo, ['email_verification_enabled' => true], null),
     'Missing account should not be treated as email verification block.'
 );
 
@@ -409,8 +440,8 @@ if ($loginAction !== '') {
         'Login action should reject overlong raw identifiers instead of truncating them for account lookup.'
     );
     sr_member_auth_policy_assert(
-        strpos($loginAction, 'sr_member_email_verification_blocks_login') !== false,
-        'Login action should enforce email verification policy.'
+        strpos($loginAction, 'sr_member_email_verification_blocks_login($pdo, $memberSettings, $account)') !== false,
+        'Login action should enforce the owner-aware email verification policy.'
     );
     sr_member_auth_policy_assert(
         strpos($loginAction, 'sr_member_login_or_start_mfa($pdo, $account, \'password\', $next)') !== false
@@ -456,6 +487,18 @@ if ($loginAction !== '') {
                 || strpos($loginAction, '비밀번호를 재설정했습니다. 새 비밀번호로 로그인하세요.') !== false
             ),
         'Login action should show a fixed completion notice after password reset redirect.'
+    );
+}
+
+$ownerAwareEmailVerificationCallers = [
+    'modules/member/actions/login-mfa.php' => 'sr_member_email_verification_blocks_login($pdo, $memberSettings, $challengeAccount)',
+    'modules/member_oauth/actions/callback.php' => 'sr_member_email_verification_blocks_login($pdo, $memberSettings, $account)',
+];
+foreach ($ownerAwareEmailVerificationCallers as $ownerAwareCallerPath => $ownerAwareCallerMarker) {
+    $ownerAwareCaller = sr_member_auth_policy_read($ownerAwareCallerPath);
+    sr_member_auth_policy_assert(
+        strpos($ownerAwareCaller, $ownerAwareCallerMarker) !== false,
+        'Owner-aware email verification policy is missing from ' . $ownerAwareCallerPath . '.'
     );
 }
 
@@ -581,8 +624,9 @@ sr_member_auth_policy_forbid_markers('modules/member/actions/register.php', [
 $accountHelper = sr_member_auth_policy_read('modules/member/helpers/accounts.php');
 if ($accountHelper !== '') {
     sr_member_auth_policy_assert(
-        strpos($accountHelper, 'sr_member_email_verification_blocks_login($settings, $account)') !== false,
-        'Current member session should be rejected when email verification is still required.'
+        strpos($accountHelper, 'sr_member_email_verification_blocks_login($pdo, $settings, $account)') !== false
+            && strpos($accountHelper, 'return !sr_admin_account_role_is_owner($pdo, (int) ($account[\'id\'] ?? 0));') !== false,
+        'Current member session should reject unverified members while preserving the owner exception.'
     );
     sr_member_auth_policy_assert(
         strpos($accountHelper, "if (!array_key_exists('sr_account_id', \$_SESSION)) {\n        sr_member_revoke_current_session(\$pdo);\n        unset(\$_SESSION['sr_session_token_hash']);\n        return null;\n    }") !== false
@@ -1147,6 +1191,12 @@ if ($accountView !== '') {
             && strpos($accountView, 'member::ui.mfa_recovery.once_help') !== false
             && strpos($accountView, 'member::ui.mfa_totp.reauth_code') !== false,
         'Account security view should expose TOTP setup, QR image, manual secret, first-code activation, recovery rotation, disable controls, and one-time recovery code display.'
+    );
+    sr_member_auth_policy_assert(
+        strpos($accountView, "if (\$memberMfaLoginMode !== 'disabled')") !== false
+            && strpos($accountView, 'data-member-mfa-section') !== false
+            && preg_match('/if \(\$memberMfaLoginMode !== \'disabled\'\).*?<section class="card" data-member-mfa-section>.*?member::ui\.mfa_totp\.title.*?<\/section>\s*<\?php \} \?>/s', $accountView) === 1,
+        'Account security view should omit the entire MFA section when login MFA policy is disabled.'
     );
 }
 

@@ -37,6 +37,7 @@ return [
             'public-identity.php',
         ],
         'consumes' => [
+            'admin-account-role.php',
             'notification-events.php',
             'email-delivery.php',
             'member-group-rules.php',

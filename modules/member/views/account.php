@@ -270,14 +270,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         </div>
                     </section>
                 <?php } elseif ($memberAccountPage === 'account') { ?>
-                    <section class="card">
-                        <div class="card-header">
-                            <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.25914f73')); ?></h2>
-                            <p class="type-small member-skin-basic-muted">가입할 때 입력한 기본 정보와 서비스 설정을 확인하거나 변경합니다.</p>
-                        </div>
-                        <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/account')); ?>" class="card-body member-skin-basic-form" data-sr-validate-form>
-                            <?php echo sr_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="basics">
+                    <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/account')); ?>" class="member-skin-basic-account-form" data-sr-validate-form<?php echo !empty($profilePolicies['profile_image_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="intent" value="basics">
+                        <?php if ($profileFieldsEnabled) { ?>
+                            <input type="hidden" name="save_profile" value="1">
+                        <?php } ?>
+                        <section class="card">
+                            <div class="card-header">
+                                <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.text.25914f73')); ?></h2>
+                                <p class="type-small member-skin-basic-muted">가입할 때 입력한 기본 정보와 서비스 설정을 확인하거나 변경합니다.</p>
+                            </div>
+                            <div class="card-body member-skin-basic-form">
                             <p>
                                 <label for="modules_member_account_email">
                                     <span><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
@@ -346,9 +350,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     </select>
                                 </label>
                             </p>
-                            <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.save.be6da0db')); ?></button>
-                        </form>
-                    </section>
+                            </div>
+                        </section>
 
                     <?php if ($profileFieldsEnabled) { ?>
                         <section class="card">
@@ -356,9 +359,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <h2 class="card-title">추가 계정 정보</h2>
                                 <p class="type-small member-skin-basic-muted">가입할 때 선택한 프로필 항목을 같은 계정 정보 화면에서 관리합니다.</p>
                             </div>
-                            <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/account')); ?>" class="card-body member-skin-basic-form" data-sr-validate-form<?php echo !empty($profilePolicies['profile_image_path']['visible']) ? ' enctype="multipart/form-data"' : ''; ?>>
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="profile">
+                            <div class="card-body member-skin-basic-form">
                                 <?php foreach ($memberAccountProfileOrderItems as $memberAccountProfileOrderItem) { ?>
                                     <?php if ((string) ($memberAccountProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberAccountProfileOrderItem['key'] ?? '') === 'birth_date') { ?>
                                         <?php if (!empty($profilePolicies['birth_date']['visible'])) { ?>
@@ -410,10 +411,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                         <?php echo sr_member_profile_extra_fields_form_html([$memberAccountProfileExtraByKey[(string) ($memberAccountProfileOrderItem['key'] ?? '')] ?? []], is_array($profileExtraValues ?? null) ? $profileExtraValues : [], 'modules_member_account_profile_extra', false); ?>
                                     <?php } ?>
                                 <?php } ?>
-                                <button class="btn btn-solid-primary" type="submit">추가 정보 저장</button>
-                            </form>
+                            </div>
                         </section>
                     <?php } ?>
+
+                        <div class="member-skin-basic-account-submit">
+                            <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.save.be6da0db')); ?></button>
+                        </div>
+                    </form>
 
                     <?php if ($emailVerificationEnabled) { ?>
                         <section class="card">
@@ -522,7 +527,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         </form>
                     </section>
 
-                    <section class="card">
+                    <?php if ($memberMfaLoginMode !== 'disabled') { ?>
+                    <section class="card" data-member-mfa-section>
                         <div class="card-header">
                             <h2 class="card-title"><?php echo sr_e(sr_t('member::ui.mfa_totp.title')); ?></h2>
                         </div>
@@ -658,6 +664,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <?php } ?>
                         </div>
                     </section>
+                    <?php } ?>
                 <?php } elseif ($memberAccountPage === 'privacy') { ?>
                     <section class="card">
                         <div class="card-header">

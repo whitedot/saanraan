@@ -22,6 +22,7 @@ return [
     'contracts' => [
         'provides' => [
             'paths.php',
+            'admin-account-role.php',
             'privacy-export.php',
             'privacy-cleanup.php',
         ],

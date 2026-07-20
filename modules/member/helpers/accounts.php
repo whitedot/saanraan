@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/admin/admin-account-role.php';
+
 function sr_member_account_status_label(string $status): string
 {
     $labels = [
@@ -277,7 +279,7 @@ function sr_member_current_account(PDO $pdo): ?array
     }
 
     $settings = sr_member_settings($pdo);
-    if (sr_member_email_verification_blocks_login($settings, $account)) {
+    if (sr_member_email_verification_blocks_login($pdo, $settings, $account)) {
         sr_member_logout($pdo);
         return null;
     }
@@ -601,12 +603,18 @@ function sr_member_verify_login_password(?array $account, string $password): boo
         && (string) ($account['status'] ?? '') === 'active';
 }
 
-function sr_member_email_verification_blocks_login(array $settings, ?array $account): bool
+function sr_member_email_verification_blocks_login(PDO $pdo, array $settings, ?array $account): bool
 {
-    return !empty($settings['email_verification_enabled'])
-        && is_array($account)
-        && (string) ($account['status'] ?? '') === 'active'
-        && (string) ($account['email_verified_at'] ?? '') === '';
+    if (
+        empty($settings['email_verification_enabled'])
+        || !is_array($account)
+        || (string) ($account['status'] ?? '') !== 'active'
+        || (string) ($account['email_verified_at'] ?? '') !== ''
+    ) {
+        return false;
+    }
+
+    return !sr_admin_account_role_is_owner($pdo, (int) ($account['id'] ?? 0));
 }
 
 function sr_member_rehash_login_password_if_needed(PDO $pdo, int $accountId, string $password, string $currentHash): void

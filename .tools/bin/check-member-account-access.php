@@ -48,8 +48,13 @@ $assert(is_string($action) && str_contains($action, 'sr_member_account_access_st
 $assert(is_string($action) && str_contains($action, 'sr_member_reauth_throttle_status(') && str_contains($action, "'account_page_reauth'"), 'Member account password verification failures must use reauth throttling and auth logs.');
 $assert(is_string($action) && str_contains($action, '$memberAccountIdentityStartUrl') && str_contains($action, '$memberSecurityIdentityRequired'), 'Member account access must layer configured identity verification after credential verification.');
 $assert(is_string($view) && str_contains($view, 'name="intent" value="account_access_verify"') && str_contains($view, 'autocomplete="current-password"'), 'Member account verification view must expose an accessible current-password form.');
-$assert(is_string($view) && str_contains($view, 'card member-skin-basic-side-nav') && str_contains($view, 'card-header') && str_contains($view, 'card-body member-skin-basic-side-nav-body'), 'Member account pages must retain the fixed navigation in the shared card sidebar structure.');
-$assert(is_string($skin) && str_contains($skin, 'grid-template-areas: "main sidebar";') && str_contains($skin, 'grid-area: sidebar;'), 'Member account pages must place the fixed card sidebar to the right of the main panel.');
+$assert(is_string($view) && str_contains($view, 'card member-skin-basic-side-nav') && str_contains($view, 'card-header') && str_contains($view, 'card-body member-skin-basic-side-nav-body'), 'Member account pages must retain the navigation in the shared card sidebar structure.');
+$assert(is_string($skin) && str_contains($skin, 'grid-template-areas: "main sidebar";') && str_contains($skin, 'grid-area: sidebar;'), 'Member account pages must place the card sidebar to the right of the main panel.');
+$memberSideNavRuleMatched = is_string($skin) && preg_match('/\.member-skin-basic-side-nav\s*\{([^}]*)\}/s', $skin, $memberSideNavRuleMatches) === 1;
+$memberSideNavRule = $memberSideNavRuleMatched ? (string) ($memberSideNavRuleMatches[1] ?? '') : '';
+$assert($memberSideNavRuleMatched, 'Member account skin must define the side navigation rule.');
+$assert(!str_contains($memberSideNavRule, 'position: sticky'), 'Member account side navigation must remain in normal document flow.');
+$assert(!preg_match('/\btop\s*:/', $memberSideNavRule), 'Member account side navigation must not keep a sticky top offset.');
 $assert(is_string($skin) && str_contains($skin, 'width: min(100%, 1360px);'), 'Member account pages must use the expanded wide container for the main panel and card sidebar.');
 $assert(is_string($view) && substr_count($view, 'class="card-header"') >= 8 && str_contains($view, 'class="card-body member-skin-basic-form"'), 'Member account overview and subpages must share the UI kit card header and body structure.');
 $assert(is_string($view) && str_contains($view, 'btn btn-outline-default member-skin-basic-overview-action') && !str_contains($view, 'member-skin-basic-overview-link'), 'Member account overview shortcuts must use UI kit buttons instead of custom decorative cards.');
@@ -69,9 +74,26 @@ $assert(
         && !str_contains($view, "\$memberAccountPages['profile']")
         && str_contains($view, 'name="email"')
         && str_contains($view, 'name="login_id"')
-        && str_contains($view, 'name="intent" value="profile"')
+        && str_contains($view, 'name="intent" value="basics"')
+        && str_contains($view, 'name="save_profile" value="1"')
         && str_contains($view, "sr_url(\$memberAccountBasePath . '/account')"),
-    'Account information must contain email, login ID replacement, and profile inputs without a separate profile page or navigation item.'
+    'Account information must submit email, login ID replacement, and profile inputs together without a separate profile page or navigation item.'
+);
+$assert(
+    is_string($view)
+        && substr_count($view, 'class="member-skin-basic-account-form"') === 1
+        && substr_count($view, 'class="member-skin-basic-account-submit"') === 1
+        && !str_contains($view, 'name="intent" value="profile"')
+        && !str_contains($view, '추가 정보 저장'),
+    'Account information management must expose one combined form and one save action for basic and additional fields.'
+);
+$assert(
+    is_string($action)
+        && str_contains($action, "\$saveProfileWithBasics = \$profileFieldsEnabled && sr_post_string('save_profile', 1) === '1';")
+        && str_contains($action, 'if ($saveProfileWithBasics) {')
+        && str_contains($action, 'sr_member_save_profile($pdo, (int) $account[\'id\'], $profile);')
+        && str_contains($action, 'sr_member_save_profile_extra_field_values($pdo, (int) $account[\'id\'], $profileExtraFieldDefinitions, $profileExtraFieldValues);'),
+    'The combined account save must validate and persist member-owned profile fields in the basic account transaction.'
 );
 $assert(
     is_string($accountHelper)

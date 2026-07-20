@@ -106,6 +106,9 @@ php .tools/bin/smoke-http.php
 - `.tools/bin/check-member-auth-policy.php`는 세션 lifetime helper의 `function_exists()` guard, `Throwable` fallback, `sr_member_create_session($pdo, $accountId)` 시그니처 유지, `sr_member_session_is_current()`의 활동 기준 expiry 갱신, cleanup의 만료 조건, 회원 설정 감사 metadata의 정수 설정 snapshot marker를 확인한다.
 - `.tools/bin/check-member-account-access.php`는 마이페이지 최초 진입 확인 상태가 account ID와 현재 session token hash에 묶이고, credential 확인과 최종 gate 완료가 분리되며, session token 변경 시 기존 확인이 무효가 되는지 확인한다. 또한 `/mypage/verify` GET/POST route, 재인증 rate limit·인증 로그, 환경설정 기반 본인확인 연결, 허용된 마이페이지 복귀 경로, 선택 프로필의 계정 정보 통합과 확인 UI marker를 검사한다. `.tools/bin/check-member-account-details.php`는 이메일·로그인 아이디 변경 시 인증 hash와 이메일 인증 상태가 올바르게 갱신되고 중복값이 거부되며, 게시물 소유권처럼 `account_id`로 연결된 도메인 관계가 유지되는지 SQLite fixture로 확인한다. 회원·OAuth·privacy 외 도메인 모듈이 로그인 식별 hash를 직접 참조하면 같은 검사에서 거부한다.
 
+- `.tools/bin/check-member-auth-policy.php`는 이메일 인증 필수 정책에서 미인증 일반 회원과 스탭은 차단하고, `admin-account-role.php` 계약이 판별한 활성 소유자 계정만 비밀번호·OAuth·MFA·기존 세션 경로에서 예외로 유지하는지 확인한다.
+- 같은 검사는 로그인 2차 인증 정책이 `disabled`일 때 마이페이지 보안 화면의 2차 인증 섹션 전체가 렌더링 조건 밖으로 빠지는지 확인한다.
+
 ### HTML sanitizer와 CKEditor
 
 필요한 증거:
