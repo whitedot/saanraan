@@ -42,14 +42,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                 <?php } ?>
                             <?php } ?>
                         </span>
-                        <input id="modules_message_write_recipient_identifier" type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required class="form-input" data-sr-recipient-picker-input data-sr-recipient-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" autocomplete="off">
+                        <input id="modules_message_write_recipient_identifier" type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required class="form-input form-control-medium" data-sr-recipient-picker-input data-sr-recipient-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" autocomplete="off">
                     </span>
                 </label>
             </p>
             <p>
                 <label class="ui-field" for="modules_message_write_body_text">
                     <span>내용 <span class="sr-required-label">(필수)</span></span>
-                    <textarea id="modules_message_write_body_text" name="body_text" rows="10" cols="80" required class="form-textarea"><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_message_write_body_text" name="body_text" rows="10" cols="80" required class="form-textarea form-control-wide"><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <button type="submit" class="btn btn-solid-primary">보내기</button>

@@ -16,10 +16,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
             <form method="post" action="<?php echo sr_e(sr_url('/community/series')); ?>" class="ui-card-body-stack">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="intent" value="create">
-                <p><label class="ui-field"><span>게시판 <span class="sr-required-label">(필수)</span></span><select name="board_id" class="form-select" required><?php foreach ($boards as $board) { ?><option value="<?php echo sr_e((string) $board['id']); ?>"><?php echo sr_e((string) $board['title']); ?></option><?php } ?></select></label></p>
-                <p><label class="ui-field"><span>제목 <span class="sr-required-label">(필수)</span></span><input type="text" name="title" maxlength="160" class="form-input" required></label></p>
-                <p><label class="ui-field"><span>공개 범위</span><select name="visibility" class="form-select"><option value="public">전체 공개</option><option value="member">회원 공개</option><option value="private">비공개</option></select></label></p>
-                <p><label class="ui-field"><span>설명</span><textarea name="description" rows="3" cols="60" class="form-textarea"></textarea></label></p>
+                <p><label class="ui-field"><span>게시판 <span class="sr-required-label">(필수)</span></span><select name="board_id" class="form-select form-control-medium" required><?php foreach ($boards as $board) { ?><option value="<?php echo sr_e((string) $board['id']); ?>"><?php echo sr_e((string) $board['title']); ?></option><?php } ?></select></label></p>
+                <p><label class="ui-field"><span>제목 <span class="sr-required-label">(필수)</span></span><input type="text" name="title" maxlength="160" class="form-input form-control-medium" required></label></p>
+                <p><label class="ui-field"><span>공개 범위</span><select name="visibility" class="form-select form-control-short"><option value="public">전체 공개</option><option value="member">회원 공개</option><option value="private">비공개</option></select></label></p>
+                <p><label class="ui-field"><span>설명</span><textarea name="description" rows="3" cols="60" class="form-textarea form-control-wide"></textarea></label></p>
                 <button type="submit" class="btn btn-solid-primary">저장</button>
             </form>
         <?php } ?>

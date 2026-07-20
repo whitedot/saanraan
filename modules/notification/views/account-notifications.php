@@ -84,7 +84,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $notificationLayoutCon
                                                     <input type="hidden" name="intent" value="disable_push_endpoint">
                                                     <input type="hidden" name="endpoint_id" value="<?php echo sr_e((string) $pushEndpoint['id']); ?>">
                                                     <label class="sr-only" for="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>">현재 비밀번호</label>
-                                                    <input id="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>" type="password" name="current_password" autocomplete="current-password" required class="form-input" placeholder="현재 비밀번호">
+                                                    <input id="modules_notification_disable_push_password_<?php echo sr_e((string) $pushEndpoint['id']); ?>" type="password" name="current_password" autocomplete="current-password" required class="form-input form-control-short" placeholder="현재 비밀번호">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger">해제</button>
                                                 </form>
                                             <?php } else { ?>
@@ -126,27 +126,27 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $notificationLayoutCon
                                         <p>
                                             <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_chat_id">
                                                 <span>Telegram chat ID <span class="sr-required-label">(필수)</span></span>
-                                                <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_chat_id" type="text" name="telegram_chat_id" maxlength="120" required class="form-input">
+                                                <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_chat_id" type="text" name="telegram_chat_id" maxlength="120" required class="form-input form-control-short">
                                             </label>
                                         </p>
                                     <?php } else { ?>
                                         <p>
                                             <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_endpoint">
                                                 <span><?php echo sr_e($pushProviderLabel); ?> 수신 URL <span class="sr-required-label">(필수)</span></span>
-                                                <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_endpoint" type="url" name="endpoint" maxlength="255" required class="form-input" autocomplete="off" placeholder="https://">
+                                                <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_endpoint" type="url" name="endpoint" maxlength="255" required class="form-input form-control-wide" autocomplete="off" placeholder="https://">
                                             </label>
                                         </p>
                                     <?php } ?>
                                     <p>
                                         <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_label">
                                             <span>표시 이름</span>
-                                            <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_label" type="text" name="recipient_label" maxlength="120" class="form-input">
+                                            <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_label" type="text" name="recipient_label" maxlength="120" class="form-input form-control-short">
                                         </label>
                                     </p>
                                     <p>
                                         <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_password">
                                             <span>현재 비밀번호 <span class="sr-required-label">(필수)</span></span>
-                                            <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_password" type="password" name="current_password" autocomplete="current-password" required class="form-input">
+                                            <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_password" type="password" name="current_password" autocomplete="current-password" required class="form-input form-control-short">
                                         </label>
                                     </p>
                                     <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($pushProviderLabel); ?> 푸시 연결</button>
@@ -162,7 +162,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $notificationLayoutCon
             <div class="filtering-fields">
                 <div class="filtering-field">
                     <label class="filtering-label" for="modules_notification_account_notifications_status"><?php echo sr_e(sr_t('notification::ui.status.e10195a1')); ?></label>
-                    <select id="modules_notification_account_notifications_status" name="status" class="form-select">
+                    <select id="modules_notification_account_notifications_status" name="status" class="form-select form-control-short">
                         <?php foreach (['' => sr_t('notification::ui.text.62808119'), 'read' => sr_t('notification::ui.text.3fe5701c')] as $value => $label) { ?>
                             <option value="<?php echo sr_e((string) $value); ?>"<?php echo $filters['status'] === (string) $value ? ' selected' : ''; ?>>
                                 <?php echo sr_e($label); ?>

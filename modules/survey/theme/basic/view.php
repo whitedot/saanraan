@@ -327,11 +327,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                             <fieldset class="sr-survey-question">
                                 <legend><?php echo sr_e((string) ($index + 1) . '. ' . (string) ($question['prompt'] ?? '')); ?></legend>
                                 <?php if ($type === 'text' || $type === 'short_text'): ?>
-                                    <input type="text" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" maxlength="500" class="form-input">
+                                    <input type="text" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" maxlength="500" class="form-input form-control-medium">
                                 <?php elseif ($type === 'long_text'): ?>
-                                    <textarea name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" rows="4" class="form-textarea"></textarea>
+                                    <textarea name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" rows="4" class="form-textarea form-control-wide"></textarea>
                                 <?php elseif (in_array($type, ['number', 'rating', 'scale'], true)): ?>
-                                    <input type="number" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" class="form-input"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' step="any"' : ' step="1"'; ?><?php echo $question['number_min'] !== null ? ' min="' . sr_e((string) $question['number_min']) . '"' : ''; ?><?php echo $question['number_max'] !== null ? ' max="' . sr_e((string) $question['number_max']) . '"' : ''; ?>>
+                                    <input type="number" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" class="form-input form-control-compact"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' step="any"' : ' step="1"'; ?><?php echo $question['number_min'] !== null ? ' min="' . sr_e((string) $question['number_min']) . '"' : ''; ?><?php echo $question['number_max'] !== null ? ' max="' . sr_e((string) $question['number_max']) . '"' : ''; ?>>
                                     <?php if ((string) ($question['number_unit'] ?? '') !== ''): ?>
                                         <small class="ui-kit-hint"><?php echo sr_e((string) $question['number_unit']); ?></small>
                                     <?php endif; ?>
@@ -342,7 +342,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                             <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
                                         </label>
                                         <?php if ((int) ($choice['is_other'] ?? 0) === 1): ?>
-                                            <input type="text" name="other_answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>]" class="form-input sr-survey-other-input" maxlength="500">
+                                            <input type="text" name="other_answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>]" class="form-input form-control-medium sr-survey-other-input" maxlength="500">
                                         <?php endif; ?>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -353,12 +353,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                 <?php endif; ?>
             <?php endif; ?>
             <?php if ($submittedScreen || $submitResult !== null): ?>
-                <p>
+                <div class="ui-actions">
                     <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/survey')); ?>">메인으로</a>
+                </div>
+                <div class="ui-inline-action">
                     <label class="sr-only" for="survey_share_url">공유 주소</label>
-                    <input id="survey_share_url" type="url" value="<?php echo sr_e($surveyShareUrl); ?>" class="form-input" readonly data-sr-share-url>
+                    <input id="survey_share_url" type="url" value="<?php echo sr_e($surveyShareUrl); ?>" class="form-input form-control-medium" readonly data-sr-share-url>
                     <button type="button" class="btn btn-solid-light" data-sr-share-copy="<?php echo sr_e($surveyShareUrl); ?>">공유 주소 복사</button>
-                </p>
+                </div>
                 <script>
                 (function () {
                     var buttons = document.querySelectorAll('[data-sr-share-copy]');

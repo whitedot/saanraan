@@ -659,6 +659,88 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+/* Public controls use a readable measure by default instead of filling every card. */
+:where(input.form-input:not([type]), input.form-input[type="text"], input.form-input[type="search"], input.form-input[type="email"], input.form-input[type="password"], input.form-input[type="tel"]) {
+    max-width: min(100%, 32rem);
+}
+
+:where(input.form-input[type="url"], textarea.form-textarea) {
+    max-width: min(100%, 48rem);
+}
+
+:where(input.form-input[type="number"], input.form-input[type="date"], input.form-input[type="time"], input.form-input[type="month"], input.form-input[type="week"], input.form-input[type="datetime-local"], input.form-input[inputmode="numeric"], input.form-input[inputmode="decimal"], input.form-input[autocomplete="one-time-code"]) {
+    max-width: min(100%, 14rem);
+}
+
+:where(input.form-input[type="file"]) {
+    max-width: min(100%, 36rem);
+}
+
+:where(select.form-select) {
+    max-width: min(100%, 28rem);
+}
+
+:is(.form-input, .form-select, .form-textarea).form-control-compact {
+    max-width: min(100%, 14rem);
+    width: min(100%, 14rem);
+}
+
+:is(.form-input, .form-select, .form-textarea).form-control-short {
+    max-width: min(100%, 22rem);
+    width: min(100%, 22rem);
+}
+
+:is(.form-input, .form-select, .form-textarea).form-control-medium {
+    max-width: min(100%, 32rem);
+    width: min(100%, 32rem);
+}
+
+:is(.form-input, .form-select, .form-textarea).form-control-wide {
+    max-width: min(100%, 48rem);
+    width: min(100%, 48rem);
+}
+
+:is(.form-input, .form-select, .form-textarea).form-control-full {
+    max-width: 100%;
+    width: 100%;
+}
+
+.input-group > :is(.form-input, .form-select, .form-textarea) {
+    max-width: none;
+}
+
+.ui-inline-action.ui-inline-action {
+    align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ui-inline-action > :is(label, .ui-field, .ui-inline-action-field) {
+    flex: 0 1 32rem;
+    min-width: min(100%, 16rem);
+}
+
+.ui-inline-action > .ui-inline-action-field-compact {
+    flex-basis: 14rem;
+}
+
+.ui-inline-action > .ui-inline-action-field-short {
+    flex-basis: 22rem;
+}
+
+.ui-inline-action > .ui-inline-action-field-medium {
+    flex-basis: 32rem;
+}
+
+.ui-inline-action > :is(.form-input, .form-select, .form-textarea) {
+    flex: 0 1 auto;
+}
+
+.ui-inline-action > .btn {
+    flex: 0 0 auto;
+}
+
 .ui-actions {
     align-items: center;
     display: flex;
@@ -884,6 +966,21 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 
     .ui-description-list > div {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ui-inline-action.ui-inline-action {
+        align-items: stretch;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ui-inline-action > :is(label, .ui-field, .ui-inline-action-field) {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .ui-inline-action > .btn {
+        width: fit-content;
     }
 }
 

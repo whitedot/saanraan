@@ -33,20 +33,20 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="submission_id" value="<?php echo sr_e((string) (int) ($formSubmission['id'] ?? 0)); ?>">
                     <p><label class="ui-field" for="account_content_group"><span>콘텐츠 그룹</span>
-                        <select id="account_content_group" name="content_group_id" class="form-select">
+                        <select id="account_content_group" name="content_group_id" class="form-select form-control-medium">
                             <?php foreach ($allowedSubmissionGroups as $group) { ?>
                                 <option value="<?php echo sr_e((string) (int) $group['id']); ?>"<?php echo (int) ($formSubmission['content_group_id'] ?? 0) === (int) $group['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $group['title']); ?></option>
                             <?php } ?>
                         </select>
                     </label></p>
                     <p><label class="ui-field" for="account_content_title"><span>제목</span>
-                        <input id="account_content_title" type="text" name="title" value="<?php echo sr_e((string) ($formSubmission['title'] ?? '')); ?>" maxlength="160" class="form-input">
+                        <input id="account_content_title" type="text" name="title" value="<?php echo sr_e((string) ($formSubmission['title'] ?? '')); ?>" maxlength="160" class="form-input form-control-medium">
                     </label></p>
                     <p><label class="ui-field" for="account_content_summary"><span>요약</span>
-                        <textarea id="account_content_summary" name="summary" rows="3" class="form-textarea"><?php echo sr_e((string) ($formSubmission['summary'] ?? '')); ?></textarea>
+                        <textarea id="account_content_summary" name="summary" rows="3" class="form-textarea form-control-wide"><?php echo sr_e((string) ($formSubmission['summary'] ?? '')); ?></textarea>
                     </label></p>
                     <p><label class="ui-field" for="account_content_body"><span>본문</span>
-                        <textarea id="account_content_body" name="body_text" rows="12" class="form-textarea"><?php echo sr_e((string) ($formSubmission['body_text'] ?? '')); ?></textarea>
+                        <textarea id="account_content_body" name="body_text" rows="12" class="form-textarea form-control-wide"><?php echo sr_e((string) ($formSubmission['body_text'] ?? '')); ?></textarea>
                     </label></p>
                     <div class="ui-actions">
                         <button type="submit" name="intent" value="draft" class="btn btn-solid-light">임시저장</button>

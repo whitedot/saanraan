@@ -48,32 +48,32 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <p>
                         <label class="ui-field" for="reward_withdrawal_amount">
                             <span>신청 금액 <span class="sr-required-label">(필수)</span></span>
-                            <input id="reward_withdrawal_amount" type="number" name="amount" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['amount'] ?? '')); ?>" min="<?php echo sr_e((string) sr_reward_withdrawal_min_amount()); ?>" max="<?php echo sr_e((string) min(sr_reward_withdrawal_max_amount(), (int) $availableWithdrawalAmount)); ?>" step="1" required class="form-input">
+                            <input id="reward_withdrawal_amount" type="number" name="amount" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['amount'] ?? '')); ?>" min="<?php echo sr_e((string) sr_reward_withdrawal_min_amount()); ?>" max="<?php echo sr_e((string) min(sr_reward_withdrawal_max_amount(), (int) $availableWithdrawalAmount)); ?>" step="1" required class="form-input form-control-compact">
                         </label>
                         <small class="ui-kit-hint">최소 <?php echo sr_e($rewardAmountLabel(sr_reward_withdrawal_min_amount())); ?>, 최대 <?php echo sr_e($rewardAmountLabel(sr_reward_withdrawal_max_amount())); ?>까지 신청할 수 있습니다.</small>
                     </p>
                 <p>
                     <label class="ui-field" for="reward_withdrawal_bank_name">
                         <span>은행명 <span class="sr-required-label">(필수)</span></span>
-                        <input id="reward_withdrawal_bank_name" type="text" name="bank_name" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['bank_name'] ?? '')); ?>" maxlength="80" required class="form-input">
+                        <input id="reward_withdrawal_bank_name" type="text" name="bank_name" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['bank_name'] ?? '')); ?>" maxlength="80" required class="form-input form-control-short">
                     </label>
                 </p>
                 <p>
                     <label class="ui-field" for="reward_withdrawal_bank_account_number">
                         <span>계좌번호 <span class="sr-required-label">(필수)</span></span>
-                        <input id="reward_withdrawal_bank_account_number" type="text" name="bank_account_number" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['bank_account_number'] ?? '')); ?>" maxlength="80" required class="form-input">
+                        <input id="reward_withdrawal_bank_account_number" type="text" name="bank_account_number" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['bank_account_number'] ?? '')); ?>" maxlength="80" required class="form-input form-control-short">
                     </label>
                 </p>
                 <p>
                     <label class="ui-field" for="reward_withdrawal_bank_account_holder">
                         <span>예금주 <span class="sr-required-label">(필수)</span></span>
-                        <input id="reward_withdrawal_bank_account_holder" type="text" name="bank_account_holder" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['bank_account_holder'] ?? '')); ?>" maxlength="80" required class="form-input">
+                        <input id="reward_withdrawal_bank_account_holder" type="text" name="bank_account_holder" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['bank_account_holder'] ?? '')); ?>" maxlength="80" required class="form-input form-control-short">
                     </label>
                 </p>
                 <p>
                     <label class="ui-field" for="reward_withdrawal_requester_note">
                         <span>요청 메모</span>
-                        <input id="reward_withdrawal_requester_note" type="text" name="requester_note" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['requester_note'] ?? '')); ?>" maxlength="255" class="form-input">
+                        <input id="reward_withdrawal_requester_note" type="text" name="requester_note" value="<?php echo sr_e((string) ($rewardWithdrawalFormValues['requester_note'] ?? '')); ?>" maxlength="255" class="form-input form-control-medium">
                     </label>
                     <small class="ui-kit-hint">관리자가 입금 확인에 참고할 내용을 적을 수 있습니다.</small>
                 </p>

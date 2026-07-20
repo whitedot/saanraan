@@ -60,10 +60,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <?php } elseif ($availablePolicies === []) { ?>
                         <p class="ui-feedback type-small">현재 신청 가능한 환전 정책이 없습니다.</p>
                     <?php } else { ?>
-                        <form method="get" action="<?php echo sr_e(sr_url('/account/asset-exchange')); ?>" class="ui-inline-form">
-                            <label class="ui-field" for="asset_exchange_policy_id">
+                        <form method="get" action="<?php echo sr_e(sr_url('/account/asset-exchange')); ?>" class="ui-inline-action">
+                            <label class="ui-field ui-inline-action-field-medium" for="asset_exchange_policy_id">
                                 <span>환전 조합</span>
-                                <select id="asset_exchange_policy_id" name="policy_id" class="form-select" required>
+                                <select id="asset_exchange_policy_id" name="policy_id" class="form-select form-control-medium" required>
                                     <?php foreach ($availablePolicies as $policy) { ?>
                                         <option value="<?php echo sr_e((string) $policy['id']); ?>"<?php echo is_array($selectedPolicy) && (int) $selectedPolicy['id'] === (int) $policy['id'] ? ' selected' : ''; ?>>
                                             <?php echo sr_e(sr_asset_exchange_asset_label($assets, (string) $policy['from_module_key']) . ' -> ' . sr_asset_exchange_asset_label($assets, (string) $policy['to_module_key'])); ?>
@@ -71,9 +71,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                     <?php } ?>
                                 </select>
                             </label>
-                            <label class="ui-field" for="asset_exchange_amount">
+                            <label class="ui-field ui-inline-action-field-compact" for="asset_exchange_amount">
                                 <span>환전 금액</span>
-                                <input id="asset_exchange_amount" type="number" name="amount" value="<?php echo sr_e((string) ($_GET['amount'] ?? '')); ?>" class="form-input" min="1" required>
+                                <input id="asset_exchange_amount" type="number" name="amount" value="<?php echo sr_e((string) ($_GET['amount'] ?? '')); ?>" class="form-input form-control-compact" min="1" required>
                             </label>
                             <button type="submit" class="btn btn-solid-primary">
                                 <?php echo sr_material_icon_html('calculate'); ?>

@@ -27,7 +27,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <input type="hidden" name="next" value="<?php echo sr_e($next); ?>">
                     <div class="member-skin-basic-field">
                         <label class="form-label" for="modules_member_login_mfa_code"><span><?php echo sr_e(sr_t('member::ui.login_mfa.code_or_backup')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span></label>
-                        <input id="modules_member_login_mfa_code" type="text" name="code" value="" inputmode="text" autocomplete="one-time-code" required class="form-input">
+                        <input id="modules_member_login_mfa_code" type="text" name="code" value="" inputmode="text" autocomplete="one-time-code" required class="form-input form-control-compact">
                     </div>
                     <button type="submit" class="btn btn-solid-primary btn-block"><?php echo sr_e(sr_t('member::ui.login_mfa.submit')); ?></button>
                 </form>

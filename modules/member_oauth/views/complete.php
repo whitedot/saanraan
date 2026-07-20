@@ -17,25 +17,25 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, ['title' => $pageTitle, 'rob
                     <p>
                         <label for="member_oauth_complete_email">
                             <span>이메일 <span class="sr-required-label">(필수)</span></span>
-                            <input id="member_oauth_complete_email" type="email" name="email" value="<?php echo sr_e($values['email']); ?>" required class="form-input">
+                            <input id="member_oauth_complete_email" type="email" name="email" value="<?php echo sr_e($values['email']); ?>" required class="form-input form-control-medium">
                         </label>
                     </p>
                     <p>
                         <label for="member_oauth_complete_display_name">
                             <span>이름 <span class="sr-required-label">(필수)</span></span>
-                            <input id="member_oauth_complete_display_name" type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" required class="form-input">
+                            <input id="member_oauth_complete_display_name" type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" required class="form-input form-control-short">
                         </label>
                     </p>
                     <p>
                         <label for="member_oauth_complete_password">
                             <span>비밀번호 <span class="sr-required-label">(필수)</span></span>
-                            <input id="member_oauth_complete_password" type="password" name="password" required class="form-input">
+                            <input id="member_oauth_complete_password" type="password" name="password" required class="form-input form-control-short">
                         </label>
                     </p>
                     <p>
                         <label for="member_oauth_complete_password_confirm">
                             <span>비밀번호 확인 <span class="sr-required-label">(필수)</span></span>
-                            <input id="member_oauth_complete_password_confirm" type="password" name="password_confirm" required class="form-input">
+                            <input id="member_oauth_complete_password_confirm" type="password" name="password_confirm" required class="form-input form-control-short">
                         </label>
                     </p>
                     <?php echo sr_member_registration_policy_consent_section_html($policyDocuments, $registrationConsentValues ?? [], 'oauth_complete'); ?>

@@ -115,15 +115,15 @@ $assert(
 $assert(
     is_string($view)
         && str_contains($view, 'class="btn btn-outline-secondary member-skin-basic-hero-action"')
-        && str_contains($view, 'class="btn btn-solid-secondary" type="submit"<?php echo !$emailDeliveryAvailable')
+        && str_contains($view, 'class="btn btn-outline-secondary" type="submit"<?php echo !$emailDeliveryAvailable')
         && str_contains($view, 'class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url(\'/oauth/start?provider=')
         && str_contains($view, 'class="btn btn-outline-secondary" type="submit"><?php echo sr_e(sr_t(\'member::ui.mfa_recovery.rotate\'))')
-        && str_contains($view, 'class="btn btn-solid-secondary" type="submit"><?php echo sr_e($memberMfaPendingFactor')
-        && str_contains($view, 'class="btn btn-solid-secondary" type="submit"><?php echo sr_e(sr_t(\'member::ui.privacy.2df1446d\'))')
+        && str_contains($view, 'class="btn btn-outline-secondary" type="submit"><?php echo sr_e($memberMfaPendingFactor')
+        && str_contains($view, 'class="btn btn-outline-secondary" type="submit"><?php echo sr_e(sr_t(\'member::ui.privacy.2df1446d\'))')
         && str_contains($view, 'class="btn btn-outline-danger" type="submit"')
         && str_contains($view, 'class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberAccountHasPassword')
         && str_contains($view, 'class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t(\'member::ui.mfa_totp.activate\'))'),
-    'Member account internal actions must use secondary styling while primary completion and danger actions retain their hierarchy.'
+    'Member account internal actions must use outline secondary styling while primary completion and danger actions retain their hierarchy.'
 );
 $assert(
     is_string($action)

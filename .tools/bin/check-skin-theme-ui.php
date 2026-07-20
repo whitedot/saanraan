@@ -732,6 +732,12 @@ foreach ($memberStandardAccessViewPaths as $memberStandardAccessViewPath) {
     ], 'Member public access screen standalone presentation');
 }
 
+sr_skin_theme_check_contains('modules/member/skins/basic/skin.css', [
+    '.member-skin-basic-page-narrow .member-skin-basic-form :is(.form-input, .form-select, .form-textarea)',
+    'max-width: 100%;',
+    'width: 100%;',
+], 'Member narrow access forms should fill the card width');
+
 sr_skin_theme_check_contains('modules/member/views/password-reset-request.php', [
     'class="btn btn-solid-primary btn-block" type="submit"',
     'class="btn btn-outline-default btn-block" href="<?php echo sr_e(sr_url(\'/login\')); ?>"',
@@ -1186,6 +1192,17 @@ foreach ($publicCommonStylesheetPaths as $publicCommonStylesheetPath) {
         '/\.ui-card-body-stack\s*\{/',
         '/\.ui-actions\s*\{/',
         '/\.ui-description-list\s*\{/',
+        '/form-control-compact/',
+        '/form-control-short/',
+        '/form-control-medium/',
+        '/form-control-wide/',
+        '/form-control-full/',
+        '/ui-inline-action/',
+        '/max-width:\s*min\(100%,\s*14rem\)/',
+        '/max-width:\s*min\(100%,\s*32rem\)/',
+        '/max-width:\s*min\(100%,\s*48rem\)/',
+        '/width:\s*min\(100%,\s*22rem\)/',
+        '/ui-inline-action-field-short/',
     ], 'Shared public page compositions in ' . $publicCommonStylesheetPath);
 }
 sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
@@ -1216,6 +1233,15 @@ sr_skin_theme_check_contains('modules/community/helpers/privacy-consents.php', [
 sr_skin_theme_check_not_contains('modules/member/skins/basic/skin.css', [
     '.member-skin-basic-form small',
 ], 'Member form CSS should not override UI kit hint typography');
+sr_skin_theme_check_not_contains('modules/member/views/account.php', [
+    'btn-solid-secondary',
+], 'Member account section secondary actions should use outline buttons');
+sr_skin_theme_check_contains('modules/member/views/account.php', [
+    'class="card-body member-skin-basic-form ui-inline-action"',
+    'class="member-skin-basic-form ui-inline-action"',
+    'class="form-input form-control-short"',
+    'class="form-input form-control-compact"',
+], 'Member account compact controls and inline section actions');
 sr_skin_theme_check_not_contains('modules/privacy/assets/cookie-consent.css', [
     '.sr-cookie-consent-item small',
 ], 'Privacy consent CSS should not override UI kit hint text');
@@ -1225,8 +1251,8 @@ sr_skin_theme_check_contains([
     'modules/message/views/message-view.php',
 ], [
     'class="ui-page message-screen"',
-    'class="form-input"',
-    'class="form-textarea"',
+    'class="form-input',
+    'class="form-textarea',
     'class="table table-list"',
 ], 'Public message screens should use UI kit components');
 sr_skin_theme_check_contains([
@@ -1246,15 +1272,32 @@ sr_skin_theme_check_contains([
 ], [
     'class="form-checkbox"',
     'class="form-radio"',
-    'class="form-input"',
+    'class="form-input',
 ], 'Quiz and survey controls should use UI kit form components');
+$publicShareViewPaths = [
+    'modules/quiz/theme/basic/view.php',
+    'modules/quiz/skins/basic/view.php',
+    'modules/survey/theme/basic/view.php',
+    'modules/survey/skins/basic/view.php',
+];
+foreach ($publicShareViewPaths as $publicShareViewPath) {
+    sr_skin_theme_check_contains($publicShareViewPath, [
+        'class="ui-inline-action"',
+        'class="form-input form-control-medium" readonly data-sr-share-url',
+    ], 'Quiz and survey share controls should keep the copy button beside the URL in ' . $publicShareViewPath);
+}
+sr_skin_theme_check_contains('modules/asset_exchange/views/account-asset-exchange.php', [
+    'class="ui-inline-action"',
+    'class="form-select form-control-medium"',
+    'class="form-input form-control-compact"',
+], 'Asset exchange quote controls should use compact inline actions');
 sr_skin_theme_check_contains([
     'modules/community/views/series.php',
     'modules/community/views/scraps.php',
     'modules/content/views/account-content.php',
 ], [
     'class="card',
-    'class="form-select"',
+    'class="form-select',
     'class="table',
 ], 'Public management screens should use UI kit cards, forms, and tables');
 sr_skin_theme_check_not_contains([

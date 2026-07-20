@@ -27,7 +27,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     <form class="content-search-page-form" method="get" action="<?php echo sr_e(sr_url('/content/search')); ?>">
         <label for="content_search_page_q">
             <span><?php echo sr_e('검색어'); ?></span>
-            <input id="content_search_page_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($searchKeyword); ?>" class="form-input" autocomplete="off">
+            <input id="content_search_page_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($searchKeyword); ?>" class="form-input form-control-medium" autocomplete="off">
         </label>
         <button type="submit" class="btn btn-solid-primary"><?php echo sr_e('검색'); ?></button>
     </form>

@@ -60,27 +60,27 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 <p>
                     <label for="modules_member_register_email">
                     <span><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                        <input class="form-input" id="modules_member_register_email" type="email" name="email" value="<?php echo sr_e($values['email']); ?>" required>
+                        <input class="form-input form-control-medium" id="modules_member_register_email" type="email" name="email" value="<?php echo sr_e($values['email']); ?>" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_register_login_id">
                     <span><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></span>
-                        <input class="form-input" id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-member-login-id-input>
+                        <input class="form-input form-control-short" id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-member-login-id-input>
                     </label>
                     <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
                 </p>
                 <p>
                     <label for="modules_member_register_display_name">
                     <span><?php echo sr_e(sr_t('member::ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                        <input class="form-input" id="modules_member_register_display_name" type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" maxlength="120" required<?php echo !empty($registrationIdentityFieldsLocked) ? ' readonly data-member-identity-locked-field="name"' : ''; ?>>
+                        <input class="form-input form-control-short" id="modules_member_register_display_name" type="text" name="display_name" value="<?php echo sr_e($values['display_name']); ?>" maxlength="120" required<?php echo !empty($registrationIdentityFieldsLocked) ? ' readonly data-member-identity-locked-field="name"' : ''; ?>>
                     </label>
                 </p>
                 <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
                     <p>
                         <label for="modules_member_register_nickname">
                         <span><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                            <input class="form-input" id="modules_member_register_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($values['nickname'] ?? '')); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
+                            <input class="form-input form-control-short" id="modules_member_register_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($values['nickname'] ?? '')); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
                         </label>
                         <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
                     </p>
@@ -113,7 +113,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <p>
                             <label for="modules_member_register_birth_date">
                         <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                <input class="form-input" id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?><?php echo !empty($memberRegisterIdentityBirthDateLocked) ? ' readonly data-member-identity-locked-field="birth_date"' : ''; ?>>
+                                <input class="form-input form-control-compact" id="modules_member_register_birth_date" type="date" name="birth_date" value="<?php echo sr_e((string) $profileValues['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?><?php echo !empty($memberRegisterIdentityBirthDateLocked) ? ' readonly data-member-identity-locked-field="birth_date"' : ''; ?>>
                             </label>
                         </p>
                     <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'fixed' && (string) ($memberRegisterProfileOrderItem['key'] ?? '') === 'is_adult' && !empty($profilePolicies['is_adult']['visible'])) { ?>
@@ -123,7 +123,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <?php if (!empty($memberRegisterIdentityBirthDateLocked)) { ?>
                                     <input type="hidden" name="is_adult" value="<?php echo sr_e((string) ($profileValues['is_adult'] ?? '')); ?>" data-member-identity-locked-hidden="is_adult">
                                 <?php } ?>
-                                <select class="form-select" id="modules_member_register_is_adult"<?php echo !empty($memberRegisterIdentityBirthDateLocked) ? '' : ' name="is_adult"'; ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?><?php echo !empty($memberRegisterIdentityBirthDateLocked) ? ' disabled data-member-identity-locked-field="is_adult"' : ''; ?>>
+                                <select class="form-select form-control-short" id="modules_member_register_is_adult"<?php echo !empty($memberRegisterIdentityBirthDateLocked) ? '' : ' name="is_adult"'; ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?><?php echo !empty($memberRegisterIdentityBirthDateLocked) ? ' disabled data-member-identity-locked-field="is_adult"' : ''; ?>>
                                     <option value=""><?php echo sr_e(sr_t('member::ui.select.default')); ?></option>
                                     <option value="1"<?php echo (string) ($profileValues['is_adult'] ?? '') === '1' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.yes')); ?></option>
                                     <option value="0"<?php echo (string) ($profileValues['is_adult'] ?? '') === '0' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.no')); ?></option>
@@ -134,7 +134,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <p>
                             <label for="modules_member_register_profile_image_file">
                         <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['profile_image_path']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                <input class="form-input" id="modules_member_register_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) ? ' required' : ''; ?>>
+                                <input class="form-input form-control-medium" id="modules_member_register_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) ? ' required' : ''; ?>>
                             </label>
                             <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
                         </p>
@@ -151,13 +151,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 <p>
                     <label for="modules_member_register_password">
                     <span><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                        <input class="form-input" id="modules_member_register_password" type="password" name="password" required>
+                        <input class="form-input form-control-short" id="modules_member_register_password" type="password" name="password" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_register_password_confirm">
                     <span><?php echo sr_e(sr_t('member::ui.password.61081c91')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                        <input class="form-input" id="modules_member_register_password_confirm" type="password" name="password_confirm" required>
+                        <input class="form-input form-control-short" id="modules_member_register_password_confirm" type="password" name="password_confirm" required>
                     </label>
                 </p>
                 <?php echo sr_member_registration_policy_consent_section_html($registrationPolicyDocuments, $registrationConsentValues ?? [], 'register'); ?>

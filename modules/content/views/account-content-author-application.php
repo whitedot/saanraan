@@ -49,7 +49,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <p>
                         <label class="ui-field" for="content_author_application_note">
                             <span>신청 사유</span>
-                            <textarea id="content_author_application_note" name="application_note" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) ($authorApplication['application_note'] ?? '')); ?></textarea>
+                            <textarea id="content_author_application_note" name="application_note" rows="8" maxlength="2000" class="form-textarea form-control-wide"><?php echo sr_e((string) ($authorApplication['application_note'] ?? '')); ?></textarea>
                         </label>
                     </p>
                     <p><button type="submit" class="btn btn-solid-primary">신청하기</button></p>

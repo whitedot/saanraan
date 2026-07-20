@@ -118,13 +118,13 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_guest_author_name">
                         <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                        <input id="modules_community_form_guest_author_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo sr_e((string) ($values['guest_author_name'] ?? '')); ?>" required class="form-input">
+                        <input id="modules_community_form_guest_author_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo sr_e((string) ($values['guest_author_name'] ?? '')); ?>" required class="form-input form-control-short">
                     </label>
                 </p>
                 <p>
                     <label for="modules_community_form_guest_password">
                         <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                        <input id="modules_community_form_guest_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input">
+                        <input id="modules_community_form_guest_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input form-control-short">
                     </label>
                     <small class="ui-kit-hint"><?php echo sr_e('비회원 글 수정과 삭제에 사용됩니다.'); ?></small>
                 </p>
@@ -133,7 +133,7 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_category_id">
                         <span><?php echo sr_e('카테고리'); ?><?php echo !empty($categoryRequired) ? ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                        <select id="modules_community_form_category_id" name="category_id" class="form-select"<?php echo !empty($categoryRequired) ? ' required' : ''; ?>>
+                        <select id="modules_community_form_category_id" name="category_id" class="form-select form-control-medium"<?php echo !empty($categoryRequired) ? ' required' : ''; ?>>
                             <option value=""><?php echo sr_e('선택 안 함'); ?></option>
                             <?php foreach ($categories as $category) { ?>
                                 <option value="<?php echo sr_e((string) $category['id']); ?>"<?php echo (int) ($values['category_id'] ?? 0) === (int) $category['id'] ? ' selected' : ''; ?>>
@@ -147,13 +147,13 @@ $communityFrameModifier = 'form';
             <p>
                 <label for="modules_community_form_title">
                     <span><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <input id="modules_community_form_title" type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required class="form-input">
+                    <input id="modules_community_form_title" type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required class="form-input form-control-medium">
                 </label>
             </p>
             <p>
                 <label for="modules_community_form_body_text">
                     <span><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80"<?php echo $ckeditorEnabled ? '' : ' required'; ?> class="form-textarea"<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80"<?php echo $ckeditorEnabled ? '' : ' required'; ?> class="form-textarea form-control-wide"<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php echo sr_community_extra_fields_form_html(is_array($extraFieldDefinitions ?? null) ? $extraFieldDefinitions : [], is_array($extraFieldValues ?? null) ? $extraFieldValues : []); ?>
@@ -192,7 +192,7 @@ $communityFrameModifier = 'form';
                     <p>
                         <label for="modules_community_form_series_id">
                             <span><?php echo sr_e('기존 시리즈'); ?></span>
-                            <select id="modules_community_form_series_id" name="series_id" class="form-select">
+                            <select id="modules_community_form_series_id" name="series_id" class="form-select form-control-medium">
                                 <option value="0"><?php echo sr_e('선택'); ?></option>
                                 <?php foreach ($seriesOptions as $seriesOption) { ?>
                                     <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) ($seriesValues['series_id'] ?? 0) === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
@@ -206,20 +206,20 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_new_series_title">
                         <span><?php echo sr_e('새 시리즈 제목'); ?></span>
-                        <input id="modules_community_form_new_series_title" type="text" name="new_series_title" maxlength="160" value="<?php echo sr_e((string) ($seriesValues['new_series_title'] ?? '')); ?>" class="form-input">
+                        <input id="modules_community_form_new_series_title" type="text" name="new_series_title" maxlength="160" value="<?php echo sr_e((string) ($seriesValues['new_series_title'] ?? '')); ?>" class="form-input form-control-medium">
                     </label>
                 </p>
                 <p>
                     <label for="modules_community_form_series_episode_label">
                         <span><?php echo sr_e('회차 표시'); ?></span>
-                        <input id="modules_community_form_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) ($seriesValues['episode_label'] ?? '')); ?>" class="form-input">
+                        <input id="modules_community_form_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) ($seriesValues['episode_label'] ?? '')); ?>" class="form-input form-control-short">
                     </label>
                     <small class="ui-kit-hint"><?php echo sr_e('예: 1화, 프롤로그, 후기'); ?></small>
                 </p>
                 <p>
                     <label for="modules_community_form_series_sort_order">
                         <span><?php echo sr_e('정렬 순서'); ?></span>
-                        <input id="modules_community_form_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($seriesValues['sort_order'] ?? 0)); ?>" class="form-input">
+                        <input id="modules_community_form_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($seriesValues['sort_order'] ?? 0)); ?>" class="form-input form-control-compact">
                     </label>
                 </p>
             </fieldset>
@@ -228,7 +228,7 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_image_attachment">
                     <span><?php echo sr_e(sr_t('community::ui.text.42bb44a5')); ?></span>
-                        <input id="modules_community_form_image_attachment" type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp" class="form-input">
+                        <input id="modules_community_form_image_attachment" type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp" class="form-input form-control-medium">
                     </label>
                     <small class="ui-kit-hint"><?php echo sr_e(sr_t('community::ui.jpeg.png.webp.eefc7fda')); ?> <?php echo sr_e(sr_community_format_bytes($attachmentMaxBytes)); ?></small>
                 </p>
@@ -237,7 +237,7 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_file_attachments">
                     <span><?php echo sr_e(sr_t('community::ui.text.1fe3755c')); ?></span>
-                        <input id="modules_community_form_file_attachments" type="file" name="file_attachments[]" multiple class="form-input">
+                        <input id="modules_community_form_file_attachments" type="file" name="file_attachments[]" multiple class="form-input form-control-medium">
                     </label>
                     <small class="ui-kit-hint">
                         <?php echo sr_e(sr_t('community::ui.text.ee3b70e7')); ?> <?php echo sr_e((string) $fileAttachmentMaxCount); ?><?php echo sr_e(sr_t('community::ui.text.2254e4c9')); ?> <?php echo sr_e(sr_community_format_bytes($fileAttachmentMaxBytes)); ?> <?php echo sr_e(sr_t('community::ui.text.3cf0ac82')); ?> <?php echo sr_e(implode(', ', $fileAllowedExtensions)); ?>

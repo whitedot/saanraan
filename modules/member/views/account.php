@@ -53,7 +53,7 @@ if ($memberAccountPage === 'verify') {
                             <p>
                                 <label for="modules_member_account_access_password">
                                     <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_access_password" type="password" name="current_password" autocomplete="current-password" required>
+                                    <input class="form-input form-control-short" id="modules_member_account_access_password" type="password" name="current_password" autocomplete="current-password" required>
                                 </label>
                                 <small class="ui-kit-hint">현재 로그인한 계정의 비밀번호를 입력하세요.</small>
                             </p>
@@ -61,7 +61,7 @@ if ($memberAccountPage === 'verify') {
                             <p>
                                 <label for="modules_member_account_access_mfa_code">
                                     <span>인증 앱 또는 복구 코드 <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_access_mfa_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
+                                    <input class="form-input form-control-compact" id="modules_member_account_access_mfa_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
                                 </label>
                                 <small class="ui-kit-hint">비밀번호가 없는 계정은 현재 인증 앱 코드나 사용하지 않은 복구 코드로 확인합니다.</small>
                             </p>
@@ -278,7 +278,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <p>
                                 <label for="modules_member_account_email">
                                     <span><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_email" type="email" name="email" value="<?php echo sr_e((string) $memberAccountBasicValues['email']); ?>" maxlength="255" autocomplete="email" required<?php echo $emailVerificationEnabled && !$emailDeliveryAvailable ? ' readonly' : ''; ?>>
+                                    <input class="form-input form-control-medium" id="modules_member_account_email" type="email" name="email" value="<?php echo sr_e((string) $memberAccountBasicValues['email']); ?>" maxlength="255" autocomplete="email" required<?php echo $emailVerificationEnabled && !$emailDeliveryAvailable ? ' readonly' : ''; ?>>
                                 </label>
                                 <?php if ($emailVerificationEnabled && !$emailDeliveryAvailable) { ?>
                                     <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::action.email_delivery.email_change_unavailable')); ?></small>
@@ -289,21 +289,21 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <p>
                                 <label for="modules_member_account_login_id">
                                     <span>새 로그인 아이디</span>
-                                    <input class="form-input" id="modules_member_account_login_id" type="text" name="login_id" value="<?php echo sr_e((string) $memberAccountBasicValues['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="off" data-member-login-id-input>
+                                    <input class="form-input form-control-short" id="modules_member_account_login_id" type="text" name="login_id" value="<?php echo sr_e((string) $memberAccountBasicValues['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="off" data-member-login-id-input>
                                 </label>
                                 <small class="ui-kit-hint"><?php echo sr_e($memberAccountHasStoredLoginId ? '현재 로그인 아이디는 설정되어 있습니다. 원문은 저장하지 않아 표시할 수 없으며, 변경할 때만 새 값을 입력하세요. 게시물과 권한의 계정 연결은 그대로 유지됩니다.' : '현재 로그인 아이디가 없습니다. 새 값을 입력하면 이메일과 로그인 아이디를 모두 사용할 수 있습니다.'); ?></small>
                             </p>
                             <p>
                                 <label for="modules_member_account_display_name">
                                 <span><?php echo sr_e(sr_t('member::ui.name.be0cd9bd')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_display_name" type="text" name="display_name" value="<?php echo sr_e((string) $memberAccountBasicValues['display_name']); ?>" maxlength="120" required>
+                                    <input class="form-input form-control-short" id="modules_member_account_display_name" type="text" name="display_name" value="<?php echo sr_e((string) $memberAccountBasicValues['display_name']); ?>" maxlength="120" required>
                                 </label>
                             </p>
                             <?php if (!empty($memberSettings['nickname_enabled'])) { ?>
                                 <p>
                                     <label for="modules_member_account_nickname">
                                     <span><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                        <input class="form-input" id="modules_member_account_nickname" type="text" name="nickname" value="<?php echo sr_e((string) $memberAccountBasicValues['nickname']); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
+                                        <input class="form-input form-control-short" id="modules_member_account_nickname" type="text" name="nickname" value="<?php echo sr_e((string) $memberAccountBasicValues['nickname']); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
                                     </label>
                                     <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
                                 </p>
@@ -334,7 +334,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <p>
                                 <label for="modules_member_account_locale">
                                 <span><?php echo sr_e(sr_t('member::ui.locale.2deb1d6f')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <select class="form-select" id="modules_member_account_locale" name="locale" required>
+                                    <select class="form-select form-control-short" id="modules_member_account_locale" name="locale" required>
                                         <?php foreach ($memberLocaleOptions as $localeOption) { ?>
                                             <option value="<?php echo sr_e($localeOption); ?>"<?php echo (string) $memberAccountBasicValues['locale'] === $localeOption ? ' selected' : ''; ?>>
                                                 <?php echo sr_e($localeOption); ?>
@@ -359,7 +359,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                             <p>
                                                 <label for="modules_member_account_birth_date">
                                                     <span><?php echo sr_e(sr_t('member::ui.text.f7ea9e33')); ?><?php echo !empty($profilePolicies['birth_date']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                                    <input class="form-input" id="modules_member_account_birth_date" type="date" name="birth_date" value="<?php echo sr_e($profile['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
+                                                    <input class="form-input form-control-compact" id="modules_member_account_birth_date" type="date" name="birth_date" value="<?php echo sr_e($profile['birth_date']); ?>"<?php echo !empty($profilePolicies['birth_date']['required']) ? ' required' : ''; ?>>
                                                 </label>
                                             </p>
                                         <?php } ?>
@@ -368,7 +368,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                             <p>
                                                 <label for="modules_member_account_is_adult">
                                                     <span><?php echo sr_e(sr_t('member::ui.is_adult')); ?><?php echo !empty($profilePolicies['is_adult']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                                    <select class="form-select" id="modules_member_account_is_adult" name="is_adult"<?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?>>
+                                                    <select class="form-select form-control-short" id="modules_member_account_is_adult" name="is_adult"<?php echo !empty($profilePolicies['is_adult']['required']) ? ' required' : ''; ?>>
                                                         <option value=""><?php echo sr_e(sr_t('member::ui.select.default')); ?></option>
                                                         <option value="1"<?php echo (string) ($profile['is_adult'] ?? '') === '1' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.yes')); ?></option>
                                                         <option value="0"<?php echo (string) ($profile['is_adult'] ?? '') === '0' ? ' selected' : ''; ?>><?php echo sr_e(sr_t('member::ui.no')); ?></option>
@@ -382,7 +382,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                             <p>
                                                 <label for="modules_member_account_profile_image_file">
                                                     <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['profile_image_path']['required']) && $avatarSrc === '' ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                                                    <input class="form-input" id="modules_member_account_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
+                                                    <input class="form-input form-control-medium" id="modules_member_account_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
                                                 </label>
                                                 <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
                                             </p>
@@ -427,7 +427,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <?php } ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/account/email-verification')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                                         <?php echo sr_csrf_field(); ?>
-                                        <button class="btn btn-solid-secondary" type="submit"<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.9938eea0')); ?></button>
+                                        <button class="btn btn-outline-secondary" type="submit"<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.9938eea0')); ?></button>
                                     </form>
                                     <?php if ($emailVerificationUrl !== '') { ?>
                                         <p><a href="<?php echo sr_e($emailVerificationUrl); ?>"><?php echo sr_e(sr_t('member::ui.email.849a4197')); ?></a></p>
@@ -498,7 +498,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <p>
                                     <label for="modules_member_account_current_password">
                                     <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                        <input class="form-input" id="modules_member_account_current_password" type="password" name="current_password" autocomplete="current-password" required>
+                                        <input class="form-input form-control-short" id="modules_member_account_current_password" type="password" name="current_password" autocomplete="current-password" required>
                                     </label>
                                 </p>
                             <?php } else { ?>
@@ -507,13 +507,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <p>
                                 <label for="modules_member_account_new_password">
                                 <span><?php echo sr_e(sr_t('member::ui.password.04ea6283')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_new_password" type="password" name="new_password" autocomplete="new-password" required>
+                                    <input class="form-input form-control-short" id="modules_member_account_new_password" type="password" name="new_password" autocomplete="new-password" required>
                                 </label>
                             </p>
                             <p>
                                 <label for="modules_member_account_new_password_confirm">
                                 <span><?php echo sr_e(sr_t('member::ui.password.b1d91625')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                    <input class="form-input" id="modules_member_account_new_password_confirm" type="password" name="new_password_confirm" autocomplete="new-password" required>
+                                    <input class="form-input form-control-short" id="modules_member_account_new_password_confirm" type="password" name="new_password_confirm" autocomplete="new-password" required>
                                 </label>
                             </p>
                             <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberAccountHasPassword ? sr_t('member::ui.password.bf1d4719') : '비밀번호 설정'); ?></button>
@@ -550,42 +550,42 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     </ol>
                                 </div>
                             <?php } ?>
-                            <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                            <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form ui-inline-action" data-sr-validate-form>
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="intent" value="mfa_recovery_rotate">
                                 <?php if ($memberAccountHasPassword) { ?>
-                                    <p>
+                                    <p class="ui-inline-action-field ui-inline-action-field-short">
                                         <label for="modules_member_account_mfa_rotate_current_password">
                                             <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                            <input class="form-input" id="modules_member_account_mfa_rotate_current_password" type="password" name="current_password" autocomplete="current-password" required>
+                                            <input class="form-input form-control-short" id="modules_member_account_mfa_rotate_current_password" type="password" name="current_password" autocomplete="current-password" required>
                                         </label>
                                     </p>
                                 <?php } else { ?>
-                                    <p>
+                                    <p class="ui-inline-action-field ui-inline-action-field-compact">
                                         <label for="modules_member_account_mfa_rotate_code">
                                             <span><?php echo sr_e(sr_t('member::ui.mfa_totp.reauth_code')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                            <input class="form-input" id="modules_member_account_mfa_rotate_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
+                                            <input class="form-input form-control-compact" id="modules_member_account_mfa_rotate_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
                                         </label>
                                     </p>
                                 <?php } ?>
                                 <button class="btn btn-outline-secondary" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_recovery.rotate')); ?></button>
                             </form>
                             <?php if ($memberMfaDisableAllowed) { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form ui-inline-action" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="mfa_disable">
                                     <?php if ($memberAccountHasPassword) { ?>
-                                        <p>
+                                        <p class="ui-inline-action-field ui-inline-action-field-short">
                                             <label for="modules_member_account_mfa_disable_current_password">
                                                 <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                                <input class="form-input" id="modules_member_account_mfa_disable_current_password" type="password" name="current_password" autocomplete="current-password" required>
+                                                <input class="form-input form-control-short" id="modules_member_account_mfa_disable_current_password" type="password" name="current_password" autocomplete="current-password" required>
                                             </label>
                                         </p>
                                     <?php } else { ?>
-                                        <p>
+                                        <p class="ui-inline-action-field ui-inline-action-field-compact">
                                             <label for="modules_member_account_mfa_disable_code">
                                                 <span><?php echo sr_e(sr_t('member::ui.mfa_totp.reauth_code')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                                <input class="form-input" id="modules_member_account_mfa_disable_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
+                                                <input class="form-input form-control-compact" id="modules_member_account_mfa_disable_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
                                             </label>
                                         </p>
                                     <?php } ?>
@@ -600,18 +600,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <?php if (!$memberMfaTotpSetupAllowed) { ?>
                                 <p class="member-skin-basic-muted type-small">운영자 설정에서 인증 앱 OTP 로그인이 비활성화되어 있어 새 2차 인증 등록을 시작할 수 없습니다.</p>
                             <?php } else { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form ui-inline-action" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="mfa_totp_prepare">
                                     <?php if ($memberAccountHasPassword) { ?>
-                                        <p>
+                                        <p class="ui-inline-action-field ui-inline-action-field-short">
                                             <label for="modules_member_account_mfa_current_password">
                                                 <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                                <input class="form-input" id="modules_member_account_mfa_current_password" type="password" name="current_password" autocomplete="current-password" required>
+                                                <input class="form-input form-control-short" id="modules_member_account_mfa_current_password" type="password" name="current_password" autocomplete="current-password" required>
                                             </label>
                                         </p>
                                     <?php } ?>
-                                    <button class="btn btn-solid-secondary" type="submit"><?php echo sr_e($memberMfaPendingFactor === null ? sr_t('member::ui.mfa_totp.prepare') : sr_t('member::ui.mfa_totp.prepare_again')); ?></button>
+                                    <button class="btn btn-outline-secondary" type="submit"><?php echo sr_e($memberMfaPendingFactor === null ? sr_t('member::ui.mfa_totp.prepare') : sr_t('member::ui.mfa_totp.prepare_again')); ?></button>
                                 </form>
                             <?php } ?>
 
@@ -626,13 +626,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <p>
                                         <label for="modules_member_account_mfa_secret">
                                             <span><?php echo sr_e(sr_t('member::ui.mfa_totp.secret')); ?></span>
-                                            <input class="form-input" id="modules_member_account_mfa_secret" type="text" value="<?php echo sr_e((string) $memberMfaSetup['secret_base32']); ?>" readonly>
+                                            <input class="form-input form-control-medium" id="modules_member_account_mfa_secret" type="text" value="<?php echo sr_e((string) $memberMfaSetup['secret_base32']); ?>" readonly>
                                         </label>
                                     </p>
                                     <p>
                                         <label for="modules_member_account_mfa_otpauth_uri">
                                             <span><?php echo sr_e(sr_t('member::ui.mfa_totp.otpauth_uri')); ?></span>
-                                            <textarea class="form-textarea" id="modules_member_account_mfa_otpauth_uri" rows="3" readonly><?php echo sr_e((string) ($memberMfaSetup['otpauth_uri'] ?? '')); ?></textarea>
+                                            <textarea class="form-textarea form-control-wide" id="modules_member_account_mfa_otpauth_uri" rows="3" readonly><?php echo sr_e((string) ($memberMfaSetup['otpauth_uri'] ?? '')); ?></textarea>
                                         </label>
                                     </p>
                                 </div>
@@ -641,14 +641,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <?php } ?>
 
                             <?php if ($memberMfaPendingFactor !== null && $memberMfaTotpSetupAllowed) { ?>
-                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
+                                <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form ui-inline-action" data-sr-validate-form>
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="mfa_totp_activate">
                                     <input type="hidden" name="factor_id" value="<?php echo sr_e((string) ($memberMfaPendingFactor['id'] ?? '0')); ?>">
-                                    <p>
+                                    <p class="ui-inline-action-field ui-inline-action-field-compact">
                                         <label for="modules_member_account_mfa_code">
                                             <span><?php echo sr_e(sr_t('member::ui.login_mfa.code')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                            <input class="form-input" id="modules_member_account_mfa_code" type="text" name="mfa_code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9\\s-]{6,20}" required>
+                                            <input class="form-input form-control-compact" id="modules_member_account_mfa_code" type="text" name="mfa_code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9\\s-]{6,20}" required>
                                         </label>
                                     </p>
                                     <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_totp.activate')); ?></button>
@@ -685,13 +685,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             <h2 class="card-title">개인정보 사본</h2>
                             <p class="type-small member-skin-basic-muted">계정과 설치된 모듈에 저장된 내 개인정보를 내려받습니다.</p>
                         </div>
-                        <form method="post" action="<?php echo sr_e(sr_url('/account/privacy-export')); ?>" class="card-body member-skin-basic-form" data-sr-validate-form>
+                        <form method="post" action="<?php echo sr_e(sr_url('/account/privacy-export')); ?>" class="card-body member-skin-basic-form ui-inline-action" data-sr-validate-form>
                             <?php echo sr_csrf_field(); ?>
-                            <label for="modules_member_account_current_password_2">
+                            <label class="ui-inline-action-field-short" for="modules_member_account_current_password_2">
                                     <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                <input class="form-input" id="modules_member_account_current_password_2" type="password" name="current_password" autocomplete="current-password" required>
+                                <input class="form-input form-control-short" id="modules_member_account_current_password_2" type="password" name="current_password" autocomplete="current-password" required>
                             </label>
-                            <button class="btn btn-solid-secondary" type="submit"><?php echo sr_e(sr_t('member::ui.privacy.2df1446d')); ?></button>
+                            <button class="btn btn-outline-secondary" type="submit"><?php echo sr_e(sr_t('member::ui.privacy.2df1446d')); ?></button>
                         </form>
                     </section>
                 <?php } ?>

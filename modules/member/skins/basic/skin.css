@@ -13,6 +13,11 @@
     width: min(100%, 480px);
 }
 
+.member-skin-basic-page-narrow .member-skin-basic-form :is(.form-input, .form-select, .form-textarea) {
+    max-width: 100%;
+    width: 100%;
+}
+
 .member-skin-basic-page-wide {
     width: min(100%, 1360px);
 }

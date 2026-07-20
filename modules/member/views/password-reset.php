@@ -24,13 +24,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 <p>
                     <label for="modules_member_password_reset_password">
                     <span><?php echo sr_e(sr_t('member::ui.password.04ea6283')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                        <input class="form-input" id="modules_member_password_reset_password" type="password" name="password" required>
+                        <input class="form-input form-control-short" id="modules_member_password_reset_password" type="password" name="password" required>
                     </label>
                 </p>
                 <p>
                     <label for="modules_member_password_reset_password_confirm">
                     <span><?php echo sr_e(sr_t('member::ui.password.b1d91625')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                        <input class="form-input" id="modules_member_password_reset_password_confirm" type="password" name="password_confirm" required>
+                        <input class="form-input form-control-short" id="modules_member_password_reset_password_confirm" type="password" name="password_confirm" required>
                     </label>
                 </p>
                 <button class="btn btn-solid-primary btn-block" type="submit"><?php echo sr_e(sr_t('member::ui.password.settings.2e9da95f')); ?></button>

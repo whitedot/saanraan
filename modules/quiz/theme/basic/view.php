@@ -340,12 +340,14 @@ if ($quizEmbedded) {
                 <?php endif; ?>
             <?php endif; ?>
             <?php if ($submitResult !== null): ?>
-                <p>
+                <div class="ui-actions">
                     <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/quiz')); ?>" target="_top">메인으로</a>
+                </div>
+                <div class="ui-inline-action">
                     <label class="sr-only" for="quiz_share_url">공유 주소</label>
-                    <input id="quiz_share_url" type="url" value="<?php echo sr_e($quizShareUrl); ?>" class="form-input" readonly data-sr-share-url>
+                    <input id="quiz_share_url" type="url" value="<?php echo sr_e($quizShareUrl); ?>" class="form-input form-control-medium" readonly data-sr-share-url>
                     <button type="button" class="btn btn-solid-light" data-sr-share-copy="<?php echo sr_e($quizShareUrl); ?>">공유 주소 복사</button>
-                </p>
+                </div>
                 <script>
                 (function () {
                     var buttons = document.querySelectorAll('[data-sr-share-copy]');

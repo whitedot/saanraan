@@ -31,7 +31,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             <p>
                 <label for="modules_member_password_reset_request_email">
                     <span><?php echo sr_e(sr_t('member::ui.email.3b7dbc4c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                    <input class="form-input" id="modules_member_password_reset_request_email" type="email" name="email" value="<?php echo sr_e($email); ?>" required<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>>
+                    <input class="form-input form-control-medium" id="modules_member_password_reset_request_email" type="email" name="email" value="<?php echo sr_e($email); ?>" required<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>>
                 </label>
             </p>
             <button class="btn btn-solid-primary btn-block" type="submit"<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('member::ui.settings.845064c7')); ?></button>

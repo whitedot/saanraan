@@ -47,19 +47,19 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <p>
                             <label for="modules_member_withdraw_refund_bank">
                                 <span><?php echo sr_e(sr_t('member::ui.text.9630c622')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                <input class="form-input" id="modules_member_withdraw_refund_bank" type="text" name="refund_bank" value="<?php echo sr_e((string) ($refundAccount['bank'] ?? '')); ?>" maxlength="80" required>
+                                <input class="form-input form-control-short" id="modules_member_withdraw_refund_bank" type="text" name="refund_bank" value="<?php echo sr_e((string) ($refundAccount['bank'] ?? '')); ?>" maxlength="80" required>
                             </label>
                         </p>
                         <p>
                             <label for="modules_member_withdraw_refund_account_holder">
                                 <span><?php echo sr_e(sr_t('member::ui.text.71b9138c')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                <input class="form-input" id="modules_member_withdraw_refund_account_holder" type="text" name="refund_account_holder" value="<?php echo sr_e((string) ($refundAccount['holder'] ?? '')); ?>" maxlength="80" required>
+                                <input class="form-input form-control-short" id="modules_member_withdraw_refund_account_holder" type="text" name="refund_account_holder" value="<?php echo sr_e((string) ($refundAccount['holder'] ?? '')); ?>" maxlength="80" required>
                             </label>
                         </p>
                         <p>
                             <label for="modules_member_withdraw_refund_account_number">
                                 <span><?php echo sr_e(sr_t('member::ui.text.e93f44ec')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                                <input class="form-input" id="modules_member_withdraw_refund_account_number" type="text" name="refund_account_number" value="<?php echo sr_e((string) ($refundAccount['number'] ?? '')); ?>" maxlength="80" required>
+                                <input class="form-input form-control-short" id="modules_member_withdraw_refund_account_number" type="text" name="refund_account_number" value="<?php echo sr_e((string) ($refundAccount['number'] ?? '')); ?>" maxlength="80" required>
                             </label>
                         </p>
                     <?php } ?>
@@ -68,13 +68,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             <p>
                 <label for="modules_member_withdraw_password">
                     <span><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                    <input class="form-input" id="modules_member_withdraw_password" type="password" name="password" required>
+                    <input class="form-input form-control-short" id="modules_member_withdraw_password" type="password" name="password" required>
                 </label>
             </p>
             <p>
                 <label for="modules_member_withdraw_confirm_text">
                     <span><?php echo sr_e(sr_t('member::ui.text.82e63a67')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
-                    <input class="form-input" id="modules_member_withdraw_confirm_text" type="text" name="confirm_text" required>
+                    <input class="form-input form-control-short" id="modules_member_withdraw_confirm_text" type="text" name="confirm_text" required>
                 </label>
                 <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::action.withdraw.confirm_help', ['phrase' => sr_t('member::action.withdraw.confirm_text')])); ?></small>
             </p>

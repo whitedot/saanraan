@@ -68,7 +68,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <p>
                 <label class="ui-field" for="modules_message_view_reason_key">
                     <span>신고 사유 <span class="sr-required-label">(필수)</span></span>
-                    <select id="modules_message_view_reason_key" name="reason_key" required class="form-select">
+                    <select id="modules_message_view_reason_key" name="reason_key" required class="form-select form-control-medium">
                         <?php foreach ($reportReasonKeys as $reasonKey) { ?>
                             <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
                         <?php } ?>
@@ -78,7 +78,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
             <p>
                 <label class="ui-field" for="modules_message_view_memo_text">
                     <span>메모</span>
-                    <textarea id="modules_message_view_memo_text" name="memo_text" rows="3" cols="60" class="form-textarea"></textarea>
+                    <textarea id="modules_message_view_memo_text" name="memo_text" rows="3" cols="60" class="form-textarea form-control-wide"></textarea>
                 </label>
             </p>
             <button type="submit" class="btn btn-solid-primary">신고</button>
