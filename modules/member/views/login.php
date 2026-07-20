@@ -36,11 +36,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="next" value="<?php echo sr_e($next); ?>">
                     <div class="member-skin-basic-field">
-                        <label class="form-label" for="modules_member_login_identifier"><?php echo sr_e($identifierLabel); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                        <label class="form-label" for="modules_member_login_identifier"><span><?php echo sr_e($identifierLabel); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span></label>
                         <input id="modules_member_login_identifier" type="text" name="identifier" value="<?php echo sr_e($identifier); ?>" autocomplete="username" required class="form-input">
                     </div>
                     <div class="member-skin-basic-field">
-                        <label class="form-label" for="modules_member_login_password"><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                        <label class="form-label" for="modules_member_login_password"><span><?php echo sr_e(sr_t('member::ui.password.4fa210a0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span></label>
                         <input id="modules_member_login_password" type="password" name="password" required class="form-input">
                     </div>
                     <button type="submit" class="btn btn-solid-primary btn-block"><?php echo sr_e(sr_t('member::ui.login.6d253673')); ?></button>

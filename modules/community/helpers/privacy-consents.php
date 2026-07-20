@@ -365,7 +365,7 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
     $suffix = preg_replace('/[^a-zA-Z0-9_]+/', '_', $idSuffix) ?? '';
     $id = 'modules_community_privacy_consent_' . substr(hash('sha256', implode('|', $actions)), 0, 12) . ($suffix !== '' ? '_' . $suffix : '');
     $html = '<fieldset class="community-privacy-consent">';
-    $html .= '<legend>' . sr_e('개인정보 수집 및 이용동의') . ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span></legend>';
+    $html .= '<legend><span>' . sr_e('개인정보 수집 및 이용동의') . ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span></span></legend>';
     $renderedDocuments = [];
     if (sr_module_enabled($pdo, 'policy_documents') && is_file(SR_ROOT . '/modules/policy_documents/helpers.php')) {
         require_once SR_ROOT . '/modules/policy_documents/helpers.php';

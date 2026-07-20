@@ -211,10 +211,11 @@ function sr_member_registration_policy_consent_section_html(array $documents, ar
         $html .= '<div class="member-skin-basic-policy-consent-item">';
         $html .= '<label class="member-skin-basic-choice-label" for="' . sr_e($inputId) . '">';
         $html .= '<input id="' . sr_e($inputId) . '" type="checkbox" name="' . sr_e($postKey) . '" value="1" class="form-checkbox member-skin-basic-choice-input"' . ($required ? ' required' : '') . ($checked ? ' checked' : '') . '>';
-        $html .= ' ' . sr_e((string) ($document['title'] ?? ''));
+        $html .= '<span>' . sr_e((string) ($document['title'] ?? ''));
         if ($required) {
             $html .= ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>';
         }
+        $html .= '</span>';
         $html .= '</label>';
 
         if ((string) ($document['body_html'] ?? '') !== '') {

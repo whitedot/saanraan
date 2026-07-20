@@ -125,6 +125,59 @@ function sr_skin_theme_check_path_missing(string $path, string $label): void
     }
 }
 
+function sr_skin_theme_check_public_required_label_groups(): void
+{
+    global $root, $errors;
+
+    foreach (['modules', 'layouts'] as $directory) {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($root . '/' . $directory, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $entry) {
+            if (!$entry->isFile() || strtolower($entry->getExtension()) !== 'php') {
+                continue;
+            }
+
+            $relativePath = ltrim(str_replace($root, '', $entry->getPathname()), '/');
+            if (preg_match('~/(?:admin(?:/|-)|lang/|ui-kit-samples/)~', '/' . $relativePath) === 1) {
+                continue;
+            }
+
+            $content = sr_skin_theme_check_read($relativePath);
+            $matchCount = preg_match_all('/<span class="sr-required-label"/', $content, $matches, PREG_OFFSET_CAPTURE);
+            if ($content === '' || $matchCount === false || $matchCount < 1) {
+                continue;
+            }
+
+            foreach ($matches[0] as $match) {
+                $markerPosition = (int) $match[1];
+                $beforeMarker = substr($content, 0, $markerPosition);
+                $labelPosition = strrpos($beforeMarker, '<label');
+                $legendPosition = strrpos($beforeMarker, '<legend');
+                $outerPosition = max($labelPosition === false ? -1 : $labelPosition, $legendPosition === false ? -1 : $legendPosition);
+                $line = substr_count($beforeMarker, "\n") + 1;
+                if ($outerPosition < 0) {
+                    $errors[] = 'Public required label must be grouped with its field label: ' . $relativePath . ':' . (string) $line;
+                    continue;
+                }
+
+                $outerTag = $legendPosition !== false && $outerPosition === $legendPosition ? 'legend' : 'label';
+                $segment = substr($content, $outerPosition, $markerPosition - $outerPosition);
+                if (strrpos($segment, '</' . $outerTag . '>') !== false) {
+                    $errors[] = 'Public required label must stay inside its field label: ' . $relativePath . ':' . (string) $line;
+                    continue;
+                }
+
+                preg_match_all('/<span\b/', $segment, $spanOpenMatches);
+                preg_match_all('/<\/span>/', $segment, $spanCloseMatches);
+                if (count($spanOpenMatches[0]) <= count($spanCloseMatches[0])) {
+                    $errors[] = 'Public required label must share an inline wrapper with the field name: ' . $relativePath . ':' . (string) $line;
+                }
+            }
+        }
+    }
+}
+
 function sr_skin_theme_check_admin_theme_material_icons(): void
 {
     global $errors;
@@ -1075,6 +1128,17 @@ sr_skin_theme_check_not_contains($publicCommonStylesheetPaths, [
 sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
     'font-size:inherit;font-weight:var(--font-weight-normal);line-height:inherit',
 ], 'Public form controls should not inherit bold label text');
+sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
+    ':is(label,legend,.form-label):has(>.sr-required-label),:is(label,legend,.form-label)>span:has(>.sr-required-label){white-space:nowrap}',
+], 'Public required field labels should not wrap before the required marker');
+sr_skin_theme_check_public_required_label_groups();
+sr_skin_theme_check_contains('modules/member/views/login.php', [
+    '<label class="form-label" for="modules_member_login_identifier"><span>',
+    '<label class="form-label" for="modules_member_login_password"><span>',
+], 'Member login required labels should stay in one grid item');
+sr_skin_theme_check_contains('modules/member/views/login-mfa.php', [
+    '<label class="form-label" for="modules_member_login_mfa_code"><span>',
+], 'Member MFA login required label should stay in one grid item');
 sr_skin_theme_check_contains('modules/ckeditor/assets/saanraan-ckeditor.css', [
     '.sr-ckeditor:not([data-sr-editor-output]) .ck-content',
     'font-weight: var(--font-weight-normal, 400);',

@@ -325,7 +325,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <?php if ($registrationAccountExtensionType === 'checkbox') { ?>
                                         <label class="member-skin-basic-choice-label" for="<?php echo sr_e($registrationAccountExtensionInputId); ?>">
                                             <input id="<?php echo sr_e($registrationAccountExtensionInputId); ?>" type="checkbox" name="registration_extensions[<?php echo sr_e($registrationAccountExtensionKey); ?>]" value="1" class="form-checkbox member-skin-basic-choice-input"<?php echo (string) (($registrationAccountExtensionValues ?? [])[$registrationAccountExtensionKey] ?? '') === '1' ? ' checked' : ''; ?><?php echo !empty($registrationAccountExtensionField['required']) ? ' required' : ''; ?>>
-                                            <?php echo sr_e((string) ($registrationAccountExtensionField['label'] ?? '')); ?><?php echo !empty($registrationAccountExtensionField['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?>
+                                            <span><?php echo sr_e((string) ($registrationAccountExtensionField['label'] ?? '')); ?><?php echo !empty($registrationAccountExtensionField['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                         </label>
                                     <?php } else { ?>
                                         <label for="<?php echo sr_e($registrationAccountExtensionInputId); ?>">

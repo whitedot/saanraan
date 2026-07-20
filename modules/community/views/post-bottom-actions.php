@@ -45,7 +45,7 @@ $communityBottomGuestDeletePasswordId = 'modules_community_view_bottom_guest_pos
                             </div>
                             <div class="modal-body">
                                 <div class="form-row">
-                                    <label for="<?php echo sr_e($communityBottomReportModalId . '_reason_key'); ?>" class="form-label"><?php echo sr_e(sr_t('community::ui.text.162e66be')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
+                                    <label for="<?php echo sr_e($communityBottomReportModalId . '_reason_key'); ?>" class="form-label"><span><?php echo sr_e(sr_t('community::ui.text.162e66be')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span></label>
                                     <div class="form-field">
                                         <select id="<?php echo sr_e($communityBottomReportModalId . '_reason_key'); ?>" name="reason_key" class="form-select" required data-overlay-focus>
                                             <?php foreach ($reportReasonKeys as $reasonKey) { ?>
