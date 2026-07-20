@@ -454,7 +454,7 @@ body.admin-sidebar-restoring #gnb,body.admin-sidebar-restoring #wrapper{transiti
 .admin-form .form-row>.form-field:has(>p:not(.form-help):only-child){align-items:center;display:flex;min-height:calc(var(--spacing) * 9.25)}
 .admin-form .form-row>.form-field>.admin-form-static:only-child,
 .admin-form .form-row>.form-field>p:not(.form-help):only-child{margin:0;min-width:0}
-.admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2);display:block;color:var(--text-muted);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
+.admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2);color:var(--text-muted);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}
 .admin-form .form-field .form-help.form-help-info{color:var(--color-info)!important}
 .admin-form .form-field .form-help.form-help-warning{color:var(--color-warning)!important}
 .admin-form .form-field .form-help.form-help-info a,

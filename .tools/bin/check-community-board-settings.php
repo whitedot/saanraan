@@ -818,7 +818,7 @@ sr_check_community_board_settings_contains('modules/admin/assets/common.css', [
     '.form-help-reference-list>li{flex:0 0 100%;width:100%}',
 ], 'admin responsive module reference help');
 sr_check_community_board_settings_contains('modules/admin/assets/admin.css', [
-    '.admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2)',
+    '.admin-form .form-field .form-help{margin-top:calc(var(--spacing) * 2);color:var(--text-muted);font-size:var(--text-xs);line-height:var(--text-xs--line-height)}',
 ], 'admin module reference help spacing');
 sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
     'name="board_sidebar_menu_type"',
