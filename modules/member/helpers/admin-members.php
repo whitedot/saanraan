@@ -878,6 +878,24 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         $nickname = sr_member_normalize_nickname(sr_post_string('nickname', 80));
         $locale = sr_post_string('locale', 20);
         $emailVerified = ($_POST['email_verified'] ?? '') === '1';
+        $editingCurrentAccount = $targetAccountId === (int) ($account['id'] ?? 0);
+        $currentAccountHasPassword = $editingCurrentAccount && trim((string) ($account['password_hash'] ?? '')) !== '';
+        $currentPasswordInput = sr_post_string_without_truncation('current_password', 255);
+        $newPasswordInput = sr_post_string_without_truncation('new_password', 255);
+        $newPasswordConfirmInput = sr_post_string_without_truncation('new_password_confirm', 255);
+        $passwordChangeRequested = $newPasswordInput === null
+            || $newPasswordConfirmInput === null
+            || (string) $newPasswordInput !== ''
+            || (string) $newPasswordConfirmInput !== '';
+        $newPassword = is_string($newPasswordInput) ? $newPasswordInput : '';
+        $newPasswordConfirm = is_string($newPasswordConfirmInput) ? $newPasswordConfirmInput : '';
+        $passwordReauthFailureLogged = false;
+        $passwordChanged = false;
+        $passwordRevokedSessions = 0;
+        $passwordRotatedSession = false;
+        $passwordAuthEvent = $currentAccountHasPassword ? 'password_change' : 'password_set';
+        $passwordAuditEvent = $currentAccountHasPassword ? 'member.password.changed' : 'member.password.set';
+        $passwordAuditMessage = $currentAccountHasPassword ? 'Member password changed from own admin profile.' : 'Member password set from own admin profile.';
         $nextEmailVerifiedAt = $emailVerified
             ? ((string) ($targetAccount['email_verified_at'] ?? '') !== '' ? (string) $targetAccount['email_verified_at'] : sr_now())
             : null;
@@ -914,6 +932,48 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
 
         if (!in_array($locale, $supportedLocales, true)) {
             $errors[] = sr_t('member::action.account.locale_invalid');
+        }
+
+        if ($passwordChangeRequested && !$editingCurrentAccount) {
+            $errors[] = sr_t('member::action.admin.self_password_only');
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'],
+                'actor_type' => 'admin',
+                'event_type' => 'member.password.change.denied',
+                'target_type' => 'member_account',
+                'target_id' => (string) $targetAccountId,
+                'result' => 'failure',
+                'message' => 'Admin password change payload denied for another account.',
+            ]);
+        } elseif ($passwordChangeRequested) {
+            if ($newPasswordInput === null || $newPasswordConfirmInput === null) {
+                $errors[] = sr_t('member::action.password.new_too_long');
+            }
+
+            if ($currentAccountHasPassword) {
+                $reauthThrottle = sr_member_reauth_throttle_status($pdo, $targetAccountId);
+                if (!empty($reauthThrottle['limited'])) {
+                    $errors[] = sr_t('member::action.reauth.throttled');
+                    sr_member_log_auth($pdo, $targetAccountId, 'reauth_blocked', 'failure');
+                    $passwordReauthFailureLogged = true;
+                } elseif ($currentPasswordInput === null || !password_verify((string) $currentPasswordInput, (string) $account['password_hash'])) {
+                    $errors[] = sr_t('member::action.account.current_password_invalid');
+                    sr_member_log_auth($pdo, $targetAccountId, 'password_change_reauth', 'failure');
+                    $passwordReauthFailureLogged = true;
+                }
+            }
+
+            if (strlen($newPassword) < 8) {
+                $errors[] = sr_t('member::action.password.new_too_short');
+            }
+
+            if ($newPassword !== $newPasswordConfirm) {
+                $errors[] = sr_t('member::action.password.new_confirm_mismatch');
+            }
+        }
+
+        if ($passwordChangeRequested && $editingCurrentAccount && $errors !== [] && !$passwordReauthFailureLogged) {
+            sr_member_log_auth($pdo, $targetAccountId, $passwordAuthEvent, 'failure');
         }
 
         $emailHash = $errors === [] ? sr_hmac_hash($email, $runtimeConfig) : '';
@@ -990,6 +1050,14 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                 if ($profileExtraFieldDefinitions !== []) {
                     sr_member_save_profile_extra_field_values($pdo, $targetAccountId, $profileExtraFieldDefinitions, $profileExtraFieldValues);
                 }
+                if ($passwordChangeRequested) {
+                    sr_member_update_password($pdo, $targetAccountId, $newPassword);
+                    $passwordRevokedSessions = sr_member_revoke_other_sessions($pdo, $targetAccountId);
+                    if ($passwordRevokedSessions < 0) {
+                        throw new RuntimeException('Other member sessions could not be revoked after admin self password change.');
+                    }
+                    $passwordChanged = true;
+                }
 
                 $statusEffects = sr_admin_member_apply_status_effects($pdo, $runtimeConfig, $targetAccountId, (string) $targetAccount['status'], $status);
                 $pdo->commit();
@@ -1002,6 +1070,47 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
         }
 
         if ($errors === []) {
+            if ($passwordChanged) {
+                sr_member_create_security_notification($pdo, $targetAccountId, 'security.password_changed');
+                $passwordRotatedSession = sr_member_rotate_current_session($pdo, $targetAccountId);
+                if (!$passwordRotatedSession) {
+                    sr_member_log_auth($pdo, $targetAccountId, 'password_change_session_failed', 'failure');
+                    sr_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => 'member.password.change.session_failed',
+                        'target_type' => 'member_account',
+                        'target_id' => (string) $targetAccountId,
+                        'result' => 'failure',
+                        'message' => 'Member password was changed from own admin profile but current session could not be rotated.',
+                        'metadata' => [
+                            'revoked_sessions' => $passwordRevokedSessions,
+                        ],
+                    ]);
+                    $resultData['force_relogin'] = true;
+                } else {
+                    $memberAccountSessionTokenHash = isset($_SESSION['sr_session_token_hash']) && is_string($_SESSION['sr_session_token_hash'])
+                        ? $_SESSION['sr_session_token_hash']
+                        : '';
+                    sr_member_account_access_remember_credential($targetAccountId, $memberAccountSessionTokenHash, 'password');
+                    sr_member_account_access_complete($targetAccountId, $memberAccountSessionTokenHash);
+                    sr_member_log_auth($pdo, $targetAccountId, $passwordAuthEvent, 'success');
+                    sr_audit_log($pdo, [
+                        'actor_account_id' => (int) $account['id'],
+                        'actor_type' => 'admin',
+                        'event_type' => $passwordAuditEvent,
+                        'target_type' => 'member_account',
+                        'target_id' => (string) $targetAccountId,
+                        'result' => 'success',
+                        'message' => $passwordAuditMessage,
+                        'metadata' => [
+                            'revoked_sessions' => $passwordRevokedSessions,
+                            'rotated_session' => true,
+                            'admin_self_edit' => true,
+                        ],
+                    ]);
+                }
+            }
             sr_audit_log($pdo, [
                 'actor_account_id' => (int) $account['id'],
                 'actor_type' => 'admin',
@@ -1019,6 +1128,7 @@ function sr_admin_handle_members_post(PDO $pdo, array $account, array $allowedSt
                     'login_id_changed' => false,
                     'login_id_set' => $nextLoginIdHash !== null || $currentHasLegacyLoginId,
                     'profile_extra_fields_changed' => $postedProfileExtraFieldValues !== array_intersect_key($storedProfileExtraFieldValues, $postedProfileExtraFieldValues),
+                    'password_changed' => $passwordChanged,
                     'status_effects' => $statusEffects,
                 ],
             ]);

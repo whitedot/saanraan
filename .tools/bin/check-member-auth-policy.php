@@ -1072,6 +1072,27 @@ if ($adminMembersAction !== '' && $adminMembersView !== '') {
             && strpos($adminMembersView, 'data-member-anonymize-confirm') !== false,
         'Admin member withdrawn/anonymized confirmations should show current asset balances, hide terminal group reevaluation on list/edit screens, and successful terminal updates should keep follow-up lookup data.'
     );
+    sr_member_auth_policy_assert(
+        strpos($adminMembersHelper, '$editingCurrentAccount = $targetAccountId === (int) ($account[\'id\'] ?? 0);') !== false
+            && strpos($adminMembersHelper, "sr_post_string_without_truncation('new_password', 255)") !== false
+            && strpos($adminMembersHelper, "sr_post_string_without_truncation('new_password_confirm', 255)") !== false
+            && strpos($adminMembersHelper, "sr_t('member::action.admin.self_password_only')") !== false
+            && strpos($adminMembersHelper, 'password_verify((string) $currentPasswordInput, (string) $account[\'password_hash\'])') !== false
+            && strpos($adminMembersHelper, 'sr_member_update_password($pdo, $targetAccountId, $newPassword)') !== false
+            && strpos($adminMembersHelper, 'sr_member_revoke_other_sessions($pdo, $targetAccountId)') !== false
+            && strpos($adminMembersHelper, 'sr_member_rotate_current_session($pdo, $targetAccountId)') !== false
+            && strpos($adminMembersHelper, 'sr_member_create_security_notification($pdo, $targetAccountId, \'security.password_changed\')') !== false
+            && strpos($adminMembersHelper, '\'password_changed\' => $passwordChanged') !== false
+            && strpos($adminMembersAction, '!empty($postResultData[\'force_relogin\'])') !== false
+            && strpos($adminMembersView, '$memberEditIsCurrentAccount = $memberEditHasActionContext && $memberEditAccountId === (int) ($account[\'id\'] ?? 0);') !== false
+            && strpos($adminMembersView, '<?php if ($memberEditIsCurrentAccount) { ?>') !== false
+            && strpos($adminMembersView, 'data-member-admin-self-password-change') !== false
+            && strpos($adminMembersView, 'name="current_password"') !== false
+            && strpos($adminMembersView, 'name="new_password"') !== false
+            && strpos($adminMembersView, 'name="new_password_confirm"') !== false
+            && strpos($adminMembersView, 'syncSelfPasswordValidation') !== false,
+        'Admin member edit should expose and process password changes only for the currently logged-in account with reauthentication, session rotation, audit, and notification handling.'
+    );
 }
 
 $messagePrivacyCleanup = sr_member_auth_policy_read('modules/message/privacy-cleanup.php');

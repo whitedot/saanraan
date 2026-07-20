@@ -52,6 +52,10 @@ if (sr_request_method() === 'POST') {
     $errors = $postResult['errors'];
     $notice = (string) $postResult['notice'];
     $postResultData = isset($postResult['data']) && is_array($postResult['data']) ? $postResult['data'] : [];
+    if (!empty($postResultData['force_relogin'])) {
+        sr_member_logout($pdo);
+        sr_redirect('/login');
+    }
     if ($intent === 'batch_revoke_sessions') {
         sr_admin_flash_result(sr_admin_action_result($errors, $notice, $postResultData));
         sr_redirect(sr_admin_post_return_url('/admin/members'));

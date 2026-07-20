@@ -407,6 +407,16 @@ if (!is_string($adminMembersHelper)) {
     }
 
     if (
+        strpos($adminMembersHelper, '$editingCurrentAccount = $targetAccountId === (int) ($account[\'id\'] ?? 0);') === false
+        || strpos($adminMembersHelper, "sr_t('member::action.admin.self_password_only')") === false
+        || strpos($adminMembersHelper, 'password_verify((string) $currentPasswordInput, (string) $account[\'password_hash\'])') === false
+        || strpos($adminMembersHelper, 'sr_member_revoke_other_sessions($pdo, $targetAccountId)') === false
+        || strpos($adminMembersHelper, 'sr_member_rotate_current_session($pdo, $targetAccountId)') === false
+    ) {
+        $errors[] = 'Admin member password changes must be limited to the current account and preserve reauthentication and session protections.';
+    }
+
+    if (
         strpos($adminMembersHelper, 'function sr_admin_member_email_display') === false
         || strpos($adminMembersHelper, 'function sr_admin_member_display_name_preview') === false
         || strpos($adminMembersHelper, "return \$prefix . '***@' . \$domain;") === false

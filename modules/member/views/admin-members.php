@@ -46,6 +46,8 @@ $memberEditAnonymizeConfirmMessage = sr_admin_member_terminal_status_confirm_mes
 $memberEditHasActionContext = $memberAdminPage === 'edit_form' && is_array($editMember ?? null);
 $memberEditAccountId = $memberEditHasActionContext ? (int) ($editMember['id'] ?? 0) : 0;
 $memberEditStatus = $memberEditHasActionContext ? (string) ($editMember['status'] ?? '') : '';
+$memberEditIsCurrentAccount = $memberEditHasActionContext && $memberEditAccountId === (int) ($account['id'] ?? 0);
+$memberEditCurrentAccountHasPassword = $memberEditIsCurrentAccount && trim((string) ($account['password_hash'] ?? '')) !== '';
 $memberEditPublicHash = $memberEditHasActionContext ? sr_admin_member_public_hash($runtimeConfig, $memberEditAccountId) : '';
 $memberEditReturnTo = $memberEditHasActionContext ? sr_admin_current_get_url('/admin/members/edit?id=' . rawurlencode((string) $memberEditAccountId)) : '';
 $memberEditActionFormPrefix = $memberEditHasActionContext ? 'member-edit-action-' . $memberEditAccountId . '-' : '';
@@ -395,6 +397,34 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
             </section>
+            <?php if ($memberEditIsCurrentAccount) { ?>
+                <section class="card" data-member-admin-self-password-change>
+                    <h2>비밀번호 변경</h2>
+                    <p class="form-help">새 비밀번호를 입력할 때만 변경합니다. 변경하지 않으려면 아래 입력란을 모두 비워두세요.</p>
+                    <?php if ($memberEditCurrentAccountHasPassword) { ?>
+                        <div class="form-row">
+                            <label class="form-label" for="member_admin_edit_current_password">현재 비밀번호 <span class="sr-required-label" data-member-admin-self-password-required hidden><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                            <div class="form-field">
+                                <input id="member_admin_edit_current_password" type="password" name="current_password" class="form-input form-control-full" maxlength="255" autocomplete="current-password" data-member-admin-self-password-current>
+                                <small class="form-help">현재 비밀번호로 본인 계정을 다시 확인합니다.</small>
+                            </div>
+                        </div>
+                    <?php } ?>
+                    <div class="form-row">
+                        <label class="form-label" for="member_admin_edit_new_password">새 비밀번호 <span class="sr-required-label" data-member-admin-self-password-required hidden><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                        <div class="form-field">
+                            <input id="member_admin_edit_new_password" type="password" name="new_password" class="form-input form-control-full" minlength="8" maxlength="255" autocomplete="new-password" data-member-admin-self-password-new>
+                            <small class="form-help">8자 이상 입력하세요. 변경 후 다른 로그인 세션은 종료됩니다.</small>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label" for="member_admin_edit_new_password_confirm">새 비밀번호 확인 <span class="sr-required-label" data-member-admin-self-password-required hidden><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></label>
+                        <div class="form-field">
+                            <input id="member_admin_edit_new_password_confirm" type="password" name="new_password_confirm" class="form-input form-control-full" minlength="8" maxlength="255" autocomplete="new-password" data-member-admin-self-password-confirm>
+                        </div>
+                    </div>
+                </section>
+            <?php } ?>
             <section class="card">
                 <h2>동의 정보</h2>
                 <div class="form-row">
@@ -759,6 +789,52 @@ foreach ($allowedStatuses as $status) {
 
 <script>
 (function () {
+    var selfPasswordSection = document.querySelector('[data-member-admin-self-password-change]');
+    if (selfPasswordSection) {
+        var currentPasswordInput = selfPasswordSection.querySelector('[data-member-admin-self-password-current]');
+        var newPasswordInput = selfPasswordSection.querySelector('[data-member-admin-self-password-new]');
+        var newPasswordConfirmInput = selfPasswordSection.querySelector('[data-member-admin-self-password-confirm]');
+        var passwordRequiredLabels = Array.prototype.slice.call(selfPasswordSection.querySelectorAll('[data-member-admin-self-password-required]'));
+
+        function syncSelfPasswordValidation() {
+            var requested = Boolean(
+                (newPasswordInput && newPasswordInput.value !== '')
+                || (newPasswordConfirmInput && newPasswordConfirmInput.value !== '')
+            );
+            if (currentPasswordInput) {
+                currentPasswordInput.required = requested;
+            }
+            if (newPasswordInput) {
+                newPasswordInput.required = requested;
+            }
+            if (newPasswordConfirmInput) {
+                newPasswordConfirmInput.required = requested;
+                var mismatch = requested
+                    && newPasswordInput
+                    && newPasswordInput.value !== ''
+                    && newPasswordConfirmInput.value !== ''
+                    && newPasswordInput.value !== newPasswordConfirmInput.value;
+                newPasswordConfirmInput.setCustomValidity(mismatch ? '새 비밀번호 확인이 일치하지 않습니다.' : '');
+                if (mismatch) {
+                    newPasswordConfirmInput.setAttribute('aria-invalid', 'true');
+                } else {
+                    newPasswordConfirmInput.removeAttribute('aria-invalid');
+                }
+            }
+            passwordRequiredLabels.forEach(function (label) {
+                label.hidden = !requested;
+            });
+        }
+
+        [currentPasswordInput, newPasswordInput, newPasswordConfirmInput].forEach(function (input) {
+            if (input) {
+                input.addEventListener('input', syncSelfPasswordValidation);
+                input.addEventListener('change', syncSelfPasswordValidation);
+            }
+        });
+        syncSelfPasswordValidation();
+    }
+
     var statusEditForm = document.querySelector('[data-member-status-edit-form]');
     if (statusEditForm) {
         statusEditForm.addEventListener('submit', function (event) {

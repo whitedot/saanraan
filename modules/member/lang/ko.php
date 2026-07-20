@@ -43,6 +43,7 @@ return [
     'action.admin.status_saved' => '회원 상태를 저장했습니다.',
     'action.admin.update_failed' => '회원 정보를 저장할 수 없습니다.',
     'action.admin.updated' => '회원 정보를 저장했습니다.',
+    'action.admin.self_password_only' => '관리자 화면에서는 현재 로그인 중인 본인 계정의 비밀번호만 변경할 수 있습니다.',
     'action.admin_groups.description_too_long' => '설명은 2000자 이하로 입력하세요.',
     'action.admin_groups.evaluated' => '회원 그룹 규칙을 재평가했습니다. 평가 {evaluated}건, 부여 {granted}건, 회수 {revoked}건.',
     'action.admin_groups.evaluate_member_required' => '재평가할 회원 공개 해시를 입력하세요.',
