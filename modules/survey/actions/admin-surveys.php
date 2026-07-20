@@ -816,8 +816,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <label class="form-label" for="survey_estimated_minutes">예상 소요 시간</label>
                     <div class="form-field">
-                        <input id="survey_estimated_minutes" type="number" name="estimated_minutes" value="<?php echo sr_e((string) ($values['estimated_minutes'] ?? '')); ?>" class="form-input" min="0" max="10080">
-                        <p class="form-help">분 단위로 입력합니다.</p>
+                        <div class="input-group admin-input-unit">
+                            <input id="survey_estimated_minutes" type="number" name="estimated_minutes" value="<?php echo sr_e((string) ($values['estimated_minutes'] ?? '')); ?>" class="form-input" min="0" max="10080">
+                            <span class="input-group-text">분</span>
+                        </div>
                         <?php echo $surveyScopeRadioHtml('estimated_minutes', (string) ($values['source_estimated_minutes'] ?? 'item')); ?>
                     </div>
                 </div>
@@ -968,8 +970,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <label class="form-label" for="survey_response_limit_period_seconds">제한 기간</label>
                     <div class="form-field">
-                        <input id="survey_response_limit_period_seconds" type="number" name="response_limit_period_seconds" value="<?php echo sr_e((string) ($values['response_limit_period_seconds'] ?? '')); ?>" class="form-input" min="0">
-                        <p class="form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+                        <div class="input-group admin-input-unit">
+                            <input id="survey_response_limit_period_seconds" type="number" name="response_limit_period_seconds" value="<?php echo sr_e((string) ($values['response_limit_period_seconds'] ?? '')); ?>" class="form-input" min="0">
+                            <span class="input-group-text">초</span>
+                        </div>
+                        <p class="form-help">기간당 1회 제한일 때 입력합니다.</p>
                     </div>
                 </div>
                 <div class="form-row">

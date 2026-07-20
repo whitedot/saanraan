@@ -354,8 +354,11 @@ $surveySettingsSectionNavItems = [
             <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_response_limit_period', '기본 제한 기간', $surveySettingsHelp['default_response_limit_period_seconds']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">
-                    <input id="survey_settings_response_limit_period" type="number" name="default_response_limit_period_seconds" value="<?php echo sr_e((string) (int) ($settings['default_response_limit_period_seconds'] ?? 0)); ?>" class="form-input" min="0">
-                    <p class="form-help">기간당 1회 제한일 때 초 단위로 입력합니다.</p>
+                    <div class="input-group admin-input-unit">
+                        <input id="survey_settings_response_limit_period" type="number" name="default_response_limit_period_seconds" value="<?php echo sr_e((string) (int) ($settings['default_response_limit_period_seconds'] ?? 0)); ?>" class="form-input" min="0">
+                        <span class="input-group-text">초</span>
+                    </div>
+                    <p class="form-help">기간당 1회 제한일 때 입력합니다.</p>
                 </div>
             </div>
             <div class="form-row">

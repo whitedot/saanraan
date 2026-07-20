@@ -467,10 +467,13 @@ $quizSettingsSectionNavItems = [
             <div class="form-row">
                 <div class="form-label form-label-help">
                     <button type="button" class="btn btn-icon-xs btn-ghost-default admin-label-help-button" aria-label="기본 제한 기간 설명 보기" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($quizSettingsHelp['default_attempt_limit_period_seconds']['id']); ?>" data-overlay="#<?php echo sr_e($quizSettingsHelp['default_attempt_limit_period_seconds']['id']); ?>"><?php echo sr_material_icon_html('help'); ?></button>
-                    <label for="quiz_settings_default_attempt_limit_period_seconds">기본 제한 기간(초) <span class="sr-required-label" data-quiz-settings-attempt-period-required hidden>(필수)</span></label>
+                    <label for="quiz_settings_default_attempt_limit_period_seconds">기본 제한 기간 <span class="sr-required-label" data-quiz-settings-attempt-period-required hidden>(필수)</span></label>
                 </div>
                 <div class="form-field">
-                    <input id="quiz_settings_default_attempt_limit_period_seconds" type="number" name="default_attempt_limit_period_seconds" value="<?php echo sr_e((string) ($settings['default_attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-settings-attempt-period>
+                    <div class="input-group admin-input-unit">
+                        <input id="quiz_settings_default_attempt_limit_period_seconds" type="number" name="default_attempt_limit_period_seconds" value="<?php echo sr_e((string) ($settings['default_attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-settings-attempt-period>
+                        <span class="input-group-text">초</span>
+                    </div>
                     <p class="form-help">기본 응시 제한이 기간당 1회일 때만 사용합니다.</p>
                 </div>
             </div>

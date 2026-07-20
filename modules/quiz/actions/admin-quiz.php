@@ -1102,9 +1102,12 @@ $quizSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
-                <label class="form-label" for="quiz_attempt_limit_period_seconds">제한 기간(초) <span class="sr-required-label" data-quiz-attempt-period-required hidden>(필수)</span></label>
+                <label class="form-label" for="quiz_attempt_limit_period_seconds">제한 기간 <span class="sr-required-label" data-quiz-attempt-period-required hidden>(필수)</span></label>
                 <div class="form-field">
-                    <input id="quiz_attempt_limit_period_seconds" type="number" name="attempt_limit_period_seconds" value="<?php echo sr_e((string) ($values['attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-attempt-period>
+                    <div class="input-group admin-input-unit">
+                        <input id="quiz_attempt_limit_period_seconds" type="number" name="attempt_limit_period_seconds" value="<?php echo sr_e((string) ($values['attempt_limit_period_seconds'] ?? '')); ?>" class="form-input" min="1" step="1" data-quiz-attempt-period>
+                        <span class="input-group-text">초</span>
+                    </div>
                     <p class="form-help">응시 제한이 기간당 1회일 때만 사용합니다.</p>
                 </div>
             </div>

@@ -442,7 +442,10 @@ $communitySettingsSectionNavItems = [
             <div class="form-row">
                 <label class="form-label" for="community_admin_settings_report_auto_action_window_days">집계 기간 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
-                    <input id="community_admin_settings_report_auto_action_window_days" type="number" name="report_auto_action_window_days" min="0" max="365" value="<?php echo sr_e((string) (int) ($settings['report_auto_action_window_days'] ?? 0)); ?>" required class="form-input">
+                    <div class="input-group admin-input-unit">
+                        <input id="community_admin_settings_report_auto_action_window_days" type="number" name="report_auto_action_window_days" min="0" max="365" value="<?php echo sr_e((string) (int) ($settings['report_auto_action_window_days'] ?? 0)); ?>" required class="form-input">
+                        <span class="input-group-text">일</span>
+                    </div>
                     <p class="form-help">0이면 전체 신고 이력을 기준으로 계산합니다. 1 이상이면 최근 N일 신고만 집계합니다.</p>
                 </div>
             </div>

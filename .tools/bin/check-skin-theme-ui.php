@@ -1148,6 +1148,47 @@ foreach ($modalSamplePaths as $modalSamplePath) {
     ], 'Fullscreen modal radius samples in ' . $modalSamplePath);
 }
 
+$numericUnitSuffixLabels = [
+    'seconds' => '초',
+    'minutes' => '분',
+    'hours' => '시간',
+    'days' => '일',
+    'bytes' => 'bytes',
+    'percent' => '%',
+    'width' => 'px',
+    'height' => 'px',
+];
+$moduleIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/modules', FilesystemIterator::SKIP_DOTS));
+foreach ($moduleIterator as $moduleFile) {
+    if (!$moduleFile instanceof SplFileInfo || !$moduleFile->isFile() || strtolower($moduleFile->getExtension()) !== 'php') {
+        continue;
+    }
+    $moduleLines = file($moduleFile->getPathname());
+    if (!is_array($moduleLines)) {
+        continue;
+    }
+    foreach ($moduleLines as $lineIndex => $moduleLine) {
+        if (!str_contains($moduleLine, 'type="number"') || preg_match('/name="([a-zA-Z0-9_\[\]]+)"/', $moduleLine, $nameMatches) !== 1) {
+            continue;
+        }
+        $inputName = (string) ($nameMatches[1] ?? '');
+        foreach ($numericUnitSuffixLabels as $unitSuffix => $unitLabel) {
+            if (preg_match('/_' . preg_quote($unitSuffix, '/') . '(?:\[\])?$/', $inputName) !== 1) {
+                continue;
+            }
+            $unitContext = implode('', array_slice($moduleLines, max(0, $lineIndex - 4), 9));
+            $relativeModulePath = substr($moduleFile->getPathname(), strlen($root) + 1);
+            if (
+                !str_contains($unitContext, 'class="input-group')
+                || !str_contains($unitContext, 'class="input-group-text"')
+            ) {
+                $errors[] = 'Numeric setting with an explicit unit suffix must use an input group: ' . $relativeModulePath . ' ' . $inputName;
+            }
+            break;
+        }
+    }
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "skin/layout UI checks failed:\n");
     foreach ($errors as $error) {

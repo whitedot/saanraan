@@ -1147,6 +1147,26 @@ sr_notification_runtime_assert(
     'notification settings view must use clear member connection labels.'
 );
 sr_notification_runtime_assert(str_contains($settingsView, 'sr_notification_secret_display'), 'notification settings view must mask stored Slack webhook URLs.');
+$notificationSettingUnits = [
+    'delivery_web_runner_interval_seconds' => '초',
+    'delivery_web_runner_batch_size' => '건',
+    'delivery_manual_batch_size' => '건',
+    'delivery_cli_batch_size' => '건',
+    'delivery_max_attempts' => '회',
+    'delivery_lock_timeout_seconds' => '초',
+    'email_timeout_seconds' => '초',
+];
+foreach ($notificationSettingUnits as $settingName => $unitLabel) {
+    $unitPattern = '~<div class="input-group admin-input-unit">(?:(?!</div>).)*<input(?:(?!</div>).)*name="'
+        . preg_quote($settingName, '~')
+        . '"(?:(?!</div>).)*<span class="input-group-text">'
+        . preg_quote($unitLabel, '~')
+        . '</span>(?:(?!</div>).)*</div>~s';
+    sr_notification_runtime_assert(
+        preg_match($unitPattern, $settingsView) === 1,
+        'notification settings numeric unit must use an input group: ' . $settingName . ' (' . $unitLabel . ').'
+    );
+}
 sr_notification_runtime_assert(
     str_contains($settingsView, 'data-notification-operational-toggle="slack"')
         && str_contains($settingsView, 'data-notification-operational-required-label="slack"')

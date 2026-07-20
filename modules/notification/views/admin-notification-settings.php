@@ -97,42 +97,60 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('notification_admin_settings_delivery_web_runner_interval_seconds', '웹 실행 간격', $notificationSettingsHelp['runner']['id'], $notificationSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="notification_admin_settings_delivery_web_runner_interval_seconds" type="number" name="delivery_web_runner_interval_seconds" value="<?php echo sr_e((string) $settings['delivery_web_runner_interval_seconds']); ?>" min="10" max="3600" class="form-input" required>
-                <small class="form-help">초 단위입니다. 10부터 3600까지 입력합니다.</small>
+                <div class="input-group admin-input-unit">
+                    <input id="notification_admin_settings_delivery_web_runner_interval_seconds" type="number" name="delivery_web_runner_interval_seconds" value="<?php echo sr_e((string) $settings['delivery_web_runner_interval_seconds']); ?>" min="10" max="3600" class="form-input" required>
+                    <span class="input-group-text">초</span>
+                </div>
+                <small class="form-help">10부터 3600까지 입력합니다.</small>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('notification_admin_settings_delivery_web_runner_batch_size', '웹 실행당 발송 작업 수', $notificationSettingsHelp['runner']['id'], $notificationSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="notification_admin_settings_delivery_web_runner_batch_size" type="number" name="delivery_web_runner_batch_size" value="<?php echo sr_e((string) $settings['delivery_web_runner_batch_size']); ?>" min="1" max="5" class="form-input" required>
+                <div class="input-group admin-input-unit">
+                    <input id="notification_admin_settings_delivery_web_runner_batch_size" type="number" name="delivery_web_runner_batch_size" value="<?php echo sr_e((string) $settings['delivery_web_runner_batch_size']); ?>" min="1" max="5" class="form-input" required>
+                    <span class="input-group-text">건</span>
+                </div>
                 <small class="form-help">한 번의 웹 요청 말미에서 처리할 최대 발송 작업 수입니다.</small>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('notification_admin_settings_delivery_manual_batch_size', '수동 실행당 발송 작업 수', $notificationSettingsHelp['runner']['id'], $notificationSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="notification_admin_settings_delivery_manual_batch_size" type="number" name="delivery_manual_batch_size" value="<?php echo sr_e((string) $settings['delivery_manual_batch_size']); ?>" min="1" max="50" class="form-input" required>
+                <div class="input-group admin-input-unit">
+                    <input id="notification_admin_settings_delivery_manual_batch_size" type="number" name="delivery_manual_batch_size" value="<?php echo sr_e((string) $settings['delivery_manual_batch_size']); ?>" min="1" max="50" class="form-input" required>
+                    <span class="input-group-text">건</span>
+                </div>
                 <small class="form-help">관리자 발송 목록에서 수동 실행할 때 처리할 최대 발송 작업 수입니다.</small>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('notification_admin_settings_delivery_cli_batch_size', '서버 예약·명령 실행당 작업 수', $notificationSettingsHelp['runner']['id'], $notificationSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="notification_admin_settings_delivery_cli_batch_size" type="number" name="delivery_cli_batch_size" value="<?php echo sr_e((string) $settings['delivery_cli_batch_size']); ?>" min="1" max="100" class="form-input" required>
+                <div class="input-group admin-input-unit">
+                    <input id="notification_admin_settings_delivery_cli_batch_size" type="number" name="delivery_cli_batch_size" value="<?php echo sr_e((string) $settings['delivery_cli_batch_size']); ?>" min="1" max="100" class="form-input" required>
+                    <span class="input-group-text">건</span>
+                </div>
                 <small class="form-help">서버 예약 작업이나 명령 실행 한 번에 처리할 최대 작업 수입니다.</small>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('notification_admin_settings_delivery_max_attempts', '최대 발송 시도 횟수', $notificationSettingsHelp['attempts']['id'], $notificationSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="notification_admin_settings_delivery_max_attempts" type="number" name="delivery_max_attempts" value="<?php echo sr_e((string) $settings['delivery_max_attempts']); ?>" min="1" max="20" class="form-input" required>
+                <div class="input-group admin-input-unit">
+                    <input id="notification_admin_settings_delivery_max_attempts" type="number" name="delivery_max_attempts" value="<?php echo sr_e((string) $settings['delivery_max_attempts']); ?>" min="1" max="20" class="form-input" required>
+                    <span class="input-group-text">회</span>
+                </div>
                 <small class="form-help">첫 발송을 포함하며, 이 횟수까지 실패하면 자동 재시도를 멈춥니다.</small>
             </div>
         </div>
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('notification_admin_settings_delivery_lock_timeout_seconds', '처리 중 상태 만료 시간', $notificationSettingsHelp['attempts']['id'], $notificationSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="notification_admin_settings_delivery_lock_timeout_seconds" type="number" name="delivery_lock_timeout_seconds" value="<?php echo sr_e((string) $settings['delivery_lock_timeout_seconds']); ?>" min="30" max="3600" class="form-input" required>
+                <div class="input-group admin-input-unit">
+                    <input id="notification_admin_settings_delivery_lock_timeout_seconds" type="number" name="delivery_lock_timeout_seconds" value="<?php echo sr_e((string) $settings['delivery_lock_timeout_seconds']); ?>" min="30" max="3600" class="form-input" required>
+                    <span class="input-group-text">초</span>
+                </div>
                 <small class="form-help">완료되지 않은 작업이 이 시간을 넘기면 다음 실행에서 다시 처리할 수 있습니다.</small>
             </div>
         </div>
@@ -181,7 +199,10 @@ $notificationSettingsSectionNavItems = [
         <div class="form-row">
             <?php echo sr_admin_form_label_help_html('notification_admin_settings_email_timeout_seconds', '외부 발송 응답 대기 시간', $notificationSettingsHelp['timeout']['id'], $notificationSettingsHelpOpenLabel, true); ?>
             <div class="form-field">
-                <input id="notification_admin_settings_email_timeout_seconds" type="number" name="email_timeout_seconds" value="<?php echo sr_e((string) $settings['email_timeout_seconds']); ?>" min="3" max="180" class="form-input" required>
+                <div class="input-group admin-input-unit">
+                    <input id="notification_admin_settings_email_timeout_seconds" type="number" name="email_timeout_seconds" value="<?php echo sr_e((string) $settings['email_timeout_seconds']); ?>" min="3" max="180" class="form-input" required>
+                    <span class="input-group-text">초</span>
+                </div>
                 <small class="form-help">이메일과 외부 알림 서비스의 응답을 기다릴 시간이며 3~180초로 입력합니다.</small>
             </div>
         </div>

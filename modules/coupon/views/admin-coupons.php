@@ -402,7 +402,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-row">
                 <label class="form-label" for="coupon_claim_campaign_issue_expires_in_days">발급본 만료일수</label>
                 <div class="form-field">
-                    <input id="coupon_claim_campaign_issue_expires_in_days" type="number" name="issue_expires_in_days" value="<?php echo isset($claimCampaignForm['issue_expires_in_days']) && $claimCampaignForm['issue_expires_in_days'] !== null ? sr_e((string) (int) $claimCampaignForm['issue_expires_in_days']) : ''; ?>" class="form-input" min="1" max="3650" step="1">
+                    <div class="input-group admin-input-unit">
+                        <input id="coupon_claim_campaign_issue_expires_in_days" type="number" name="issue_expires_in_days" value="<?php echo isset($claimCampaignForm['issue_expires_in_days']) && $claimCampaignForm['issue_expires_in_days'] !== null ? sr_e((string) (int) $claimCampaignForm['issue_expires_in_days']) : ''; ?>" class="form-input" min="1" max="3650" step="1">
+                        <span class="input-group-text">일</span>
+                    </div>
                     <p class="form-help">회원에게 지급된 쿠폰의 개별 만료 기간입니다. 고정 만료와 함께 입력하지 않습니다.</p>
                 </div>
             </div>
@@ -1241,7 +1244,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row" data-coupon-validity-relative-field hidden>
                     <label class="form-label" for="coupon_admin_validity_days">발급 후 사용 기간 <span class="sr-required-label" data-coupon-validity-relative-required-label hidden>(필수)</span></label>
                     <div class="form-field">
-                        <input id="coupon_admin_validity_days" type="number" name="validity_days" class="form-control" min="1" max="3650" step="1" data-coupon-validity-relative-required-input data-validation-message="발급 후 사용일수는 1부터 3650 사이로 입력해 주세요.">
+                        <div class="input-group admin-input-unit">
+                            <input id="coupon_admin_validity_days" type="number" name="validity_days" class="form-control" min="1" max="3650" step="1" data-coupon-validity-relative-required-input data-validation-message="발급 후 사용일수는 1부터 3650 사이로 입력해 주세요.">
+                            <span class="input-group-text">일</span>
+                        </div>
                         <p class="form-help">회원에게 지급한 시각부터 계산할 일수를 입력합니다.</p>
                     </div>
                 </div>

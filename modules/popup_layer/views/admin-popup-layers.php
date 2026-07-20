@@ -329,7 +329,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <?php echo sr_admin_form_label_help_html('popup_layer_admin_popup_layers_dismiss_cookie_days', sr_t('popup_layer::ui.close.06cddc6e'), $popupLayerHelp['dismiss_cookie_days']['id'], $popupLayerHelpOpenLabel); ?>
                     <div class="form-field">
-                        <input id="popup_layer_admin_popup_layers_dismiss_cookie_days" type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : sr_e((string) ($popupLayerDefaultDismissCookieDays ?? 1)); ?>" class="form-input" min="0" max="365">
+                        <div class="input-group admin-input-unit">
+                            <input id="popup_layer_admin_popup_layers_dismiss_cookie_days" type="number" name="dismiss_cookie_days" value="<?php echo $editing ? sr_e((string) $editPopup['dismiss_cookie_days']) : sr_e((string) ($popupLayerDefaultDismissCookieDays ?? 1)); ?>" class="form-input" min="0" max="365">
+                            <span class="input-group-text">일</span>
+                        </div>
                     </div>
                 </div>
         </section>
