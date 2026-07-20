@@ -18,9 +18,9 @@
 }
 
 .public-home-editorial {
+    align-self: stretch;
     display: grid;
     isolation: isolate;
-    min-height: clamp(32rem, calc(100dvh - 11rem), 58rem);
     place-items: center;
     margin: 0 auto;
     position: relative;
@@ -29,13 +29,13 @@
 }
 
 .public-home-particle-canvas {
-    height: 140%;
-    inset: -20% -10%;
+    height: 100%;
+    inset: 0;
     opacity: 0;
     pointer-events: none;
     position: absolute;
     transition: opacity .9s cubic-bezier(.22, 1, .36, 1);
-    width: 120%;
+    width: 100%;
     z-index: 0;
 }
 
@@ -214,10 +214,6 @@
 }
 
 @media (max-width: 767px) {
-    .public-home-editorial {
-        min-height: max(32rem, calc(100dvh - 9rem));
-    }
-
     .public-home-title {
         font-size: clamp(4rem, 17vw, 5.5rem);
     }

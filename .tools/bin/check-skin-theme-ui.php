@@ -619,6 +619,22 @@ sr_skin_theme_check_not_contains('modules/content/theme/basic/assets/layout.css'
     'max-width: 1360px;',
 ], 'Content public footer legacy width');
 
+sr_skin_theme_check_contains('assets/module.css', [
+    ".public-home-editorial {\n    align-self: stretch;",
+    ".public-home-particle-canvas {\n    height: 100%;\n    inset: 0;",
+    "transition: opacity .9s cubic-bezier(.22, 1, .36, 1);\n    width: 100%;",
+], 'Initial public screen natural layout height');
+
+sr_skin_theme_check_not_contains('assets/module.css', [
+    'calc(100dvh - 11rem)',
+    'calc(100dvh - 9rem)',
+    'height: 140%;',
+    'inset: -20% -10%;',
+    'width: 120%;',
+    'overflow: hidden;',
+    'overflow-y: hidden;',
+], 'Initial public screen artificial overflow');
+
 foreach ([
     'core/views/theme/basic/home.php',
     'modules/content/theme/basic/home.php',
