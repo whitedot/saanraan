@@ -180,7 +180,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         </span>
                     </div>
                 </div>
-                <a class="btn btn-outline-primary member-skin-basic-hero-action" href="<?php echo sr_e(sr_url($memberAccountBasePath . '/account')); ?>">내 정보 수정</a>
+                <a class="btn btn-outline-secondary member-skin-basic-hero-action" href="<?php echo sr_e(sr_url($memberAccountBasePath . '/account')); ?>">내 정보 수정</a>
             </div>
         </section>
         <div class="member-skin-basic-layout">
@@ -427,7 +427,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <?php } ?>
                                     <form method="post" action="<?php echo sr_e(sr_url('/account/email-verification')); ?>" class="member-skin-basic-form" data-sr-validate-form>
                                         <?php echo sr_csrf_field(); ?>
-                                        <button class="btn btn-solid-primary" type="submit"<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.9938eea0')); ?></button>
+                                        <button class="btn btn-solid-secondary" type="submit"<?php echo !$emailDeliveryAvailable ? ' disabled' : ''; ?>><?php echo sr_e(sr_t('member::ui.text.9938eea0')); ?></button>
                                     </form>
                                     <?php if ($emailVerificationUrl !== '') { ?>
                                         <p><a href="<?php echo sr_e($emailVerificationUrl); ?>"><?php echo sr_e(sr_t('member::ui.email.849a4197')); ?></a></p>
@@ -468,7 +468,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <?php } ?>
                                 <div class="member-skin-basic-actions">
                                     <?php foreach ($oauthProviders as $oauthProvider) { ?>
-                                        <a class="btn btn-outline-primary" href="<?php echo sr_e(sr_url('/oauth/start?provider=' . rawurlencode((string) $oauthProvider['provider_key']) . '&flow=link&next=' . rawurlencode($memberAccountBasePath . '/account'))); ?>">
+                                        <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/oauth/start?provider=' . rawurlencode((string) $oauthProvider['provider_key']) . '&flow=link&next=' . rawurlencode($memberAccountBasePath . '/account'))); ?>">
                                             <?php echo sr_e((string) $oauthProvider['label']); ?> 연결
                                         </a>
                                     <?php } ?>
@@ -568,7 +568,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                         </label>
                                     </p>
                                 <?php } ?>
-                                <button class="btn btn-outline-primary" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_recovery.rotate')); ?></button>
+                                <button class="btn btn-outline-secondary" type="submit"><?php echo sr_e(sr_t('member::ui.mfa_recovery.rotate')); ?></button>
                             </form>
                             <?php if ($memberMfaDisableAllowed) { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url($memberAccountBasePath . '/security')); ?>" class="member-skin-basic-form" data-sr-validate-form>
@@ -611,7 +611,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                             </label>
                                         </p>
                                     <?php } ?>
-                                    <button class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberMfaPendingFactor === null ? sr_t('member::ui.mfa_totp.prepare') : sr_t('member::ui.mfa_totp.prepare_again')); ?></button>
+                                    <button class="btn btn-solid-secondary" type="submit"><?php echo sr_e($memberMfaPendingFactor === null ? sr_t('member::ui.mfa_totp.prepare') : sr_t('member::ui.mfa_totp.prepare_again')); ?></button>
                                 </form>
                             <?php } ?>
 
@@ -691,7 +691,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                                 <input class="form-input" id="modules_member_account_current_password_2" type="password" name="current_password" autocomplete="current-password" required>
                             </label>
-                            <button class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t('member::ui.privacy.2df1446d')); ?></button>
+                            <button class="btn btn-solid-secondary" type="submit"><?php echo sr_e(sr_t('member::ui.privacy.2df1446d')); ?></button>
                         </form>
                     </section>
                 <?php } ?>

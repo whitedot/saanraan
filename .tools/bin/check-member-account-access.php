@@ -107,6 +107,25 @@ $assert(
     'Account information management must expose one combined form and one save action for basic and additional fields.'
 );
 $assert(
+    is_string($skin)
+        && preg_match('/\.member-skin-basic-account-submit\s*\{[^}]*justify-content:\s*flex-end;/s', $skin) === 1
+        && preg_match('/@media \(max-width:\s*640px\)[^{]*\{.*\.member-skin-basic-account-submit\s*>\s*\.btn\s*\{[^}]*width:\s*100%;/s', $skin) === 1,
+    'Account information save action must align right on wide screens and fill the available width on mobile.'
+);
+$assert(
+    is_string($view)
+        && str_contains($view, 'class="btn btn-outline-secondary member-skin-basic-hero-action"')
+        && str_contains($view, 'class="btn btn-solid-secondary" type="submit"<?php echo !$emailDeliveryAvailable')
+        && str_contains($view, 'class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url(\'/oauth/start?provider=')
+        && str_contains($view, 'class="btn btn-outline-secondary" type="submit"><?php echo sr_e(sr_t(\'member::ui.mfa_recovery.rotate\'))')
+        && str_contains($view, 'class="btn btn-solid-secondary" type="submit"><?php echo sr_e($memberMfaPendingFactor')
+        && str_contains($view, 'class="btn btn-solid-secondary" type="submit"><?php echo sr_e(sr_t(\'member::ui.privacy.2df1446d\'))')
+        && str_contains($view, 'class="btn btn-outline-danger" type="submit"')
+        && str_contains($view, 'class="btn btn-solid-primary" type="submit"><?php echo sr_e($memberAccountHasPassword')
+        && str_contains($view, 'class="btn btn-solid-primary" type="submit"><?php echo sr_e(sr_t(\'member::ui.mfa_totp.activate\'))'),
+    'Member account internal actions must use secondary styling while primary completion and danger actions retain their hierarchy.'
+);
+$assert(
     is_string($action)
         && str_contains($action, "\$saveProfileWithBasics = \$profileFieldsEnabled && sr_post_string('save_profile', 1) === '1';")
         && str_contains($action, 'if ($saveProfileWithBasics) {')

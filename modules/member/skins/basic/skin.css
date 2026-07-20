@@ -88,7 +88,7 @@
 
 .member-skin-basic-account-submit {
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
 
 .member-skin-basic-side-nav {
@@ -441,6 +441,10 @@
 
     .member-skin-basic-overview-grid {
         grid-template-columns: 1fr;
+    }
+
+    .member-skin-basic-account-submit > .btn {
+        width: 100%;
     }
 
     .member-skin-basic-link-row {
