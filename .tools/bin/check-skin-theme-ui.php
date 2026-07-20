@@ -1146,7 +1146,38 @@ sr_skin_theme_check_contains('modules/admin/helpers/icons.php', [
 sr_skin_theme_check_contains('modules/admin/themes/basic/layout-header.php', [
     'sr_icon(',
     'sr_icon_bootstrap_script();',
+    "require_once SR_ROOT . '/modules/member/public-identity.php';",
+    "['include_follow_statuses' => false]",
+    "'size_pixels' => 24",
+    "'image_class' => 'admin-profile-trigger-avatar'",
+    "'size_pixels' => 40",
+    "'image_class' => 'admin-profile-menu-avatar'",
+    '$adminShellProfileImagesEnabled && $adminShellProfileTriggerAvatarHtml !== \'\'',
+    '!$adminShellProfileImagesEnabled || $adminShellProfileMenuAvatarHtml === \'\'',
 ], 'Admin theme Material icon rendering');
+
+sr_skin_theme_check_not_contains('modules/admin/themes/basic/layout-header.php', [
+    'class="admin-profile-avatar',
+    'account_avatar_color_class',
+], 'Admin profile dropdown should not hardcode a separate avatar');
+
+sr_skin_theme_check_contains('modules/admin/assets/admin.css', [
+    '#tnb .admin-profile-trigger-avatar',
+    'align-items:center',
+    'height:1.5rem',
+    'justify-content:center',
+    'object-fit:cover',
+    'width:1.5rem',
+    '#tnb .admin-profile-dropdown-header.has-no-avatar',
+    '#tnb .admin-profile-menu-avatar',
+    'height:2.5rem',
+    'width:2.5rem',
+], 'Admin profile dropdown trigger avatar size');
+
+sr_skin_theme_check_contains('modules/member/assets/public-identity.css', [
+    '.member-profile-image.member-avatar-color-0',
+    '.member-profile-image.member-avatar-color-11',
+], 'Member public identity fallback palette');
 
 sr_skin_theme_check_not_contains('modules/admin/themes/basic/layout-header.php', [
     '<svg',

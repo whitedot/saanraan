@@ -1,5 +1,7 @@
 <?php
 
+require_once SR_ROOT . '/modules/member/public-identity.php';
+
 $adminPageTitle = $adminPageTitle ?? sr_t('admin::ui.admin.78496a61');
 $adminPageSubtitle = $adminPageSubtitle ?? '';
 $adminPageSubtitleLines = [];
@@ -32,7 +34,6 @@ $adminShell = [
     'profile_url' => sr_url('/account'),
     'logout_url' => sr_url('/logout'),
     'account_display_name' => '',
-    'account_avatar_color_class' => 'member-avatar-color-8',
     'navigation_items' => [],
     'auxiliary_links' => [],
 ];
@@ -46,10 +47,48 @@ if ($adminShellAccountDisplayName === '' && isset($account) && is_array($account
 }
 $adminShellAccountEmail = isset($account) && is_array($account) ? trim((string) ($account['email'] ?? '')) : '';
 $adminShellAccountInitialSource = $adminShellAccountDisplayName !== '' ? $adminShellAccountDisplayName : ($adminShellAccountEmail !== '' ? $adminShellAccountEmail : 'A');
-$adminShellAccountInitial = function_exists('mb_substr') ? mb_substr($adminShellAccountInitialSource, 0, 1) : substr($adminShellAccountInitialSource, 0, 1);
-$adminShellAccountAvatarColorClass = preg_match('/\Amember-avatar-color-(?:[0-9]|1[01])\z/', (string) ($adminShell['account_avatar_color_class'] ?? '')) === 1
-    ? (string) $adminShell['account_avatar_color_class']
-    : 'member-avatar-color-8';
+$adminShellPublicIdentityAssets = ['stylesheets' => [], 'scripts' => []];
+$adminShellProfileImagesEnabled = false;
+$adminShellProfileTriggerAvatarHtml = '';
+$adminShellProfileMenuAvatarHtml = '';
+if (isset($pdo) && $pdo instanceof PDO && isset($account) && is_array($account) && (int) ($account['id'] ?? 0) > 0) {
+    $adminShellPublicIdentityContext = sr_member_public_identity_context(
+        $pdo,
+        $account,
+        [(int) $account['id']],
+        ['include_follow_statuses' => false]
+    );
+    $adminShellProfileImagesEnabled = !empty($adminShellPublicIdentityContext['profile_images_enabled']);
+    if ($adminShellProfileImagesEnabled) {
+        $adminShellPublicIdentityParts = sr_member_public_identity_parts(
+            $pdo,
+            $adminShellPublicIdentityContext,
+            (int) $account['id'],
+            $adminShellAccountInitialSource,
+            [
+                'menu' => false,
+                'size' => 'small',
+                'size_pixels' => 24,
+                'image_class' => 'admin-profile-trigger-avatar',
+            ]
+        );
+        $adminShellProfileTriggerAvatarHtml = (string) ($adminShellPublicIdentityParts['profile_image_html'] ?? '');
+        $adminShellProfileMenuIdentityParts = sr_member_public_identity_parts(
+            $pdo,
+            $adminShellPublicIdentityContext,
+            (int) $account['id'],
+            $adminShellAccountInitialSource,
+            [
+                'menu' => false,
+                'size' => 'large',
+                'size_pixels' => 40,
+                'image_class' => 'admin-profile-menu-avatar',
+            ]
+        );
+        $adminShellProfileMenuAvatarHtml = (string) ($adminShellProfileMenuIdentityParts['profile_image_html'] ?? '');
+        $adminShellPublicIdentityAssets = sr_member_public_identity_assets();
+    }
+}
 $adminShellProfileBadgeLabel = '스탭';
 if (isset($pdo) && $pdo instanceof PDO && isset($account) && is_array($account) && function_exists('sr_admin_is_owner')) {
     $adminShellProfileBadgeLabel = sr_admin_is_owner($pdo, (int) ($account['id'] ?? 0)) ? '매니저' : '스탭';
@@ -111,7 +150,7 @@ $adminBrandLinkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($seo, $site ?? null); ?>
     <?php echo $adminFaviconHtml; ?>
-    <?php echo sr_admin_stylesheet_tag($pdo ?? null); ?>
+    <?php echo sr_admin_stylesheet_tag($pdo ?? null, null, [], (array) ($adminShellPublicIdentityAssets['stylesheets'] ?? [])); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body>
@@ -325,7 +364,11 @@ $adminBrandLinkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has
                         <li class="tnb_li admin-toolbar-item relative">
                             <details class="admin-profile-dropdown">
                                 <summary class="tnb_mb_btn tnb_icon_btn admin-toolbar-icon-button" aria-label="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>" title="<?php echo sr_e(sr_t('admin::ui.admin.menu.c4a18693')); ?>">
-                                    <?php echo sr_icon('person', 'admin-shell-control-icon'); ?>
+                                    <?php if ($adminShellProfileImagesEnabled && $adminShellProfileTriggerAvatarHtml !== '') { ?>
+                                        <?php echo $adminShellProfileTriggerAvatarHtml; ?>
+                                    <?php } else { ?>
+                                        <?php echo sr_icon('person', 'admin-shell-control-icon'); ?>
+                                    <?php } ?>
                                     <?php if ($adminShellAccountDisplayName !== '') { ?>
                                         <span class="admin-profile-name">
                                             <span class="admin-profile-name-text"><?php echo sr_e($adminShellAccountDisplayName); ?></span>
@@ -334,8 +377,10 @@ $adminBrandLinkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has
                                     <?php } ?>
                                 </summary>
                                 <ul class="tnb_mb_area admin-toolbar-menu" role="menu" aria-orientation="vertical">
-                                    <li class="admin-profile-dropdown-header" aria-hidden="true">
-                                        <span class="admin-profile-avatar <?php echo sr_e($adminShellAccountAvatarColorClass); ?>"><?php echo sr_e($adminShellAccountInitial); ?></span>
+                                    <li class="admin-profile-dropdown-header<?php echo !$adminShellProfileImagesEnabled || $adminShellProfileMenuAvatarHtml === '' ? ' has-no-avatar' : ''; ?>" aria-hidden="true">
+                                        <?php if ($adminShellProfileImagesEnabled && $adminShellProfileMenuAvatarHtml !== '') { ?>
+                                            <?php echo $adminShellProfileMenuAvatarHtml; ?>
+                                        <?php } ?>
                                         <span class="admin-profile-identity">
                                             <strong><?php echo sr_e($adminShellAccountDisplayName !== '' ? $adminShellAccountDisplayName : '관리자'); ?></strong>
                                             <?php if ($adminShellAccountEmail !== '') { ?>

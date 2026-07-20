@@ -10,7 +10,7 @@ function sr_member_public_identity_assets(): array
     ];
 }
 
-function sr_member_public_identity_context(PDO $pdo, ?array $viewerAccount, array $accountIds): array
+function sr_member_public_identity_context(PDO $pdo, ?array $viewerAccount, array $accountIds, array $options = []): array
 {
     $normalizedAccountIds = [];
     foreach ($accountIds as $accountId) {
@@ -22,6 +22,8 @@ function sr_member_public_identity_context(PDO $pdo, ?array $viewerAccount, arra
     $normalizedAccountIds = array_values($normalizedAccountIds);
     $viewerAccountId = is_array($viewerAccount) ? (int) ($viewerAccount['id'] ?? 0) : 0;
     $settings = function_exists('sr_member_settings') ? sr_member_settings($pdo) : [];
+    $profileImagesEnabled = sr_member_public_profile_images_enabled($pdo);
+    $includeFollowStatuses = !array_key_exists('include_follow_statuses', $options) || !empty($options['include_follow_statuses']);
     $sizePixels = static function (string $sizeKey) use ($settings): int {
         if (function_exists('sr_member_profile_image_size_pixels')) {
             return sr_member_profile_image_size_pixels($sizeKey, $settings);
@@ -32,8 +34,9 @@ function sr_member_public_identity_context(PDO $pdo, ?array $viewerAccount, arra
 
     return [
         'viewer_account' => is_array($viewerAccount) ? $viewerAccount : null,
+        'profile_images_enabled' => $profileImagesEnabled,
         'profile_image_sources' => sr_member_public_profile_image_sources($pdo, $normalizedAccountIds),
-        'follow_statuses' => sr_member_follow_statuses($pdo, $viewerAccountId, $normalizedAccountIds),
+        'follow_statuses' => $includeFollowStatuses ? sr_member_follow_statuses($pdo, $viewerAccountId, $normalizedAccountIds) : [],
         'size_pixels' => [
             'small' => $sizePixels('small'),
             'medium' => $sizePixels('medium'),
@@ -54,6 +57,9 @@ function sr_member_public_identity_parts(
         ? sr_member_profile_image_size_key((string) ($options['size'] ?? 'medium'))
         : (in_array((string) ($options['size'] ?? ''), ['small', 'medium', 'large'], true) ? (string) $options['size'] : 'medium');
     $sizePixels = (int) (($context['size_pixels'][$sizeKey] ?? 0));
+    if ((int) ($options['size_pixels'] ?? 0) > 0) {
+        $sizePixels = max(16, min(128, (int) $options['size_pixels']));
+    }
     $profileImageSources = is_array($context['profile_image_sources'] ?? null)
         ? $context['profile_image_sources']
         : [];

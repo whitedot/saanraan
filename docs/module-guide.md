@@ -1103,6 +1103,7 @@ return [
 - 회원 모듈이 `context_function`, `parts_function`, `assets_function`을 제공한다.
 - 요청 action은 작성자 계정 ID를 모아 `context_function`을 한 번 호출한다. 목록 item loop에서 회원 프로필, 공개 정책, 팔로우 상태를 다시 조회하지 않는다.
 - 소비 view는 도메인이 결정한 공개 작성자 label과 배치용 class, `small`/`medium`/`large` 크기만 `parts_function`에 전달한다. 이미지 공개 여부, 이미지 없음, 탈퇴 계정 처리와 첫 글자 fallback은 회원 계약이 결정한다.
+- 관리자 상단 회원 메뉴처럼 프로필 메뉴와 팔로우 상태가 필요 없는 고정 UI는 `include_follow_statuses=false`와 해당 배치 전용 `size_pixels`를 전달할 수 있다. 프로필 이미지 사용 여부는 context의 `profile_images_enabled`를 따르며, 사용 중일 때만 트리거와 펼친 메뉴 헤더에 계약의 이미지 또는 첫 글자 fallback을 표시한다. 사용하지 않을 때 트리거는 관리자 아이콘을 유지하고 펼친 메뉴 헤더에는 아바타 영역을 출력하지 않는다.
 - `assets_function`은 회원 모듈 소유 `/modules/member/assets/public-identity.css`와 `/modules/member/assets/profile-menu.js`를 반환한다. 소비 view는 이 목록을 layout context에 명시적으로 병합하며 경로를 직접 적지 않는다.
 - 콘텐츠, 커뮤니티, 퀴즈, 설문은 하위 `sr_member_public_profile_image_*`, `sr_member_follow_statuses`, `sr_member_public_name_menu_html` 함수를 직접 조립하지 않는다.
 
@@ -1555,7 +1556,7 @@ return [
 | `member-only-routes.php` | core member-only guard | 사이트 회원전용 모드 비로그인 요청 판단 | 모듈 공개 화면 route/prefix와 파일성 보호 route |
 | `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장, 선택적인 계정 화면 값 조회·수정 | 서비스 모듈이 회원가입 시 필요한 추가 입력과 이후 회원 설정 관리를 함께 제공할 때 |
 | `member-mfa-providers.php` | `member` 모듈 | 로그인 MFA 운영자 설정, 로그인 challenge provider 결정, 회원 보안 화면 등록 가능 여부 판단 | TOTP, 이메일, SMS, 다른 OTP 같은 로그인 2차 인증 방식 후보 |
-| `public-identity.php` | `content`, `community`, `quiz`, `survey` 모듈 | 목록·읽기·댓글의 작성자 context 일괄 준비와 렌더링 | 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업 및 공통 stylesheet/script |
+| `public-identity.php` | `admin`, `content`, `community`, `quiz`, `survey` 모듈 | 관리자 회원 메뉴와 목록·읽기·댓글의 작성자 context 일괄 준비 및 렌더링 | 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업 및 공통 stylesheet/script |
 | `public-banner.php` | `content`, `community` 모듈과 공개 layout shell | 선택 배너 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 배너 공개 정책, 마크업과 공통 stylesheet |
 | `public-popup-layer.php` | `content`, `community`, `quiz`, `survey` 모듈과 공개 layout shell | 선택 팝업레이어 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 팝업 공개 기간·상태 정책, 마크업과 공통 stylesheet |
 | `public-reaction.php` | `content`, `community`, `quiz`, `survey` 모듈 | 리액션 대상 batch resolve·집계, widget 렌더링, 설정 후보와 삭제 정리 | 리액션 정책·원장·마크업과 공통 stylesheet/script |
@@ -1595,7 +1596,7 @@ return [
 
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
-| `admin` | `paths.php`, `admin-account-role.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php` |
+| `admin` | `paths.php`, `admin-account-role.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php`, `public-identity.php` |
 | `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php`, `public-identity.php` | `admin-account-role.php`, `notification-events.php`, `email-delivery.php`, `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |

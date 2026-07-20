@@ -11,9 +11,23 @@ function sr_member_nicknames_table_exists(PDO $pdo): bool
     return false;
 }
 
+$fixtureMemberSettings = ['profile_image_enabled' => true];
+
 function sr_member_settings(PDO $pdo): array
 {
-    return [];
+    global $fixtureMemberSettings;
+
+    return is_array($fixtureMemberSettings) ? $fixtureMemberSettings : [];
+}
+
+function sr_member_profile_field_policies(array $settings): array
+{
+    return [
+        'profile_image_path' => [
+            'visible' => !empty($settings['profile_image_enabled']),
+            'required' => false,
+        ],
+    ];
 }
 
 function sr_member_public_name(array $account, array $settings = [], string $fallback = '회원'): string
@@ -72,6 +86,21 @@ $customSmallAvatarHtml = sr_member_public_profile_image_html((string) ($avatarSo
 $assert(str_contains($smallAvatarHtml, 'member-profile-image-size-small') && str_contains($smallAvatarHtml, 'width="24" height="24"'), 'Small public avatar markup must use the 24px size contract.');
 $assert(str_contains($largeAvatarHtml, 'member-profile-image-size-large') && str_contains($largeAvatarHtml, 'width="40" height="40"'), 'Large public avatar markup must use the 40px size contract.');
 $assert(str_contains($customSmallAvatarHtml, 'width="29" height="29"') && str_contains($customSmallAvatarHtml, '--member-profile-image-size: 29px'), 'Public avatar markup must apply the configured usage-tier pixels to attributes and CSS.');
+$adminIdentityContext = sr_member_public_identity_context($pdo, null, [1], ['include_follow_statuses' => false]);
+$assert(
+    !empty($adminIdentityContext['profile_images_enabled'])
+        && isset($adminIdentityContext['profile_image_sources'][1])
+        && ($adminIdentityContext['follow_statuses'] ?? null) === [],
+    'Public identity context must expose profile-image policy and allow non-social placements to skip follow lookup.'
+);
+$fixtureMemberSettings = ['profile_image_enabled' => false];
+$disabledAvatarContext = sr_member_public_identity_context($pdo, null, [1], ['include_follow_statuses' => false]);
+$assert(
+    empty($disabledAvatarContext['profile_images_enabled'])
+        && ($disabledAvatarContext['profile_image_sources'] ?? null) === [],
+    'Public identity context must expose disabled profile-image policy without returning uploaded sources.'
+);
+$fixtureMemberSettings = ['profile_image_enabled' => true];
 $identityParts = sr_member_public_identity_parts($pdo, [
     'viewer_account' => null,
     'profile_image_sources' => [1 => (string) ($avatarSources[1] ?? '')],
@@ -87,6 +116,22 @@ $assert(
         && str_contains((string) ($identityParts['profile_image_html'] ?? ''), 'width="29" height="29"')
         && (string) ($identityParts['name_html'] ?? '') === '작성자',
     'Public identity contract must return profile-image and name parts from one normalized context.'
+);
+$fixedPlacementIdentityParts = sr_member_public_identity_parts($pdo, [
+    'viewer_account' => null,
+    'profile_image_sources' => [1 => (string) ($avatarSources[1] ?? '')],
+    'follow_statuses' => [],
+    'size_pixels' => ['small' => 29, 'medium' => 32, 'large' => 40],
+], 1, '작성자', [
+    'size' => 'small',
+    'size_pixels' => 24,
+    'image_class' => 'fixture-fixed-placement-image',
+    'menu' => false,
+]);
+$assert(
+    str_contains((string) ($fixedPlacementIdentityParts['profile_image_html'] ?? ''), 'fixture-fixed-placement-image')
+        && str_contains((string) ($fixedPlacementIdentityParts['profile_image_html'] ?? ''), 'width="24" height="24"'),
+    'Public identity contract must allow a bounded placement-specific image size without changing shared tier settings.'
 );
 $identityFallbackParts = sr_member_public_identity_parts($pdo, [
     'viewer_account' => null,
@@ -508,6 +553,8 @@ foreach ([
     '.member-profile-image.member-profile-image-size-medium',
     '.member-profile-image.member-profile-image-size-large',
     '.member-profile-image-fallback',
+    '.member-profile-image.member-avatar-color-0',
+    '.member-profile-image.member-avatar-color-11',
 ] as $memberIdentityStyleMarker) {
     $assert(
         is_string($memberIdentityStylesheet) && str_contains($memberIdentityStylesheet, $memberIdentityStyleMarker),

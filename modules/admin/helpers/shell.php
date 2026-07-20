@@ -13,7 +13,6 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         $profileUrl = sr_url('/admin/members/edit?id=' . rawurlencode((string) $accountId));
     }
     $accountDisplayName = '';
-    $accountAvatarColorClass = 'member-avatar-color-8';
     if ($accountId > 0) {
         try {
             $stmt = $pdo->prepare('SELECT display_name FROM sr_member_accounts WHERE id = :id LIMIT 1');
@@ -21,9 +20,6 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
             $accountDisplayName = trim((string) $stmt->fetchColumn());
         } catch (Throwable $exception) {
             $accountDisplayName = '';
-        }
-        if (function_exists('sr_member_public_account_hash') && function_exists('sr_member_default_avatar_color_class')) {
-            $accountAvatarColorClass = sr_member_default_avatar_color_class(sr_member_public_account_hash(sr_runtime_config(), $accountId));
         }
     }
     $adminNotificationSummary = ['open_count' => 0, 'items' => [], 'url' => sr_url('/admin/admin-notifications')];
@@ -51,7 +47,6 @@ function sr_admin_shell_view(PDO $pdo, ?array $site, string $pageTitle, string $
         'profile_url' => $profileUrl,
         'logout_url' => sr_url('/logout'),
         'account_display_name' => $accountDisplayName,
-        'account_avatar_color_class' => $accountAvatarColorClass,
         'navigation_items' => $navigationItems,
         'auxiliary_links' => $auxiliaryLinks,
         'admin_notification_summary' => $adminNotificationSummary,
@@ -364,7 +359,7 @@ function sr_admin_shell_class_attr(string $class): string
     return implode(' ', $tokens);
 }
 
-function sr_admin_stylesheet_tag(?PDO $pdo = null, ?string $currentPath = null, array $extraModuleKeys = []): string
+function sr_admin_stylesheet_tag(?PDO $pdo = null, ?string $currentPath = null, array $extraModuleKeys = [], array $extraStylesheets = []): string
 {
     $tags = [
         '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
@@ -380,6 +375,14 @@ function sr_admin_stylesheet_tag(?PDO $pdo = null, ?string $currentPath = null, 
         foreach (sr_admin_module_stylesheet_paths($pdo, $currentPath, $extraModuleKeys) as $stylesheet) {
             $tags[] = '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url($stylesheet)) . '">';
         }
+    }
+
+    foreach ($extraStylesheets as $stylesheet) {
+        if (!is_string($stylesheet) || !sr_is_safe_relative_url($stylesheet)) {
+            continue;
+        }
+
+        $tags[] = '<link rel="stylesheet" href="' . sr_e(sr_admin_asset_url($stylesheet)) . '">';
     }
 
     return implode(PHP_EOL, array_values(array_filter($tags, 'strlen')));

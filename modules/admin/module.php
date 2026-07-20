@@ -18,6 +18,9 @@ return [
     ],
     'requires' => [
         'modules' => ['member'],
+        'contracts' => [
+            ['module' => 'member', 'file' => 'public-identity.php'],
+        ],
     ],
     'contracts' => [
         'provides' => [
@@ -34,6 +37,7 @@ return [
             'admin-notification-events.php',
             'operational-status.php',
             'retention-targets.php',
+            'public-identity.php',
         ],
     ],
     'settings' => [

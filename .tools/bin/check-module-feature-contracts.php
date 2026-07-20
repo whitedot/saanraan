@@ -97,7 +97,7 @@ foreach ($moduleMetadata as $moduleKey => $metadata) {
     }
 }
 
-$publicIdentityConsumers = ['content', 'community', 'quiz', 'survey'];
+$publicIdentityConsumers = ['admin', 'content', 'community', 'quiz', 'survey'];
 $memberMetadata = $moduleMetadata['member'] ?? [];
 if (!in_array('public-identity.php', (array) ($memberMetadata['contracts']['provides'] ?? []), true)) {
     $fail('member must declare public-identity.php in contracts.provides.');
@@ -125,6 +125,7 @@ foreach ($publicIdentityConsumers as $consumerModuleKey) {
 }
 
 $requestFiles = [
+    'modules/admin/themes/basic/layout-header.php',
     'modules/content/actions/home.php',
     'modules/content/actions/group.php',
     'modules/content/actions/view.php',
@@ -141,6 +142,7 @@ foreach ($requestFiles as $requestFile) {
 }
 
 $consumerViewFiles = [
+    'modules/admin/themes/basic/layout-header.php',
     'modules/content/theme/basic/home.php',
     'modules/content/views/home.php',
     'modules/content/theme/basic/group.php',
