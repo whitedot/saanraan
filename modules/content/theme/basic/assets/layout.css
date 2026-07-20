@@ -546,7 +546,7 @@
     justify-content: space-between;
     margin: 0 auto;
     padding-top: 18px;
-    width: min(1360px, 100%);
+    width: 100%;
 }
 
 .content-layout-footer-brand-link {
@@ -578,9 +578,8 @@
     gap: 6px 14px;
     line-height: 1.5;
     margin: 10px auto 0;
-    max-width: 1360px;
     padding: 0;
-    width: min(1360px, 100%);
+    width: 100%;
 }
 
 .content-layout-business-info-item {
@@ -898,15 +897,17 @@
 }
 
 .content-layout-footer {
+    box-sizing: border-box;
     color: var(--color-default-700, var(--text-strong, var(--color-body-color, #20242a)));
     margin: 0 auto;
-    padding: 28px 0 42px;
-    width: calc(100% - clamp(32px, 5vw, 96px));
+    max-width: var(--content-layout-content-max-width);
+    padding: 28px var(--content-layout-page-gutter) 42px;
+    width: 100%;
 }
 
 .content-layout-footer-nav {
     margin: 0 auto 16px;
-    width: min(1360px, 100%);
+    width: 100%;
 }
 
 .content-layout-footer-nav .sr-site-menu-list {
@@ -920,7 +921,7 @@
     line-height: 1.4;
     margin: 0 auto;
     padding-top: 18px;
-    width: min(1360px, 100%);
+    width: 100%;
 }
 
 @media (max-width: 767px) {

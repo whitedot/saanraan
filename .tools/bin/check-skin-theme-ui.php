@@ -604,6 +604,21 @@ sr_skin_theme_check_contains([
     '/theme/basic/ui-kit.php',
 ], 'Module UI kit action selected theme view include');
 
+sr_skin_theme_check_contains('modules/content/theme/basic/assets/layout.css', [
+    ".content-layout-header {\n    background: transparent;\n    box-sizing: border-box;",
+    "max-width: var(--content-layout-content-max-width);\n    padding: 0 var(--content-layout-page-gutter);\n    width: 100%;",
+    ".content-layout-footer {\n    box-sizing: border-box;",
+    "max-width: var(--content-layout-content-max-width);\n    padding: 28px var(--content-layout-page-gutter) 42px;\n    width: 100%;",
+    "padding-top: 18px;\n    width: 100%;\n}\n\n.content-layout-footer-brand-link",
+    "padding: 0;\n    width: 100%;\n}\n\n.content-layout-business-info-item",
+    "margin: 0 auto 16px;\n    width: 100%;\n}\n\n.content-layout-footer-nav .sr-site-menu-list",
+], 'Content public header and footer shared width');
+
+sr_skin_theme_check_not_contains('modules/content/theme/basic/assets/layout.css', [
+    'width: min(1360px, 100%);',
+    'max-width: 1360px;',
+], 'Content public footer legacy width');
+
 foreach ([
     'core/views/theme/basic/home.php',
     'modules/content/theme/basic/home.php',
