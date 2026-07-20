@@ -22,7 +22,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
 
     <?php if ($allowedSubmissionGroups === []) { ?>
         <p>제출 가능한 콘텐츠 그룹이 없습니다.</p>
-        <p><a href="<?php echo sr_e(sr_url('/account/content/author-application')); ?>">콘텐츠 등록자 신청</a></p>
+        <p><a class="btn btn-outline-primary" href="<?php echo sr_e(sr_url('/account/content/author-application')); ?>">콘텐츠 등록자 신청</a></p>
     <?php } else { ?>
         <section class="card">
             <div class="card-header">
@@ -32,30 +32,26 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                 <form method="post" action="<?php echo sr_e(sr_url($contentSubmissionFormPath)); ?>" class="ui-card-body-stack">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="submission_id" value="<?php echo sr_e((string) (int) ($formSubmission['id'] ?? 0)); ?>">
-                    <p>
-                        <label for="account_content_group">콘텐츠 그룹</label><br>
+                    <p><label class="ui-field" for="account_content_group"><span>콘텐츠 그룹</span>
                         <select id="account_content_group" name="content_group_id" class="form-select">
                             <?php foreach ($allowedSubmissionGroups as $group) { ?>
                                 <option value="<?php echo sr_e((string) (int) $group['id']); ?>"<?php echo (int) ($formSubmission['content_group_id'] ?? 0) === (int) $group['id'] ? ' selected' : ''; ?>><?php echo sr_e((string) $group['title']); ?></option>
                             <?php } ?>
                         </select>
-                    </p>
-                    <p>
-                        <label for="account_content_title">제목</label><br>
+                    </label></p>
+                    <p><label class="ui-field" for="account_content_title"><span>제목</span>
                         <input id="account_content_title" type="text" name="title" value="<?php echo sr_e((string) ($formSubmission['title'] ?? '')); ?>" maxlength="160" class="form-input">
-                    </p>
-                    <p>
-                        <label for="account_content_summary">요약</label><br>
+                    </label></p>
+                    <p><label class="ui-field" for="account_content_summary"><span>요약</span>
                         <textarea id="account_content_summary" name="summary" rows="3" class="form-textarea"><?php echo sr_e((string) ($formSubmission['summary'] ?? '')); ?></textarea>
-                    </p>
-                    <p>
-                        <label for="account_content_body">본문</label><br>
+                    </label></p>
+                    <p><label class="ui-field" for="account_content_body"><span>본문</span>
                         <textarea id="account_content_body" name="body_text" rows="12" class="form-textarea"><?php echo sr_e((string) ($formSubmission['body_text'] ?? '')); ?></textarea>
-                    </p>
-                    <p>
+                    </label></p>
+                    <div class="ui-actions">
                         <button type="submit" name="intent" value="draft" class="btn btn-solid-light">임시저장</button>
                         <button type="submit" name="intent" value="submit" class="btn btn-solid-primary">제출</button>
-                    </p>
+                    </div>
                 </form>
             </div>
         </section>
@@ -73,8 +69,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         <tr>
                             <td><?php echo sr_e((string) $submission['title']); ?></td>
                             <td><?php echo sr_e((string) ($submission['group_title'] ?? '')); ?></td>
-                            <td><?php echo sr_e((string) $submission['review_status']); ?></td>
-                            <td><?php if (in_array((string) $submission['review_status'], ['approved', 'member_draft', 'revision_requested', 'rejected'], true)) { ?><a href="<?php echo sr_e(sr_url('/account/content?id=' . (string) (int) $submission['id'] . ($contentSubmissionPage > 1 ? '&page=' . (string) $contentSubmissionPage : ''))); ?>">수정</a><?php } ?></td>
+                            <td><?php echo sr_e(sr_content_submission_status_label((string) $submission['review_status'])); ?></td>
+                            <td><?php if (in_array((string) $submission['review_status'], ['approved', 'member_draft', 'revision_requested', 'rejected'], true)) { ?><a class="btn btn-sm btn-outline-default" href="<?php echo sr_e(sr_url('/account/content?id=' . (string) (int) $submission['id'] . ($contentSubmissionPage > 1 ? '&page=' . (string) $contentSubmissionPage : ''))); ?>">수정</a><?php } ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>

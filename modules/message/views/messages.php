@@ -12,23 +12,25 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'module_label' => '쪽지',
 ]);
 ?>
-    <main class="message-screen">
-        <h1><?php echo sr_e($pageTitle); ?></h1>
-        <p>
-            <a href="<?php echo sr_e(sr_url('/messages')); ?>">받은 쪽지</a>
-            /
-            <a href="<?php echo sr_e(sr_url('/messages?box=sent')); ?>">보낸 쪽지</a>
-            /
-            <a href="<?php echo sr_e(sr_url('/message/write')); ?>">쪽지 쓰기</a>
-        </p>
+    <main class="ui-page message-screen">
+        <header class="ui-page-header">
+            <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
+            <a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/message/write')); ?>">쪽지 쓰기</a>
+        </header>
+        <nav class="ui-actions" aria-label="쪽지함">
+            <a class="btn <?php echo $box === 'sent' ? 'btn-outline-default' : 'btn-soft-primary'; ?>" href="<?php echo sr_e(sr_url('/messages')); ?>">받은 쪽지</a>
+            <a class="btn <?php echo $box === 'sent' ? 'btn-soft-primary' : 'btn-outline-default'; ?>" href="<?php echo sr_e(sr_url('/messages?box=sent')); ?>">보낸 쪽지</a>
+        </nav>
 
         <?php echo sr_public_feedback_toasts('message', $notice, []); ?>
 
-        <section id="message-list">
+        <section id="message-list" class="card">
+        <div class="card-body ui-card-body-stack">
         <?php if ($messages === []) { ?>
             <p>표시할 쪽지가 없습니다.</p>
         <?php } else { ?>
-            <table>
+            <div class="table-wrapper">
+            <table class="table table-list">
                 <thead>
                     <tr>
                         <th><?php echo sr_e($box === 'sent' ? '수신자' : '발신자'); ?></th>
@@ -52,7 +54,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                             </td>
                             <td><?php echo sr_e($box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? '읽지 않음' : '읽음') : ((string) ($message['read_at'] ?? '') === '' ? '새 쪽지' : '읽음')); ?></td>
                             <td><?php echo sr_message_time_html((string) $message['created_at']); ?></td>
-                            <td><a href="<?php echo sr_e(sr_url('/message?id=' . (string) $message['id'])); ?>">보기</a></td>
+                            <td><a class="btn btn-sm btn-outline-default" href="<?php echo sr_e(sr_url('/message?id=' . (string) $message['id'])); ?>">보기</a></td>
                             <td>
                                 <form method="post" action="<?php echo sr_e(sr_url('/message/delete')); ?>">
                                     <?php echo sr_csrf_field(); ?>
@@ -65,8 +67,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
         <?php } ?>
         <?php echo sr_public_pagination_html($messagePagination, $messagePaginationBasePath, '쪽지 목록 페이지', 'page', 'message-list'); ?>
+        </div>
         </section>
     </main>
 <?php sr_public_layout_end(); ?>

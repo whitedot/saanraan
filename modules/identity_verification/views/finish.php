@@ -36,10 +36,16 @@ if ($finishResult === 'success') {
     <?php echo sr_stylesheet_tag(); ?>
 </head>
 <body>
-    <main class="identity-verification-transfer">
-        <h1><?php echo sr_e($finishHeading); ?></h1>
+    <main class="ui-page identity-verification-transfer">
+        <section class="card">
+        <div class="card-header">
+            <h1 class="card-title"><?php echo sr_e($finishHeading); ?></h1>
+        </div>
+        <div class="card-body ui-card-body-stack">
         <p><?php echo sr_e($finishMessage); ?></p>
-        <p><a href="<?php echo sr_e($finishUrl); ?>"><?php echo sr_e('원래 화면으로 돌아가기'); ?></a></p>
+        <p><a class="btn btn-solid-primary" href="<?php echo sr_e($finishUrl); ?>"><?php echo sr_e('원래 화면으로 돌아가기'); ?></a></p>
+        </div>
+        </section>
     </main>
     <script>
     (function () {

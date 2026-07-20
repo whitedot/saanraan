@@ -397,7 +397,7 @@ function sr_antispam_challenge_render(PDO $pdo, string $surface, string $formKey
         $inputId = 'sr_antispam_answer_' . substr(hash('sha256', $surface . $formKey), 0, 12);
         $html .= '<p><label for="' . sr_e($inputId) . '"><span>자동등록방지 <span class="sr-required-label">(필수)</span></span>';
         $html .= '<span class="sr-antispam-question">' . sr_e((string) $challenge['question']) . ' = ?</span>';
-        $html .= '<input id="' . sr_e($inputId) . '" type="text" name="sr_antispam_answer" inputmode="numeric" autocomplete="off" required></label></p>';
+        $html .= '<input id="' . sr_e($inputId) . '" type="text" name="sr_antispam_answer" inputmode="numeric" autocomplete="off" required class="form-input"></label></p>';
     } else {
         $challenge = sr_antispam_challenge_create($surface, $formKey, ['ttl_seconds' => (int) $settings['ttl_seconds']]);
         $providers = sr_antispam_provider_options($pdo);
@@ -411,7 +411,7 @@ function sr_antispam_challenge_render(PDO $pdo, string $surface, string $formKey
             $inputId = 'sr_antispam_answer_' . substr(hash('sha256', $surface . $formKey), 0, 12);
             $html .= '<p><label for="' . sr_e($inputId) . '"><span>자동등록방지 예비 문제</span>';
             $html .= '<span class="sr-antispam-question">' . sr_e((string) $challenge['question']) . ' = ?</span>';
-            $html .= '<input id="' . sr_e($inputId) . '" type="text" name="sr_antispam_answer" inputmode="numeric" autocomplete="off"></label></p>';
+            $html .= '<input id="' . sr_e($inputId) . '" type="text" name="sr_antispam_answer" inputmode="numeric" autocomplete="off" class="form-input"></label></p>';
         }
     }
     $html .= '</div>';

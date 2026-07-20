@@ -70,7 +70,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                 </div>
                             </dl>
                             <?php if ($accountId <= 0) { ?>
-                                <a class="btn btn-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($campaignUrl))); ?>">로그인하고 받기</a>
+                                <a class="btn btn-solid-primary" href="<?php echo sr_e(sr_url('/login?next=' . rawurlencode($campaignUrl))); ?>">로그인하고 받기</a>
                             <?php } elseif ($canClaim) { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/coupons')); ?>">
                                     <?php echo sr_csrf_field(); ?>
@@ -82,11 +82,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                                         <div class="form-field">
                                             <span class="form-label">사용할 항목</span>
                                             <?php foreach ($allowedAssetModules as $assetModule) { ?>
-                                                <label><input type="checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e($assetModule); ?>" checked> <?php echo sr_e(sr_coupon_asset_module_labels($pdo, [$assetModule])); ?></label>
+                                                <label><input type="checkbox" name="allowed_asset_modules[]" value="<?php echo sr_e($assetModule); ?>" class="form-checkbox" checked> <?php echo sr_e(sr_coupon_asset_module_labels($pdo, [$assetModule])); ?></label>
                                             <?php } ?>
                                         </div>
                                     <?php } ?>
-                                    <button type="submit" class="btn btn-primary">쿠폰 받기</button>
+                                    <button type="submit" class="btn btn-solid-primary">쿠폰 받기</button>
                                 </form>
                             <?php } else { ?>
                                 <button type="button" class="btn btn-outline-secondary" disabled><?php echo sr_e((string) ($state['message'] ?? '받을 수 없음')); ?></button>

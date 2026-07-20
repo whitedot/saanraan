@@ -55,7 +55,7 @@ if ($memberAccountPage === 'verify') {
                                     <span><?php echo sr_e(sr_t('member::ui.password.f8762fcc')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                                     <input class="form-input" id="modules_member_account_access_password" type="password" name="current_password" autocomplete="current-password" required>
                                 </label>
-                                <small>현재 로그인한 계정의 비밀번호를 입력하세요.</small>
+                                <small class="ui-kit-hint">현재 로그인한 계정의 비밀번호를 입력하세요.</small>
                             </p>
                         <?php } elseif (!empty($memberAccountHasMfaReauth)) { ?>
                             <p>
@@ -63,7 +63,7 @@ if ($memberAccountPage === 'verify') {
                                     <span>인증 앱 또는 복구 코드 <span class="sr-required-label"><?php echo sr_e(sr_t('member::ui.required.1f227c67')); ?></span></span>
                                     <input class="form-input" id="modules_member_account_access_mfa_code" type="text" name="mfa_code" autocomplete="one-time-code" required>
                                 </label>
-                                <small>비밀번호가 없는 계정은 현재 인증 앱 코드나 사용하지 않은 복구 코드로 확인합니다.</small>
+                                <small class="ui-kit-hint">비밀번호가 없는 계정은 현재 인증 앱 코드나 사용하지 않은 복구 코드로 확인합니다.</small>
                             </p>
                         <?php } else { ?>
                             <div class="alert alert-info">
@@ -281,9 +281,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <input class="form-input" id="modules_member_account_email" type="email" name="email" value="<?php echo sr_e((string) $memberAccountBasicValues['email']); ?>" maxlength="255" autocomplete="email" required<?php echo $emailVerificationEnabled && !$emailDeliveryAvailable ? ' readonly' : ''; ?>>
                                 </label>
                                 <?php if ($emailVerificationEnabled && !$emailDeliveryAvailable) { ?>
-                                    <small><?php echo sr_e(sr_t('member::action.email_delivery.email_change_unavailable')); ?></small>
+                                    <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::action.email_delivery.email_change_unavailable')); ?></small>
                                 <?php } elseif ($emailVerificationEnabled) { ?>
-                                    <small>이메일을 변경하면 인증 상태가 초기화되며 새 주소로 다시 인증해야 합니다.</small>
+                                    <small class="ui-kit-hint">이메일을 변경하면 인증 상태가 초기화되며 새 주소로 다시 인증해야 합니다.</small>
                                 <?php } ?>
                             </p>
                             <p>
@@ -291,7 +291,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <span>새 로그인 아이디</span>
                                     <input class="form-input" id="modules_member_account_login_id" type="text" name="login_id" value="<?php echo sr_e((string) $memberAccountBasicValues['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="off" data-member-login-id-input>
                                 </label>
-                                <small><?php echo sr_e($memberAccountHasStoredLoginId ? '현재 로그인 아이디는 설정되어 있습니다. 원문은 저장하지 않아 표시할 수 없으며, 변경할 때만 새 값을 입력하세요. 게시물과 권한의 계정 연결은 그대로 유지됩니다.' : '현재 로그인 아이디가 없습니다. 새 값을 입력하면 이메일과 로그인 아이디를 모두 사용할 수 있습니다.'); ?></small>
+                                <small class="ui-kit-hint"><?php echo sr_e($memberAccountHasStoredLoginId ? '현재 로그인 아이디는 설정되어 있습니다. 원문은 저장하지 않아 표시할 수 없으며, 변경할 때만 새 값을 입력하세요. 게시물과 권한의 계정 연결은 그대로 유지됩니다.' : '현재 로그인 아이디가 없습니다. 새 값을 입력하면 이메일과 로그인 아이디를 모두 사용할 수 있습니다.'); ?></small>
                             </p>
                             <p>
                                 <label for="modules_member_account_display_name">
@@ -305,7 +305,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                     <span><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                         <input class="form-input" id="modules_member_account_nickname" type="text" name="nickname" value="<?php echo sr_e((string) $memberAccountBasicValues['nickname']); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
                                     </label>
-                                    <small><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                                    <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
                                 </p>
                             <?php } ?>
                             <?php foreach (($registrationAccountExtensionFields ?? []) as $registrationAccountExtensionField) { ?>
@@ -327,7 +327,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                         </label>
                                     <?php } ?>
                                     <?php if ((string) ($registrationAccountExtensionField['help'] ?? '') !== '') { ?>
-                                        <small><?php echo sr_e((string) $registrationAccountExtensionField['help']); ?></small>
+                                        <small class="ui-kit-hint"><?php echo sr_e((string) $registrationAccountExtensionField['help']); ?></small>
                                     <?php } ?>
                                 </p>
                             <?php } ?>
@@ -384,7 +384,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                                     <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['profile_image_path']['required']) && $avatarSrc === '' ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                                     <input class="form-input" id="modules_member_account_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) && $avatarSrc === '' ? ' required' : ''; ?>>
                                                 </label>
-                                                <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
+                                                <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
                                             </p>
                                             <?php if ($avatarSrc !== '') { ?>
                                                 <p>
@@ -460,7 +460,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                                     <button class="btn btn-outline-danger" type="submit"<?php echo $oauthCanUnlink ? '' : ' disabled'; ?>>연결 해제</button>
                                                 </form>
                                                 <?php if (!$oauthCanUnlink) { ?>
-                                                    <small>비밀번호를 설정하거나 다른 소셜 로그인을 연결한 뒤 해제할 수 있습니다.</small>
+                                                    <small class="ui-kit-hint">비밀번호를 설정하거나 다른 소셜 로그인을 연결한 뒤 해제할 수 있습니다.</small>
                                                 <?php } ?>
                                             </dd>
                                         <?php } ?>

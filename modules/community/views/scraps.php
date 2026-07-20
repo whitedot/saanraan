@@ -19,9 +19,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php } ?>
 
         <?php if ($scraps !== []) { ?>
-            <section id="community-post-scraps">
-            <h2>게시글 스크랩</h2>
-            <table>
+            <section id="community-post-scraps" class="card">
+            <div class="card-header"><h2 class="card-title">게시글 스크랩</h2></div>
+            <div class="card-body ui-card-body-stack">
+            <div class="table-wrapper">
+            <table class="table table-list">
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></th>
@@ -78,14 +80,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
             <?php echo sr_public_pagination_html($scrapPagination, $scrapPaginationBasePath, '게시글 스크랩 페이지', 'post_page', 'community-post-scraps'); ?>
+            </div>
             </section>
         <?php } ?>
 
         <?php if ($seriesScraps !== []) { ?>
-            <section id="community-series-scraps">
-            <h2>시리즈 스크랩</h2>
-            <table>
+            <section id="community-series-scraps" class="card">
+            <div class="card-header"><h2 class="card-title">시리즈 스크랩</h2></div>
+            <div class="card-body ui-card-body-stack">
+            <div class="table-wrapper">
+            <table class="table table-list">
                 <thead>
                     <tr>
                         <th><?php echo sr_e(sr_t('community::ui.text.4732a58f')); ?></th>
@@ -138,7 +144,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
                     <?php } ?>
                 </tbody>
             </table>
+            </div>
             <?php echo sr_public_pagination_html($seriesScrapPagination, $seriesScrapPaginationBasePath, '시리즈 스크랩 페이지', 'series_page', 'community-series-scraps'); ?>
+            </div>
             </section>
         <?php } ?>
     </main>

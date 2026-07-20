@@ -275,7 +275,7 @@ if ($quizEmbedded) {
                 <p><?php echo sr_e((string) $quiz['description']); ?></p>
             <?php endif; ?>
             <?php if ($canPreviewAsAdmin): ?>
-                <div class="sr-quiz-preview-notice">
+                <div class="alert alert-info alert-block sr-quiz-preview-notice">
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 퀴즈도 확인할 수 있으며 제출은 저장되지 않습니다.</p>
                 </div>
             <?php endif; ?>
@@ -297,9 +297,9 @@ if ($quizEmbedded) {
                                 <?php foreach ((array) ($question['choices'] ?? []) as $choice): ?>
                                     <label class="sr-quiz-choice" for="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>">
                                         <?php if ($questionType === 'multiple_choice'): ?>
-                                            <input id="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="checkbox" disabled>
+                                            <input id="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="checkbox" class="form-checkbox" disabled>
                                         <?php else: ?>
-                                            <input id="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="radio" disabled>
+                                            <input id="<?php echo sr_e('quiz_preview_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="radio" class="form-radio" disabled>
                                         <?php endif; ?>
                                         <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
                                     </label>
@@ -326,9 +326,9 @@ if ($quizEmbedded) {
                                 <?php foreach ((array) ($question['choices'] ?? []) as $choice): ?>
                                     <label class="sr-quiz-choice" for="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>">
                                         <?php if ($questionType === 'multiple_choice'): ?>
-                                            <input id="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="checkbox" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>"<?php echo in_array((int) ($choice['id'] ?? 0), (array) ($quizSelectedChoiceIds[(int) ($question['id'] ?? 0)] ?? []), true) ? ' checked' : ''; ?>>
+                                            <input id="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="checkbox" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>" class="form-checkbox"<?php echo in_array((int) ($choice['id'] ?? 0), (array) ($quizSelectedChoiceIds[(int) ($question['id'] ?? 0)] ?? []), true) ? ' checked' : ''; ?>>
                                         <?php else: ?>
-                                            <input id="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="radio" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>"<?php echo in_array((int) ($choice['id'] ?? 0), (array) ($quizSelectedChoiceIds[(int) ($question['id'] ?? 0)] ?? []), true) ? ' checked' : ''; ?>>
+                                            <input id="<?php echo sr_e('quiz_choice_' . (string) (int) ($choice['id'] ?? 0)); ?>" type="radio" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>" class="form-radio"<?php echo in_array((int) ($choice['id'] ?? 0), (array) ($quizSelectedChoiceIds[(int) ($question['id'] ?? 0)] ?? []), true) ? ' checked' : ''; ?>>
                                         <?php endif; ?>
                                         <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
                                     </label>
@@ -343,7 +343,7 @@ if ($quizEmbedded) {
                 <p>
                     <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/quiz')); ?>" target="_top">메인으로</a>
                     <label class="sr-only" for="quiz_share_url">공유 주소</label>
-                    <input id="quiz_share_url" type="url" value="<?php echo sr_e($quizShareUrl); ?>" readonly data-sr-share-url>
+                    <input id="quiz_share_url" type="url" value="<?php echo sr_e($quizShareUrl); ?>" class="form-input" readonly data-sr-share-url>
                     <button type="button" class="btn btn-solid-light" data-sr-share-copy="<?php echo sr_e($quizShareUrl); ?>">공유 주소 복사</button>
                 </p>
                 <script>

@@ -72,7 +72,7 @@ return [
                 }
                 $html .= '<p><span>쿠폰: ' . sr_e((string) ($campaign['coupon_title'] ?? '')) . '</span>';
                 $html .= '<span> 남은 수량: ' . ($remaining === null ? sr_e('제한 없음') : sr_e(number_format((int) $remaining) . '장')) . '</span></p>';
-                $html .= '<a class="btn btn-primary" href="' . sr_e($ctaUrl) . '">' . sr_e($ctaLabel) . '</a>';
+                $html .= '<a class="btn btn-solid-primary" href="' . sr_e($ctaUrl) . '">' . sr_e($ctaLabel) . '</a>';
                 $html .= '</div></sr-coupon-embed>';
 
                 return [

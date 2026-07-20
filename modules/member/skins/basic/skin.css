@@ -195,13 +195,6 @@
     gap: calc(var(--spacing) * 2);
 }
 
-.member-skin-basic-form small {
-    color: var(--sr-muted, var(--text-muted, var(--color-default-600)));
-    display: block;
-    font-size: var(--type-small-size);
-    line-height: var(--type-small-line-height);
-}
-
 .member-skin-basic-form > .btn {
     justify-self: start;
 }

@@ -65,6 +65,21 @@ function sr_skin_theme_check_not_contains($path, array $needles, string $label):
     }
 }
 
+function sr_skin_theme_check_matches($path, array $patterns, string $label): void
+{
+    global $errors;
+    $content = sr_skin_theme_check_target_content($path);
+    if ($content === '') {
+        return;
+    }
+
+    foreach ($patterns as $pattern) {
+        if (preg_match((string) $pattern, $content) !== 1) {
+            $errors[] = $label . ' must match: ' . $pattern;
+        }
+    }
+}
+
 function sr_skin_theme_check_order(string $path, string $firstNeedle, string $secondNeedle, string $label): void
 {
     global $errors;
@@ -1163,8 +1178,117 @@ sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
     'font-size:inherit;font-weight:var(--font-weight-normal);line-height:inherit',
 ], 'Public form controls should not inherit bold label text');
 sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
+    '.ui-kit-hint{color:var(--sr-muted,var(--color-default-600))}',
+], 'Public UI kit hint text style');
+foreach ($publicCommonStylesheetPaths as $publicCommonStylesheetPath) {
+    sr_skin_theme_check_matches($publicCommonStylesheetPath, [
+        '/\.ui-page\s*\{/',
+        '/\.ui-card-body-stack\s*\{/',
+        '/\.ui-actions\s*\{/',
+        '/\.ui-description-list\s*\{/',
+    ], 'Shared public page compositions in ' . $publicCommonStylesheetPath);
+}
+sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
     ':is(label,legend,.form-label):has(>.sr-required-label),:is(label,legend,.form-label)>span:has(>.sr-required-label){white-space:nowrap}',
 ], 'Public required field labels should not wrap before the required marker');
+$publicHintViewPaths = [
+    'modules/member/views/account.php',
+    'modules/member/views/register.php',
+    'modules/member/views/withdraw.php',
+    'modules/deposit/views/account-deposits.php',
+    'modules/reward/views/account-rewards.php',
+    'modules/privacy/helpers.php',
+    'modules/community/theme/basic/form.php',
+    'modules/community/skins/basic/form.php',
+    'modules/survey/theme/basic/view.php',
+    'modules/survey/skins/basic/view.php',
+];
+sr_skin_theme_check_contains($publicHintViewPaths, [
+    '<small class="ui-kit-hint">',
+], 'Public form hint text markup');
+sr_skin_theme_check_not_contains($publicHintViewPaths, [
+    '<small>',
+    '<p class="sr-survey-help">',
+], 'Public form hints should use the UI kit hint pattern');
+sr_skin_theme_check_contains('modules/community/helpers/privacy-consents.php', [
+    '<p><small class="ui-kit-hint">',
+], 'Community privacy consent hint text markup');
+sr_skin_theme_check_not_contains('modules/member/skins/basic/skin.css', [
+    '.member-skin-basic-form small',
+], 'Member form CSS should not override UI kit hint typography');
+sr_skin_theme_check_not_contains('modules/privacy/assets/cookie-consent.css', [
+    '.sr-cookie-consent-item small',
+], 'Privacy consent CSS should not override UI kit hint text');
+sr_skin_theme_check_contains([
+    'modules/message/views/messages.php',
+    'modules/message/views/message-write.php',
+    'modules/message/views/message-view.php',
+], [
+    'class="ui-page message-screen"',
+    'class="form-input"',
+    'class="form-textarea"',
+    'class="table table-list"',
+], 'Public message screens should use UI kit components');
+sr_skin_theme_check_contains([
+    'modules/identity_verification/views/provider-form.php',
+    'modules/identity_verification/views/finish.php',
+    'modules/policy_documents/views/version.php',
+], [
+    'class="ui-page',
+    'class="card',
+    'class="card-body ui-card-body-stack',
+], 'Standalone public screens should use UI kit page and card components');
+sr_skin_theme_check_contains([
+    'modules/quiz/theme/basic/view.php',
+    'modules/quiz/skins/basic/view.php',
+    'modules/survey/theme/basic/view.php',
+    'modules/survey/skins/basic/view.php',
+], [
+    'class="form-checkbox"',
+    'class="form-radio"',
+    'class="form-input"',
+], 'Quiz and survey controls should use UI kit form components');
+sr_skin_theme_check_contains([
+    'modules/community/views/series.php',
+    'modules/community/views/scraps.php',
+    'modules/content/views/account-content.php',
+], [
+    'class="card',
+    'class="form-select"',
+    'class="table',
+], 'Public management screens should use UI kit cards, forms, and tables');
+sr_skin_theme_check_not_contains([
+    'modules/coupon/views/coupons.php',
+    'modules/coupon/url-embed-targets.php',
+    'modules/privacy/helpers.php',
+], [
+    'class="btn btn-primary"',
+    'sr-cookie-consent-button',
+], 'Public actions should use canonical UI kit button variants');
+sr_skin_theme_check_contains('modules/privacy/assets/cookie-consent.css', [
+    'background:var(--sr-surface,var(--color-card))',
+    'color:var(--sr-text,var(--color-body-color))',
+], 'Cookie consent should use theme-aware UI kit tokens');
+$accountHistoryViewPaths = [
+    'modules/coupon/views/account-coupons.php',
+    'modules/deposit/views/account-deposits.php',
+    'modules/point/views/account-points.php',
+    'modules/privacy/views/account-privacy-requests.php',
+    'modules/reward/views/account-rewards.php',
+];
+foreach ($accountHistoryViewPaths as $accountHistoryViewPath) {
+    sr_skin_theme_check_contains($accountHistoryViewPath, [
+        'class="ui-page-header"',
+        'class="btn btn-outline-default"',
+    ], 'Account subpage heading actions in ' . $accountHistoryViewPath);
+}
+foreach (['modules/deposit/views/account-deposits.php', 'modules/reward/views/account-rewards.php'] as $accountRequestViewPath) {
+    sr_skin_theme_check_contains($accountRequestViewPath, [
+        'class="ui-field"',
+        'class="ui-card-body-stack"',
+        'class="btn btn-sm btn-outline-danger">취소</button>',
+    ], 'Account request form components in ' . $accountRequestViewPath);
+}
 sr_skin_theme_check_public_required_label_groups();
 sr_skin_theme_check_contains('modules/member/views/login.php', [
     '<label class="form-label" for="modules_member_login_identifier"><span>',

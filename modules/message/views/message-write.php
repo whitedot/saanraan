@@ -13,20 +13,21 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
     'scripts' => ['/assets/member-recipient-picker.js'],
 ]);
 ?>
-    <main class="message-screen">
-        <p>
-            <a href="<?php echo sr_e(sr_url('/messages')); ?>">쪽지함</a>
-        </p>
-        <h1><?php echo sr_e($pageTitle); ?></h1>
+    <main class="ui-page message-screen">
+        <header class="ui-page-header">
+            <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
+            <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/messages')); ?>">쪽지함</a>
+        </header>
 
         <?php echo sr_public_feedback_toasts('message-write', $recipientPresetNotice, $errors); ?>
 
-        <form method="post" action="<?php echo sr_e(sr_url('/message/write')); ?>">
+        <form method="post" action="<?php echo sr_e(sr_url('/message/write')); ?>" class="card">
+            <div class="card-body ui-card-body-stack">
             <?php echo sr_csrf_field(); ?>
             <input type="hidden" name="recipient_account_hash" value="">
             <p>
-                <label for="modules_message_write_recipient_identifier">
-                    <span>수신자 <span class="sr-required-label">필수</span></span>
+                <label class="ui-field" for="modules_message_write_recipient_identifier">
+                    <span>수신자 <span class="sr-required-label">(필수)</span></span>
                     <span class="message-recipient-picker" data-sr-recipient-picker>
                         <span class="message-recipient-selected" data-sr-recipient-picker-selected>
                             <?php foreach (is_array($recipientPickerItems ?? null) ? $recipientPickerItems : [] as $recipientPickerItem) { ?>
@@ -41,17 +42,18 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
                                 <?php } ?>
                             <?php } ?>
                         </span>
-                        <input id="modules_message_write_recipient_identifier" type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required data-sr-recipient-picker-input data-sr-recipient-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" autocomplete="off">
+                        <input id="modules_message_write_recipient_identifier" type="text" name="recipient_identifier" value="<?php echo sr_e(is_string($values['recipient_identifier']) ? $values['recipient_identifier'] : ''); ?>" maxlength="255" required class="form-input" data-sr-recipient-picker-input data-sr-recipient-endpoint="<?php echo sr_e(sr_url('/member/mention-search')); ?>" autocomplete="off">
                     </span>
                 </label>
             </p>
             <p>
-                <label for="modules_message_write_body_text">
-                    <span>내용 <span class="sr-required-label">필수</span></span>
-                    <textarea id="modules_message_write_body_text" name="body_text" rows="10" cols="80" required><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                <label class="ui-field" for="modules_message_write_body_text">
+                    <span>내용 <span class="sr-required-label">(필수)</span></span>
+                    <textarea id="modules_message_write_body_text" name="body_text" rows="10" cols="80" required class="form-textarea"><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <button type="submit" class="btn btn-solid-primary">보내기</button>
+            </div>
         </form>
     </main>
 <?php sr_public_layout_end(); ?>

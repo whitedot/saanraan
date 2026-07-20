@@ -9,6 +9,7 @@ $seo = [
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
     <main class="ui-page">
+        <?php echo sr_public_feedback_toasts('asset-exchange', $notice, $errors); ?>
         <div class="ui-page-stack">
             <div class="ui-page-header">
                 <div>
@@ -19,13 +20,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     계정으로
                 </a>
             </div>
-
-            <?php foreach ($errors as $error) { ?>
-                <p class="ui-feedback ui-feedback-danger type-small"><?php echo sr_e((string) $error); ?></p>
-            <?php } ?>
-            <?php if ($notice !== '') { ?>
-                <p class="ui-feedback type-small"><?php echo sr_e($notice); ?></p>
-            <?php } ?>
 
             <section class="card">
                 <div class="card-header">

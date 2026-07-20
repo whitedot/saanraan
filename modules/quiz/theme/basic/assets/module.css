@@ -57,11 +57,6 @@
 
 .sr-quiz-preview-notice {
     margin: 16px 0;
-    padding: 14px 16px;
-    border: 1px solid color-mix(in oklab, var(--color-info) 24%, transparent);
-    border-radius: var(--radius);
-    background: color-mix(in oklab, var(--color-info) 10%, transparent);
-    color: var(--sr-text, var(--text-strong, #20242a));
 }
 
 .sr-quiz-preview-notice p {
@@ -272,15 +267,6 @@
 
 .sr-quiz-choice:has(input:disabled) {
     cursor: default;
-}
-
-.sr-quiz-page .sr-form-errors {
-    display: grid;
-    gap: 6px;
-    padding: 14px 16px;
-    border: 1px solid color-mix(in oklab, var(--color-danger) 28%, transparent);
-    border-radius: var(--radius);
-    background: color-mix(in oklab, var(--color-danger) 10%, transparent);
 }
 
 .sr-quiz-result {

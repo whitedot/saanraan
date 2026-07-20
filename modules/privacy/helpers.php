@@ -150,10 +150,10 @@ function sr_privacy_cookie_consent_items_fields_html(array $selectedItems): stri
     <div class="sr-cookie-consent-items">
         <?php foreach ($optionalItems as $itemKey => $item) { ?>
             <label class="sr-cookie-consent-item">
-                <input type="checkbox" name="optional_items[]" value="<?php echo sr_e((string) $itemKey); ?>"<?php echo in_array((string) $itemKey, $selectedItems, true) ? ' checked' : ''; ?>>
+                <input type="checkbox" name="optional_items[]" value="<?php echo sr_e((string) $itemKey); ?>" class="form-checkbox"<?php echo in_array((string) $itemKey, $selectedItems, true) ? ' checked' : ''; ?>>
                 <span>
                     <strong><?php echo sr_e((string) $item['label']); ?></strong>
-                    <small><?php echo sr_e((string) $item['description']); ?></small>
+                    <small class="ui-kit-hint"><?php echo sr_e((string) $item['description']); ?></small>
                 </span>
             </label>
         <?php } ?>
@@ -172,10 +172,10 @@ function sr_privacy_cookie_consent_essential_fields_html(): string
     <div class="sr-cookie-consent-items">
         <?php foreach ($essentialItems as $itemKey => $item) { ?>
             <label class="sr-cookie-consent-item sr-cookie-consent-item-required">
-                <input type="checkbox" value="<?php echo sr_e((string) $itemKey); ?>" checked disabled>
+                <input type="checkbox" value="<?php echo sr_e((string) $itemKey); ?>" class="form-checkbox" checked disabled>
                 <span>
                     <strong><?php echo sr_e((string) $item['label']); ?></strong>
-                    <small><?php echo sr_e((string) $item['description']); ?></small>
+                    <small class="ui-kit-hint"><?php echo sr_e((string) $item['description']); ?></small>
                 </span>
             </label>
         <?php } ?>
@@ -208,18 +208,18 @@ function sr_privacy_cookie_consent_public_html(?PDO $pdo = null): string
             <p><?php echo sr_e(sr_t('privacy::cookie.body')); ?></p>
         </div>
         <div class="sr-cookie-consent-actions">
-            <a class="sr-cookie-consent-button sr-cookie-consent-button-secondary" href="<?php echo sr_e(sr_url(sr_privacy_cookie_settings_path($returnTo))); ?>"><?php echo sr_e(sr_t('privacy::cookie.selected')); ?></a>
+            <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url(sr_privacy_cookie_settings_path($returnTo))); ?>"><?php echo sr_e(sr_t('privacy::cookie.selected')); ?></a>
             <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
                 <input type="hidden" name="consent" value="reject">
-                <button type="submit" class="sr-cookie-consent-button sr-cookie-consent-button-secondary"><?php echo sr_e(sr_t('privacy::cookie.reject')); ?></button>
+                <button type="submit" class="btn btn-outline-default"><?php echo sr_e(sr_t('privacy::cookie.reject')); ?></button>
             </form>
             <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="return_to" value="<?php echo sr_e($returnTo); ?>">
                 <input type="hidden" name="consent" value="all">
-                <button type="submit" class="sr-cookie-consent-button sr-cookie-consent-button-primary"><?php echo sr_e(sr_t('privacy::cookie.all')); ?></button>
+                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('privacy::cookie.all')); ?></button>
             </form>
         </div>
     </section>

@@ -10,8 +10,12 @@
     <?php echo sr_stylesheet_tag(); ?>
 </head>
 <body>
-    <main class="identity-verification-transfer">
-        <h1><?php echo sr_e('본인확인으로 이동합니다'); ?></h1>
+    <main class="ui-page identity-verification-transfer">
+        <section class="card">
+        <div class="card-header">
+            <h1 class="card-title"><?php echo sr_e('본인확인으로 이동합니다'); ?></h1>
+        </div>
+        <div class="card-body ui-card-body-stack">
         <p><?php echo sr_e('잠시만 기다려 주세요. 자동으로 이동하지 않으면 아래 버튼을 눌러 주세요.'); ?></p>
         <form id="identity-provider-form" name="form_auth" method="<?php echo sr_e(strtolower($method)); ?>" action="<?php echo sr_e($action); ?>" data-identity-provider-form>
             <?php foreach ($fields as $name => $value) { ?>
@@ -19,11 +23,13 @@
                     <input type="hidden" name="<?php echo sr_e((string) $name); ?>" value="<?php echo sr_e((string) $value); ?>">
                 <?php } ?>
             <?php } ?>
-            <button type="submit" data-identity-provider-submit><?php echo sr_e('본인확인 계속'); ?></button>
+            <button type="submit" class="btn btn-solid-primary" data-identity-provider-submit><?php echo sr_e('본인확인 계속'); ?></button>
         </form>
         <noscript>
             <p><?php echo sr_e('브라우저에서 JavaScript가 꺼져 있으면 본인확인 계속 버튼을 눌러 주세요.'); ?></p>
         </noscript>
+        </div>
+        </section>
     </main>
     <script>
     (function () {

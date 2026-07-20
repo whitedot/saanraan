@@ -14,12 +14,14 @@ $policyDocumentBodyHtml = sr_policy_document_render_body_html($pdo, $policyDocum
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
-<main class="policy-document-version-page">
-    <section class="policy-document-version-section">
-        <div class="policy-document-version-container">
-            <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
+<main class="ui-page policy-document-version-page">
+    <section class="card policy-document-version-section">
+        <div class="card-header">
+            <h1 class="card-title"><?php echo sr_e($pageTitle); ?></h1>
+        </div>
+        <div class="card-body ui-card-body-stack policy-document-version-container">
             <?php if ($policyDocumentDateLabel !== '') { ?>
-                <p>
+                <p class="ui-kit-hint">
                     <time datetime="<?php echo sr_e(str_replace(' ', 'T', $policyDocumentDateSource)); ?>"><?php echo sr_e($policyDocumentDateLabel); ?></time>
                 </p>
             <?php } ?>

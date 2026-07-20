@@ -126,8 +126,7 @@ $communityFrameModifier = 'form';
                         <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
                         <input id="modules_community_form_guest_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input">
                     </label>
-                    <br>
-                    <small><?php echo sr_e('비회원 글 수정과 삭제에 사용됩니다.'); ?></small>
+                    <small class="ui-kit-hint"><?php echo sr_e('비회원 글 수정과 삭제에 사용됩니다.'); ?></small>
                 </p>
             <?php } ?>
             <?php if (isset($categories) && is_array($categories) && $categories !== []) { ?>
@@ -215,8 +214,7 @@ $communityFrameModifier = 'form';
                         <span><?php echo sr_e('회차 표시'); ?></span>
                         <input id="modules_community_form_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) ($seriesValues['episode_label'] ?? '')); ?>" class="form-input">
                     </label>
-                    <br>
-                    <small><?php echo sr_e('예: 1화, 프롤로그, 후기'); ?></small>
+                    <small class="ui-kit-hint"><?php echo sr_e('예: 1화, 프롤로그, 후기'); ?></small>
                 </p>
                 <p>
                     <label for="modules_community_form_series_sort_order">
@@ -232,8 +230,7 @@ $communityFrameModifier = 'form';
                     <span><?php echo sr_e(sr_t('community::ui.text.42bb44a5')); ?></span>
                         <input id="modules_community_form_image_attachment" type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp" class="form-input">
                     </label>
-                    <br>
-                    <small><?php echo sr_e(sr_t('community::ui.jpeg.png.webp.eefc7fda')); ?> <?php echo sr_e(sr_community_format_bytes($attachmentMaxBytes)); ?></small>
+                    <small class="ui-kit-hint"><?php echo sr_e(sr_t('community::ui.jpeg.png.webp.eefc7fda')); ?> <?php echo sr_e(sr_community_format_bytes($attachmentMaxBytes)); ?></small>
                 </p>
             <?php } ?>
             <?php if ($fileUploadEnabled) { ?>
@@ -242,8 +239,7 @@ $communityFrameModifier = 'form';
                     <span><?php echo sr_e(sr_t('community::ui.text.1fe3755c')); ?></span>
                         <input id="modules_community_form_file_attachments" type="file" name="file_attachments[]" multiple class="form-input">
                     </label>
-                    <br>
-                    <small>
+                    <small class="ui-kit-hint">
                         <?php echo sr_e(sr_t('community::ui.text.ee3b70e7')); ?> <?php echo sr_e((string) $fileAttachmentMaxCount); ?><?php echo sr_e(sr_t('community::ui.text.2254e4c9')); ?> <?php echo sr_e(sr_community_format_bytes($fileAttachmentMaxBytes)); ?> <?php echo sr_e(sr_t('community::ui.text.3cf0ac82')); ?> <?php echo sr_e(implode(', ', $fileAllowedExtensions)); ?>
                     </small>
                 </p>

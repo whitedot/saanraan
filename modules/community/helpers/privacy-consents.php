@@ -359,7 +359,7 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
 
     $config = sr_community_effective_privacy_consent_config($pdo, $board);
     if (empty($config['policy_ready'])) {
-        return '<p class="community-privacy-consent is-error">' . sr_e('개인정보 수집 및 이용동의 정책 문서가 준비되지 않았습니다.') . '</p>';
+        return '<p class="alert alert-danger community-privacy-consent is-error" role="alert">' . sr_e('개인정보 수집 및 이용동의 정책 문서가 준비되지 않았습니다.') . '</p>';
     }
     $labels = array_map('sr_community_privacy_consent_label', $actions);
     $suffix = preg_replace('/[^a-zA-Z0-9_]+/', '_', $idSuffix) ?? '';
@@ -386,7 +386,7 @@ function sr_community_privacy_consent_field_html(PDO $pdo, array $board, array $
             }
         }
     }
-    $html .= '<p><small>' . sr_e('적용 대상: ' . implode(', ', $labels)) . '</small></p>';
+    $html .= '<p><small class="ui-kit-hint">' . sr_e('적용 대상: ' . implode(', ', $labels)) . '</small></p>';
     $html .= '<label for="' . sr_e($id) . '">';
     $html .= '<input id="' . sr_e($id) . '" type="checkbox" name="community_privacy_consent_accepted" value="1" class="form-checkbox"' . ($browserRequired ? ' required' : '') . '>';
     $html .= ' ' . sr_e('위 개인정보 수집 및 이용에 동의합니다.');

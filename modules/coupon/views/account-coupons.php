@@ -10,8 +10,10 @@ $now = sr_now();
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
     <main class="ui-page">
-        <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
-        <p><a href="<?php echo sr_e(sr_url('/account')); ?>">계정으로 돌아가기</a></p>
+        <header class="ui-page-header">
+            <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
+            <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/account')); ?>">계정으로 돌아가기</a>
+        </header>
         <section id="coupon-holdings" class="card">
             <div class="card-header">
                 <h2 class="card-title">쿠폰 목록</h2>

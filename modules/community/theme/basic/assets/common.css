@@ -1,3 +1,18 @@
+/* Shared public page compositions used inside every selectable layout shell. */
+.ui-page{color:var(--sr-text,var(--color-body-color));display:grid;gap:18px;margin:0 auto;max-width:1120px;padding:clamp(24px,5vw,56px) clamp(16px,5vw,40px);width:100%}
+.ui-page-header{align-items:flex-start;display:flex;gap:16px;justify-content:space-between}
+.ui-page-stack,.ui-card-body-stack{display:grid;gap:14px}
+.ui-stat-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.ui-stat-card{background:var(--sr-surface-muted,var(--color-default-100));border:1px solid var(--sr-border,var(--color-default-300));border-radius:var(--radius);color:var(--sr-text,var(--color-body-color));display:grid;gap:4px;min-height:96px;padding:16px}
+.ui-stat-card>:first-child{margin-top:0}.ui-stat-card>:last-child{margin-bottom:0}
+.ui-inline-form{align-items:end;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.ui-actions{align-items:center;display:flex;flex-wrap:wrap;gap:10px}
+.ui-description-list{display:grid;gap:10px;margin:0}.ui-description-list>div{display:grid;gap:4px 12px;grid-template-columns:minmax(7rem,max-content) minmax(0,1fr)}.ui-description-list dt{color:var(--sr-muted-strong,var(--sr-muted,var(--color-default-700)));font-weight:var(--font-weight-semibold)}.ui-description-list dd{color:var(--sr-text,var(--color-body-color));margin:0;min-width:0}
+.ui-field{display:grid;gap:6px;margin:0}.ui-field>span{color:var(--sr-text,var(--color-body-color));font-size:var(--type-small-size);font-weight:var(--font-weight-bold);line-height:var(--type-small-line-height)}
+.ui-feedback{background:var(--sr-surface-muted,var(--color-default-100));border:1px solid var(--sr-border,var(--color-default-300));border-radius:var(--radius);color:var(--sr-muted,var(--color-default-600));margin:0;padding:10px 12px}.ui-feedback-danger{border-color:var(--sr-danger-border,var(--color-danger));color:var(--sr-danger-text,var(--color-danger))}
+@supports (color:color-mix(in lab,red,red)){.ui-feedback-danger{background:var(--sr-danger-bg,color-mix(in oklab,var(--color-danger) 10%,transparent))}}
+@media (max-width:760px){.ui-page-header{align-items:stretch;flex-direction:column}.ui-page-header .btn{width:fit-content}.ui-description-list>div{grid-template-columns:minmax(0,1fr)}}
+
 /*
  * Saanraan public common component layer.
  * Owns reusable public UI primitives and public UI combinations.
@@ -168,6 +183,7 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .badge-list-item{align-items:center;background:var(--color-default-100);border:1px solid var(--color-default-200);border-radius:var(--radius);color:var(--color-default-800);display:inline-flex;gap:calc(var(--spacing) * 1.5);max-width:100%;min-height:2rem;padding:calc(var(--spacing) * .75) calc(var(--spacing) * 1)}
 .badge-list-label{font-weight:var(--font-weight-semibold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge-list-summary{color:var(--color-default-600);font-size:var(--text-xs);line-height:var(--text-xs--line-height);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ui-kit-hint{color:var(--sr-muted,var(--color-default-600))}
 .admin-select-badge-list{display:grid;gap:calc(var(--spacing) * 1.5);min-width:0}
 .admin-select-badge-list-select{max-width:24rem}
 .admin-select-badge-list-remove{flex:0 0 auto}

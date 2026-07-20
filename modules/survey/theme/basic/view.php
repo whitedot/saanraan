@@ -226,7 +226,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                 <p><?php echo sr_e((string) $survey['description']); ?></p>
             <?php endif; ?>
             <?php if ($canPreviewAsAdmin): ?>
-                <div class="sr-survey-info">
+                <div class="alert alert-info alert-block sr-survey-preview-notice">
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 설문도 확인할 수 있으며 제출은 테스트 응답으로 저장되고 보상은 지급되지 않습니다.</p>
                 </div>
             <?php endif; ?>
@@ -283,7 +283,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
             <?php if ($submittedScreen || $submitResult !== null): ?>
                 <?php include sr_survey_skin_view_file($settings, 'complete'); ?>
             <?php elseif ($errors !== []): ?>
-                <div class="sr-form-errors">
+                <div class="alert alert-danger alert-block sr-form-errors" role="alert">
                     <?php foreach ($errors as $error): ?>
                         <p><?php echo sr_e((string) $error); ?></p>
                     <?php endforeach; ?>
@@ -317,7 +317,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                     <p><?php echo sr_e((string) $survey['consent_text']); ?></p>
                                 <?php endif; ?>
                                 <label class="sr-survey-choice">
-                                    <input type="checkbox" name="consent_accepted" value="1">
+                                    <input type="checkbox" name="consent_accepted" value="1" class="form-checkbox">
                                     <span>위 안내를 확인했고 설문 참여에 동의합니다.</span>
                                 </label>
                             </fieldset>
@@ -327,22 +327,22 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                             <fieldset class="sr-survey-question">
                                 <legend><?php echo sr_e((string) ($index + 1) . '. ' . (string) ($question['prompt'] ?? '')); ?></legend>
                                 <?php if ($type === 'text' || $type === 'short_text'): ?>
-                                    <input type="text" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" maxlength="500">
+                                    <input type="text" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" maxlength="500" class="form-input">
                                 <?php elseif ($type === 'long_text'): ?>
-                                    <textarea name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" rows="4"></textarea>
+                                    <textarea name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" rows="4" class="form-textarea"></textarea>
                                 <?php elseif (in_array($type, ['number', 'rating', 'scale'], true)): ?>
-                                    <input type="number" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' step="any"' : ' step="1"'; ?><?php echo $question['number_min'] !== null ? ' min="' . sr_e((string) $question['number_min']) . '"' : ''; ?><?php echo $question['number_max'] !== null ? ' max="' . sr_e((string) $question['number_max']) . '"' : ''; ?>>
+                                    <input type="number" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]" class="form-input"<?php echo (int) ($question['allow_decimal'] ?? 0) === 1 ? ' step="any"' : ' step="1"'; ?><?php echo $question['number_min'] !== null ? ' min="' . sr_e((string) $question['number_min']) . '"' : ''; ?><?php echo $question['number_max'] !== null ? ' max="' . sr_e((string) $question['number_max']) . '"' : ''; ?>>
                                     <?php if ((string) ($question['number_unit'] ?? '') !== ''): ?>
-                                        <p class="sr-survey-help"><?php echo sr_e((string) $question['number_unit']); ?></p>
+                                        <small class="ui-kit-hint"><?php echo sr_e((string) $question['number_unit']); ?></small>
                                     <?php endif; ?>
                                 <?php else: ?>
                                     <?php foreach ((array) ($question['choices'] ?? []) as $choice): ?>
                                         <label class="sr-survey-choice">
-                                            <input type="<?php echo $type === 'multiple_choice' ? 'checkbox' : 'radio'; ?>" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]<?php echo $type === 'multiple_choice' ? '[]' : ''; ?>" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>">
+                                            <input type="<?php echo $type === 'multiple_choice' ? 'checkbox' : 'radio'; ?>" name="answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>]<?php echo $type === 'multiple_choice' ? '[]' : ''; ?>" value="<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>" class="<?php echo $type === 'multiple_choice' ? 'form-checkbox' : 'form-radio'; ?>">
                                             <span><?php echo sr_e((string) ($choice['label'] ?? '')); ?></span>
                                         </label>
                                         <?php if ((int) ($choice['is_other'] ?? 0) === 1): ?>
-                                            <input type="text" name="other_answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>]" class="sr-survey-other-input" maxlength="500">
+                                            <input type="text" name="other_answers[<?php echo sr_e((string) (int) ($question['id'] ?? 0)); ?>][<?php echo sr_e((string) (int) ($choice['id'] ?? 0)); ?>]" class="form-input sr-survey-other-input" maxlength="500">
                                         <?php endif; ?>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -356,7 +356,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                 <p>
                     <a class="btn btn-solid-light" href="<?php echo sr_e(sr_url('/survey')); ?>">메인으로</a>
                     <label class="sr-only" for="survey_share_url">공유 주소</label>
-                    <input id="survey_share_url" type="url" value="<?php echo sr_e($surveyShareUrl); ?>" readonly data-sr-share-url>
+                    <input id="survey_share_url" type="url" value="<?php echo sr_e($surveyShareUrl); ?>" class="form-input" readonly data-sr-share-url>
                     <button type="button" class="btn btn-solid-light" data-sr-share-copy="<?php echo sr_e($surveyShareUrl); ?>">공유 주소 복사</button>
                 </p>
                 <script>

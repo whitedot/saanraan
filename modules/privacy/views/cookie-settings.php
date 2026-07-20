@@ -26,7 +26,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <?php echo sr_privacy_cookie_consent_items_fields_html($cookieConsentSelectedItems); ?>
                     <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('privacy::cookie.save.selection')); ?></button>
                 </form>
-                <div class="ui-page-header">
+                <div class="ui-actions">
                     <form method="post" action="<?php echo sr_e(sr_url('/privacy/cookie-consent')); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="return_to" value="<?php echo sr_e($cookieConsentReturnTo); ?>">

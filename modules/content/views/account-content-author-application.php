@@ -10,12 +10,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
 <main class="ui-page">
     <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
-    <?php foreach ($errors as $error) { ?><p><?php echo sr_e((string) $error); ?></p><?php } ?>
-    <?php if ($notice !== '') { ?><p><?php echo sr_e($notice); ?></p><?php } ?>
+    <?php echo sr_public_feedback_toasts('content-author-application', $notice, $errors); ?>
 
     <?php if ($isApprovedAuthor) { ?>
         <p>이미 콘텐츠 등록자로 승인되어 있습니다.</p>
-        <p><a href="<?php echo sr_e(sr_url('/account/content')); ?>">내 콘텐츠로 이동</a></p>
+        <p><a class="btn btn-outline-primary" href="<?php echo sr_e(sr_url('/account/content')); ?>">내 콘텐츠로 이동</a></p>
     <?php } elseif ($isBlockedAuthor) { ?>
         <p>콘텐츠 등록자 신청이 제한되어 있습니다.</p>
     <?php } elseif (!$canApply) { ?>
@@ -48,8 +47,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 <form method="post" action="<?php echo sr_e(sr_url('/account/content/author-application')); ?>" class="ui-card-body-stack">
                     <?php echo sr_csrf_field(); ?>
                     <p>
-                        <label for="content_author_application_note">신청 사유</label><br>
-                        <textarea id="content_author_application_note" name="application_note" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) ($authorApplication['application_note'] ?? '')); ?></textarea>
+                        <label class="ui-field" for="content_author_application_note">
+                            <span>신청 사유</span>
+                            <textarea id="content_author_application_note" name="application_note" rows="8" maxlength="2000" class="form-textarea"><?php echo sr_e((string) ($authorApplication['application_note'] ?? '')); ?></textarea>
+                        </label>
                     </p>
                     <p><button type="submit" class="btn btn-solid-primary">신청하기</button></p>
                 </form>

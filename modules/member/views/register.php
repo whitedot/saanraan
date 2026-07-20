@@ -68,7 +68,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <span><?php echo sr_e(sr_t('member::ui.login.0cdb28b5')); ?></span>
                         <input class="form-input" id="modules_member_register_login_id" type="text" name="login_id" value="<?php echo sr_e($values['login_id']); ?>" maxlength="40" pattern="[a-z][a-z0-9_]{3,39}" inputmode="latin" autocapitalize="none" spellcheck="false" autocomplete="username" data-member-login-id-input>
                     </label>
-                    <small><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
+                    <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.email.login.email.active.eb627985')); ?></small>
                 </p>
                 <p>
                     <label for="modules_member_register_display_name">
@@ -82,7 +82,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <span><?php echo sr_e(sr_t('member::ui.nickname')); ?><?php echo !empty($memberSettings['nickname_required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                             <input class="form-input" id="modules_member_register_nickname" type="text" name="nickname" value="<?php echo sr_e((string) ($values['nickname'] ?? '')); ?>" maxlength="80"<?php echo !empty($memberSettings['nickname_required']) ? ' required' : ''; ?>>
                         </label>
-                        <small><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
+                        <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.nickname.help')); ?></small>
                     </p>
                 <?php } ?>
                 <?php foreach (($registrationExtensionFields ?? []) as $registrationExtensionField) { ?>
@@ -104,7 +104,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                             </label>
                         <?php } ?>
                         <?php if ((string) ($registrationExtensionField['help'] ?? '') !== '') { ?>
-                            <small><?php echo sr_e((string) $registrationExtensionField['help']); ?></small>
+                            <small class="ui-kit-hint"><?php echo sr_e((string) $registrationExtensionField['help']); ?></small>
                         <?php } ?>
                     </p>
                 <?php } ?>
@@ -136,7 +136,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                         <span><?php echo sr_e(sr_t('member::ui.text.8ec77a49')); ?><?php echo !empty($profilePolicies['profile_image_path']['required']) ? ' <span class="sr-required-label">' . sr_e(sr_t('member::ui.required.1f227c67')) . '</span>' : ''; ?></span>
                                 <input class="form-input" id="modules_member_register_profile_image_file" type="file" name="profile_image_file" accept="image/jpeg,image/png,image/webp"<?php echo !empty($profilePolicies['profile_image_path']['required']) ? ' required' : ''; ?>>
                             </label>
-                            <small><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
+                            <small class="ui-kit-hint"><?php echo sr_e(sr_t('member::ui.jpg.png.webp.2fd448bf')); ?> <?php echo sr_e(sr_member_format_bytes(sr_member_profile_image_upload_max_bytes())); ?></small>
                         </p>
                     <?php } elseif ((string) ($memberRegisterProfileOrderItem['kind'] ?? '') === 'extra') { ?>
                         <?php echo sr_member_profile_extra_fields_form_html(

@@ -168,6 +168,7 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .badge-list-item{align-items:center;background:var(--color-default-100);border:1px solid var(--color-default-200);border-radius:var(--radius);color:var(--color-default-800);display:inline-flex;gap:calc(var(--spacing) * 1.5);max-width:100%;min-height:2rem;padding:calc(var(--spacing) * .75) calc(var(--spacing) * 1)}
 .badge-list-label{font-weight:var(--font-weight-semibold);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .badge-list-summary{color:var(--color-default-600);font-size:var(--text-xs);line-height:var(--text-xs--line-height);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ui-kit-hint{color:var(--sr-muted,var(--color-default-600))}
 .admin-select-badge-list{display:grid;gap:calc(var(--spacing) * 1.5);min-width:0}
 .admin-select-badge-list-select{max-width:24rem}
 .admin-select-badge-list-remove{flex:0 0 auto}
@@ -658,6 +659,36 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.ui-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ui-description-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.ui-description-list > div {
+    display: grid;
+    gap: 4px 12px;
+    grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr);
+}
+
+.ui-description-list dt {
+    color: var(--sr-muted-strong, var(--sr-muted, var(--color-default-700)));
+    font-weight: var(--font-weight-semibold);
+}
+
+.ui-description-list dd {
+    color: var(--sr-text, var(--color-body-color));
+    margin: 0;
+    min-width: 0;
+}
+
 .ui-field {
     display: grid;
     gap: 6px;
@@ -849,6 +880,10 @@ a.badge:focus-visible,button.badge:focus-visible,.badge[tabindex]:focus-visible{
 
     .ui-page-header .btn {
         width: fit-content;
+    }
+
+    .ui-description-list > div {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
