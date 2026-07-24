@@ -4,6 +4,23 @@ $allowedGroupKeys = isset($settings['refund_allowed_group_keys']) && is_array($s
     ? $settings['refund_allowed_group_keys']
     : [];
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
+$depositUsageFeatureLabels = [];
+foreach (['content', 'community', 'quiz', 'survey'] as $depositConsumerModuleKey) {
+    if (sr_module_enabled($pdo, $depositConsumerModuleKey)) {
+        $depositUsageFeatureLabels[] = '보상';
+        break;
+    }
+}
+if (sr_module_enabled($pdo, 'asset_exchange')) {
+    $depositUsageFeatureLabels[] = '환전';
+}
+if (sr_module_enabled($pdo, 'coupon')) {
+    $depositUsageFeatureLabels[] = '유료 쿠폰';
+}
+$depositUsageHelp = '끄면 새 ' . $depositDisplayName . ' 거래와 ';
+$depositUsageHelp .= $depositUsageFeatureLabels !== []
+    ? implode('·', $depositUsageFeatureLabels) . ' 등 ' . $depositDisplayName . '을 사용하는 기능을 중단합니다.'
+    : $depositDisplayName . '을 사용하는 기능을 중단합니다.';
 $depositDisplayName = (string) ($settings['display_name'] ?? '예치금');
 $depositUnitLabel = (string) ($settings['unit_label'] ?? '원');
 $depositIdentityRefundAvailable = isset($depositIdentityRefundAvailable)
@@ -94,7 +111,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('deposit_usage_enabled', $depositDisplayName . ' 기능', (string) $depositSettingsHelp['usage']['id'], $depositSettingsHelpOpenLabel); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('deposit_usage_enabled', 'usage_enabled', '1', $usageEnabled, '사용'); ?>
-                <p class="form-help">끄면 새 <?php echo sr_e($depositDisplayName); ?> 거래와 환전·유료 쿠폰 등 <?php echo sr_e($depositDisplayName); ?>을 사용하는 기능을 중단합니다.</p>
+                <p class="form-help"><?php echo sr_e($depositUsageHelp); ?></p>
             </div>
         </div>
         <div class="form-row">
@@ -130,7 +147,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <?php echo sr_admin_module_reference_list_html($pdo, $depositIdentityModuleReferences); ?>
                 <?php if (!$depositIdentityRefundAvailable) { ?>
                     <p id="deposit-settings-identity-unavailable" class="form-help form-help-warning">
-                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 예치금 환불 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
+                        <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 예치금 환불 신청 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.', '을 설치하고 활성화하면 예치금 환불 신청 본인확인을 설정할 수 있습니다.'); ?>
                     </p>
                 <?php } ?>
             </div>

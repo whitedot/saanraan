@@ -19,6 +19,19 @@ $mustContain = static function (string $path, array $needles, string $label) use
         }
     }
 };
+$mustNotContain = static function (string $path, array $needles, string $label) use ($root, &$errors): void {
+    $content = file_get_contents($root . '/' . $path);
+    if (!is_string($content)) {
+        $errors[] = $label . ' file must be readable: ' . $path;
+        return;
+    }
+
+    foreach ($needles as $needle) {
+        if (str_contains($content, $needle)) {
+            $errors[] = $label . ' must not contain unconditional marker: ' . $needle;
+        }
+    }
+};
 
 foreach ([
     'content' => [
@@ -128,6 +141,7 @@ foreach ([
         $definition['notice'],
         'form-help-warning',
         'disabled aria-describedby=',
+        "sr_admin_module_availability_help_html(\$pdo, 'identity_verification'",
     ], $moduleKey . ' identity settings view dependency state');
 }
 
@@ -142,6 +156,78 @@ $mustContain('modules/asset_exchange/views/admin-asset-exchange.php', [
     'form-help-warning',
     '교환할 수 있는 포인트·금액 모듈이 2개 이상 설치되어 있고 활성화되어야 사용할 수 있습니다.',
 ], 'asset exchange enabled setting dependency state');
+
+foreach ([
+    'point' => ['path' => 'modules/point/views/admin-settings.php', 'variable' => '$pointUsageFeatureLabels'],
+    'reward' => ['path' => 'modules/reward/views/admin-settings.php', 'variable' => '$rewardUsageFeatureLabels'],
+    'deposit' => ['path' => 'modules/deposit/views/admin-settings.php', 'variable' => '$depositUsageFeatureLabels'],
+] as $moduleKey => $definition) {
+    $mustContain($definition['path'], [
+        $definition['variable'],
+        "sr_module_enabled(\$pdo, 'asset_exchange')",
+        "sr_module_enabled(\$pdo, 'coupon')",
+        "['content', 'community', 'quiz', 'survey']",
+    ], $moduleKey . ' usage guidance module availability');
+    $mustNotContain($definition['path'], [
+        '보상·환전·유료 쿠폰 등',
+        '환전·유료 쿠폰 등',
+    ], $moduleKey . ' usage guidance module availability');
+}
+
+foreach ([
+    'content' => [
+        'path' => 'modules/content/views/admin-settings.php',
+        'markers' => ["sr_admin_module_availability_help_html(\$pdo, 'ckeditor'", "isset(\$contentEditorModuleReferences['ckeditor'])"],
+    ],
+    'community' => [
+        'path' => 'modules/community/views/admin-settings.php',
+        'markers' => ["sr_admin_module_availability_help_html(\$pdo, 'ckeditor'"],
+    ],
+    'quiz' => [
+        'path' => 'modules/quiz/views/admin-settings.php',
+        'markers' => ["isset(\$quizEditorModuleReferences['ckeditor'])"],
+    ],
+    'survey' => [
+        'path' => 'modules/survey/views/admin-settings.php',
+        'markers' => ["isset(\$surveyEditorModuleReferences['ckeditor'])"],
+    ],
+    'popup_layer' => [
+        'path' => 'modules/popup_layer/views/admin-popup-layer-settings.php',
+        'markers' => ["sr_editor_available(\$pdo, 'ckeditor')", "sr_editor_available(\$pdo, 'markdown')"],
+    ],
+] as $moduleKey => $definition) {
+    $mustContain($definition['path'], $definition['markers'], $moduleKey . ' editor guidance module availability');
+}
+$mustNotContain('modules/ckeditor/views/admin-settings.php', [
+    '콘텐츠와 커뮤니티 등 화면을 소유한 모듈',
+    'CKEditor를 사용할 화면은 콘텐츠, 커뮤니티 등',
+], 'CKEditor consumer guidance');
+
+$optionalGuidanceOwners = [
+    '/admin/identity-providers' => 'identity_verification',
+    '/admin/policy-documents' => 'policy_documents',
+    '/admin/coupons' => 'coupon',
+];
+$moduleFiles = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/modules'));
+foreach ($moduleFiles as $moduleFile) {
+    if (!$moduleFile->isFile() || $moduleFile->getExtension() !== 'php') {
+        continue;
+    }
+    $path = str_replace('\\', '/', substr($moduleFile->getPathname(), strlen($root) + 1));
+    $source = file_get_contents($moduleFile->getPathname());
+    if (!is_string($source)) {
+        $errors[] = 'Optional-module guidance audit could not read: ' . $path;
+        continue;
+    }
+    foreach ($optionalGuidanceOwners as $route => $ownerModuleKey) {
+        if (str_starts_with($path, 'modules/' . $ownerModuleKey . '/')) {
+            continue;
+        }
+        if (str_contains($source, "sr_url('" . $route . "')")) {
+            $errors[] = 'Optional-module guidance must not link directly to a possibly disabled module route: ' . $path . ' -> ' . $route;
+        }
+    }
+}
 
 if ($errors !== []) {
     fwrite(STDERR, "module setting dependency checks failed:\n");

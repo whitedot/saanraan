@@ -3,6 +3,23 @@
 $adminPageTitle = sr_t('point::ui.settings.title');
 $adminPageSubtitle = '';
 $settings = isset($settings) && is_array($settings) ? $settings : ['usage_enabled' => true, 'display_name' => '포인트', 'unit_label' => 'P', 'default_expiration_days' => '0'];
+$pointUsageFeatureLabels = [];
+foreach (['content', 'community', 'quiz', 'survey'] as $pointRewardConsumerModuleKey) {
+    if (sr_module_enabled($pdo, $pointRewardConsumerModuleKey)) {
+        $pointUsageFeatureLabels[] = '보상';
+        break;
+    }
+}
+if (sr_module_enabled($pdo, 'asset_exchange')) {
+    $pointUsageFeatureLabels[] = '환전';
+}
+if (sr_module_enabled($pdo, 'coupon')) {
+    $pointUsageFeatureLabels[] = '유료 쿠폰';
+}
+$pointUsageHelp = '끄면 새 포인트 거래와 ';
+$pointUsageHelp .= $pointUsageFeatureLabels !== []
+    ? implode('·', $pointUsageFeatureLabels) . ' 등 포인트를 사용하는 기능을 중단합니다.'
+    : '포인트를 사용하는 기능을 중단합니다.';
 $pointSettingsHelp = [
     'usage' => [
         'id' => 'point-settings-help-usage',
@@ -33,7 +50,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('point_settings_usage_enabled', '포인트 기능', $pointSettingsHelp['usage']['id'], sr_t('point::help.open')); ?>
             <div class="form-field">
                 <?php echo sr_admin_switch_html('point_settings_usage_enabled', 'usage_enabled', '1', !empty($settings['usage_enabled']), '사용'); ?>
-                <small class="form-help">끄면 새 포인트 거래와 보상·환전·유료 쿠폰 등 포인트를 사용하는 기능을 중단합니다.</small>
+                <small class="form-help"><?php echo sr_e($pointUsageHelp); ?></small>
             </div>
         </div>
         <div class="form-row">
