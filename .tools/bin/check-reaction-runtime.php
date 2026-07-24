@@ -190,6 +190,8 @@ $pdo->exec(
      INSERT INTO sr_reaction_definitions (reaction_key, label, icon_value, status, created_at, updated_at) VALUES
         ('like', '좋아요', '좋아', 'active', '$now', '$now'),
         ('sad', '슬퍼요', '슬퍼', 'active', '$now', '$now'),
+        ('label_only', '라벨만', '', 'active', '$now', '$now'),
+        ('empty', '', '', 'active', '$now', '$now'),
         ('disabled', '중지됨', '중지', 'disabled', '$now', '$now');
      INSERT INTO sr_notification_event_templates (module_key, event_key, title_template, body_template, link_template, channels_json, status, created_at, updated_at)
         VALUES ('reaction', 'target.reacted', '새 리액션이 등록되었습니다.', '{member_name}님이 {target_label}에 {reaction_label} 리액션을 남겼습니다.', '{link_url}', '[\"site\"]', 'active', '$now', '$now');
@@ -198,7 +200,9 @@ $pdo->exec(
      INSERT INTO sr_reaction_preset_items (preset_key, reaction_key, sort_order, is_public, created_at, updated_at) VALUES
         ('emotions', 'like', 10, 1, '$now', '$now'),
         ('emotions', 'sad', 20, 1, '$now', '$now'),
-        ('emotions', 'disabled', 30, 1, '$now', '$now');"
+        ('emotions', 'label_only', 30, 1, '$now', '$now'),
+        ('emotions', 'empty', 40, 1, '$now', '$now'),
+        ('emotions', 'disabled', 50, 1, '$now', '$now');"
 );
 
 $target = [
@@ -265,7 +269,9 @@ $assert(
         && str_contains($widgetHtml, 'data-reaction-key="like"')
         && str_contains($widgetHtml, 'data-reaction-count="sad"')
         && str_contains($widgetHtml, 'btn sr-reaction-button btn-ghost-default')
-        && str_contains($widgetHtml, 'sr-reaction-body-label'),
+        && str_contains($widgetHtml, 'sr-reaction-body-label')
+        && !str_contains($widgetHtml, 'data-reaction-key="empty"')
+        && !str_contains($widgetHtml, 'data-reaction-count="empty"'),
     'public widget should render active reaction buttons and counts.'
 );
 $bodyOrderIcon = strpos($widgetHtml, 'sr-reaction-emoji');
@@ -281,16 +287,39 @@ $assert(
 );
 $commentTarget = array_merge($target, ['owner_account_id' => 8, 'recipient_account_id' => 8]);
 $commentWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'comment', '1', ['id' => 3], ['resolved_target' => $commentTarget]);
-$commentOrderIcon = strpos($commentWidgetHtml, 'sr-reaction-emoji');
-$commentOrderLabel = strpos($commentWidgetHtml, 'sr-reaction-button-label');
-$commentOrderCount = strpos($commentWidgetHtml, 'data-reaction-count="like"');
+$commentLikeButtonMatched = preg_match('/<button[^>]*data-reaction-key="like"[^>]*>(.*?)<\/button>/s', $commentWidgetHtml, $commentLikeButtonMatches) === 1;
+$commentLikeButtonHtml = $commentLikeButtonMatched ? (string) ($commentLikeButtonMatches[1] ?? '') : '';
 $assert(
-    is_int($commentOrderIcon)
-        && is_int($commentOrderLabel)
-        && is_int($commentOrderCount)
-        && $commentOrderIcon < $commentOrderLabel
-        && $commentOrderLabel < $commentOrderCount,
-    'public comment widget should render icon, label, count in that order.'
+    $commentLikeButtonMatched
+        && str_contains($commentLikeButtonHtml, 'sr-reaction-emoji')
+        && str_contains($commentLikeButtonHtml, 'data-reaction-count="like"')
+        && !str_contains($commentLikeButtonHtml, 'sr-reaction-button-label')
+        && str_contains($commentWidgetHtml, 'data-reaction-label="좋아요"')
+        && str_contains($commentWidgetHtml, '<span class="sr-reaction-tooltip-trigger" title="좋아요">')
+        && str_contains($commentWidgetHtml, 'aria-label="좋아요 0"'),
+    'public comment widget should render icon and count without a visible label while preserving its accessible label and wrapper tooltip.'
+);
+$disabledCommentTarget = array_merge($commentTarget, ['can_write' => false]);
+$disabledCommentWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'comment', '1', ['id' => 3], ['resolved_target' => $disabledCommentTarget]);
+$assert(
+    str_contains($disabledCommentWidgetHtml, '<span class="sr-reaction-tooltip-trigger" title="좋아요">')
+        && str_contains($disabledCommentWidgetHtml, 'aria-label="좋아요 0" aria-pressed="false" disabled'),
+    'public disabled comment widget should keep its label tooltip on a wrapper outside the disabled button.'
+);
+$commentLabelOnlyButtonMatched = preg_match('/<button[^>]*data-reaction-key="label_only"[^>]*>(.*?)<\/button>/s', $commentWidgetHtml, $commentLabelOnlyButtonMatches) === 1;
+$commentLabelOnlyButtonHtml = $commentLabelOnlyButtonMatched ? (string) ($commentLabelOnlyButtonMatches[1] ?? '') : '';
+$assert(
+    $commentLabelOnlyButtonMatched
+        && !str_contains($commentLabelOnlyButtonHtml, 'sr-reaction-emoji')
+        && str_contains($commentLabelOnlyButtonHtml, '<span class="sr-reaction-button-label">라벨만</span>')
+        && str_contains($commentLabelOnlyButtonHtml, 'data-reaction-count="label_only"')
+        && !str_contains($commentLabelOnlyButtonHtml, 'title="라벨만"'),
+    'public comment widget should fall back to the visible label and count without a duplicate tooltip when no icon can be rendered.'
+);
+$assert(
+    !str_contains($commentWidgetHtml, 'data-reaction-key="empty"')
+        && !str_contains($commentWidgetHtml, 'data-reaction-count="empty"'),
+    'public comment widget should omit a malformed reaction definition when both icon and label are absent.'
 );
 $ownerEmptyWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '1', ['id' => 7], ['resolved_target' => $target]);
 $assert($ownerEmptyWidgetHtml === '', 'public owner widget should hide when every reaction count is zero.');
@@ -317,8 +346,10 @@ $assert(
     $ownerCommentReaction['ok'] === true
         && str_contains($ownerCommentWidgetHtml, 'sr-reaction-summary')
         && str_contains($ownerCommentWidgetHtml, 'data-reaction-count="like"')
+        && !str_contains($ownerCommentWidgetHtml, 'sr-reaction-button-label')
+        && str_contains($ownerCommentWidgetHtml, 'aria-label="좋아요 1" title="좋아요"')
         && !str_contains($ownerCommentWidgetHtml, 'data-reaction-key='),
-    'public owner comment widget should render counted ghost-style text summaries without buttons.'
+    'public owner comment widget should render counted icon-and-count summaries with label tooltips but without buttons or visible labels.'
 );
 $privateWidgetHtml = sr_reaction_render_widget($pdo, 'community', 'post', '2', ['id' => 3], ['resolved_target' => $privateTarget]);
 $assert($privateWidgetHtml === '', 'public widget should hide non-viewable targets.');
@@ -367,6 +398,33 @@ $invalidImageIconHtml = sr_reaction_public_icon_html([
     'icon_value' => 'local:reaction/icons/bad.webp',
 ]);
 $assert($invalidImageIconHtml === '', 'public image icon renderer should reject invalid storage references.');
+$labelFallbackDisplay = sr_reaction_public_definition_display([
+    'label' => '이미지 없음',
+    'icon_type' => 'image',
+    'icon_value' => 'local:reaction/icons/bad.webp',
+], 'missing_image');
+$assert(
+    is_array($labelFallbackDisplay)
+        && (string) ($labelFallbackDisplay['icon_html'] ?? '') === ''
+        && (string) ($labelFallbackDisplay['label'] ?? '') === '이미지 없음',
+    'public reaction display model should preserve the label fallback when an icon cannot be rendered.'
+);
+$assert(
+    sr_reaction_public_definition_display(['label' => '', 'icon_type' => 'emoji', 'icon_value' => ''], 'empty') === null,
+    'public reaction display model should reject definitions that have neither a renderable icon nor a label.'
+);
+$iconOnlyDisplay = sr_reaction_public_definition_display([
+    'label' => '',
+    'icon_type' => 'emoji',
+    'icon_value' => '★',
+], 'icon_only');
+$assert(
+    is_array($iconOnlyDisplay)
+        && (string) ($iconOnlyDisplay['label'] ?? '') === ''
+        && (string) ($iconOnlyDisplay['accessible_label'] ?? '') === 'icon_only'
+        && str_contains((string) ($iconOnlyDisplay['icon_html'] ?? ''), '★'),
+    'public reaction display model should use the reaction key as the accessible label when only an icon remains.'
+);
 $likeDefinitionId = (int) $pdo->query("SELECT id FROM sr_reaction_definitions WHERE reaction_key = 'like'")->fetchColumn();
 $definitionUpdate = sr_reaction_save_definition($pdo, [
     'id' => $likeDefinitionId,
@@ -532,6 +590,21 @@ $reactionHelperSource = sr_reaction_check_read('modules/reaction/helpers.php');
 $assert(
     str_contains($reactionHelperSource, '$contractTargetModule !== $providerModuleKey'),
     'reaction target loading should ignore targets whose target_module is owned by another provider module.'
+);
+$reactionPublicScript = sr_reaction_check_read('modules/reaction/assets/public.js');
+$assert(
+    str_contains($reactionPublicScript, "button.getAttribute('data-reaction-label')")
+        && str_contains($reactionPublicScript, "button.setAttribute('aria-label', label + ' ' + String(nextCount))"),
+    'reaction public script must keep the accessible icon label and count synchronized after a comment reaction update.'
+);
+$reactionPublicStylesheet = sr_reaction_check_read('modules/reaction/assets/module.css');
+$assert(
+    str_contains($reactionPublicStylesheet, '.sr-reaction-tooltip-trigger')
+        && str_contains($reactionPublicStylesheet, '.sr-reaction-widget .sr-reaction-button:disabled')
+        && str_contains($reactionPublicStylesheet, 'opacity: 1;')
+        && str_contains($reactionPublicStylesheet, '.sr-reaction-tooltip-trigger .sr-reaction-button:disabled')
+        && str_contains($reactionPublicStylesheet, 'pointer-events: none;'),
+    'disabled reaction buttons must keep the default visual opacity and delegate hover handling to the tooltip wrapper.'
 );
 
 $reactionConsumerFiles = sr_reaction_check_php_files([

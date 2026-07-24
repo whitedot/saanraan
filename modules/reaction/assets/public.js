@@ -29,9 +29,12 @@
             button.classList.remove('btn-ghost-primary');
             button.classList.toggle('btn-ghost-default', !active);
             button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            var nextCount = counts[key] || 0;
+            var label = button.getAttribute('data-reaction-label') || key;
+            button.setAttribute('aria-label', label + ' ' + String(nextCount));
             var countNode = widget.querySelector('[data-reaction-count="' + key + '"]');
             if (countNode) {
-                countNode.textContent = String(counts[key] || 0);
+                countNode.textContent = String(nextCount);
             }
         });
     }
