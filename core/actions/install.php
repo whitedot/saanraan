@@ -26,7 +26,7 @@ $addInstallError = function (string $message, string $stepKey, array $fieldNames
 $requiredModules = [
     'member' => [
         'name' => '회원',
-        'version' => '2026.07.003',
+        'version' => '2026.07.004',
         'label' => sr_t('install.module.member.label'),
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
@@ -200,7 +200,7 @@ $optionalModules = [
     ],
     'notification' => [
         'name' => '알림',
-        'version' => '2026.07.005',
+        'version' => '2026.07.006',
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
     ],
