@@ -22,6 +22,7 @@ if (sr_request_method() === 'GET' && in_array($memberAdminPage, ['create_form', 
 $memberCreateValues = sr_admin_member_create_default_values(is_array($site ?? null) ? $site : []);
 $memberEditValues = [];
 $memberSettings = sr_member_settings($pdo);
+$memberOauthEnabled = sr_module_enabled($pdo, 'member_oauth');
 $memberAdminProfileExtraFieldDefinitions = array_values(array_filter(
     sr_member_profile_extra_field_definitions($memberSettings),
     static function (array $definition): bool {

@@ -1064,6 +1064,10 @@ if ($adminMembersAction !== '' && $adminMembersView !== '') {
             && strpos($adminMembersView, 'member-risk-modal-') !== false
             && strpos($adminMembersView, 'aria-label="위험작업" title="위험작업"') !== false
             && strpos($adminMembersView, 'admin-member-risk-actions') !== false
+            && strpos($adminMembersAction, "\$memberOauthEnabled = sr_module_enabled(\$pdo, 'member_oauth');") !== false
+            && strpos($adminMembersView, 'if ($memberOauthEnabled)') !== false
+            && strpos($adminMembersView, '소셜 로그인 연결과 개인정보 정리') !== false
+            && strpos($adminMembersView, '2차 인증과 개인정보 정리') !== false
             && strpos($adminMembersView, '$memberEditCanEvaluateGroups = $memberEditHasActionContext && !in_array($memberEditStatus, $memberTerminalStatuses, true);') !== false
             && strpos($adminMembersView, '<span>회원 차단</span>') !== false
             && strpos($adminMembersView, 'form="<?php echo sr_e($memberEditActionFormPrefix . \'evaluate-groups\'); ?>"') !== false

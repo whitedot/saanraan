@@ -698,7 +698,11 @@ foreach ($allowedStatuses as $status) {
                     <div class="modal-body">
                         <p class="form-help">대상: <?php echo sr_e(sr_admin_member_display_name_preview($member)); ?> · 현재 상태: <?php echo sr_e(sr_admin_code_label($memberStatus, 'member_status')); ?></p>
                         <p class="form-help">현재 조회된 보유 자산: <?php echo sr_e($memberWithdrawalAssetSummary); ?></p>
-                        <p class="form-help">탈퇴/익명화는 세션, 2차 인증, 소셜 로그인 연결과 개인정보 정리에 영향을 줍니다.</p>
+                        <?php if ($memberOauthEnabled) { ?>
+                            <p class="form-help">탈퇴/익명화는 세션, 2차 인증, 소셜 로그인 연결과 개인정보 정리에 영향을 줍니다.</p>
+                        <?php } else { ?>
+                            <p class="form-help">탈퇴/익명화는 세션, 2차 인증과 개인정보 정리에 영향을 줍니다.</p>
+                        <?php } ?>
                     </div>
                     <div class="modal-footer admin-member-risk-actions">
                         <?php if (!in_array($memberStatus, $memberTerminalStatuses, true) && $memberStatus !== 'suspended') { ?>
