@@ -15,23 +15,43 @@ if (!empty($quizSidebarContext['enabled'])) {
             </section>
         <?php } ?>
         <?php if ($quizSidebarPopular !== []) { ?>
-            <section class="card quiz-sidebar-section">
+            <section class="card quiz-sidebar-section quiz-sidebar-summary-section">
                 <div class="card-header"><h2 class="card-title">인기 퀴즈</h2></div>
-                <div class="card-body"><ol class="quiz-sidebar-list">
+                <div class="card-body quiz-sidebar-summary-body"><ol class="quiz-sidebar-list quiz-sidebar-popular-list">
                     <?php foreach ($quizSidebarPopular as $popularQuiz) { ?>
-                        <li><a href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) ($popularQuiz['quiz_key'] ?? '')))); ?>"><?php echo sr_e((string) ($popularQuiz['title'] ?? '')); ?></a><span>조회 <?php echo sr_e(number_format((int) ($popularQuiz['view_count'] ?? 0))); ?></span></li>
+                        <li>
+                            <a class="quiz-sidebar-summary-title" href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) ($popularQuiz['quiz_key'] ?? '')))); ?>"><?php echo sr_e((string) ($popularQuiz['title'] ?? '')); ?></a>
+                            <span class="quiz-sidebar-summary-meta">
+                                조회 <?php echo sr_e(number_format((int) ($popularQuiz['view_count'] ?? 0))); ?>
+                                <?php if ((string) ($popularQuiz['created_at'] ?? '') !== '') { ?>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <?php echo sr_quiz_time_html((string) $popularQuiz['created_at']); ?>
+                                <?php } ?>
+                            </span>
+                        </li>
                     <?php } ?>
                 </ol></div>
             </section>
         <?php } ?>
         <?php if ($quizSidebarComments !== []) { ?>
-            <section class="card quiz-sidebar-section">
+            <section class="card quiz-sidebar-section quiz-sidebar-summary-section">
                 <div class="card-header"><h2 class="card-title">최신댓글</h2></div>
-                <div class="card-body"><ul class="quiz-sidebar-list quiz-sidebar-comment-list">
+                <div class="card-body quiz-sidebar-summary-body"><ul class="quiz-sidebar-list quiz-sidebar-comment-list">
                     <?php foreach ($quizSidebarComments as $sidebarComment) { ?>
+                        <?php $quizSidebarCommentBaseUrl = sr_url('/quiz/' . rawurlencode((string) ($sidebarComment['quiz_key'] ?? '')) . '?result=1'); ?>
                         <li>
-                            <a href="<?php echo sr_e(sr_url('/quiz/' . rawurlencode((string) ($sidebarComment['quiz_key'] ?? '')) . '?result=1#quiz-comment-' . (string) (int) ($sidebarComment['id'] ?? 0))); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
-                            <span class="quiz-sidebar-comment-byline"><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?> · <?php echo sr_quiz_time_html((string) ($sidebarComment['created_at'] ?? '')); ?></span>
+                            <a class="quiz-sidebar-comment-excerpt" href="<?php echo sr_e($quizSidebarCommentBaseUrl . '#quiz-comment-' . (string) (int) ($sidebarComment['id'] ?? 0)); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
+                            <span class="quiz-sidebar-comment-meta">
+                                <span class="quiz-sidebar-comment-byline">
+                                    <span><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?></span>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <?php echo sr_quiz_time_html((string) ($sidebarComment['created_at'] ?? '')); ?>
+                                </span>
+                                <?php if ((string) ($sidebarComment['quiz_title'] ?? '') !== '') { ?>
+                                    <span class="quiz-sidebar-comment-separator" aria-hidden="true">&middot;</span>
+                                    <a class="quiz-sidebar-comment-content" href="<?php echo sr_e($quizSidebarCommentBaseUrl); ?>"><?php echo sr_e((string) $sidebarComment['quiz_title']); ?></a>
+                                <?php } ?>
+                            </span>
                         </li>
                     <?php } ?>
                 </ul></div>

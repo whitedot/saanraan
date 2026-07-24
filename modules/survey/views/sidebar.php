@@ -15,23 +15,43 @@ if (!empty($surveySidebarContext['enabled'])) {
             </section>
         <?php } ?>
         <?php if ($surveySidebarPopular !== []) { ?>
-            <section class="card survey-sidebar-section">
+            <section class="card survey-sidebar-section survey-sidebar-summary-section">
                 <div class="card-header"><h2 class="card-title">인기 설문</h2></div>
-                <div class="card-body"><ol class="survey-sidebar-list">
+                <div class="card-body survey-sidebar-summary-body"><ol class="survey-sidebar-list survey-sidebar-popular-list">
                     <?php foreach ($surveySidebarPopular as $popularSurvey) { ?>
-                        <li><a href="<?php echo sr_e(sr_url('/survey/' . rawurlencode((string) ($popularSurvey['survey_key'] ?? '')))); ?>"><?php echo sr_e((string) ($popularSurvey['title'] ?? '')); ?></a><span>조회 <?php echo sr_e(number_format((int) ($popularSurvey['view_count'] ?? 0))); ?></span></li>
+                        <li>
+                            <a class="survey-sidebar-summary-title" href="<?php echo sr_e(sr_url('/survey/' . rawurlencode((string) ($popularSurvey['survey_key'] ?? '')))); ?>"><?php echo sr_e((string) ($popularSurvey['title'] ?? '')); ?></a>
+                            <span class="survey-sidebar-summary-meta">
+                                조회 <?php echo sr_e(number_format((int) ($popularSurvey['view_count'] ?? 0))); ?>
+                                <?php if ((string) ($popularSurvey['updated_at'] ?? '') !== '') { ?>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <?php echo sr_survey_time_html((string) $popularSurvey['updated_at']); ?>
+                                <?php } ?>
+                            </span>
+                        </li>
                     <?php } ?>
                 </ol></div>
             </section>
         <?php } ?>
         <?php if ($surveySidebarComments !== []) { ?>
-            <section class="card survey-sidebar-section">
+            <section class="card survey-sidebar-section survey-sidebar-summary-section">
                 <div class="card-header"><h2 class="card-title">최신댓글</h2></div>
-                <div class="card-body"><ul class="survey-sidebar-list survey-sidebar-comment-list">
+                <div class="card-body survey-sidebar-summary-body"><ul class="survey-sidebar-list survey-sidebar-comment-list">
                     <?php foreach ($surveySidebarComments as $sidebarComment) { ?>
+                        <?php $surveySidebarCommentBaseUrl = sr_url('/survey/' . rawurlencode((string) ($sidebarComment['survey_key'] ?? '')) . '?submitted=1'); ?>
                         <li>
-                            <a href="<?php echo sr_e(sr_url('/survey/' . rawurlencode((string) ($sidebarComment['survey_key'] ?? '')) . '?submitted=1#survey-comment-' . (string) (int) ($sidebarComment['id'] ?? 0))); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
-                            <span class="survey-sidebar-comment-byline"><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?> · <?php echo sr_survey_time_html((string) ($sidebarComment['created_at'] ?? '')); ?></span>
+                            <a class="survey-sidebar-comment-excerpt" href="<?php echo sr_e($surveySidebarCommentBaseUrl . '#survey-comment-' . (string) (int) ($sidebarComment['id'] ?? 0)); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
+                            <span class="survey-sidebar-comment-meta">
+                                <span class="survey-sidebar-comment-byline">
+                                    <span><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?></span>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <?php echo sr_survey_time_html((string) ($sidebarComment['created_at'] ?? '')); ?>
+                                </span>
+                                <?php if ((string) ($sidebarComment['survey_title'] ?? '') !== '') { ?>
+                                    <span class="survey-sidebar-comment-separator" aria-hidden="true">&middot;</span>
+                                    <a class="survey-sidebar-comment-content" href="<?php echo sr_e($surveySidebarCommentBaseUrl); ?>"><?php echo sr_e((string) $sidebarComment['survey_title']); ?></a>
+                                <?php } ?>
+                            </span>
                         </li>
                     <?php } ?>
                 </ul></div>

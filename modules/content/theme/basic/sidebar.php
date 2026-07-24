@@ -15,14 +15,14 @@ if (!empty($contentSidebarContext['enabled'])) {
             </section>
         <?php } ?>
         <?php if ($contentSidebarPopular !== []) { ?>
-            <section class="card content-sidebar-section">
+            <section class="card content-sidebar-section content-sidebar-summary-section">
                 <div class="card-header"><h2 class="card-title">인기 콘텐츠</h2></div>
-                <div class="card-body"><ol class="content-sidebar-list">
+                <div class="card-body content-sidebar-summary-body"><ol class="content-sidebar-list content-sidebar-popular-list">
                     <?php foreach ($contentSidebarPopular as $popularContent) { ?>
                         <?php $contentSidebarPopularDate = (string) (($popularContent['published_at'] ?? '') ?: ($popularContent['updated_at'] ?? '')); ?>
                         <li>
-                            <a href="<?php echo sr_e(sr_url(sr_content_path((string) ($popularContent['slug'] ?? '')))); ?>"><?php echo sr_e((string) ($popularContent['title'] ?? '')); ?></a>
-                            <span>
+                            <a class="content-sidebar-summary-title" href="<?php echo sr_e(sr_url(sr_content_path((string) ($popularContent['slug'] ?? '')))); ?>"><?php echo sr_e((string) ($popularContent['title'] ?? '')); ?></a>
+                            <span class="content-sidebar-summary-meta">
                                 조회 <?php echo sr_e(number_format((int) ($popularContent['view_count'] ?? 0))); ?>
                                 <?php if ($contentSidebarPopularDate !== '') { ?>
                                     <span aria-hidden="true">&middot;</span>
@@ -35,13 +35,13 @@ if (!empty($contentSidebarContext['enabled'])) {
             </section>
         <?php } ?>
         <?php if ($contentSidebarComments !== []) { ?>
-            <section class="card content-sidebar-section">
+            <section class="card content-sidebar-section content-sidebar-summary-section">
                 <div class="card-header"><h2 class="card-title">최신댓글</h2></div>
-                <div class="card-body"><ul class="content-sidebar-list content-sidebar-comment-list">
+                <div class="card-body content-sidebar-summary-body"><ul class="content-sidebar-list content-sidebar-comment-list">
                     <?php foreach ($contentSidebarComments as $sidebarComment) { ?>
                         <?php $contentSidebarCommentBaseUrl = sr_url(sr_content_path((string) ($sidebarComment['content_slug'] ?? ''))); ?>
                         <li>
-                            <a href="<?php echo sr_e($contentSidebarCommentBaseUrl . '#content-comment-' . (string) (int) ($sidebarComment['id'] ?? 0)); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
+                            <a class="content-sidebar-comment-excerpt" href="<?php echo sr_e($contentSidebarCommentBaseUrl . '#content-comment-' . (string) (int) ($sidebarComment['id'] ?? 0)); ?>"><?php echo sr_e((string) ($sidebarComment['excerpt'] ?? '')); ?></a>
                             <span class="content-sidebar-comment-meta">
                                 <span class="content-sidebar-comment-byline">
                                     <span><?php echo sr_e((string) ($sidebarComment['author_public_name'] ?? '회원')); ?></span>

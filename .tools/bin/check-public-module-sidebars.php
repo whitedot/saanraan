@@ -80,6 +80,9 @@ $contains('modules/content/theme/basic/sidebar.php', [
     '<aside class="content-sidebar"',
     '인기 콘텐츠',
     '최신댓글',
+    'content-sidebar-summary-section',
+    'content-sidebar-summary-meta',
+    'content-sidebar-comment-excerpt',
     'content-sidebar-comment-byline',
     'content-sidebar-comment-content',
     "['content_title']",
@@ -102,6 +105,9 @@ $contains('modules/content/theme/basic/assets/module.css', [
     '.content-reading-panel',
     '.content-screen-frame',
     '.content-sidebar',
+    '.content-sidebar-summary-section',
+    '.content-sidebar-summary-meta',
+    '.content-sidebar-comment-excerpt',
     '.content-sidebar-comment-byline',
     'white-space: nowrap',
     'var(--sr-text',
@@ -109,6 +115,13 @@ $contains('modules/content/theme/basic/assets/module.css', [
     '@media (max-width: 1024px)',
 ]);
 $contentModuleCss = $source('modules/content/theme/basic/assets/module.css');
+$contentSidebarItemRuleMatched = preg_match('/\.content-sidebar-list\s*>\s*li\s*\{([^}]*)\}/s', $contentModuleCss, $contentSidebarItemRuleMatches) === 1;
+$assert($contentSidebarItemRuleMatched, 'content sidebar summary item CSS rule must exist.');
+if ($contentSidebarItemRuleMatched) {
+    $contentSidebarItemRule = (string) ($contentSidebarItemRuleMatches[1] ?? '');
+    $assert(str_contains($contentSidebarItemRule, 'gap: 3px'), 'content sidebar summary items must follow the community three-pixel title/meta gap.');
+    $assert(!preg_match('/\b(?:border|padding)(?:-[a-z]+)?\s*:/', $contentSidebarItemRule), 'content sidebar summary items must not restore the old dividers or item padding.');
+}
 $contentSidebarRuleMatched = preg_match('/\.content-sidebar\s*\{([^}]*)\}/s', $contentModuleCss, $contentSidebarRuleMatches) === 1;
 $assert($contentSidebarRuleMatched, 'content sidebar base CSS rule must exist.');
 if ($contentSidebarRuleMatched) {
@@ -163,7 +176,12 @@ $contains('modules/quiz/views/sidebar.php', [
     '<aside class="quiz-sidebar"',
     '인기 퀴즈',
     '최신댓글',
+    'quiz-sidebar-summary-section',
+    'quiz-sidebar-summary-meta',
+    'quiz-sidebar-comment-excerpt',
     'quiz-sidebar-comment-byline',
+    'quiz-sidebar-comment-content',
+    "['quiz_title']",
     "'point_key' => 'quiz.sidebar.summary'",
 ]);
 foreach ([
@@ -180,11 +198,20 @@ $contains('modules/quiz/theme/basic/view.php', ['if (!$quizEmbedded)', "'quiz.si
 $contains('modules/quiz/theme/basic/assets/module.css', [
     '.quiz-screen-frame',
     '.quiz-sidebar',
+    '.quiz-sidebar-summary-section',
+    '.quiz-sidebar-summary-meta',
+    '.quiz-sidebar-comment-excerpt',
     '.quiz-sidebar-comment-byline',
+    '.quiz-sidebar-comment-content',
     'var(--sr-text',
     'var(--sr-muted',
     '@media (max-width: 1024px)',
 ]);
+$quizModuleCss = $source('modules/quiz/theme/basic/assets/module.css');
+$assert(
+    preg_match('/\.quiz-sidebar-list\s+li\s*\{[^}]*gap:\s*3px/s', $quizModuleCss) === 1,
+    'quiz sidebar summary items must follow the community three-pixel title/meta gap.'
+);
 $contains('modules/quiz/actions/list.php', [
     "sr_get_string('group', 64)",
     'sr_quiz_group_by_key(',
@@ -227,7 +254,12 @@ $contains('modules/survey/views/sidebar.php', [
     '<aside class="survey-sidebar"',
     '인기 설문',
     '최신댓글',
+    'survey-sidebar-summary-section',
+    'survey-sidebar-summary-meta',
+    'survey-sidebar-comment-excerpt',
     'survey-sidebar-comment-byline',
+    'survey-sidebar-comment-content',
+    "['survey_title']",
     "'point_key' => 'survey.sidebar.summary'",
 ]);
 foreach ([
@@ -243,11 +275,20 @@ $contains('modules/survey/skins/basic/home.php', ['if ($surveyScreenIsList)', "'
 $contains('modules/survey/theme/basic/assets/module.css', [
     '.survey-screen-frame',
     '.survey-sidebar',
+    '.survey-sidebar-summary-section',
+    '.survey-sidebar-summary-meta',
+    '.survey-sidebar-comment-excerpt',
     '.survey-sidebar-comment-byline',
+    '.survey-sidebar-comment-content',
     'var(--sr-text',
     'var(--sr-muted',
     '@media (max-width: 1024px)',
 ]);
+$surveyModuleCss = $source('modules/survey/theme/basic/assets/module.css');
+$assert(
+    preg_match('/\.survey-sidebar-list\s+li\s*\{[^}]*gap:\s*3px/s', $surveyModuleCss) === 1,
+    'survey sidebar summary items must follow the community three-pixel title/meta gap.'
+);
 $contains('modules/survey/actions/list.php', [
     "sr_get_string('group', 64)",
     'sr_survey_group_by_key(',
