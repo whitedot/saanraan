@@ -190,8 +190,8 @@ for (const fixture of panelFixtures) {
         </section>
       ${fixture.wrapperClose}</body></html>`);
     await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet.replace('/common.css', '/reset.css')) });
-    await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet) });
     await page.addStyleTag({ path: path.join(root, 'modules/member/assets/public-identity.css') });
+    await page.addStyleTag({ path: path.join(root, fixture.commonStylesheet) });
     await page.addStyleTag({ path: path.join(root, fixture.stylesheet) });
 
     const computed = async () => page.evaluate(() => {

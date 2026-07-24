@@ -561,6 +561,14 @@ foreach ([
         'Member public identity stylesheet must own the shared marker: ' . $memberIdentityStyleMarker
     );
 }
+$assert(
+    is_string($memberIdentityStylesheet)
+        && preg_match(
+            '/\.member-profile-image\.member-profile-image-fallback\s*\{[^}]*aspect-ratio:\s*1\s*\/\s*1;[^}]*height:\s*var\(--member-profile-image-size,\s*2rem\);[^}]*width:\s*var\(--member-profile-image-size,\s*2rem\);/s',
+            $memberIdentityStylesheet
+        ) === 1,
+    'Member fallback avatars must keep equal contract-owned dimensions even when a later UI kit member-default-avatar rule is loaded.'
+);
 
 foreach (['content', 'quiz', 'survey'] as $moduleKey) {
     $action = file_get_contents($root . '/modules/' . $moduleKey . '/actions/comment.php');

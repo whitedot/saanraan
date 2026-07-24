@@ -56,15 +56,20 @@
 
 .member-profile-image.member-profile-image-fallback {
     align-items: center;
+    aspect-ratio: 1 / 1;
     background: var(--sr-member-avatar-bg, #4f46e5);
     border-color: transparent;
+    box-sizing: border-box;
     color: var(--color-white, #fff);
     display: inline-flex;
+    flex: 0 0 var(--member-profile-image-size, 2rem);
     font-size: clamp(0.625rem, calc(var(--member-profile-image-size, 32px) * 0.375), 1.25rem);
     font-weight: var(--font-weight-bold, 700);
+    height: var(--member-profile-image-size, 2rem);
     justify-content: center;
     line-height: 1;
     overflow: hidden;
+    width: var(--member-profile-image-size, 2rem);
 }
 
 .member-profile-image.member-avatar-color-0 { --sr-member-avatar-bg: #b91c1c; }
