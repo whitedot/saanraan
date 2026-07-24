@@ -138,7 +138,7 @@ sr_browser_qa_require_markers('.tools/browser-qa/tests/public-comment-pagination
     'content-comments-pagination',
     'quiz-comments-pagination',
     'survey-comments-pagination',
-    'comment panel follows community divider metrics',
+    'comment panel keeps complete divider metrics',
     'headerDivider',
     'formDivider',
     'modules/member/assets/public-identity.css',
