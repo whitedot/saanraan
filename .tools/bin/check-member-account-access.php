@@ -78,7 +78,25 @@ $assert(is_string($skin) && str_contains($skin, 'width: min(100%, 1360px);'), 'M
 $assert(is_string($view) && substr_count($view, 'class="card-header"') >= 8 && str_contains($view, 'class="card-body member-skin-basic-form"'), 'Member account overview and subpages must share the UI kit card header and body structure.');
 $assert(is_string($view) && str_contains($view, 'btn btn-outline-default member-skin-basic-overview-action') && !str_contains($view, 'member-skin-basic-overview-link'), 'Member account overview shortcuts must use UI kit buttons instead of custom decorative cards.');
 $assert(is_string($skin) && !str_contains($skin, '.member-skin-basic-padded-card') && !str_contains($skin, '.member-skin-basic-overview-link'), 'Member account skin must not recreate UI kit card surfaces for subpages or overview shortcuts.');
-$assert(is_string($settingsView) && str_contains($settingsView, '마이페이지·계정보안 본인확인'), 'Member settings must explain that identity verification applies to initial mypage access.');
+$assert(
+    is_string($settingsView)
+        && str_contains($settingsView, '마이페이지·계정보안 본인확인')
+        && str_contains($settingsView, '비밀번호가 있는 계정은 현재 비밀번호로, 비밀번호가 없는 계정은 등록된 인증 앱 또는 복구 코드로 계정을 확인한 뒤 본인확인을 진행합니다.')
+        && str_contains($settingsView, '완료한 본인확인은 같은 로그인 세션의 비밀번호 변경과 2차 인증 관리에서 다시 요구하지 않습니다.'),
+    'Member settings must accurately explain the account credential and identity verification sequence.'
+);
+$assert(
+    is_string($action)
+        && str_contains($action, "\$memberOauthEnabled = sr_module_enabled(\$pdo, 'member_oauth');")
+        && is_string($view)
+        && str_contains($view, 'if (!empty($memberOauthEnabled))')
+        && str_contains($view, '현재 OAuth 로그인 세션으로 계정을 확인합니다.')
+        && str_contains($view, '현재 로그인 세션으로 계정을 확인합니다.')
+        && is_string($settingsView)
+        && str_contains($settingsView, 'if ($memberOauthEnabled)')
+        && str_contains($settingsView, 'OAuth 전용 계정에 비밀번호나 등록된 인증 앱이 없으면'),
+    'OAuth-specific account verification guidance must render only while the OAuth module is enabled.'
+);
 $assert(
     is_string($action)
         && str_contains($action, "'/mypage/profile' => 'account'")

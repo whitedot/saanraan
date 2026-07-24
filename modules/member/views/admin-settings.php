@@ -129,6 +129,7 @@ foreach ($memberMfaProviderDefinitions as $memberMfaProviderDefinition) {
 }
 $memberMfaLoginMode = sr_member_mfa_login_mode($settings['mfa_login_mode'] ?? null, $settings['mfa_login_enabled'] ?? null);
 $memberMfaLoginProviderKeys = sr_member_mfa_setting_provider_keys($settings['mfa_login_providers_json'] ?? '["email","totp"]');
+$memberOauthEnabled = sr_module_enabled($pdo, 'member_oauth');
 $memberIdentityRegistrationAvailable = isset($memberIdentityRegistrationAvailable)
     ? (bool) $memberIdentityRegistrationAvailable
     : (function_exists('sr_identity_verification_available') && sr_identity_verification_available($pdo, 'member.registration'));
@@ -225,7 +226,10 @@ $memberSettingsSectionNavItems = [
                 <label class="form-label" for="modules_member_admin_settings_identity_account_security_required"><?php echo sr_e('마이페이지·계정보안 본인확인'); ?></label>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('modules_member_admin_settings_identity_account_security_required', 'identity_account_security_required', '1', $memberIdentityAccountSecurityAvailable && !empty($settings['identity_account_security_required']), '사용', '', $memberIdentityAccountSecurityInputAttributes); ?>
-                    <small class="form-help">로그인 세션에서 마이페이지에 처음 들어갈 때 비밀번호 또는 2차 인증 확인에 이어 본인확인을 요구합니다. 완료 결과는 같은 세션의 비밀번호 변경과 2차 인증 관리에도 적용됩니다.</small>
+                    <small class="form-help">마이페이지에 처음 들어갈 때 비밀번호가 있는 계정은 현재 비밀번호로, 비밀번호가 없는 계정은 등록된 인증 앱 또는 복구 코드로 계정을 확인한 뒤 본인확인을 진행합니다. 완료한 본인확인은 같은 로그인 세션의 비밀번호 변경과 2차 인증 관리에서 다시 요구하지 않습니다.</small>
+                    <?php if ($memberOauthEnabled) { ?>
+                        <small class="form-help">OAuth 전용 계정에 비밀번호나 등록된 인증 앱이 없으면 현재 OAuth 로그인 세션을 확인한 뒤 본인확인을 진행합니다.</small>
+                    <?php } ?>
                     <?php echo sr_admin_module_reference_list_html($pdo, $memberIdentityModuleReferences); ?>
                 </div>
             </div>

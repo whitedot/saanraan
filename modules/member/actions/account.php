@@ -33,6 +33,7 @@ if (isset($memberAccountRoutePages[$memberAccountCurrentPath])) {
 }
 $memberMfaLoginMode = sr_member_mfa_login_mode($memberSettings['mfa_login_mode'] ?? null, $memberSettings['mfa_login_enabled'] ?? null);
 $memberMfaLoginProviderKeys = sr_member_mfa_enabled_login_provider_keys($pdo, $memberSettings);
+$memberOauthEnabled = sr_module_enabled($pdo, 'member_oauth');
 $memberMfaTotpLoginAllowed = in_array('totp', $memberMfaLoginProviderKeys, true);
 $memberMfaTotpSetupAllowed = $memberMfaLoginMode !== 'disabled' && $memberMfaTotpLoginAllowed;
 $memberMfaDisableAllowed = $memberMfaLoginMode !== 'required';

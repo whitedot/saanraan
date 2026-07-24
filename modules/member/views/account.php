@@ -67,7 +67,11 @@ if ($memberAccountPage === 'verify') {
                             </p>
                         <?php } else { ?>
                             <div class="alert alert-info">
-                                <p>이 계정에는 확인할 비밀번호나 등록된 인증 앱이 없습니다. 현재 소셜 로그인 세션으로 계속합니다.</p>
+                                <?php if (!empty($memberOauthEnabled)) { ?>
+                                    <p>이 OAuth 전용 계정에는 확인할 비밀번호나 등록된 인증 앱이 없습니다. 현재 OAuth 로그인 세션으로 계정을 확인합니다.</p>
+                                <?php } else { ?>
+                                    <p>이 계정에는 확인할 비밀번호나 등록된 인증 앱이 없습니다. 현재 로그인 세션으로 계정을 확인합니다.</p>
+                                <?php } ?>
                             </div>
                         <?php } ?>
                         <button class="btn btn-solid-primary btn-block" type="submit">
