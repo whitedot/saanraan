@@ -23,7 +23,7 @@ $ckeditorHelp = [
         'body' => '<p>일반 편집 도구는 제목, 글자 크기와 색상, 기본 강조, 정렬, 링크, 이미지, 표, 구분선, 인용, 목록, 들여쓰기와 서식 제거를 제공합니다.</p>'
             . '<p>화면 폭에 모든 도구가 들어가지 않으면 툴바가 여러 줄로 접혀 모든 버튼을 계속 표시합니다.</p>'
             . '<p>이미지 삽입 버튼은 항상 표시되며, 업로드 경로가 있는 화면에서는 파일 업로드와 이미지 URL 삽입을 함께 제공합니다.</p>'
-            . '<p>콘텐츠와 커뮤니티 등 화면을 소유한 모듈이 별도 구성을 지정하면 모듈 설정을 우선합니다. 기본 긴 글 입력란이나 다른 편집기를 사용하는 화면에는 적용되지 않습니다.</p>',
+            . '<p>화면을 소유한 모듈이 별도 구성을 지정하면 해당 모듈 설정을 우선합니다. 기본 긴 글 입력란이나 다른 편집기를 사용하는 화면에는 적용되지 않습니다.</p>',
     ],
 ];
 include SR_ROOT . '/modules/admin/views/layout-header.php';
@@ -73,7 +73,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </div>
 
-        <p class="form-help">CKEditor를 사용할 화면은 콘텐츠, 커뮤니티 등 각 모듈의 편집기 설정에서 선택합니다.</p>
+        <p class="form-help">CKEditor를 사용할 화면은 해당 화면을 소유한 모듈의 편집기 설정에서 선택합니다.</p>
     </section>
 
     <div class="form-sticky-actions form-actions">

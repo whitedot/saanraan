@@ -31,6 +31,14 @@ foreach ($assetOptions as $quizAssetModuleKey => $quizAssetOption) {
     }
 }
 $quizCouponModuleReferences = [['module_key' => 'coupon', 'path' => '/admin/coupons']];
+$quizCouponAvailabilityHelp = sr_admin_module_availability_help_html(
+    $pdo,
+    'coupon',
+    '/admin/coupons',
+    '쿠폰 관리',
+    '에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.',
+    '을 설치하고 활성화하면 쿠폰 보상을 설정할 수 있습니다.'
+);
 $quizSiteMenuOptions = isset($siteMenuOptions) && is_array($siteMenuOptions) ? $siteMenuOptions : [];
 $quizSiteMenuSelectOptions = static function (string $selectedMenuKey) use ($quizSiteMenuOptions): void {
     ?>
@@ -190,7 +198,7 @@ $quizSettingsHelp = [
         'title' => '기본 보상 쿠폰',
         'body_html' => $quizSettingsHelpBodyHtml([
             '보상 종류가 쿠폰 발급일 때 지급할 쿠폰입니다.',
-        ]) . '<p><a href="' . sr_e(sr_url('/admin/coupons')) . '" target="_blank" rel="noopener noreferrer">쿠폰 관리</a>에 등록되어 있고 활성 상태이며 사용 기간 안에 있는 쿠폰만 선택할 수 있습니다.</p>',
+        ]) . '<p>' . $quizCouponAvailabilityHelp . '</p>',
     ],
     'default_reward_amount' => [
         'id' => 'quiz-settings-help-default-reward-amount',
@@ -489,7 +497,10 @@ $quizSettingsSectionNavItems = [
                 <label class="form-label" for="quiz_settings_comment_editor">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('quiz_settings_comment_editor', 'comment_editor', $editorOptions, (string) ($settings['comment_editor'] ?? 'textarea'), true); ?>
-                    <p class="form-help">퀴즈 댓글·답글·수정 입력에 사용할 에디터입니다. CKEditor는 일반 편집 도구 구성을 사용하며, 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                    <p class="form-help">퀴즈 댓글·답글·수정 입력에 사용할 에디터입니다. 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                    <?php if (isset($quizEditorModuleReferences['ckeditor'])) { ?>
+                        <p class="form-help">CKEditor를 선택하면 CKEditor의 일반 편집 도구 구성을 사용합니다.</p>
+                    <?php } ?>
                     <?php echo sr_admin_module_reference_list_html($pdo, $quizEditorModuleReferences); ?>
                 </div>
             </div>
@@ -569,7 +580,7 @@ $quizSettingsSectionNavItems = [
                         <?php } ?>
                     </select>
                     <?php if ($couponRewardDefinitions === []) { ?>
-                        <p class="form-help form-help-warning">현재 선택 가능한 활성 쿠폰이 없습니다. <a href="<?php echo sr_e(sr_url('/admin/coupons')); ?>" target="_blank" rel="noopener noreferrer">쿠폰 관리</a>에서 사용 가능한 쿠폰을 먼저 등록하거나 활성화하세요.</p>
+                        <p class="form-help form-help-warning">현재 선택 가능한 활성 쿠폰이 없습니다. <?php echo $quizCouponAvailabilityHelp; ?></p>
                     <?php } ?>
                     <?php echo sr_admin_module_reference_list_html($pdo, $quizCouponModuleReferences); ?>
                 </div>
@@ -638,7 +649,7 @@ $quizSettingsSectionNavItems = [
                 <?php echo sr_admin_module_reference_list_html($pdo, $quizIdentityModuleReferences); ?>
                 <?php if ($quizIdentityUnavailable) { ?>
                     <p id="quiz-settings-identity-unavailable" class="form-help form-help-warning">
-                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                        <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.', '을 설치하고 활성화하면 퀴즈 본인확인을 설정할 수 있습니다.'); ?>
                     </p>
                 <?php } ?>
             </div>
@@ -650,7 +661,7 @@ $quizSettingsSectionNavItems = [
                 <?php if ($quizIdentityViewAdultAvailable) { ?>
                     <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 퀴즈에 접근할 수 있습니다.</p>
                 <?php } else { ?>
-                    <p id="quiz-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 퀴즈 성인 참여 목적 제공자를 설정하세요.</p>
+                    <p id="quiz-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 생년월일 사용을 켜고 퀴즈 성인 참여 목적 제공자를 설정하세요.', '을 설치하고 활성화하면 성인 퀴즈 본인확인을 설정할 수 있습니다.'); ?></p>
                 <?php } ?>
                 <?php echo sr_admin_module_reference_list_html($pdo, $quizIdentityModuleReferences); ?>
             </div>

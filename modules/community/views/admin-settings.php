@@ -415,7 +415,7 @@ $communitySettingsSectionNavItems = [
                 <?php echo sr_admin_module_reference_list_html($pdo, $communityIdentityModuleReferences); ?>
                 <?php if (!$communityIdentityRestrictedBoardAvailable) { ?>
                     <p id="community-settings-identity-unavailable" class="form-help form-help-warning">
-                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 제한 게시판 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
+                        <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 제한 게시판 목적을 지원하는 제공자가 준비되지 않아 설정을 사용할 수 없습니다.', '을 설치하고 활성화하면 제한 게시판 본인확인을 설정할 수 있습니다.'); ?>
                     </p>
                 <?php } ?>
             </div>
@@ -539,7 +539,7 @@ $communitySettingsSectionNavItems = [
                     <?php echo sr_admin_module_reference_list_html($pdo, $communityPolicyDocumentModuleReferences); ?>
                     <?php if (!$communityPrivacyConsentPolicyDocumentsAvailable) { ?>
                         <p id="community-settings-privacy-consent-unavailable" class="form-help form-help-warning">
-                            <a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">약관/방침 관리 모듈</a>이 설치되어 있지 않거나 활성화되어 있지 않고, <a href="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" target="_blank" rel="noopener noreferrer">게시된 정책 문서</a>가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
+                            <?php echo sr_admin_module_availability_help_html($pdo, 'policy_documents', '/admin/policy-documents', '약관/방침 관리', '에서 게시된 정책 문서를 먼저 준비해야 개인정보 수집 및 이용동의 설정을 사용할 수 있습니다.', '을 설치하고 활성화하면 개인정보 수집 및 이용동의 설정을 사용할 수 있습니다.'); ?>
                         </p>
                     <?php } ?>
                 </div>
@@ -943,7 +943,7 @@ $communitySettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">CKEditor를 사용할 때 커뮤니티 게시글과 댓글 작성/수정 화면에 적용할 툴바입니다.</p>
+                <p class="form-help"><?php echo sr_admin_module_availability_help_html($pdo, 'ckeditor', '/admin/ckeditor/settings', 'CKEditor 설정', '에서 커뮤니티 게시글과 댓글 작성·수정 화면의 툴바를 함께 관리합니다.', '을 설치하고 활성화하면 이 툴바 구성을 사용할 수 있습니다.'); ?></p>
                 <?php echo sr_admin_module_reference_list_html($pdo, $communityToolbarModuleReferences); ?>
             </div>
         </div>

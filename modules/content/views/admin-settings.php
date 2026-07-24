@@ -240,7 +240,7 @@ $contentSettingsSectionNavItems = [
                         </option>
                     <?php } ?>
                 </select>
-                <p class="form-help">CKEditor를 사용할 때 콘텐츠 본문과 댓글 입력 화면에 적용할 툴바입니다.</p>
+                <p class="form-help"><?php echo sr_admin_module_availability_help_html($pdo, 'ckeditor', '/admin/ckeditor/settings', 'CKEditor 설정', '에서 콘텐츠 본문과 댓글 입력 화면의 툴바를 함께 관리합니다.', '을 설치하고 활성화하면 이 툴바 구성을 사용할 수 있습니다.'); ?></p>
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentToolbarModuleReferences); ?>
             </div>
         </div>
@@ -248,7 +248,10 @@ $contentSettingsSectionNavItems = [
             <label class="form-label" for="content_admin_settings_comment_editor">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
             <div class="form-field">
                 <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_comment_editor', 'comment_editor', $editorOptions, (string) ($settings['comment_editor'] ?? 'textarea'), true); ?>
-                <p class="form-help">댓글·답글·수정 입력에 사용할 에디터입니다. CKEditor는 위 툴바 구성을 함께 사용하며, 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                <p class="form-help">댓글·답글·수정 입력에 사용할 에디터입니다. 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                <?php if (isset($contentEditorModuleReferences['ckeditor'])) { ?>
+                    <p class="form-help">CKEditor를 선택하면 위 툴바 구성을 함께 사용합니다.</p>
+                <?php } ?>
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentEditorModuleReferences); ?>
             </div>
         </div>
@@ -456,7 +459,7 @@ $contentSettingsSectionNavItems = [
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentIdentityModuleReferences); ?>
                 <?php if (!$contentIdentityContentViewAvailable) { ?>
                     <p id="content-settings-identity-unavailable" class="form-help form-help-warning">
-                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                        <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.', '을 설치하고 활성화하면 콘텐츠 본인확인을 설정할 수 있습니다.'); ?>
                     </p>
                 <?php } ?>
             </div>
@@ -468,7 +471,7 @@ $contentSettingsSectionNavItems = [
                 <?php if ($contentIdentityContentViewAdultAvailable) { ?>
                     <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 공개 콘텐츠를 볼 수 있습니다.</p>
                 <?php } else { ?>
-                    <p id="content-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 성인 열람 목적 제공자를 설정하세요.</p>
+                    <p id="content-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 생년월일 사용을 켜고 성인 열람 목적 제공자를 설정하세요.', '을 설치하고 활성화하면 성인 콘텐츠 본인확인을 설정할 수 있습니다.'); ?></p>
                 <?php } ?>
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentIdentityModuleReferences); ?>
             </div>
@@ -506,7 +509,7 @@ $contentSettingsSectionNavItems = [
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentIdentityModuleReferences); ?>
                 <?php if (!$contentIdentityAuthorApplicationAvailable) { ?>
                     <p id="content-settings-author-identity-unavailable" class="form-help form-help-warning">
-                        <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 작성자 신청 목적 제공자가 준비되지 않아 설정을 사용할 수 없습니다.
+                        <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 작성자 신청 목적 제공자가 준비되지 않아 설정을 사용할 수 없습니다.', '을 설치하고 활성화하면 작성자 신청 본인확인을 설정할 수 있습니다.'); ?>
                     </p>
                 <?php } ?>
             </div>
@@ -518,7 +521,7 @@ $contentSettingsSectionNavItems = [
                 <?php if ($contentIdentityAuthorApplicationAdultAvailable) { ?>
                     <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 콘텐츠 작성자 신청을 할 수 있습니다.</p>
                 <?php } else { ?>
-                    <p id="content-settings-author-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 작성자 신청 성인 목적 제공자를 설정하세요.</p>
+                    <p id="content-settings-author-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 생년월일 사용을 켜고 작성자 신청 성인 목적 제공자를 설정하세요.', '을 설치하고 활성화하면 성인 작성자 신청 본인확인을 설정할 수 있습니다.'); ?></p>
                 <?php } ?>
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentIdentityModuleReferences); ?>
             </div>

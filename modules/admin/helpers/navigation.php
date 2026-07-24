@@ -382,6 +382,37 @@ function sr_admin_module_reference_list_html(PDO $pdo, array $targets): string
         . '</ul>';
 }
 
+function sr_admin_module_availability_help_html(
+    PDO $pdo,
+    string $moduleKey,
+    string $preferredPath,
+    string $enabledLinkLabel,
+    string $enabledMessage,
+    string $disabledMessage
+): string {
+    $moduleKey = trim($moduleKey);
+    $preferredPath = trim($preferredPath);
+    $enabled = $moduleKey !== ''
+        && $preferredPath !== ''
+        && sr_module_enabled($pdo, $moduleKey)
+        && sr_admin_module_menu_reference($pdo, $moduleKey, $preferredPath) !== [];
+
+    if ($enabled) {
+        $url = $preferredPath;
+        $label = trim($enabledLinkLabel);
+        $message = $enabledMessage;
+    } else {
+        $url = '/admin/modules';
+        $metadata = $moduleKey !== '' ? sr_module_metadata($moduleKey) : [];
+        $moduleName = trim((string) ($metadata['name'] ?? ''));
+        $label = ($moduleName !== '' ? $moduleName : $moduleKey) . ' 모듈';
+        $message = $disabledMessage;
+    }
+
+    return '<a href="' . sr_e(sr_url($url)) . '" target="_blank" rel="noopener noreferrer">'
+        . sr_e($label) . '</a>' . sr_e($message);
+}
+
 function sr_admin_apply_dynamic_module_menu_labels(PDO $pdo, string $moduleKey, array $menu): array
 {
     $assetMenus = [

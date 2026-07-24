@@ -756,7 +756,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $settingSourceRadioHtml('source_identity_verification_enabled', $boardSettingSource($formBoard, 'identity_verification_enabled')); ?>
                     <?php if (!$communityBoardIdentityVerificationAvailable) { ?>
                         <p id="community-board-identity-unavailable" class="form-help form-help-warning">
-                            <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 게시판 목적을 지원하는 제공자가 준비되지 않아 정책을 사용할 수 없습니다.
+                            <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 게시판 목적을 지원하는 제공자가 준비되지 않아 정책을 사용할 수 없습니다.', '을 설치하고 활성화하면 게시판 본인확인 정책을 설정할 수 있습니다.'); ?>
                         </p>
                     <?php } ?>
                     <p class="form-help">사용하면 선택한 행위에서 본인확인 통과 여부를 서버에서 확인합니다.</p>
@@ -778,7 +778,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php if ($communityBoardIdentityAdultAvailable) { ?>
                         <p class="form-help form-help-info">성인확인된 회원 기준을 선택하면 성인 여부가 확인된 회원만 선택한 범위에 접근할 수 있습니다.</p>
                     <?php } else { ?>
-                        <p class="form-help form-help-warning">성인확인된 회원 기준은 현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 성인 게시판 목적 제공자를 설정하세요.</p>
+                        <p class="form-help form-help-warning">성인확인된 회원 기준은 현재 저장할 수 없습니다. <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 생년월일 사용을 켜고 성인 게시판 목적 제공자를 설정하세요.', '을 설치하고 활성화하면 성인 게시판 본인확인을 설정할 수 있습니다.'); ?></p>
                     <?php } ?>
                 </div>
             </div>
@@ -1097,7 +1097,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $settingSourceRadioHtml('source_privacy_consent_enabled', $boardSettingSource($formBoard, 'privacy_consent_enabled')); ?>
                     <?php if (!$communityBoardPrivacyConsentPolicyDocumentsAvailable) { ?>
                         <p id="community-board-privacy-consent-unavailable" class="form-help form-help-warning">
-                            <a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">약관/방침 관리 모듈</a>이 설치되어 있지 않거나 활성화되어 있지 않고, <a href="<?php echo sr_e(sr_url('/admin/policy-documents')); ?>" target="_blank" rel="noopener noreferrer">게시된 정책 문서</a>가 없어 개인정보 수집 및 이용동의 설정을 사용할 수 없습니다.
+                            <?php echo sr_admin_module_availability_help_html($pdo, 'policy_documents', '/admin/policy-documents', '약관/방침 관리', '에서 게시된 정책 문서를 먼저 준비해야 개인정보 수집 및 이용동의 설정을 사용할 수 있습니다.', '을 설치하고 활성화하면 개인정보 수집 및 이용동의 설정을 사용할 수 있습니다.'); ?>
                         </p>
                     <?php } ?>
                 </div>

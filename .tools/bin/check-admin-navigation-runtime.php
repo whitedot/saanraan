@@ -219,6 +219,39 @@ sr_admin_navigation_runtime_assert(
         && str_contains($communityReferenceHtml, 'target="_blank" rel="noopener noreferrer"'),
     'Admin module reference renderer must output linked menu contract labels with the shared reference style.'
 );
+$identityAvailabilityHelp = sr_admin_module_availability_help_html(
+    $pdo,
+    'identity_verification',
+    '/admin/identity-providers',
+    '본인확인 환경설정',
+    '에서 제공자를 설정하세요.',
+    '을 설치하고 활성화하세요.'
+);
+sr_admin_navigation_runtime_assert(
+    str_contains($identityAvailabilityHelp, '/admin/identity-providers')
+        && str_contains($identityAvailabilityHelp, '본인확인 환경설정')
+        && str_contains($identityAvailabilityHelp, '에서 제공자를 설정하세요.')
+        && !str_contains($identityAvailabilityHelp, '/admin/modules'),
+    'Enabled optional-module guidance must link to the active module settings screen.'
+);
+
+$pdoWithoutIdentity = sr_admin_navigation_runtime_pdo();
+$pdoWithoutIdentity->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'identity_verification'");
+$identityUnavailableHelp = sr_admin_module_availability_help_html(
+    $pdoWithoutIdentity,
+    'identity_verification',
+    '/admin/identity-providers',
+    '본인확인 환경설정',
+    '에서 제공자를 설정하세요.',
+    '을 설치하고 활성화하세요.'
+);
+sr_admin_navigation_runtime_assert(
+    str_contains($identityUnavailableHelp, '/admin/modules')
+        && str_contains($identityUnavailableHelp, '본인확인 모듈')
+        && str_contains($identityUnavailableHelp, '을 설치하고 활성화하세요.')
+        && !str_contains($identityUnavailableHelp, '/admin/identity-providers'),
+    'Disabled optional-module guidance must link to module management without exposing an unavailable settings path.'
+);
 
 $pdoWithoutNotification = sr_admin_navigation_runtime_pdo();
 $pdoWithoutNotification->exec("UPDATE sr_modules SET status = 'disabled' WHERE module_key = 'notification'");

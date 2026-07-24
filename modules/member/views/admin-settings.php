@@ -209,7 +209,7 @@ $memberSettingsSectionNavItems = [
                     <?php echo sr_admin_module_reference_list_html($pdo, $memberIdentityModuleReferences); ?>
                     <?php if ($memberIdentityUnavailable) { ?>
                         <p id="member-settings-identity-unavailable" class="form-help form-help-warning">
-                            <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                            <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.', '을 설치하고 활성화하면 본인확인 설정을 사용할 수 있습니다.'); ?>
                         </p>
                     <?php } ?>
                 </div>

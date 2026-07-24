@@ -390,7 +390,7 @@ $surveySettingsSectionNavItems = [
                     <?php echo sr_admin_module_reference_list_html($pdo, $surveyIdentityModuleReferences); ?>
                     <?php if ($surveyIdentityUnavailable) { ?>
                         <p id="survey-settings-identity-unavailable" class="form-help form-help-warning">
-                            <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.
+                            <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 본인확인 사용이 꺼져 있거나 목적에 맞는 제공자가 준비되지 않은 항목은 사용할 수 없습니다.', '을 설치하고 활성화하면 설문 본인확인을 설정할 수 있습니다.'); ?>
                         </p>
                     <?php } ?>
                 </div>
@@ -402,7 +402,7 @@ $surveySettingsSectionNavItems = [
                     <?php if ($surveyIdentityViewAdultAvailable) { ?>
                         <p class="form-help form-help-info">사용하면 성인 여부가 확인된 회원만 설문에 접근할 수 있습니다.</p>
                     <?php } else { ?>
-                        <p id="survey-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <a href="<?php echo sr_e(sr_url('/admin/identity-providers')); ?>" target="_blank" rel="noopener noreferrer">본인확인 환경설정</a>에서 생년월일 사용을 켜고 설문 성인 참여 목적 제공자를 설정하세요.</p>
+                        <p id="survey-settings-identity-adult-unavailable" class="form-help form-help-warning">현재 저장할 수 없습니다. <?php echo sr_admin_module_availability_help_html($pdo, 'identity_verification', '/admin/identity-providers', '본인확인 환경설정', '에서 생년월일 사용을 켜고 설문 성인 참여 목적 제공자를 설정하세요.', '을 설치하고 활성화하면 성인 설문 본인확인을 설정할 수 있습니다.'); ?></p>
                     <?php } ?>
                     <?php echo sr_admin_module_reference_list_html($pdo, $surveyIdentityModuleReferences); ?>
                 </div>
@@ -431,7 +431,10 @@ $surveySettingsSectionNavItems = [
                 <label class="form-label" for="survey_settings_comment_editor">댓글 입력 방식 <span class="sr-required-label">(필수)</span></label>
                 <div class="form-field">
                     <?php echo sr_admin_radio_toggle_group_html('survey_settings_comment_editor', 'comment_editor', $editorOptions, (string) ($settings['comment_editor'] ?? 'textarea'), true); ?>
-                    <p class="form-help">설문 댓글·답글·수정 입력에 사용할 에디터입니다. CKEditor는 일반 편집 도구 구성을 사용하며, 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                    <p class="form-help">설문 댓글·답글·수정 입력에 사용할 에디터입니다. 변경하면 기존 댓글의 표시 방식도 함께 바뀝니다.</p>
+                    <?php if (isset($surveyEditorModuleReferences['ckeditor'])) { ?>
+                        <p class="form-help">CKEditor를 선택하면 CKEditor의 일반 편집 도구 구성을 사용합니다.</p>
+                    <?php } ?>
                     <?php echo sr_admin_module_reference_list_html($pdo, $surveyEditorModuleReferences); ?>
                 </div>
             </div>
