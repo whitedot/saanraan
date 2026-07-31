@@ -9,6 +9,7 @@ chdir($root);
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/community/helpers.php';
+require_once $root . '/modules/community/helpers/admin-boards.php';
 
 $errors = [];
 
@@ -91,9 +92,23 @@ function sr_check_community_board_settings_runtime(): void
         )"
     );
     $pdo->exec(
+        "CREATE TABLE sr_community_categories (
+            id INTEGER PRIMARY KEY,
+            board_id INTEGER NOT NULL,
+            category_key TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL,
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )"
+    );
+    $pdo->exec(
         "CREATE TABLE sr_community_posts (
             id INTEGER PRIMARY KEY,
             board_id INTEGER NOT NULL,
+            category_id INTEGER NULL,
             author_account_id INTEGER NOT NULL DEFAULT 0,
             author_public_name_snapshot TEXT NOT NULL DEFAULT '',
             guest_author_name TEXT NOT NULL DEFAULT '',
@@ -305,6 +320,40 @@ function sr_check_community_board_settings_runtime(): void
     $pdo->exec("UPDATE sr_community_posts SET guest_author_name = '방문자' WHERE id = 2");
     $pdo->exec("INSERT INTO sr_member_accounts (id, status) VALUES (7, 'withdrawn')");
     $pdo->exec("UPDATE sr_community_posts SET author_account_id = 7, author_public_name_snapshot = '탈퇴 전 이름' WHERE id = 3");
+    $initialCategoryResult = sr_community_admin_board_categories_from_json(json_encode([
+        ['category_key' => 'notice', 'title' => '공지', 'description' => '', 'status' => 'enabled', 'sort_order' => 10],
+    ], JSON_UNESCAPED_UNICODE));
+    if (($initialCategoryResult['errors'] ?? []) !== [] || (string) ($initialCategoryResult['items'][0]['category_key'] ?? '') !== 'notice') {
+        sr_check_community_board_settings_error('community board initial category input normalization failed.');
+    }
+    $duplicateInitialCategoryResult = sr_community_admin_board_categories_from_json('[{"category_key":"notice","title":"공지","status":"enabled","sort_order":0},{"category_key":"notice","title":"중복","status":"enabled","sort_order":1}]');
+    if (($duplicateInitialCategoryResult['errors'] ?? []) === []) {
+        sr_check_community_board_settings_error('community board initial category input must reject duplicate keys.');
+    }
+    $initialManagerResult = sr_community_admin_board_managers_from_json($pdo, '[{"account_id":7,"permission_keys":["view_manage","hide_post"]}]');
+    if (($initialManagerResult['errors'] ?? []) !== [] || count($initialManagerResult['items'][0]['permission_keys'] ?? []) !== 2) {
+        sr_check_community_board_settings_error('community board initial manager input normalization failed.');
+    }
+    $invalidInitialManagerResult = sr_community_admin_board_managers_from_json($pdo, '[{"account_id":999,"permission_keys":["invalid"]}]');
+    if (($invalidInitialManagerResult['errors'] ?? []) === []) {
+        sr_check_community_board_settings_error('community board initial manager input must reject unknown members and permissions.');
+    }
+    $pdo->exec("INSERT INTO sr_community_categories (id, board_id, category_key, title, description, status, sort_order, created_at, updated_at) VALUES (3, 10, 'notice', '공지', '', 'enabled', 0, '2026-06-14 12:00:00', '2026-06-14 12:00:00')");
+    $pdo->exec('UPDATE sr_community_posts SET category_id = 3 WHERE id = 1');
+    if (sr_community_admin_validate_board_category_sync($pdo, 10, []) === []) {
+        sr_check_community_board_settings_error('community board category sync must reject deleting a referenced category.');
+    }
+    $categoryKeyChangeErrors = sr_community_admin_validate_board_category_sync($pdo, 10, [[
+        'id' => 3,
+        'category_key' => 'changed',
+        'title' => '공지',
+        'description' => '',
+        'status' => 'enabled',
+        'sort_order' => 0,
+    ]]);
+    if ($categoryKeyChangeErrors === []) {
+        sr_check_community_board_settings_error('community board category sync must reject changing an existing key.');
+    }
     $commentStmt = $pdo->prepare('INSERT INTO sr_community_comments (id, post_id, status, created_at) VALUES (:id, :post_id, :status, :created_at)');
     foreach ([
         ['id' => 1, 'post_id' => 1, 'status' => 'published'],
@@ -716,6 +765,47 @@ sr_check_community_board_settings_contains('modules/community/views/admin-boards
     '댓글은 저장 시점의 본문 포맷을 따로 보존하지 않으므로',
     '기존 댓글의 공개 출력 방식도 함께 바뀔 수 있습니다.',
 ], 'community board post/comment editor operational warning');
+sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', [
+    'function sr_community_admin_board_categories_from_json(',
+    'function sr_community_admin_validate_board_category_sync(',
+    'function sr_community_admin_sync_board_children(',
+    'function sr_community_admin_board_managers_from_json(',
+    "sr_post_string_without_truncation('categories_json', 100000)",
+    "sr_post_string_without_truncation('board_managers_json', 100000)",
+    'sr_community_admin_sync_board_children(',
+    'sr_community_grant_board_management_permissions(',
+], 'community board create and update child management save contract');
+sr_check_community_board_settings_contains('modules/community/views/admin-boards.php', [
+    "'community-board-section-initial-categories' => '카테고리'",
+    "'community-board-section-initial-managers' => '운영 스탭'",
+    'data-community-initial-categories-builder',
+    'name="categories_json"',
+    'data-community-initial-managers-builder',
+    'name="board_managers_json"',
+    'admin-community-board-manager-permission-list',
+    '게시판 저장을 눌러야 최종 반영됩니다.',
+], 'community board single form child management UI');
+sr_check_community_board_settings_contains('modules/community/assets/admin.css', [
+    '.admin-community-board-manager-permission-list{display:flex;flex-direction:column;',
+    '.admin-community-board-manager-permission-list>.filtering-toggle-item{display:flex;width:100%}',
+], 'community board manager permission single-column layout');
+$adminBoardViewContent = sr_check_community_board_settings_content('modules/community/views/admin-boards.php');
+foreach (['data-community-board-management-link', "\$communityBoardEditView", 'name="intent" value="category_settings_update"', 'name="intent" value="board_manager_grant"'] as $legacyManagementNeedle) {
+    if (str_contains($adminBoardViewContent, $legacyManagementNeedle)) {
+        sr_check_community_board_settings_error('community board child management must stay in the single main form: ' . $legacyManagementNeedle);
+    }
+}
+if (str_contains($adminBoardViewContent, "if (\$communityBoardsPage === 'new') {\n    \$communityBoardSectionNavItems")) {
+    sr_check_community_board_settings_error('community board category and manager section navigation must be available on both create and edit forms.');
+}
+sr_check_community_board_settings_not_contains('modules/community/actions/admin-boards.php', [
+    "'category_settings_update'",
+    "'category_create'",
+    "'category_update'",
+    "'category_delete'",
+    "'board_manager_grant'",
+    "'board_manager_revoke'",
+], 'community board legacy child management actions');
 sr_check_community_board_settings_contains('modules/community/helpers/boards.php', [
     'function sr_community_effective_board_reaction_enabled',
     "sr_community_effective_board_setting(\$pdo, \$board, 'reaction_enabled'",

@@ -4,7 +4,7 @@ $communityBoardsPage = isset($communityBoardsPage) ? (string) $communityBoardsPa
 $adminPageTitle = '커뮤니티 게시판 관리';
 $adminPageSubtitle = '';
 $adminContainerClass = 'admin-page-community-board-list admin-ui-scope';
-if ($communityBoardsPage === 'new') {
+if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
     $adminPageTitle = sr_t('community::ui.text.713b7a18');
     $adminPageSubtitle = '';
     $adminContainerClass = 'admin-page-community-board-form admin-ui-scope';
@@ -249,6 +249,8 @@ $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : array_merge($new
     'title' => '',
     'description' => '',
     'sort_order' => 0,
+    'categories_json' => '[]',
+    'board_managers_json' => '[]',
 ]);
 if (is_array($adminFormDraft ?? null) && is_array($adminFormDraft['payload'] ?? null)) {
     $communityBoardDraftPayload = $adminFormDraft['payload'];
@@ -305,6 +307,45 @@ $communityBoardAssetAuditUrl = $communityBoardsPage === 'edit'
     : '';
 $communityBoardManagerPermissions = sr_community_board_manager_permission_options();
 $communityBoardManagers = $communityBoardsPage === 'edit' ? sr_community_board_managers($pdo, (int) ($formBoard['id'] ?? 0)) : [];
+if ($communityBoardsPage === 'edit' && !array_key_exists('categories_json', $formBoard)) {
+    $communityBoardInitialCategories = [];
+    foreach (is_array($formBoard['categories'] ?? null) ? $formBoard['categories'] : [] as $communityBoardInitialCategory) {
+        $communityBoardInitialCategories[] = [
+            'id' => (int) ($communityBoardInitialCategory['id'] ?? 0),
+            'category_key' => (string) ($communityBoardInitialCategory['category_key'] ?? ''),
+            'title' => (string) ($communityBoardInitialCategory['title'] ?? ''),
+            'description' => (string) ($communityBoardInitialCategory['description'] ?? ''),
+            'status' => (string) ($communityBoardInitialCategory['status'] ?? 'enabled'),
+            'sort_order' => (int) ($communityBoardInitialCategory['sort_order'] ?? 0),
+        ];
+    }
+    $formBoard['categories_json'] = sr_js_json_encode($communityBoardInitialCategories);
+}
+if ($communityBoardsPage === 'edit' && !array_key_exists('board_managers_json', $formBoard)) {
+    $communityBoardInitialManagersByAccount = [];
+    foreach ($communityBoardManagers as $communityBoardInitialManager) {
+        $communityBoardInitialManagerAccountId = (int) ($communityBoardInitialManager['account_id'] ?? 0);
+        if (!isset($communityBoardInitialManagersByAccount[$communityBoardInitialManagerAccountId])) {
+            $communityBoardInitialManagerLabel = sr_community_report_account_label(
+                sr_community_author_display_name_from_row([
+                    'author_public_name_snapshot' => '',
+                    'author_display_name' => (string) ($communityBoardInitialManager['display_name'] ?? ''),
+                    'author_nickname' => (string) ($communityBoardInitialManager['nickname'] ?? ''),
+                    'author_account_status' => (string) ($communityBoardInitialManager['account_status'] ?? ''),
+                ], $memberSettings ?? null),
+                $communityBoardInitialManagerAccountId,
+                (string) ($communityBoardInitialManager['account_status'] ?? '')
+            );
+            $communityBoardInitialManagersByAccount[$communityBoardInitialManagerAccountId] = [
+                'account_id' => $communityBoardInitialManagerAccountId,
+                'account_label' => $communityBoardInitialManagerLabel,
+                'permission_keys' => [],
+            ];
+        }
+        $communityBoardInitialManagersByAccount[$communityBoardInitialManagerAccountId]['permission_keys'][] = (string) ($communityBoardInitialManager['permission_key'] ?? '');
+    }
+    $formBoard['board_managers_json'] = sr_js_json_encode(array_values($communityBoardInitialManagersByAccount));
+}
 $communityBoardIdentityVerificationModuleAvailable = sr_module_enabled($pdo, 'identity_verification')
     && is_file(SR_ROOT . '/modules/identity_verification/helpers.php');
 if ($communityBoardIdentityVerificationModuleAvailable) {
@@ -331,11 +372,15 @@ $communityBoardSectionNavItems = [
     'community-board-section-assets' => '포인트/금액',
     'community-board-section-order' => '정렬',
 ];
-if ($communityBoardsPage === 'edit') {
-    $communityBoardSectionNavItems += [
-        'community-board-section-managers' => '게시판 운영 스탭',
-        'community-board-section-categories' => '카테고리',
-    ];
+if (in_array($communityBoardsPage, ['new', 'edit'], true)) {
+    $communityBoardSectionNavItems = array_merge(
+        array_slice($communityBoardSectionNavItems, 0, 2, true),
+        [
+            'community-board-section-initial-categories' => '카테고리',
+            'community-board-section-initial-managers' => '운영 스탭',
+        ],
+        array_slice($communityBoardSectionNavItems, 2, null, true)
+    );
 }
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>
@@ -685,6 +730,46 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 . '</div>'
         ); ?>
 
+        <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
+            <section id="community-board-section-initial-categories" class="card admin-list-card admin-list-form" data-admin-section-anchor data-community-initial-categories-builder>
+                <div class="card-header">
+                    <h2 class="card-title">카테고리</h2>
+                    <div class="admin-row-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-initial-category-modal" data-overlay="#community-initial-category-modal" data-community-initial-category-add>카테고리 추가</button>
+                    </div>
+                </div>
+                <div class="table-wrapper" data-community-initial-category-table-wrap hidden>
+                    <table class="table table-list">
+                        <caption class="sr-only">저장할 카테고리 목록</caption>
+                        <thead><tr><th>이름</th><th>Key</th><th>상태</th><th>정렬</th><th class="text-end">관리</th></tr></thead>
+                        <tbody data-community-initial-category-list></tbody>
+                    </table>
+                </div>
+                <p class="admin-empty-state" data-community-initial-category-empty hidden>카테고리가 없습니다.</p>
+                <p class="form-help">게시글 추가 입력 항목과 같이 이 목록에서 추가·수정·삭제한 뒤 게시판 저장을 눌러야 최종 반영됩니다. 게시글에서 사용 중인 카테고리는 삭제할 수 없습니다.</p>
+                <textarea name="categories_json" hidden data-community-initial-categories-json><?php echo sr_e($boardField($formBoard, 'categories_json', '[]')); ?></textarea>
+            </section>
+
+            <section id="community-board-section-initial-managers" class="card admin-list-card admin-list-form" data-admin-section-anchor data-community-initial-managers-builder>
+                <div class="card-header">
+                    <h2 class="card-title">게시판 운영 스탭</h2>
+                    <div class="admin-row-actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-initial-manager-modal" data-overlay="#community-initial-manager-modal" data-community-initial-manager-add>운영 스탭 추가</button>
+                    </div>
+                </div>
+                <div class="table-wrapper" data-community-initial-manager-table-wrap hidden>
+                    <table class="table table-list">
+                        <caption class="sr-only">저장할 게시판 운영 스탭 목록</caption>
+                        <thead><tr><th>회원</th><th>권한</th><th class="text-end">관리</th></tr></thead>
+                        <tbody data-community-initial-manager-list></tbody>
+                    </table>
+                </div>
+                <p class="admin-empty-state" data-community-initial-manager-empty hidden>운영 스탭이 없습니다.</p>
+                <p class="form-help">선택한 회원의 공개 게시판 운영 권한을 이 목록에서 편집한 뒤 게시판 저장을 눌러야 최종 반영됩니다. 관리자 모드 접근 권한은 부여하지 않습니다.</p>
+                <textarea name="board_managers_json" hidden data-community-initial-managers-json><?php echo sr_e($boardField($formBoard, 'board_managers_json', '[]')); ?></textarea>
+            </section>
+        <?php } ?>
+
         <section id="community-board-section-seo" class="card" data-admin-section-anchor>
             <h2>SEO/OG 메타</h2>
             <div class="form-row">
@@ -870,25 +955,14 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
-                <?php
-                $communityBoardCategoriesForPolicy = is_array($formBoard['categories'] ?? null) ? $formBoard['categories'] : [];
-                $communityBoardActiveCategoryCount = 0;
-                foreach ($communityBoardCategoriesForPolicy as $communityBoardCategoryForPolicy) {
-                    if ((string) ($communityBoardCategoryForPolicy['status'] ?? '') === 'enabled') {
-                        $communityBoardActiveCategoryCount++;
-                    }
-                }
-                $communityBoardCategoryRequiredSelectable = $communityBoardActiveCategoryCount > 0;
-                $communityBoardCategoryRequiredChecked = $communityBoardCategoryRequiredSelectable && $boardField($formBoard, 'category_required', '0') === '1';
-                ?>
                 <label class="form-label" for="community_admin_boards_category_required">카테고리 필수</label>
                 <div class="form-field">
                     <label class="form-check form-label" for="community_admin_boards_category_required">
-                        <input id="community_admin_boards_category_required" type="checkbox" name="category_required" value="1" class="form-switch form-switch-light"<?php echo $communityBoardCategoryRequiredChecked ? ' checked' : ''; ?><?php echo $communityBoardCategoryRequiredSelectable ? '' : ' disabled'; ?> data-community-category-required>
+                        <input id="community_admin_boards_category_required" type="checkbox" name="category_required" value="1" class="form-switch form-switch-light"<?php echo $boardField($formBoard, 'category_required', '0') === '1' ? ' checked' : ''; ?> data-community-category-required>
                         <?php echo sr_admin_choice_label_html('필수'); ?>
                     </label>
                     <?php echo $settingSourceRadioHtml('source_category_required', $boardSettingSource($formBoard, 'category_required')); ?>
-                    <p class="form-help">활성 카테고리가 1개 이상 있을 때만 켤 수 있습니다. 필수로 선택하면 카테고리 사용도 함께 켜집니다.</p>
+                    <p class="form-help">아래 카테고리 목록에 활성 카테고리가 1개 이상 있을 때 켤 수 있습니다. 필수로 선택하면 카테고리 사용도 함께 켜집니다.</p>
                 </div>
             </div>
             <div class="form-row">
@@ -1475,6 +1549,74 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </form>
     <?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'community-board-form'); ?>
 
+    <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
+        <div id="community-initial-category-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-initial-category-modal-label" aria-hidden="true" inert data-community-initial-category-modal>
+            <div class="modal-dialog modal-dialog-lg">
+                <div class="modal-content admin-form ui-form-theme">
+                    <div class="modal-header">
+                        <h3 id="community-initial-category-modal-label" class="modal-title" data-community-initial-category-modal-title>카테고리 추가</h3>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-initial-category-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" data-community-initial-category-index>
+                        <div class="form-row"><label class="form-label" for="community_initial_category_title">이름 <span class="sr-required-label">(필수)</span></label><div class="form-field"><input id="community_initial_category_title" type="text" maxlength="120" required class="form-input" data-community-initial-category-input="title" data-overlay-focus></div></div>
+                        <div class="form-row"><label class="form-label" for="community_initial_category_key">카테고리 Key <span class="sr-required-label">(필수)</span></label><div class="form-field"><input id="community_initial_category_key" type="text" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required class="form-input" data-admin-key-input data-admin-key-suggest-source="#community_initial_category_title" data-admin-key-suggest-fallback="category" data-community-initial-category-input="category_key"></div></div>
+                        <div class="form-row"><label class="form-label" for="community_initial_category_description">설명</label><div class="form-field"><textarea id="community_initial_category_description" rows="2" maxlength="2000" class="form-textarea" data-community-initial-category-input="description"></textarea></div></div>
+                        <div class="form-row"><label class="form-label" for="community_initial_category_status">상태 <span class="sr-required-label">(필수)</span></label><div class="form-field"><select id="community_initial_category_status" class="form-select" required data-community-initial-category-input="status"><option value="enabled">사용</option><option value="disabled">사용안함</option></select></div></div>
+                        <div class="form-row"><label class="form-label" for="community_initial_category_sort_order">정렬 <span class="sr-required-label">(필수)</span></label><div class="form-field"><input id="community_initial_category_sort_order" type="number" min="0" max="1000000" value="0" required class="form-input" data-community-initial-category-input="sort_order"></div></div>
+                    </div>
+                    <div class="modal-footer-note"><p class="form-help">적용한 카테고리는 게시판 저장 전까지 임시 목록에만 반영됩니다.</p></div>
+                    <div class="modal-footer"><button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-initial-category-modal">닫기</button><button type="button" class="btn btn-solid-primary modal-action" data-community-initial-category-save>적용</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="community-initial-manager-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-initial-manager-modal-label" aria-hidden="true" inert data-community-initial-manager-modal>
+            <div class="modal-dialog modal-dialog-lg">
+                <div class="modal-content admin-form ui-form-theme" data-community-board-manager-grant-form>
+                    <div class="modal-header">
+                        <h3 id="community-initial-manager-modal-label" class="modal-title" data-community-initial-manager-modal-title>운영 스탭 추가</h3>
+                        <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-initial-manager-modal"><?php echo sr_material_icon_html('close'); ?></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" data-community-initial-manager-index>
+                        <input type="hidden" data-community-board-manager-account-id data-community-initial-manager-account-id>
+                        <div class="form-row">
+                            <label class="form-label" for="community_initial_manager_account">회원 <span class="sr-required-label">(필수)</span></label>
+                            <div class="form-field"><div class="admin-lookup-control"><input id="community_initial_manager_account" type="text" maxlength="160" readonly required class="form-input" placeholder="회원을 검색해 선택하세요." data-community-board-manager-selected-member data-community-initial-manager-account-label data-overlay-focus><button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-initial-manager-lookup-modal" data-overlay="#community-initial-manager-lookup-modal" data-community-board-manager-member-lookup-open data-target="#community_initial_manager_account">회원 검색</button></div></div>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">권한 <span class="sr-required-label">(필수)</span></span>
+                            <div class="form-field"><div class="filtering-toggle-group admin-checkbox-toggle-group admin-community-board-manager-permission-list" role="group">
+                                <?php $initialManagerPermissionIndex = 0; ?>
+                                <?php $initialManagerPermissionLastIndex = max(0, count($communityBoardManagerPermissions) - 1); ?>
+                                <?php foreach ($communityBoardManagerPermissions as $permissionKey => $permissionLabel) { ?>
+                                    <?php $initialManagerPermissionInputId = 'community_initial_manager_permission_' . (string) $permissionKey; ?>
+                                    <?php $initialManagerPermissionGroupClass = $initialManagerPermissionIndex === 0 ? 'btn-group-start' : ($initialManagerPermissionIndex === $initialManagerPermissionLastIndex ? 'btn-group-end' : 'btn-group-middle'); ?>
+                                    <span class="filtering-toggle-item"><input id="<?php echo sr_e($initialManagerPermissionInputId); ?>" type="checkbox" value="<?php echo sr_e((string) $permissionKey); ?>" class="form-choice-toggle-input sr-only" data-community-initial-manager-permission><label for="<?php echo sr_e($initialManagerPermissionInputId); ?>" class="btn btn-choice-light <?php echo sr_e($initialManagerPermissionGroupClass); ?>"><?php echo sr_admin_choice_label_html((string) $permissionLabel); ?></label></span>
+                                    <?php $initialManagerPermissionIndex++; ?>
+                                <?php } ?>
+                            </div></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer-note"><p class="form-help">적용한 운영 스탭은 게시판 저장 전까지 임시 목록에만 반영됩니다.</p></div>
+                    <div class="modal-footer"><button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-initial-manager-modal">닫기</button><button type="button" class="btn btn-solid-primary modal-action" data-community-initial-manager-save>적용</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="community-initial-manager-lookup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-initial-manager-lookup-modal-label" aria-hidden="true" inert data-admin-return-overlay="#community-initial-manager-modal">
+            <div class="modal-dialog admin-lookup-dialog"><div class="modal-content ui-form-theme">
+                <div class="modal-header"><h3 id="community-initial-manager-lookup-modal-label" class="modal-title">회원 검색</h3><button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-initial-manager-lookup-modal"><?php echo sr_material_icon_html('close'); ?></button></div>
+                <div class="modal-body">
+                    <form class="admin-lookup-search-form" data-community-board-manager-member-search data-search-url="<?php echo sr_e($memberSearchUrl); ?>"><select class="form-select" aria-label="회원 검색 조건" data-community-board-manager-member-field><option value="all">전체</option><option value="hash">해시 ID</option><option value="email">이메일</option><option value="login_id">로그인 ID</option><option value="name">이름</option></select><input type="text" maxlength="120" class="form-input" placeholder="이메일, 로그인 ID, 이름" data-community-board-manager-member-keyword data-overlay-focus><button type="submit" class="btn btn-solid-primary" data-community-board-manager-member-search-button>검색</button></form>
+                    <div class="admin-lookup-results" data-community-board-manager-member-results><p class="admin-empty-state admin-lookup-empty">검색어를 입력해 회원을 찾으세요.</p></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-solid-primary modal-action" data-overlay="#community-initial-manager-modal" data-community-board-manager-return>운영 스탭 추가로 돌아가기</button><button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-initial-manager-lookup-modal">닫기</button></div>
+            </div></div>
+        </div>
+    <?php } ?>
+
     <div id="community-extra-field-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-extra-field-modal-label" aria-hidden="true" inert data-community-extra-field-modal>
         <div class="modal-dialog modal-dialog-lg">
             <div class="modal-content ui-form-theme">
@@ -1643,322 +1785,11 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </script>
         <?php } ?>
 
-        <section id="community-board-section-managers" class="card admin-list-card admin-list-form" data-admin-section-anchor>
-            <div class="card-header">
-                <h2 class="card-title">게시판 운영 스탭</h2>
-                <div class="admin-row-actions">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-grant-modal" data-overlay="#community-board-manager-grant-modal">운영 권한 부여</button>
-                </div>
-            </div>
-            <p class="form-help">특정 회원에게 공개 게시판 화면에서 이 게시판의 글과 댓글을 숨기거나 삭제하는 운영 권한을 부여합니다. 이 권한은 관리자 모드 접근 권한이나 게시글 본문 수정 권한으로 확대되지 않습니다. 권한 부여와 회수는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
-            <div class="table-wrapper">
-                <table class="table table-list">
-                    <caption class="sr-only">게시판 운영 스탭 권한 목록</caption>
-                    <thead>
-                        <tr>
-                            <th>회원</th>
-                            <th>권한</th>
-                            <th>부여일</th>
-                            <th class="text-end">관리</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($communityBoardManagers === []) { ?>
-                            <tr>
-                                <td colspan="4" class="admin-empty-state">부여된 게시판 운영 권한이 없습니다.</td>
-                            </tr>
-                        <?php } ?>
-                        <?php foreach ($communityBoardManagers as $manager) { ?>
-                            <tr>
-                                <td class="admin-table-break">
-                                    <?php echo sr_e(sr_community_report_account_label(
-                                        sr_community_author_display_name_from_row([
-                                            'author_public_name_snapshot' => '',
-                                            'author_display_name' => (string) ($manager['display_name'] ?? ''),
-                                            'author_nickname' => (string) ($manager['nickname'] ?? ''),
-                                            'author_account_status' => (string) ($manager['account_status'] ?? ''),
-                                        ], $memberSettings ?? null),
-                                        (int) ($manager['account_id'] ?? 0),
-                                        (string) ($manager['account_status'] ?? '')
-                                    )); ?>
-                                </td>
-                                <td><?php echo sr_e((string) ($communityBoardManagerPermissions[(string) ($manager['permission_key'] ?? '')] ?? (string) ($manager['permission_key'] ?? ''))); ?></td>
-                                <td class="admin-table-nowrap"><?php echo sr_community_time_html((string) ($manager['created_at'] ?? '')); ?></td>
-                                <td class="admin-table-actions-cell">
-                                    <div class="admin-row-actions">
-                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form">
-                                            <?php echo sr_csrf_field(); ?>
-                                            <input type="hidden" name="intent" value="board_manager_revoke">
-                                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                                            <input type="hidden" name="manager_id" value="<?php echo sr_e((string) (int) ($manager['id'] ?? 0)); ?>">
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 운영 권한 회수" title="회수"><?php echo sr_material_icon_html('delete'); ?></button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
-            <div id="community-board-manager-grant-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-board-manager-grant-modal-label" aria-hidden="true" inert>
-                <div class="modal-dialog modal-dialog-lg">
-                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme" data-community-board-manager-grant-form>
-                        <div class="modal-header">
-                            <h3 id="community-board-manager-grant-modal-label" class="modal-title">게시판 운영 권한 부여</h3>
-                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-board-manager-grant-modal"><?php echo sr_material_icon_html('close'); ?></button>
-                        </div>
-                        <div class="modal-body">
-                            <?php echo sr_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="board_manager_grant">
-                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                            <input type="hidden" name="account_id" value="" data-community-board-manager-account-id>
-                            <div class="form-row">
-                                <label class="form-label" for="community_board_manager_account_identifier">회원 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                <div class="form-field">
-                                    <div class="admin-lookup-control">
-                                        <input id="community_board_manager_account_identifier" type="text" value="" class="form-input" maxlength="120" readonly required data-community-board-manager-selected-member data-overlay-focus placeholder="회원을 검색해 선택하세요.">
-                                        <button type="button" class="btn btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-board-manager-member-lookup-modal" data-overlay="#community-board-manager-member-lookup-modal" data-community-board-manager-member-lookup-open data-target="#community_board_manager_account_identifier">회원 검색</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <span class="form-label">권한 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                                <div class="form-field">
-                                    <div class="filtering-toggle-group admin-checkbox-toggle-group" role="group">
-                                        <?php $boardManagerPermissionIndex = 0; ?>
-                                        <?php $boardManagerPermissionLastIndex = max(0, count($communityBoardManagerPermissions) - 1); ?>
-                                        <?php foreach ($communityBoardManagerPermissions as $permissionKey => $permissionLabel) { ?>
-                                            <?php $permissionInputId = 'community_board_manager_permission_' . (string) $permissionKey; ?>
-                                            <?php $permissionGroupClass = $boardManagerPermissionIndex === 0 ? 'btn-group-start' : ($boardManagerPermissionIndex === $boardManagerPermissionLastIndex ? 'btn-group-end' : 'btn-group-middle'); ?>
-                                            <span class="filtering-toggle-item">
-                                                <input id="<?php echo sr_e($permissionInputId); ?>" type="checkbox" name="permission_keys[]" value="<?php echo sr_e((string) $permissionKey); ?>" class="form-choice-toggle-input sr-only">
-                                                <label for="<?php echo sr_e($permissionInputId); ?>" class="btn btn-choice-light <?php echo sr_e($permissionGroupClass); ?>"><?php echo sr_admin_choice_label_html((string) $permissionLabel); ?></label>
-                                            </span>
-                                            <?php $boardManagerPermissionIndex++; ?>
-                                        <?php } ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer-note">
-                            <p class="form-help">이 작업은 게시판 기본 설정 저장과 별도로 공개 게시판 운영 권한만 추가합니다. 관리자 모드 접근 권한이나 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-board-manager-grant-modal">닫기</button>
-                            <button type="submit" class="btn btn-solid-primary modal-action">권한 부여</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div id="community-board-manager-member-lookup-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-board-manager-member-lookup-modal-label" aria-hidden="true" inert data-admin-return-overlay="#community-board-manager-grant-modal">
-                <div class="modal-dialog admin-lookup-dialog">
-                    <div class="modal-content ui-form-theme">
-                        <div class="modal-header">
-                            <h3 id="community-board-manager-member-lookup-modal-label" class="modal-title">회원 검색</h3>
-                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-board-manager-member-lookup-modal"><?php echo sr_material_icon_html('close'); ?></button>
-                        </div>
-                        <div class="modal-body">
-                            <form class="admin-lookup-search-form" data-community-board-manager-member-search data-search-url="<?php echo sr_e($memberSearchUrl); ?>">
-                                <select name="field" class="form-select" aria-label="회원 검색 조건" data-community-board-manager-member-field>
-                                    <option value="all">전체</option>
-                                    <option value="hash">해시 ID</option>
-                                    <option value="email">이메일</option>
-                                    <option value="login_id">로그인 ID</option>
-                                    <option value="name">이름</option>
-                                </select>
-                                <input type="text" name="q" maxlength="120" class="form-input" placeholder="이메일, 로그인 ID, 이름" data-community-board-manager-member-keyword data-overlay-focus>
-                                <button type="submit" class="btn btn-solid-primary" data-community-board-manager-member-search-button>검색</button>
-                            </form>
-                            <div class="admin-lookup-results" data-community-board-manager-member-results>
-                                <p class="admin-empty-state admin-lookup-empty">검색어를 입력해 회원을 찾으세요.</p>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-solid-primary modal-action" data-overlay="#community-board-manager-grant-modal" data-community-board-manager-return>권한 부여로 돌아가기</button>
-                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-board-manager-member-lookup-modal">닫기</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="community-board-section-categories" class="card admin-list-card admin-list-form" data-admin-section-anchor>
-            <?php $boardCategories = is_array($formBoard['categories'] ?? null) ? $formBoard['categories'] : []; ?>
-            <div class="card-header">
-                <h2 class="card-title">게시판 카테고리</h2>
-                <div class="admin-row-actions">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="community-category-create-modal" data-overlay="#community-category-create-modal">카테고리 추가</button>
-                </div>
-            </div>
-            <p class="form-help">게시글 작성자가 선택할 게시판 안의 분류를 관리합니다. 카테고리 추가, 수정, 삭제는 위 게시판 기본 설정 저장과 별도로 즉시 반영됩니다.</p>
-            <div class="table-wrapper">
-                <table class="table table-list">
-                    <caption class="sr-only">게시판 카테고리 목록</caption>
-                    <thead>
-                        <tr>
-                            <th>Key</th>
-                            <th>이름</th>
-                            <th>상태</th>
-                            <th>정렬</th>
-                            <th class="text-end">관리</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($boardCategories === []) { ?>
-                            <tr>
-                                <td colspan="5" class="admin-empty-state">등록된 카테고리가 없습니다.</td>
-                            </tr>
-                        <?php } ?>
-                        <?php foreach ($boardCategories as $category) { ?>
-                            <?php $categoryModalId = 'community-category-edit-modal-' . (string) (int) ($category['id'] ?? 0); ?>
-                            <tr>
-                                <td><code><?php echo sr_e((string) $category['category_key']); ?></code></td>
-                                <td class="admin-table-break">
-                                    <strong><?php echo sr_e((string) $category['title']); ?></strong>
-                                    <?php if (trim((string) ($category['description'] ?? '')) !== '') { ?>
-                                        <span class="admin-summary-meta"><?php echo sr_e((string) $category['description']); ?></span>
-                                    <?php } ?>
-                                </td>
-                                <td class="admin-table-nowrap"><span class="badge-status <?php echo (string) ($category['status'] ?? '') === 'enabled' ? 'is-success' : 'is-warning'; ?>"><?php echo sr_e(sr_admin_code_label((string) $category['status'], 'content_status')); ?></span></td>
-                                <td class="admin-table-nowrap"><?php echo sr_e((string) $category['sort_order']); ?></td>
-                                <td class="admin-table-actions-cell">
-                                    <div class="admin-row-actions">
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="카테고리 수정" title="수정" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($categoryModalId); ?>" data-overlay="#<?php echo sr_e($categoryModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
-                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="admin-inline-form">
-                                            <?php echo sr_csrf_field(); ?>
-                                            <input type="hidden" name="intent" value="category_delete">
-                                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                                            <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="카테고리 삭제" title="삭제" onclick="return confirm('이 카테고리를 삭제할까요? 참조 중인 게시글이 있으면 삭제되지 않습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
-            <div id="community-category-create-modal" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="community-category-create-modal-label" aria-hidden="true" inert>
-                <div class="modal-dialog modal-dialog-lg">
-                    <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
-                        <div class="modal-header">
-                            <h3 id="community-category-create-modal-label" class="modal-title">카테고리 추가</h3>
-                            <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#community-category-create-modal"><?php echo sr_material_icon_html('close'); ?></button>
-                        </div>
-                        <div class="modal-body">
-                            <?php echo sr_csrf_field(); ?>
-                            <input type="hidden" name="intent" value="category_create">
-                            <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                            <div class="form-row">
-                                <label class="form-label" for="community_category_key_new">카테고리 Key <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                <div class="form-field">
-                                    <input id="community_category_key_new" type="text" name="category_key" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required data-admin-key-input data-admin-key-suggest-source="#community_category_title_new" data-admin-key-suggest-fallback="category_<?php echo sr_e((string) (count($categories ?? []) + 1)); ?>" data-overlay-focus class="form-input">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <label class="form-label" for="community_category_title_new">이름 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                <div class="form-field">
-                                    <input id="community_category_title_new" type="text" name="category_title" maxlength="120" required class="form-input">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <label class="form-label" for="community_category_description_new">설명</label>
-                                <div class="form-field">
-                                    <textarea id="community_category_description_new" name="category_description" rows="2" cols="60" class="form-textarea"></textarea>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <label class="form-label" for="community_category_status_new">상태 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                <div class="form-field">
-                                    <select id="community_category_status_new" name="category_status" class="form-select" required>
-                                        <option value="enabled">사용</option>
-                                        <option value="disabled">사용안함</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <label class="form-label" for="community_category_sort_new">정렬 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                <div class="form-field">
-                                    <input id="community_category_sort_new" type="number" name="category_sort_order" min="0" max="1000000" value="0" required class="form-input">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer-note">
-                            <p class="form-help">이 작업은 게시판 기본 설정 저장과 별도로 새 카테고리만 추가합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-category-create-modal">닫기</button>
-                            <button type="submit" class="btn btn-solid-primary modal-action">저장</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <?php foreach ($boardCategories as $category) { ?>
-                <?php $categoryModalId = 'community-category-edit-modal-' . (string) (int) ($category['id'] ?? 0); ?>
-                <div id="<?php echo sr_e($categoryModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($categoryModalId); ?>-label" aria-hidden="true" inert>
-                    <div class="modal-dialog modal-dialog-lg">
-                        <form method="post" action="<?php echo sr_e(sr_url('/admin/community/boards/update')); ?>" class="modal-content admin-form ui-form-theme">
-                            <div class="modal-header">
-                                <h3 id="<?php echo sr_e($categoryModalId); ?>-label" class="modal-title">카테고리 수정</h3>
-                                <button type="button" class="btn btn-icon btn-ghost-light modal-close" aria-label="닫기" data-overlay="#<?php echo sr_e($categoryModalId); ?>"><?php echo sr_material_icon_html('close'); ?></button>
-                            </div>
-                            <div class="modal-body">
-                                <?php echo sr_csrf_field(); ?>
-                                <input type="hidden" name="intent" value="category_update">
-                                <input type="hidden" name="board_id" value="<?php echo sr_e((string) $formBoard['id']); ?>">
-                                <input type="hidden" name="category_id" value="<?php echo sr_e((string) $category['id']); ?>">
-                                <div class="form-row">
-                                    <span class="form-label">Key</span>
-                                    <div class="form-field">
-                                        <code><?php echo sr_e((string) $category['category_key']); ?></code>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-title">이름 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                    <div class="form-field">
-                                        <input id="<?php echo sr_e($categoryModalId); ?>-title" type="text" name="category_title" maxlength="120" value="<?php echo sr_e((string) $category['title']); ?>" required class="form-input" data-overlay-focus>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-description">설명</label>
-                                    <div class="form-field">
-                                        <textarea id="<?php echo sr_e($categoryModalId); ?>-description" name="category_description" rows="2" cols="60" maxlength="2000" class="form-textarea"><?php echo sr_e((string) ($category['description'] ?? '')); ?></textarea>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-status">상태 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                    <div class="form-field">
-                                        <select id="<?php echo sr_e($categoryModalId); ?>-status" name="category_status" class="form-select" required>
-                                            <option value="enabled"<?php echo (string) $category['status'] === 'enabled' ? ' selected' : ''; ?>>사용</option>
-                                            <option value="disabled"<?php echo (string) $category['status'] === 'disabled' ? ' selected' : ''; ?>>사용안함</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <label class="form-label" for="<?php echo sr_e($categoryModalId); ?>-sort">정렬 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
-                                    <div class="form-field">
-                                        <input id="<?php echo sr_e($categoryModalId); ?>-sort" type="number" name="category_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) $category['sort_order']); ?>" required class="form-input">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer-note">
-                                <p class="form-help">이 작업은 게시판 기본 설정 저장과 별도로 이 카테고리만 수정합니다. 현재 수정 중인 게시판 입력값은 함께 저장되지 않습니다.</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($categoryModalId); ?>">닫기</button>
-                                <button type="submit" class="btn btn-solid-primary modal-action">수정</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            <?php } ?>
-        </section>
-    <?php } ?>
-
-    <?php echo sr_admin_help_modal_html($memberGroupAccessHelpModalId, sr_t('community::ui.member_group_access_help_title'), $memberGroupAccessHelpBodyHtml); ?>
-    <?php foreach ($communityBoardHelp as $communityBoardHelpModal) { ?>
-        <?php echo sr_admin_help_modal_html((string) $communityBoardHelpModal['id'], (string) $communityBoardHelpModal['title'], (string) $communityBoardHelpModal['body']); ?>
-    <?php } ?>
+        <?php } ?>
+        <?php echo sr_admin_help_modal_html($memberGroupAccessHelpModalId, sr_t('community::ui.member_group_access_help_title'), $memberGroupAccessHelpBodyHtml); ?>
+        <?php foreach ($communityBoardHelp as $communityBoardHelpModal) { ?>
+            <?php echo sr_admin_help_modal_html((string) $communityBoardHelpModal['id'], (string) $communityBoardHelpModal['title'], (string) $communityBoardHelpModal['body']); ?>
+        <?php } ?>
 <?php } ?>
 
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
@@ -2549,6 +2380,214 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
 
+    function communityInitialParse(selector) {
+        var textarea = document.querySelector(selector);
+        if (!textarea) {
+            return [];
+        }
+        try {
+            var parsed = JSON.parse(textarea.value || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function communityInitialWrite(selector, items) {
+        var textarea = document.querySelector(selector);
+        if (!textarea) {
+            return;
+        }
+        textarea.value = JSON.stringify(items, null, 2);
+        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function communityInitialActionButton(kind, index) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = kind === 'remove' ? 'btn btn-sm btn-icon btn-outline-danger' : 'btn btn-sm btn-icon btn-solid-light';
+        button.setAttribute('aria-label', kind === 'remove' ? '삭제' : '수정');
+        button.setAttribute('title', kind === 'remove' ? '삭제' : '수정');
+        button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">' + (kind === 'remove' ? 'delete' : 'edit') + '</span>';
+        button.setAttribute('data-community-initial-action', kind);
+        button.setAttribute('data-community-initial-index', String(index));
+        return button;
+    }
+
+    function communityInitialCategoriesRender() {
+        var root = document.querySelector('[data-community-initial-categories-builder]');
+        if (!root) {
+            return;
+        }
+        var items = communityInitialParse('[data-community-initial-categories-json]');
+        var list = root.querySelector('[data-community-initial-category-list]');
+        var wrap = root.querySelector('[data-community-initial-category-table-wrap]');
+        var empty = root.querySelector('[data-community-initial-category-empty]');
+        list.innerHTML = '';
+        wrap.hidden = items.length === 0;
+        empty.hidden = items.length !== 0;
+        items.forEach(function (item, index) {
+            var row = document.createElement('tr');
+            [item.title || '', item.category_key || '', item.status === 'disabled' ? '사용안함' : '사용', String(item.sort_order || 0)].forEach(function (value) {
+                var cell = document.createElement('td');
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+            var actionCell = document.createElement('td');
+            actionCell.className = 'admin-table-actions-cell';
+            var actions = document.createElement('div');
+            actions.className = 'admin-row-actions';
+            var edit = communityInitialActionButton('edit', index);
+            edit.setAttribute('data-community-initial-category-action', '');
+            var remove = communityInitialActionButton('remove', index);
+            remove.setAttribute('data-community-initial-category-action', '');
+            actions.appendChild(edit);
+            actions.appendChild(remove);
+            actionCell.appendChild(actions);
+            row.appendChild(actionCell);
+            list.appendChild(row);
+        });
+        syncCategoryPolicy();
+    }
+
+    function communityInitialCategoryModalSet(item, index) {
+        var modal = document.querySelector('[data-community-initial-category-modal]');
+        if (!modal) {
+            return;
+        }
+        modal.querySelector('[data-community-initial-category-index]').value = index >= 0 ? String(index) : '';
+        modal.querySelector('[data-community-initial-category-modal-title]').textContent = index >= 0 ? '카테고리 수정' : '카테고리 추가';
+        ['title', 'category_key', 'description', 'status', 'sort_order'].forEach(function (key) {
+            var input = modal.querySelector('[data-community-initial-category-input="' + key + '"]');
+            if (input) {
+                input.value = item[key] === undefined ? (key === 'status' ? 'enabled' : (key === 'sort_order' ? '0' : '')) : String(item[key]);
+                input.setCustomValidity('');
+            }
+        });
+        var keyInput = modal.querySelector('[data-community-initial-category-input="category_key"]');
+        if (keyInput) {
+            keyInput.readOnly = index >= 0 && parseInt(item.id || '0', 10) > 0;
+        }
+    }
+
+    function communityInitialCategoryCollect() {
+        var modal = document.querySelector('[data-community-initial-category-modal]');
+        if (!modal) {
+            return null;
+        }
+        var items = communityInitialParse('[data-community-initial-categories-json]');
+        var indexValue = modal.querySelector('[data-community-initial-category-index]').value;
+        var index = indexValue === '' ? -1 : parseInt(indexValue, 10);
+        var item = {};
+        ['title', 'category_key', 'description', 'status', 'sort_order'].forEach(function (key) {
+            var input = modal.querySelector('[data-community-initial-category-input="' + key + '"]');
+            item[key] = input ? input.value.trim() : '';
+        });
+        item.category_key = item.category_key.toLowerCase();
+        item.sort_order = parseInt(item.sort_order || '0', 10);
+        item.id = index >= 0 && items[index] ? parseInt(items[index].id || '0', 10) : 0;
+        var keyInput = modal.querySelector('[data-community-initial-category-input="category_key"]');
+        var duplicate = items.some(function (existing, existingIndex) {
+            return existingIndex !== index && existing.category_key === item.category_key;
+        });
+        keyInput.setCustomValidity(duplicate ? '같은 카테고리 Key를 이미 사용하고 있습니다.' : '');
+        var inputs = modal.querySelectorAll('[data-community-initial-category-input]');
+        for (var inputIndex = 0; inputIndex < inputs.length; inputIndex++) {
+            if (!inputs[inputIndex].checkValidity()) {
+                inputs[inputIndex].reportValidity();
+                return null;
+            }
+        }
+        return {index: index, item: item};
+    }
+
+    function communityInitialManagerPermissionLabel(permissionKey) {
+        var input = document.querySelector('[data-community-initial-manager-permission][value="' + permissionKey + '"]');
+        var label = input ? document.querySelector('label[for="' + input.id + '"]') : null;
+        return label ? label.textContent.trim() : permissionKey;
+    }
+
+    function communityInitialManagersRender() {
+        var root = document.querySelector('[data-community-initial-managers-builder]');
+        if (!root) {
+            return;
+        }
+        var items = communityInitialParse('[data-community-initial-managers-json]');
+        var list = root.querySelector('[data-community-initial-manager-list]');
+        var wrap = root.querySelector('[data-community-initial-manager-table-wrap]');
+        var empty = root.querySelector('[data-community-initial-manager-empty]');
+        list.innerHTML = '';
+        wrap.hidden = items.length === 0;
+        empty.hidden = items.length !== 0;
+        items.forEach(function (item, index) {
+            var row = document.createElement('tr');
+            var memberCell = document.createElement('td');
+            memberCell.textContent = item.account_label || ('회원 #' + item.account_id);
+            row.appendChild(memberCell);
+            var permissionCell = document.createElement('td');
+            permissionCell.textContent = (Array.isArray(item.permission_keys) ? item.permission_keys : []).map(communityInitialManagerPermissionLabel).join(', ');
+            row.appendChild(permissionCell);
+            var actionCell = document.createElement('td');
+            actionCell.className = 'admin-table-actions-cell';
+            var actions = document.createElement('div');
+            actions.className = 'admin-row-actions';
+            var edit = communityInitialActionButton('edit', index);
+            edit.setAttribute('data-community-initial-manager-action', '');
+            var remove = communityInitialActionButton('remove', index);
+            remove.setAttribute('data-community-initial-manager-action', '');
+            actions.appendChild(edit);
+            actions.appendChild(remove);
+            actionCell.appendChild(actions);
+            row.appendChild(actionCell);
+            list.appendChild(row);
+        });
+    }
+
+    function communityInitialManagerModalSet(item, index) {
+        var modal = document.querySelector('[data-community-initial-manager-modal]');
+        if (!modal) {
+            return;
+        }
+        modal.querySelector('[data-community-initial-manager-index]').value = index >= 0 ? String(index) : '';
+        modal.querySelector('[data-community-initial-manager-modal-title]').textContent = index >= 0 ? '운영 스탭 수정' : '운영 스탭 추가';
+        modal.querySelector('[data-community-initial-manager-account-id]').value = item.account_id || '';
+        modal.querySelector('[data-community-initial-manager-account-label]').value = item.account_label || '';
+        var permissionKeys = Array.isArray(item.permission_keys) ? item.permission_keys : [];
+        modal.querySelectorAll('[data-community-initial-manager-permission]').forEach(function (input) {
+            input.checked = permissionKeys.indexOf(input.value) !== -1;
+        });
+    }
+
+    function communityInitialManagerCollect() {
+        var modal = document.querySelector('[data-community-initial-manager-modal]');
+        if (!modal) {
+            return null;
+        }
+        var items = communityInitialParse('[data-community-initial-managers-json]');
+        var indexValue = modal.querySelector('[data-community-initial-manager-index]').value;
+        var index = indexValue === '' ? -1 : parseInt(indexValue, 10);
+        var accountIdInput = modal.querySelector('[data-community-initial-manager-account-id]');
+        var accountLabelInput = modal.querySelector('[data-community-initial-manager-account-label]');
+        var accountId = parseInt(accountIdInput.value || '0', 10);
+        var permissionKeys = Array.prototype.filter.call(modal.querySelectorAll('[data-community-initial-manager-permission]'), function (input) { return input.checked; }).map(function (input) { return input.value; });
+        var duplicate = items.some(function (existing, existingIndex) {
+            return existingIndex !== index && parseInt(existing.account_id || '0', 10) === accountId;
+        });
+        accountLabelInput.setCustomValidity(accountId < 1 ? '회원을 검색해 선택해 주세요.' : (duplicate ? '이미 추가한 회원입니다.' : ''));
+        if (!accountLabelInput.checkValidity()) {
+            accountLabelInput.reportValidity();
+            return null;
+        }
+        if (permissionKeys.length === 0) {
+            var firstPermission = modal.querySelector('[data-community-initial-manager-permission]');
+            firstPermission.setCustomValidity('권한을 하나 이상 선택해 주세요.');
+            firstPermission.reportValidity();
+            firstPermission.setCustomValidity('');
+            return null;
+        }
+        return {index: index, item: {account_id: accountId, account_label: accountLabelInput.value, permission_keys: permissionKeys}};
+    }
+
     function boardManagerMemberSummary(item) {
         var parts = [];
         if (item.account_public_hash) {
@@ -2668,6 +2707,16 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         if (!categoryEnabled || !categoryRequired) {
             return;
         }
+        var initialCategoryTextarea = document.querySelector('[data-community-initial-categories-json]');
+        if (initialCategoryTextarea) {
+            var hasEnabledInitialCategory = communityInitialParse('[data-community-initial-categories-json]').some(function (category) {
+                return category.status === 'enabled';
+            });
+            categoryRequired.disabled = !hasEnabledInitialCategory;
+            if (!hasEnabledInitialCategory) {
+                categoryRequired.checked = false;
+            }
+        }
         if (categoryRequired.checked) {
             categoryEnabled.checked = true;
         } else if (!categoryEnabled.checked) {
@@ -2753,6 +2802,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     }
     syncFileExtensions();
     communityExtraFieldInit();
+    communityInitialCategoriesRender();
+    communityInitialManagersRender();
 
     document.addEventListener('submit', function (event) {
         var searchForm = event.target.closest && event.target.closest('[data-community-board-manager-member-search]');
@@ -2838,6 +2889,100 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             if (closeButton) {
                 closeButton.click();
             }
+            return;
+        }
+
+        var initialCategoryAdd = event.target.closest && event.target.closest('[data-community-initial-category-add]');
+        if (initialCategoryAdd) {
+            communityInitialCategoryModalSet({title: '', category_key: '', description: '', status: 'enabled', sort_order: 0}, -1);
+            return;
+        }
+
+        var initialCategoryAction = event.target.closest && event.target.closest('[data-community-initial-category-action]');
+        if (initialCategoryAction) {
+            event.preventDefault();
+            var initialCategoryItems = communityInitialParse('[data-community-initial-categories-json]');
+            var initialCategoryIndex = parseInt(initialCategoryAction.getAttribute('data-community-initial-index') || '-1', 10);
+            if (initialCategoryIndex < 0 || initialCategoryIndex >= initialCategoryItems.length) {
+                return;
+            }
+            if (initialCategoryAction.getAttribute('data-community-initial-action') === 'edit') {
+                var initialCategoryAddButton = document.querySelector('[data-community-initial-category-add]');
+                if (initialCategoryAddButton) {
+                    initialCategoryAddButton.click();
+                    communityInitialCategoryModalSet(initialCategoryItems[initialCategoryIndex], initialCategoryIndex);
+                }
+            } else {
+                initialCategoryItems.splice(initialCategoryIndex, 1);
+                communityInitialWrite('[data-community-initial-categories-json]', initialCategoryItems);
+                communityInitialCategoriesRender();
+            }
+            return;
+        }
+
+        var initialCategorySave = event.target.closest && event.target.closest('[data-community-initial-category-save]');
+        if (initialCategorySave) {
+            event.preventDefault();
+            var initialCategoryCollected = communityInitialCategoryCollect();
+            if (!initialCategoryCollected) {
+                return;
+            }
+            var initialCategorySaveItems = communityInitialParse('[data-community-initial-categories-json]');
+            if (initialCategoryCollected.index >= 0) {
+                initialCategorySaveItems[initialCategoryCollected.index] = initialCategoryCollected.item;
+            } else {
+                initialCategorySaveItems.push(initialCategoryCollected.item);
+            }
+            communityInitialWrite('[data-community-initial-categories-json]', initialCategorySaveItems);
+            communityInitialCategoriesRender();
+            document.querySelector('[data-community-initial-category-modal] .modal-close').click();
+            return;
+        }
+
+        var initialManagerAdd = event.target.closest && event.target.closest('[data-community-initial-manager-add]');
+        if (initialManagerAdd) {
+            communityInitialManagerModalSet({account_id: '', account_label: '', permission_keys: []}, -1);
+            return;
+        }
+
+        var initialManagerAction = event.target.closest && event.target.closest('[data-community-initial-manager-action]');
+        if (initialManagerAction) {
+            event.preventDefault();
+            var initialManagerItems = communityInitialParse('[data-community-initial-managers-json]');
+            var initialManagerIndex = parseInt(initialManagerAction.getAttribute('data-community-initial-index') || '-1', 10);
+            if (initialManagerIndex < 0 || initialManagerIndex >= initialManagerItems.length) {
+                return;
+            }
+            if (initialManagerAction.getAttribute('data-community-initial-action') === 'edit') {
+                var initialManagerAddButton = document.querySelector('[data-community-initial-manager-add]');
+                if (initialManagerAddButton) {
+                    initialManagerAddButton.click();
+                    communityInitialManagerModalSet(initialManagerItems[initialManagerIndex], initialManagerIndex);
+                }
+            } else {
+                initialManagerItems.splice(initialManagerIndex, 1);
+                communityInitialWrite('[data-community-initial-managers-json]', initialManagerItems);
+                communityInitialManagersRender();
+            }
+            return;
+        }
+
+        var initialManagerSave = event.target.closest && event.target.closest('[data-community-initial-manager-save]');
+        if (initialManagerSave) {
+            event.preventDefault();
+            var initialManagerCollected = communityInitialManagerCollect();
+            if (!initialManagerCollected) {
+                return;
+            }
+            var initialManagerSaveItems = communityInitialParse('[data-community-initial-managers-json]');
+            if (initialManagerCollected.index >= 0) {
+                initialManagerSaveItems[initialManagerCollected.index] = initialManagerCollected.item;
+            } else {
+                initialManagerSaveItems.push(initialManagerCollected.item);
+            }
+            communityInitialWrite('[data-community-initial-managers-json]', initialManagerSaveItems);
+            communityInitialManagersRender();
+            document.querySelector('[data-community-initial-manager-modal] .modal-close').click();
             return;
         }
 

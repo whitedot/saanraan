@@ -45,6 +45,298 @@ function sr_community_admin_apply_board_settings(
     }
 }
 
+function sr_community_admin_board_categories_from_json(?string $json): array
+{
+    if ($json === null) {
+        return ['items' => [], 'errors' => ['등록할 카테고리 데이터가 너무 큽니다.']];
+    }
+
+    $decoded = json_decode($json === '' ? '[]' : $json, true);
+    if (!is_array($decoded) || !array_is_list($decoded)) {
+        return ['items' => [], 'errors' => ['등록할 카테고리 데이터 형식이 올바르지 않습니다.']];
+    }
+    if (count($decoded) > 100) {
+        return ['items' => [], 'errors' => ['게시판을 등록할 때 카테고리는 최대 100개까지 지정할 수 있습니다.']];
+    }
+
+    $items = [];
+    $errors = [];
+    $seenKeys = [];
+    foreach ($decoded as $index => $item) {
+        if (!is_array($item)) {
+            $errors[] = '등록할 카테고리 ' . (string) ($index + 1) . '번 데이터가 올바르지 않습니다.';
+            continue;
+        }
+
+        $categoryKey = strtolower(trim((string) ($item['category_key'] ?? '')));
+        $categoryIdValue = $item['id'] ?? 0;
+        $categoryId = filter_var($categoryIdValue, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+        $title = trim((string) ($item['title'] ?? ''));
+        $description = trim((string) ($item['description'] ?? ''));
+        $status = (string) ($item['status'] ?? 'enabled');
+        $sortOrderValue = $item['sort_order'] ?? null;
+        $sortOrder = filter_var($sortOrderValue, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 0, 'max_range' => 1000000],
+        ]);
+
+        if (!sr_community_category_key_is_valid($categoryKey)) {
+            $errors[] = '카테고리 ' . (string) ($index + 1) . '번 Key가 올바르지 않습니다.';
+        } elseif (isset($seenKeys[$categoryKey])) {
+            $errors[] = '카테고리 Key는 게시판 안에서 중복될 수 없습니다: ' . $categoryKey;
+        }
+        if ($title === '' || (function_exists('mb_strlen') ? mb_strlen($title) : strlen($title)) > 120) {
+            $errors[] = '카테고리 ' . (string) ($index + 1) . '번 이름을 120자 이내로 입력해 주세요.';
+        }
+        if (strlen($description) > 2000) {
+            $errors[] = '카테고리 ' . (string) ($index + 1) . '번 설명이 너무 깁니다.';
+        }
+        if (!in_array($status, sr_community_category_statuses(), true)) {
+            $errors[] = '카테고리 ' . (string) ($index + 1) . '번 상태가 올바르지 않습니다.';
+        }
+        if ($sortOrder === false) {
+            $errors[] = '카테고리 ' . (string) ($index + 1) . '번 정렬값이 올바르지 않습니다.';
+            $sortOrder = 0;
+        }
+
+        $seenKeys[$categoryKey] = true;
+        $items[] = [
+            'id' => $categoryId === false ? 0 : (int) $categoryId,
+            'category_key' => $categoryKey,
+            'title' => $title,
+            'description' => $description,
+            'status' => $status,
+            'sort_order' => (int) $sortOrder,
+        ];
+    }
+
+    return ['items' => $items, 'errors' => array_values(array_unique($errors))];
+}
+
+function sr_community_admin_validate_board_category_sync(PDO $pdo, int $boardId, array $categories): array
+{
+    if ($boardId < 1) {
+        return [];
+    }
+
+    $errors = [];
+    $existingById = [];
+    foreach (sr_community_categories($pdo, $boardId) as $existingCategory) {
+        $existingById[(int) $existingCategory['id']] = $existingCategory;
+    }
+    $submittedIds = [];
+    foreach ($categories as $index => $category) {
+        $categoryId = (int) ($category['id'] ?? 0);
+        if ($categoryId < 1) {
+            continue;
+        }
+        if (!isset($existingById[$categoryId])) {
+            $errors[] = '카테고리 ' . (string) ($index + 1) . '번은 현재 게시판의 카테고리가 아닙니다.';
+            continue;
+        }
+        if (isset($submittedIds[$categoryId])) {
+            $errors[] = '같은 카테고리 행을 두 번 제출할 수 없습니다.';
+        }
+        if ((string) $existingById[$categoryId]['category_key'] !== (string) ($category['category_key'] ?? '')) {
+            $errors[] = '기존 카테고리 Key는 변경할 수 없습니다.';
+        }
+        $submittedIds[$categoryId] = true;
+    }
+
+    $referenceStmt = $pdo->prepare('SELECT COUNT(*) FROM sr_community_posts WHERE category_id = :category_id');
+    foreach ($existingById as $categoryId => $existingCategory) {
+        if (isset($submittedIds[$categoryId])) {
+            continue;
+        }
+        $referenceStmt->execute(['category_id' => $categoryId]);
+        if ((int) $referenceStmt->fetchColumn() > 0) {
+            $errors[] = '게시글에서 사용 중인 카테고리는 목록에서 삭제할 수 없습니다: ' . (string) $existingCategory['title'];
+        }
+    }
+
+    return array_values(array_unique($errors));
+}
+
+function sr_community_admin_sync_board_children(PDO $pdo, int $boardId, string $boardKey, array $categories, array $managers, int $actorAccountId): void
+{
+    $existingCategories = sr_community_categories($pdo, $boardId);
+    $existingCategoriesById = [];
+    $submittedCategoryIds = [];
+    foreach ($existingCategories as $existingCategory) {
+        $existingCategoriesById[(int) $existingCategory['id']] = $existingCategory;
+    }
+    foreach ($categories as $category) {
+        $categoryId = (int) ($category['id'] ?? 0);
+        if ($categoryId > 0) {
+            $submittedCategoryIds[$categoryId] = true;
+        }
+    }
+    foreach ($existingCategories as $existingCategory) {
+        $categoryId = (int) $existingCategory['id'];
+        if (isset($submittedCategoryIds[$categoryId])) {
+            continue;
+        }
+        if (!sr_community_delete_category($pdo, $categoryId)) {
+            throw new RuntimeException('삭제할 수 없는 카테고리가 포함되어 있습니다.');
+        }
+        sr_audit_log($pdo, [
+            'actor_account_id' => $actorAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'community.category.deleted',
+            'target_type' => 'community_category',
+            'target_id' => (string) $categoryId,
+            'result' => 'success',
+            'message' => 'Community category deleted with board save.',
+            'metadata' => ['board_key' => $boardKey, 'category_key' => (string) $existingCategory['category_key']],
+        ]);
+    }
+    foreach ($categories as $category) {
+        $categoryId = (int) ($category['id'] ?? 0);
+        if ($categoryId > 0) {
+            $existingCategory = $existingCategoriesById[$categoryId] ?? [];
+            $categoryChanged = (string) ($existingCategory['title'] ?? '') !== (string) $category['title']
+                || (string) ($existingCategory['description'] ?? '') !== (string) $category['description']
+                || (string) ($existingCategory['status'] ?? '') !== (string) $category['status']
+                || (int) ($existingCategory['sort_order'] ?? 0) !== (int) $category['sort_order'];
+            if (!$categoryChanged) {
+                continue;
+            }
+            sr_community_update_category($pdo, $categoryId, $category);
+            $eventType = 'community.category.updated';
+        } else {
+            $categoryId = sr_community_create_category($pdo, $boardId, $category);
+            $eventType = 'community.category.created';
+        }
+        sr_audit_log($pdo, [
+            'actor_account_id' => $actorAccountId,
+            'actor_type' => 'admin',
+            'event_type' => $eventType,
+            'target_type' => 'community_category',
+            'target_id' => (string) $categoryId,
+            'result' => 'success',
+            'message' => 'Community category synchronized with board save.',
+            'metadata' => [
+                'board_key' => $boardKey,
+                'category_key' => (string) $category['category_key'],
+                'status' => (string) $category['status'],
+            ],
+        ]);
+    }
+
+    $desiredPermissions = [];
+    foreach ($managers as $manager) {
+        $desiredPermissions[(int) $manager['account_id']] = array_fill_keys(
+            is_array($manager['permission_keys'] ?? null) ? $manager['permission_keys'] : [],
+            true
+        );
+    }
+    $existingPermissions = [];
+    foreach (sr_community_board_managers($pdo, $boardId) as $existingManager) {
+        $accountId = (int) $existingManager['account_id'];
+        $permissionKey = (string) $existingManager['permission_key'];
+        $existingPermissions[$accountId][$permissionKey] = true;
+        if (isset($desiredPermissions[$accountId][$permissionKey])) {
+            continue;
+        }
+        sr_community_revoke_board_management_permission($pdo, (int) $existingManager['id'], $boardId, $actorAccountId);
+        sr_audit_log($pdo, [
+            'actor_account_id' => $actorAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'community.board_manager.revoked',
+            'target_type' => 'community_board',
+            'target_id' => (string) $boardId,
+            'result' => 'success',
+            'message' => 'Community board manager permission revoked with board save.',
+            'metadata' => ['board_key' => $boardKey, 'account_id' => $accountId, 'permission_key' => $permissionKey],
+        ]);
+    }
+    foreach ($desiredPermissions as $accountId => $permissionMap) {
+        $newPermissionKeys = array_values(array_diff(array_keys($permissionMap), array_keys($existingPermissions[$accountId] ?? [])));
+        if ($newPermissionKeys === []) {
+            continue;
+        }
+        $grantedPermissionKeys = sr_community_grant_board_management_permissions($pdo, $boardId, $accountId, $newPermissionKeys, $actorAccountId);
+        sr_audit_log($pdo, [
+            'actor_account_id' => $actorAccountId,
+            'actor_type' => 'admin',
+            'event_type' => 'community.board_manager.granted',
+            'target_type' => 'community_board',
+            'target_id' => (string) $boardId,
+            'result' => 'success',
+            'message' => 'Community board manager permissions granted with board save.',
+            'metadata' => ['board_key' => $boardKey, 'account_id' => $accountId, 'permission_keys' => $grantedPermissionKeys],
+        ]);
+    }
+}
+
+function sr_community_admin_board_managers_from_json(PDO $pdo, ?string $json): array
+{
+    if ($json === null) {
+        return ['items' => [], 'errors' => ['등록할 운영 스탭 데이터가 너무 큽니다.']];
+    }
+
+    $decoded = json_decode($json === '' ? '[]' : $json, true);
+    if (!is_array($decoded) || !array_is_list($decoded)) {
+        return ['items' => [], 'errors' => ['등록할 운영 스탭 데이터 형식이 올바르지 않습니다.']];
+    }
+    if (count($decoded) > 50) {
+        return ['items' => [], 'errors' => ['게시판을 등록할 때 운영 스탭은 최대 50명까지 지정할 수 있습니다.']];
+    }
+
+    $items = [];
+    $errors = [];
+    $seenAccountIds = [];
+    $accountStmt = $pdo->prepare('SELECT id FROM sr_member_accounts WHERE id = :id LIMIT 1');
+    foreach ($decoded as $index => $item) {
+        if (!is_array($item)) {
+            $errors[] = '등록할 운영 스탭 ' . (string) ($index + 1) . '번 데이터가 올바르지 않습니다.';
+            continue;
+        }
+
+        $accountIdValue = $item['account_id'] ?? null;
+        $accountId = filter_var($accountIdValue, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+        $permissionInput = is_array($item['permission_keys'] ?? null) ? $item['permission_keys'] : [];
+        $permissionKeys = [];
+        foreach ($permissionInput as $permissionKey) {
+            $permissionKey = (string) $permissionKey;
+            if (!sr_community_board_manager_permission_is_valid($permissionKey)) {
+                $errors[] = '운영 스탭 ' . (string) ($index + 1) . '번 권한 값이 올바르지 않습니다.';
+                continue;
+            }
+            $permissionKeys[] = $permissionKey;
+        }
+        $permissionKeys = array_values(array_unique($permissionKeys));
+
+        $accountExists = false;
+        if ($accountId !== false) {
+            $accountStmt->execute(['id' => (int) $accountId]);
+            $accountExists = (bool) $accountStmt->fetchColumn();
+        }
+        if ($accountId === false || !$accountExists) {
+            $errors[] = '운영 스탭 ' . (string) ($index + 1) . '번 회원을 찾을 수 없습니다.';
+            $accountId = 0;
+        } elseif (isset($seenAccountIds[(int) $accountId])) {
+            $errors[] = '같은 회원을 운영 스탭에 두 번 지정할 수 없습니다.';
+        }
+        if ($permissionKeys === []) {
+            $errors[] = '운영 스탭 ' . (string) ($index + 1) . '번 권한을 하나 이상 선택해 주세요.';
+        }
+
+        if ((int) $accountId > 0) {
+            $seenAccountIds[(int) $accountId] = true;
+        }
+        $items[] = [
+            'account_id' => (int) $accountId,
+            'permission_keys' => $permissionKeys,
+        ];
+    }
+
+    return ['items' => $items, 'errors' => array_values(array_unique($errors))];
+}
+
 function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, array $account, array $context): array
 {
     $errors = [];
@@ -129,6 +421,27 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         if ($categoryRequired) {
             $categoryEnabled = true;
         }
+        $initialCategories = [];
+        $initialBoardManagers = [];
+        if (in_array($intent, ['create', 'update'], true)) {
+            $initialCategoryResult = sr_community_admin_board_categories_from_json(
+                sr_post_string_without_truncation('categories_json', 100000)
+            );
+            $initialBoardManagerResult = sr_community_admin_board_managers_from_json(
+                $pdo,
+                sr_post_string_without_truncation('board_managers_json', 100000)
+            );
+            $initialCategories = is_array($initialCategoryResult['items'] ?? null) ? $initialCategoryResult['items'] : [];
+            $initialBoardManagers = is_array($initialBoardManagerResult['items'] ?? null) ? $initialBoardManagerResult['items'] : [];
+            $errors = array_merge(
+                $errors,
+                is_array($initialCategoryResult['errors'] ?? null) ? $initialCategoryResult['errors'] : [],
+                is_array($initialBoardManagerResult['errors'] ?? null) ? $initialBoardManagerResult['errors'] : []
+            );
+            if ($initialCategories !== [] && !sr_community_categories_supported($pdo)) {
+                $errors[] = '카테고리 스키마 업데이트가 아직 적용되지 않았습니다.';
+            }
+        }
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
@@ -173,6 +486,10 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         if ($editingBoardId > 0) {
             $existingBoard = sr_community_board_by_id($pdo, $editingBoardId);
             if (is_array($existingBoard)) {
+                $errors = array_merge(
+                    $errors,
+                    sr_community_admin_validate_board_category_sync($pdo, $editingBoardId, $initialCategories)
+                );
                 foreach (sr_community_privacy_consent_setting_keys() as $privacyConsentSettingKey) {
                     $existingPrivacyConsentSettings[$privacyConsentSettingKey] = sr_community_effective_board_setting(
                         $pdo,
@@ -457,8 +774,14 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         }
 
         if ($categoryRequired) {
-            $categoryBoardId = $intent === 'update' ? $editingBoardId : 0;
-            if ($categoryBoardId < 1 || sr_community_categories($pdo, $categoryBoardId, true) === []) {
+            $hasEnabledCategory = false;
+            foreach ($initialCategories as $initialCategory) {
+                if ((string) ($initialCategory['status'] ?? '') === 'enabled') {
+                    $hasEnabledCategory = true;
+                    break;
+                }
+            }
+            if (!$hasEnabledCategory) {
                 $errors[] = '활성 카테고리가 1개 이상 있어야 카테고리 필수를 켤 수 있습니다.';
             }
         }
@@ -729,77 +1052,95 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         }
 
         if ($intent === 'create' && $errors === []) {
-            $boardId = sr_community_create_board($pdo, [
-                'board_group_id' => $boardGroupId,
-                'board_key' => $boardKey,
-                'title' => $title,
-                'description' => (string) $description,
-                'status' => $status,
-                'read_policy' => $readPolicy,
-                'write_policy' => $writePolicy,
-                'comment_policy' => $commentPolicy,
-                'image_uploads_enabled' => $imageUploadsEnabled,
-                'sort_order' => (int) $sortOrder,
-            ]);
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'community.board.created',
-                'target_type' => 'community_board',
-                'target_id' => (string) $boardId,
-                'result' => 'success',
-                'message' => 'Community board created.',
-                'metadata' => array_merge([
+            $pdo->beginTransaction();
+            try {
+                $boardId = sr_community_create_board($pdo, [
                     'board_key' => $boardKey,
                     'board_group_id' => $boardGroupId,
+                    'title' => $title,
+                    'description' => (string) $description,
                     'status' => $status,
-                    'summary_feed_enabled' => $summaryFeedEnabled,
+                    'read_policy' => $readPolicy,
+                    'write_policy' => $writePolicy,
+                    'comment_policy' => $commentPolicy,
                     'image_uploads_enabled' => $imageUploadsEnabled,
-                    'file_uploads_enabled' => $fileUploadsEnabled,
-                    'attachment_max_bytes' => $attachmentMaxBytes,
-                    'attachment_max_count' => $attachmentMaxCount,
-                    'file_attachment_max_bytes' => $fileAttachmentMaxBytes,
-                    'file_attachment_max_count' => $fileAttachmentMaxCount,
-                    'file_allowed_extensions' => $fileAllowedExtensions,
-                    'read_group_keys' => $readGroupKeys,
-                    'write_group_keys' => $writeGroupKeys,
-                    'comment_group_keys' => $commentGroupKeys,
-                    'read_min_level' => $readMinLevel,
-                    'identity_verification_enabled' => $identityVerificationEnabled,
-                    'identity_verification_purpose' => $identityVerificationPurpose,
-                    'identity_verification_required_actions' => $identityVerificationRequiredActions,
-                    'write_min_level' => $writeMinLevel,
-                    'comment_min_level' => $commentMinLevel,
-                    'category_enabled' => $categoryEnabled,
-                    'category_required' => $categoryRequired,
-                    'series_enabled' => $seriesEnabled,
-                    'level_post_score' => $levelPostScore,
-                    'level_comment_score' => $levelCommentScore,
-                    'secret_posts_enabled' => $secretPostsEnabled,
-                    'secret_comments_enabled' => $secretCommentsEnabled,
-                    'antispam_post_mode' => $antispamPostMode,
-                    'antispam_comment_mode' => $antispamCommentMode,
-                    'reaction_enabled' => $reactionEnabled,
-                    'reaction_post_preset_key' => $reactionPostPresetKey,
-                    'reaction_comment_preset_key' => $reactionCommentPresetKey,
-                    'skin_key' => $skinKey,
-                    'asset_settings' => $assetSettings,
-                    'asset_prefix_sources' => $assetPrefixSources,
-                    'asset_setting_sources' => $assetSettingSources,
-                    'setting_sources' => $settingSources,
-                ], $publicDisplaySettingValues),
-            ]);
-            sr_community_admin_apply_board_settings(
-                $pdo,
-                $boardId,
-                $boardGroupId,
-                $boardSettingValues,
-                $settingSources,
-                $extraFieldsJson,
-                $assetSettings,
-                $assetSettingSources
-            );
+                    'sort_order' => (int) $sortOrder,
+                ]);
+
+                sr_audit_log($pdo, [
+                    'actor_account_id' => (int) $account['id'],
+                    'actor_type' => 'admin',
+                    'event_type' => 'community.board.created',
+                    'target_type' => 'community_board',
+                    'target_id' => (string) $boardId,
+                    'result' => 'success',
+                    'message' => 'Community board created.',
+                    'metadata' => array_merge([
+                        'board_key' => $boardKey,
+                        'board_group_id' => $boardGroupId,
+                        'status' => $status,
+                        'summary_feed_enabled' => $summaryFeedEnabled,
+                        'image_uploads_enabled' => $imageUploadsEnabled,
+                        'file_uploads_enabled' => $fileUploadsEnabled,
+                        'attachment_max_bytes' => $attachmentMaxBytes,
+                        'attachment_max_count' => $attachmentMaxCount,
+                        'file_attachment_max_bytes' => $fileAttachmentMaxBytes,
+                        'file_attachment_max_count' => $fileAttachmentMaxCount,
+                        'file_allowed_extensions' => $fileAllowedExtensions,
+                        'read_group_keys' => $readGroupKeys,
+                        'write_group_keys' => $writeGroupKeys,
+                        'comment_group_keys' => $commentGroupKeys,
+                        'read_min_level' => $readMinLevel,
+                        'identity_verification_enabled' => $identityVerificationEnabled,
+                        'identity_verification_purpose' => $identityVerificationPurpose,
+                        'identity_verification_required_actions' => $identityVerificationRequiredActions,
+                        'write_min_level' => $writeMinLevel,
+                        'comment_min_level' => $commentMinLevel,
+                        'category_enabled' => $categoryEnabled,
+                        'category_required' => $categoryRequired,
+                        'series_enabled' => $seriesEnabled,
+                        'level_post_score' => $levelPostScore,
+                        'level_comment_score' => $levelCommentScore,
+                        'secret_posts_enabled' => $secretPostsEnabled,
+                        'secret_comments_enabled' => $secretCommentsEnabled,
+                        'antispam_post_mode' => $antispamPostMode,
+                        'antispam_comment_mode' => $antispamCommentMode,
+                        'reaction_enabled' => $reactionEnabled,
+                        'reaction_post_preset_key' => $reactionPostPresetKey,
+                        'reaction_comment_preset_key' => $reactionCommentPresetKey,
+                        'skin_key' => $skinKey,
+                        'asset_settings' => $assetSettings,
+                        'asset_prefix_sources' => $assetPrefixSources,
+                        'asset_setting_sources' => $assetSettingSources,
+                        'setting_sources' => $settingSources,
+                    ], $publicDisplaySettingValues),
+                ]);
+                sr_community_admin_apply_board_settings(
+                    $pdo,
+                    $boardId,
+                    $boardGroupId,
+                    $boardSettingValues,
+                    $settingSources,
+                    $extraFieldsJson,
+                    $assetSettings,
+                    $assetSettingSources
+                );
+
+                sr_community_admin_sync_board_children(
+                    $pdo,
+                    $boardId,
+                    $boardKey,
+                    $initialCategories,
+                    $initialBoardManagers,
+                    (int) $account['id']
+                );
+                $pdo->commit();
+            } catch (Throwable $exception) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $exception;
+            }
 
             if ($afterSave !== null) {
                 try {
@@ -823,6 +1164,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
             }
 
             if ($errors === [] && is_array($board)) {
+                $pdo->beginTransaction();
+                try {
                 $beforeAttachmentMaxBytes = sr_community_board_attachment_max_bytes($pdo, $boardId);
                 $beforeAttachmentMaxCount = sr_community_board_attachment_max_count($pdo, $boardId);
                 $beforeThumbnailSettings = [];
@@ -995,6 +1338,22 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                             'applied_setting_keys' => $appliedSettingKeys,
                         ],
                     ]);
+                }
+
+                sr_community_admin_sync_board_children(
+                    $pdo,
+                    $boardId,
+                    (string) $board['board_key'],
+                    $initialCategories,
+                    $initialBoardManagers,
+                    (int) $account['id']
+                );
+                $pdo->commit();
+                } catch (Throwable $exception) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    throw $exception;
                 }
 
                 if ($afterSave !== null) {
