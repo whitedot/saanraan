@@ -619,7 +619,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                             <?php } ?>
                                                             <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_reply_' . (string) $comment['id']); ?>
                                                             <?php if (function_exists('sr_antispam_challenge_render')) { ?>
-                                                                <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_' . (string) (int) $comment['id'], ['account' => is_array($account ?? null) ? $account : null]); ?>
+                                                                <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_' . (string) (int) $comment['id'], $antispamCommentContext); ?>
                                                             <?php } ?>
                                                         </div>
                                                         <div class="modal-footer">
@@ -724,7 +724,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                     <?php } ?>
                                     <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_reply_member'); ?>
                                     <?php if (function_exists('sr_antispam_challenge_render')) { ?>
-                                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_member_reply', ['account' => $account]); ?>
+                                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_member_reply', $antispamCommentContext); ?>
                                     <?php } ?>
                                 </div>
                                 <div class="modal-footer">
@@ -832,7 +832,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                     <?php } ?>
                     <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_new'); ?>
                     <?php if (function_exists('sr_antispam_challenge_render')) { ?>
-                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_0', ['account' => is_array($account ?? null) ? $account : null]); ?>
+                        <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_0', $antispamCommentContext); ?>
                     <?php } ?>
                     <div class="community-comment-form-actions">
                         <?php if (!empty($secretCommentsEnabled)) { ?>

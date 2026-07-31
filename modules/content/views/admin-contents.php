@@ -801,6 +801,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <?php echo $pageSettingSourceRadioHtml('source_comment_editor_key', $pageSettingSource($values, 'comment_editor_key')); ?>
                 </div>
             </div>
+            <div class="form-row">
+                <label class="form-label" for="content_admin_contents_antispam_comment_mode">댓글 자동등록방지</label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('content_admin_contents_antispam_comment_mode', 'antispam_comment_mode', sr_content_antispam_mode_options(), sr_content_antispam_mode($values['antispam_comment_mode'] ?? 'always'), true); ?>
+                    <p class="form-help">이 콘텐츠의 댓글과 답글 등록에 자동등록방지 검사를 사용할지 정합니다.</p>
+                    <?php echo $pageSettingSourceRadioHtml('source_antispam_comment_mode', $pageSettingSource($values, 'antispam_comment_mode')); ?>
+                    <?php echo sr_admin_module_reference_list_html($pdo, [['module_key' => 'antispam', 'path' => '/admin/antispam/settings']]); ?>
+                </div>
+            </div>
         </section>
         <?php echo sr_admin_comment_extra_fields_editor_html(
             'content_item_comment_extra_fields_json',

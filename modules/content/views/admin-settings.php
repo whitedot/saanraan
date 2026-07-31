@@ -102,6 +102,7 @@ $contentSiteMenuModuleReferences = sr_module_enabled($pdo, 'site_menu')
     : [];
 $contentIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $contentReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
+$contentAntispamModuleReferences = [['module_key' => 'antispam', 'path' => '/admin/antispam/settings']];
 $contentEditorModuleReferences = [];
 foreach (sr_editor_contracts($pdo) as $contentEditorContract) {
     $editorModuleKey = is_array($contentEditorContract) ? (string) ($contentEditorContract['module_key'] ?? '') : '';
@@ -253,6 +254,14 @@ $contentSettingsSectionNavItems = [
                     <p class="form-help">CKEditor를 선택하면 위 툴바 구성을 함께 사용합니다.</p>
                 <?php } ?>
                 <?php echo sr_admin_module_reference_list_html($pdo, $contentEditorModuleReferences); ?>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="content_admin_settings_antispam_comment_mode">댓글 자동등록방지</label>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_antispam_comment_mode', 'antispam_comment_mode', sr_content_antispam_mode_options(), (string) ($settings['antispam_comment_mode'] ?? 'always'), true); ?>
+                <p class="form-help">개별 콘텐츠에서 별도 값을 정하지 않았을 때 댓글과 답글 등록에 적용합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentAntispamModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">
@@ -498,6 +507,14 @@ $contentSettingsSectionNavItems = [
             <div class="form-field">
                 <?php echo sr_admin_switch_html('content_admin_settings_member_submission_enabled', 'member_submission_enabled', '1', !empty($settings['member_submission_enabled']), '사용'); ?>
                 <p class="form-help">콘텐츠 그룹별 허용과 회원의 작성 자격을 함께 확인합니다.</p>
+            </div>
+        </div>
+        <div class="form-row" data-admin-visible-when-checked="#content_admin_settings_member_submission_enabled"<?php echo !empty($settings['member_submission_enabled']) ? '' : ' hidden'; ?>>
+            <label class="form-label" for="content_admin_settings_antispam_submission_mode">회원 제출 자동등록방지</label>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('content_admin_settings_antispam_submission_mode', 'antispam_submission_mode', sr_content_antispam_mode_options(), (string) ($settings['antispam_submission_mode'] ?? 'always'), true); ?>
+                <p class="form-help">회원이 콘텐츠를 최종 제출할 때 적용합니다. 임시저장에는 검사하지 않습니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $contentAntispamModuleReferences); ?>
             </div>
         </div>
         <?php $memberSubmissionEnabled = !empty($settings['member_submission_enabled']); ?>

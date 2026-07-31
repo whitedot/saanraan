@@ -15,6 +15,9 @@ if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_
 if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
     require_once SR_ROOT . '/modules/reaction/public-reaction.php';
 }
+if (sr_module_enabled($pdo, 'antispam')) {
+    require_once SR_ROOT . '/modules/antispam/public-antispam.php';
+}
 $contentBannerPublicAssets = function_exists('sr_banner_public_assets') ? sr_banner_public_assets() : [];
 $contentPopupLayerPublicAssets = function_exists('sr_popup_layer_public_assets') ? sr_popup_layer_public_assets() : [];
 if (sr_request_method() === 'POST') {
@@ -99,6 +102,10 @@ if (!$contentAdminPreview && !empty($pageAccess['allowed']) && sr_content_should
     sr_content_increment_view_count($pdo, (int) $page['id']);
     $page['view_count'] = (int) ($page['view_count'] ?? 0) + 1;
 }
+$contentAntispamCommentContext = [
+    'account' => is_array($account) ? $account : null,
+    'mode' => sr_content_antispam_mode($page['antispam_comment_mode']),
+];
 
 $contentEditUrl = '';
 if (is_array($account)) {

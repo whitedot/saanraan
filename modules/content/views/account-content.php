@@ -48,8 +48,11 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <p><label class="ui-field" for="account_content_body"><span>본문</span>
                         <textarea id="account_content_body" name="body_text" rows="12" class="form-textarea form-control-wide"><?php echo sr_e((string) ($formSubmission['body_text'] ?? '')); ?></textarea>
                     </label></p>
+                    <?php if (function_exists('sr_antispam_challenge_render')) { ?>
+                        <?php echo sr_antispam_challenge_render($pdo, 'content.member_submission', 'content_member_submission', $contentAntispamSubmissionContext); ?>
+                    <?php } ?>
                     <div class="ui-actions">
-                        <button type="submit" name="intent" value="draft" class="btn btn-solid-light">임시저장</button>
+                        <button type="submit" name="intent" value="draft" class="btn btn-solid-light" formnovalidate>임시저장</button>
                         <button type="submit" name="intent" value="submit" class="btn btn-solid-primary">제출</button>
                     </div>
                 </form>

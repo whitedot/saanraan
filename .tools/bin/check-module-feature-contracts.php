@@ -263,6 +263,18 @@ $publicFeatureContracts = [
             '/modules/reaction/assets/public.js',
         ],
     ],
+    'antispam' => [
+        'file' => 'public-antispam.php',
+        'consumers' => ['member', 'content', 'community'],
+        'functions' => [
+            'sr_antispam_mode',
+            'sr_antispam_mode_options',
+            'sr_antispam_policy',
+            'sr_antispam_challenge_render',
+            'sr_antispam_verify',
+        ],
+        'asset_markers' => [],
+    ],
     'logo_manager' => [
         'file' => 'public-branding.php',
         'consumers' => ['content', 'community', 'quiz', 'survey'],
@@ -336,10 +348,14 @@ foreach ($publicFeatureContracts as $providerModuleKey => $definition) {
 }
 
 $publicFeatureRequestContracts = [
-    'modules/content/actions/view.php' => ['public-banner.php', 'public-popup-layer.php', 'public-reaction.php'],
+    'modules/member/actions/register.php' => ['public-antispam.php'],
+    'modules/content/actions/view.php' => ['public-banner.php', 'public-popup-layer.php', 'public-reaction.php', 'public-antispam.php'],
+    'modules/content/actions/comment.php' => ['public-antispam.php'],
+    'modules/content/actions/account-content.php' => ['public-antispam.php'],
     'modules/community/actions/list.php' => ['public-banner.php', 'public-popup-layer.php', 'public-reaction.php'],
-    'modules/community/actions/view.php' => ['public-banner.php', 'public-popup-layer.php', 'public-reaction.php'],
-    'modules/community/actions/write.php' => ['public-banner.php', 'public-popup-layer.php'],
+    'modules/community/actions/view.php' => ['public-banner.php', 'public-popup-layer.php', 'public-reaction.php', 'public-antispam.php'],
+    'modules/community/actions/write.php' => ['public-banner.php', 'public-popup-layer.php', 'public-antispam.php'],
+    'modules/community/actions/comment.php' => ['public-antispam.php'],
     'modules/community/actions/edit.php' => ['public-banner.php', 'public-popup-layer.php'],
     'modules/quiz/actions/view.php' => ['public-reaction.php'],
     'modules/survey/actions/view.php' => ['public-reaction.php'],

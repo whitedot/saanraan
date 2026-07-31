@@ -33,6 +33,7 @@ $communitySiteMenuModuleReferences = $communityBoardSidebarSiteMenuAvailable
     : [];
 $communityIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
 $communityReactionModuleReferences = [['module_key' => 'reaction', 'path' => '/admin/reactions/presets']];
+$communityAntispamModuleReferences = [['module_key' => 'antispam', 'path' => '/admin/antispam/settings']];
 $communityPolicyDocumentModuleReferences = [['module_key' => 'policy_documents']];
 $communityEditorModuleReferences = [];
 foreach (sr_editor_contracts($pdo) as $communityEditorContract) {
@@ -923,6 +924,22 @@ $communitySettingsSectionNavItems = [
                 <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_post_editor', 'post_editor', $editorOptions, (string) ($settings['post_editor'] ?? 'textarea'), true); ?>
                 <p class="form-help">새 게시판과 별도 설정이 없는 기존 게시판에 적용할 기본 입력 방식입니다.</p>
                 <?php echo sr_admin_module_reference_list_html($pdo, $communityEditorModuleReferences); ?>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_antispam_post_mode">게시글 자동등록방지</label>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_antispam_post_mode', 'antispam_post_mode', sr_community_antispam_mode_options(), (string) ($settings['antispam_post_mode'] ?? 'guest'), true); ?>
+                <p class="form-help">게시판에서 별도 값을 정하지 않았을 때 게시글 등록에 적용합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityAntispamModuleReferences); ?>
+            </div>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="community_admin_settings_antispam_comment_mode">댓글 자동등록방지</label>
+            <div class="form-field">
+                <?php echo sr_admin_radio_toggle_group_html('community_admin_settings_antispam_comment_mode', 'antispam_comment_mode', sr_community_antispam_mode_options(), (string) ($settings['antispam_comment_mode'] ?? 'guest'), true); ?>
+                <p class="form-help">게시판에서 별도 값을 정하지 않았을 때 댓글과 답글 등록에 적용합니다.</p>
+                <?php echo sr_admin_module_reference_list_html($pdo, $communityAntispamModuleReferences); ?>
             </div>
         </div>
         <div class="form-row">

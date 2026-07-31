@@ -71,8 +71,8 @@ sr_milestone_28_check_contains('core/actions/install.php', [
     '$values[\'default_currency\'] = sr_normalize_currency_code($values[\'default_currency\']);',
     'if (!sr_currency_is_known($values[\'default_currency\']))',
     '\'site.default_currency\' => [\'value\' => $values[\'default_currency\'], \'type\' => \'string\']',
-    '\'content\' => [' . "\n" . '        \'name\' => \'콘텐츠\',' . "\n" . '        \'version\' => \'2026.07.010\'',
-    '\'community\' => [' . "\n" . '        \'name\' => \'커뮤니티\',' . "\n" . '        \'version\' => \'2026.07.011\'',
+    '\'content\' => [' . "\n" . '        \'name\' => \'콘텐츠\',' . "\n" . '        \'version\' => \'2026.07.011\'',
+    '\'community\' => [' . "\n" . '        \'name\' => \'커뮤니티\',' . "\n" . '        \'version\' => \'2026.07.012\'',
 ]);
 
 sr_milestone_28_check_contains('modules/content/helpers/records.php', [

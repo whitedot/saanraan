@@ -250,7 +250,7 @@ $communityFrameModifier = 'form';
             <?php } ?>
             <?php echo sr_community_privacy_consent_field_html($pdo, $board, $communityPrivacyConsentDisplayTargets, $communityPrivacyConsentBrowserRequired, isset($postIdField) ? 'post_edit' : 'post_write'); ?>
             <?php if (!isset($postIdField) && function_exists('sr_antispam_challenge_render')) { ?>
-                <?php echo sr_antispam_challenge_render($pdo, 'community.post.guest', 'community_post_' . (string) (int) $board['id'], $antispamPostContext ?? ['account' => null]); ?>
+                <?php echo sr_antispam_challenge_render($pdo, 'community.post.guest', 'community_post_' . (string) (int) $board['id'], $antispamPostContext); ?>
             <?php } ?>
             <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($submitLabel); ?></button>
         </form>

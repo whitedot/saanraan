@@ -2,7 +2,7 @@
 
 return [
     'name' => '회원',
-    'version' => '2026.07.004',
+    'version' => '2026.07.005',
     'type' => 'module',
     'description' => '회원 계정, 인증, 마이페이지 모듈입니다.',
     'admin' => [
@@ -46,10 +46,12 @@ return [
             'member-withdrawal-assets.php',
             'member-group-references.php',
             'member-mfa-providers.php',
+            'public-antispam.php',
         ],
     ],
     'settings' => [
         'allow_registration' => true,
+        'registration_antispam_mode' => 'always',
         'email_verification_enabled' => true,
         'identity_registration_mode' => 'disabled',
         'identity_withdrawal_required' => false,

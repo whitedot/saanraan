@@ -132,6 +132,10 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         $seriesEnabled = ($_POST['series_enabled'] ?? '') === '1';
         $secretPostsEnabled = ($_POST['secret_posts_enabled'] ?? '') === '1';
         $secretCommentsEnabled = ($_POST['secret_comments_enabled'] ?? '') === '1';
+        $antispamPostModeInput = sr_post_string('antispam_post_mode', 20);
+        $antispamCommentModeInput = sr_post_string('antispam_comment_mode', 20);
+        $antispamPostMode = sr_community_antispam_mode($antispamPostModeInput);
+        $antispamCommentMode = sr_community_antispam_mode($antispamCommentModeInput);
         $postEditLockCommentCount = sr_admin_post_int_in_range('post_edit_lock_comment_count', 0, 1000000);
         $postDeleteLockCommentCount = sr_admin_post_int_in_range('post_delete_lock_comment_count', 0, 1000000);
         $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
@@ -366,6 +370,9 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
         if ($commentEditorInput !== $commentEditor || !array_key_exists($commentEditor, $editorOptions)) {
             $errors[] = '댓글 에디터 값이 올바르지 않습니다.';
             $commentEditor = 'textarea';
+        }
+        if ($antispamPostModeInput !== $antispamPostMode || $antispamCommentModeInput !== $antispamCommentMode) {
+            $errors[] = '게시판 자동등록방지 적용 모드를 확인해 주세요.';
         }
 
         if ($sortOrder === null) {
@@ -666,6 +673,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                 'series_enabled' => $seriesEnabled ? '1' : '0',
                 'secret_posts_enabled' => $secretPostsEnabled ? '1' : '0',
                 'secret_comments_enabled' => $secretCommentsEnabled ? '1' : '0',
+                'antispam_post_mode' => $antispamPostMode,
+                'antispam_comment_mode' => $antispamCommentMode,
                 'post_edit_lock_comment_count' => (string) $postEditLockCommentCount,
                 'post_delete_lock_comment_count' => (string) $postDeleteLockCommentCount,
                 'post_body_min_length' => (string) $postBodyMinLength,
@@ -769,6 +778,8 @@ function sr_community_admin_handle_board_save_post(PDO $pdo, string $intent, arr
                     'level_comment_score' => $levelCommentScore,
                     'secret_posts_enabled' => $secretPostsEnabled,
                     'secret_comments_enabled' => $secretCommentsEnabled,
+                    'antispam_post_mode' => $antispamPostMode,
+                    'antispam_comment_mode' => $antispamCommentMode,
                     'reaction_enabled' => $reactionEnabled,
                     'reaction_post_preset_key' => $reactionPostPresetKey,
                     'reaction_comment_preset_key' => $reactionCommentPresetKey,

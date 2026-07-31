@@ -77,7 +77,7 @@ function sr_content_group_path(string $groupKey): string
 
 function sr_content_group_basic_setting_keys(): array
 {
-    return ['status', 'layout_key', 'reaction_preset_key', 'reaction_comment_preset_key', 'comment_editor_key', 'comment_extra_fields_json', 'member_submission_enabled', 'member_submission_allowed_group_keys', 'member_submission_review_required'];
+    return ['status', 'layout_key', 'reaction_preset_key', 'reaction_comment_preset_key', 'comment_editor_key', 'antispam_comment_mode', 'comment_extra_fields_json', 'member_submission_enabled', 'member_submission_allowed_group_keys', 'member_submission_review_required'];
 }
 
 function sr_content_group_asset_access_setting_keys(): array
@@ -140,12 +140,14 @@ function sr_content_group_setting_keys(): array
 function sr_content_group_default_settings(?array $site = null, ?PDO $pdo = null): array
 {
     $layoutKey = $pdo instanceof PDO ? sr_content_default_layout_key($pdo, $site) : sr_public_layout_key($site, $pdo);
+    $contentSettings = $pdo instanceof PDO ? sr_content_settings($pdo) : sr_content_default_settings();
     $settings = [
         'status' => 'draft',
         'layout_key' => $layoutKey,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'comment_editor_key' => 'inherit',
+        'antispam_comment_mode' => sr_content_antispam_mode($contentSettings['antispam_comment_mode'] ?? 'always'),
         'comment_extra_fields_json' => '[]',
         'asset_access_enabled' => '0',
         'asset_module' => '',
@@ -554,6 +556,9 @@ function sr_content_apply_setting_scope(PDO $pdo, int $pageId, int $pageGroupId,
     } elseif ($settingKey === 'comment_editor_key') {
         $sql = 'UPDATE sr_content_items SET comment_editor_key = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
         $params = [sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true), $accountId, $now];
+    } elseif ($settingKey === 'antispam_comment_mode') {
+        $sql = 'UPDATE sr_content_items SET antispam_comment_mode = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
+        $params = [sr_content_antispam_mode($values['antispam_comment_mode'] ?? 'always'), $accountId, $now];
     } elseif ($settingKey === 'comment_extra_fields_json') {
         $sql = 'UPDATE sr_content_items SET comment_extra_fields_json = ?, updated_by = ?, updated_at = ? WHERE id IN (' . $placeholders . ')';
         $params = [sr_comment_extra_field_definitions_json($values['comment_extra_fields_json'] ?? '[]'), $accountId, $now];

@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS sr_content_items (
     reaction_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     reaction_comment_preset_key VARCHAR(80) NOT NULL DEFAULT '',
     comment_editor_key VARCHAR(40) NOT NULL DEFAULT 'inherit',
+    antispam_comment_mode VARCHAR(20) NOT NULL DEFAULT 'always',
     comment_extra_fields_json LONGTEXT NULL,
     seo_title VARCHAR(160) NOT NULL DEFAULT '',
     seo_description VARCHAR(255) NOT NULL DEFAULT '',

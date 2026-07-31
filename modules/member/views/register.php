@@ -162,7 +162,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                 </p>
                 <?php echo sr_member_registration_policy_consent_section_html($registrationPolicyDocuments, $registrationConsentValues ?? [], 'register'); ?>
                 <?php if (function_exists('sr_antispam_challenge_render')) { ?>
-                    <?php echo sr_antispam_challenge_render($pdo, 'member.register', 'member_register', $antispamRegisterContext ?? ['account' => null]); ?>
+                    <?php echo sr_antispam_challenge_render($pdo, 'member.register', 'member_register', $antispamRegisterContext); ?>
                 <?php } ?>
                 <button class="btn btn-solid-primary btn-block" type="submit"><?php echo sr_e(sr_t('member::ui.text.ac31175f')); ?></button>
             </form>

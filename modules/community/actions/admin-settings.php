@@ -118,6 +118,13 @@ if (sr_request_method() === 'POST') {
         $postEditor = sr_editor_effective_key($pdo, sr_community_post_editor_key($postEditorInput));
         $commentEditorInput = sr_post_string('comment_editor', 30);
         $commentEditor = sr_editor_effective_key($pdo, sr_community_comment_editor_key($commentEditorInput));
+        $antispamPostModeInput = sr_post_string('antispam_post_mode', 20);
+        $antispamCommentModeInput = sr_post_string('antispam_comment_mode', 20);
+        $antispamPostMode = sr_community_antispam_mode($antispamPostModeInput);
+        $antispamCommentMode = sr_community_antispam_mode($antispamCommentModeInput);
+        if ($antispamPostModeInput !== $antispamPostMode || $antispamCommentModeInput !== $antispamCommentMode) {
+            $errors[] = '자동등록방지 적용 모드를 확인해 주세요.';
+        }
         $postToolbarPresetInput = sr_post_string('post_toolbar_preset', 80);
         $postToolbarPreset = sr_community_post_toolbar_preset_key($postToolbarPresetInput);
         $postBodyMaxSettingLength = sr_community_post_body_setting_max_length();
@@ -494,6 +501,8 @@ if (sr_request_method() === 'POST') {
                 ['draft_max_count_per_account', (string) $draftMaxCountPerAccount, 'int'],
                 ['post_editor', $postEditor, 'string'],
                 ['comment_editor', $commentEditor, 'string'],
+                ['antispam_post_mode', $antispamPostMode, 'string'],
+                ['antispam_comment_mode', $antispamCommentMode, 'string'],
                 ['post_toolbar_preset', $postToolbarPreset, 'string'],
                 ['post_body_min_length', (string) $postBodyMinLength, 'int'],
                 ['post_body_max_length', (string) $postBodyMaxLength, 'int'],
@@ -636,6 +645,8 @@ if (sr_request_method() === 'POST') {
                         'series_enabled' => $seriesEnabled,
                         'post_editor' => $postEditor,
                         'comment_editor' => $commentEditor,
+                        'antispam_post_mode' => $antispamPostMode,
+                        'antispam_comment_mode' => $antispamCommentMode,
                         'post_toolbar_preset' => $postToolbarPreset,
                         'plain_text_auto_link_urls' => $plainTextAutoLinkUrls,
                         'plain_text_auto_link_new_tab' => $plainTextAutoLinkNewTab,

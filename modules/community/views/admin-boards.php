@@ -925,6 +925,24 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </div>
             </div>
             <div class="form-row">
+                <label class="form-label" for="community_admin_boards_antispam_post_mode">게시글 자동등록방지</label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('community_admin_boards_antispam_post_mode', 'antispam_post_mode', sr_community_antispam_mode_options(), $boardField($formBoard, 'antispam_post_mode', (string) ($settings['antispam_post_mode'] ?? 'guest')), true); ?>
+                    <?php echo $settingSourceRadioHtml('source_antispam_post_mode', $boardSettingSource($formBoard, 'antispam_post_mode')); ?>
+                    <p class="form-help">사용 안 함, 비회원만, 로그인 여부와 관계없이 항상 적용 중에서 선택합니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, [['module_key' => 'antispam', 'path' => '/admin/antispam/settings']]); ?>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="community_admin_boards_antispam_comment_mode">댓글 자동등록방지</label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('community_admin_boards_antispam_comment_mode', 'antispam_comment_mode', sr_community_antispam_mode_options(), $boardField($formBoard, 'antispam_comment_mode', (string) ($settings['antispam_comment_mode'] ?? 'guest')), true); ?>
+                    <?php echo $settingSourceRadioHtml('source_antispam_comment_mode', $boardSettingSource($formBoard, 'antispam_comment_mode')); ?>
+                    <p class="form-help">댓글과 답글 등록 시 사용할 적용 대상을 선택합니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, [['module_key' => 'antispam', 'path' => '/admin/antispam/settings']]); ?>
+                </div>
+            </div>
+            <div class="form-row">
                 <label class="form-label" for="community_admin_boards_post_edit_lock_comment_count">게시글 수정 잠금 댓글 수 <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></label>
                 <div class="form-field">
                     <input id="community_admin_boards_post_edit_lock_comment_count" type="number" name="post_edit_lock_comment_count" min="0" max="1000000" value="<?php echo sr_e($boardField($formBoard, 'post_edit_lock_comment_count', '0')); ?>" required class="form-input">

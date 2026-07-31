@@ -67,6 +67,9 @@ function sr_content_input_values(?PDO $pdo = null): array
         'comment_editor_key' => $commentEditorKey,
         'raw_comment_editor_key' => $rawCommentEditorKey,
         'source_comment_editor_key' => sr_content_normalize_setting_source(sr_post_string('source_comment_editor_key', 20)),
+        'antispam_comment_mode' => sr_content_antispam_mode(sr_post_string('antispam_comment_mode', 20)),
+        'raw_antispam_comment_mode' => sr_post_string('antispam_comment_mode', 20),
+        'source_antispam_comment_mode' => sr_content_normalize_setting_source(sr_post_string('source_antispam_comment_mode', 20)),
         'comment_extra_fields_json' => sr_post_string_without_truncation('comment_extra_fields_json', 20000) ?? '[]',
         'source_comment_extra_fields_json' => sr_content_normalize_setting_source(sr_post_string('source_comment_extra_fields_json', 20)),
         'seo_title' => sr_content_clean_single_line(sr_post_string('seo_title', 160), 160),
@@ -165,6 +168,9 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     if (sr_content_normalize_setting_source((string) ($values['source_comment_editor_key'] ?? 'content')) === 'group' && $pageGroupId < 1) {
         $errors[] = '댓글 입력 방식 설정은 콘텐츠 그룹이 있어야 그룹 적용을 할 수 있습니다.';
     }
+    if (sr_content_normalize_setting_source((string) ($values['source_antispam_comment_mode'] ?? 'content')) === 'group' && $pageGroupId < 1) {
+        $errors[] = '댓글 자동등록방지 설정은 콘텐츠 그룹이 있어야 그룹 적용을 할 수 있습니다.';
+    }
 
     $slug = (string) ($values['slug'] ?? '');
     if (!sr_content_slug_is_valid($slug)) {
@@ -214,6 +220,10 @@ function sr_content_validate_input(PDO $pdo, array $values, int $pageId = 0, arr
     $commentEditorKey = sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true);
     if ($rawCommentEditorKey !== $commentEditorKey || !isset(sr_editor_options($pdo, true)[$commentEditorKey])) {
         $errors[] = '댓글 입력 방식 값이 올바르지 않습니다.';
+    }
+    $rawAntispamCommentMode = strtolower(trim((string) ($values['raw_antispam_comment_mode'] ?? '')));
+    if ($rawAntispamCommentMode !== (string) ($values['antispam_comment_mode'] ?? '')) {
+        $errors[] = '댓글 자동등록방지 설정 값이 올바르지 않습니다.';
     }
 
     if ((int) ($values['asset_access_enabled'] ?? 0) === 1) {
@@ -360,6 +370,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                      reaction_preset_key = :reaction_preset_key,
                      reaction_comment_preset_key = :reaction_comment_preset_key,
                      comment_editor_key = :comment_editor_key,
+                     antispam_comment_mode = :antispam_comment_mode,
                      comment_extra_fields_json = :comment_extra_fields_json,
                      seo_title = :seo_title,
                      seo_description = :seo_description, updated_by = :updated_by,
@@ -401,6 +412,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'reaction_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_preset_key'] ?? '') : '',
                 'reaction_comment_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
                 'comment_editor_key' => sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true),
+                'antispam_comment_mode' => sr_content_antispam_mode($values['antispam_comment_mode'] ?? 'always'),
                 'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($values['comment_extra_fields_json'] ?? '[]'),
                 'seo_title' => (string) $values['seo_title'],
                 'seo_description' => (string) $values['seo_description'],
@@ -412,9 +424,9 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO sr_content_items
-                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, show_title, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, reaction_preset_key, reaction_comment_preset_key, comment_editor_key, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                    (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, show_title, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, reaction_preset_key, reaction_comment_preset_key, comment_editor_key, antispam_comment_mode, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
                  VALUES
-                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :show_title, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :reaction_preset_key, :reaction_comment_preset_key, :comment_editor_key, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                    (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :show_title, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :reaction_preset_key, :reaction_comment_preset_key, :comment_editor_key, :antispam_comment_mode, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
             );
             $stmt->execute([
                 'content_group_id' => (int) ($values['content_group_id'] ?? 0) > 0 ? (int) $values['content_group_id'] : null,
@@ -451,6 +463,7 @@ function sr_content_save(PDO $pdo, array $values, int $accountId, int $pageId = 
                 'reaction_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_preset_key'] ?? '') : '',
                 'reaction_comment_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
                 'comment_editor_key' => sr_editor_normalize_key((string) ($values['comment_editor_key'] ?? 'inherit'), true),
+                'antispam_comment_mode' => sr_content_antispam_mode($values['antispam_comment_mode'] ?? 'always'),
                 'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($values['comment_extra_fields_json'] ?? '[]'),
                 'seo_title' => (string) $values['seo_title'],
                 'seo_description' => (string) $values['seo_description'],
@@ -656,9 +669,9 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
 
         $stmt = $pdo->prepare(
             'INSERT INTO sr_content_items
-                (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, show_title, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, comment_editor_key, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
+                (content_group_id, slug, title, summary, cover_image_url, body_text, body_format, editor_key, status, layout_key, show_title, asset_access_enabled, asset_module, asset_access_amount, asset_access_settlement_currency, asset_access_amounts_json, asset_access_group_policies_json, asset_access_policy_set_id, asset_charge_policy, asset_action_enabled, asset_action_module, asset_action_amount, asset_action_settlement_currency, asset_action_amounts_json, asset_action_group_policies_json, asset_action_policy_set_id, asset_action_direction, asset_action_label, banner_before_content_id, banner_after_content_id, popup_layer_id, comment_editor_key, antispam_comment_mode, comment_extra_fields_json, seo_title, seo_description, created_by, updated_by, published_at, created_at, updated_at)
              VALUES
-                (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :show_title, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :comment_editor_key, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
+                (:content_group_id, :slug, :title, :summary, :cover_image_url, :body_text, :body_format, :editor_key, :status, :layout_key, :show_title, :asset_access_enabled, :asset_module, :asset_access_amount, :asset_access_settlement_currency, :asset_access_amounts_json, :asset_access_group_policies_json, :asset_access_policy_set_id, :asset_charge_policy, :asset_action_enabled, :asset_action_module, :asset_action_amount, :asset_action_settlement_currency, :asset_action_amounts_json, :asset_action_group_policies_json, :asset_action_policy_set_id, :asset_action_direction, :asset_action_label, :banner_before_content_id, :banner_after_content_id, :popup_layer_id, :comment_editor_key, :antispam_comment_mode, :comment_extra_fields_json, :seo_title, :seo_description, :created_by, :updated_by, :published_at, :created_at, :updated_at)'
         );
         $stmt->execute([
             'content_group_id' => (int) ($copy['content_group_id'] ?? 0) > 0 ? (int) $copy['content_group_id'] : null,
@@ -693,6 +706,7 @@ function sr_content_copy(PDO $pdo, int $sourceContentId, array $values, int $acc
             'banner_after_content_id' => (int) ($copy['banner_after_content_id'] ?? 0),
             'popup_layer_id' => (int) ($copy['popup_layer_id'] ?? 0),
             'comment_editor_key' => sr_editor_normalize_key((string) ($copy['comment_editor_key'] ?? 'inherit'), true),
+            'antispam_comment_mode' => sr_content_antispam_mode($copy['antispam_comment_mode'] ?? 'always'),
             'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($copy['comment_extra_fields_json'] ?? '[]'),
             'seo_title' => (string) ($copy['seo_title'] ?? ''),
             'seo_description' => (string) ($copy['seo_description'] ?? ''),

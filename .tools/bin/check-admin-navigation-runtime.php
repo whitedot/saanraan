@@ -433,10 +433,25 @@ $antispamSettingsSource = is_file('modules/antispam/views/admin-settings.php')
     : false;
 sr_admin_navigation_runtime_assert(
     is_string($antispamSettingsSource)
-        && str_contains($antispamSettingsSource, '$antispamTargetModuleReferences')
-        && str_contains($antispamSettingsSource, 'sr_admin_module_reference_list_html($pdo, $antispamTargetModuleReferences[(string) $surfaceKey] ?? [])'),
-    'Antispam target settings should render target contract module reference links.'
+        && !str_contains($antispamSettingsSource, '$antispamTargetModuleReferences')
+        && !str_contains($antispamSettingsSource, 'antispam-section-targets'),
+    'Antispam settings should not render consumer target settings.'
 );
+$antispamConsumerSettingsViews = [
+    'modules/member/views/admin-settings.php',
+    'modules/community/views/admin-settings.php',
+    'modules/community/views/admin-boards.php',
+    'modules/content/views/admin-settings.php',
+    'modules/content/views/admin-contents.php',
+];
+foreach ($antispamConsumerSettingsViews as $antispamConsumerSettingsView) {
+    $antispamConsumerSettingsSource = file_get_contents($antispamConsumerSettingsView);
+    sr_admin_navigation_runtime_assert(
+        is_string($antispamConsumerSettingsSource)
+            && str_contains($antispamConsumerSettingsSource, "'module_key' => 'antispam'"),
+        $antispamConsumerSettingsView . ' should reference the antispam provider settings.'
+    );
+}
 
 $outputTargetReferenceViews = [
     'modules/banner/views/admin-banner-settings.php' => ['$bannerTargetModuleReferences', '$bannerTargetModuleKey'],

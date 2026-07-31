@@ -79,6 +79,8 @@ if (sr_request_method() === 'POST') {
 
     $postedEditorInput = sr_post_string('editor', 30);
     $postedCommentEditorInput = sr_post_string('comment_editor', 30);
+    $postedAntispamCommentModeInput = sr_post_string('antispam_comment_mode', 20);
+    $postedAntispamSubmissionModeInput = sr_post_string('antispam_submission_mode', 20);
     $postedToolbarPresetInput = sr_post_string('editor_toolbar_preset', 80);
     $postedToolbarPreset = sr_content_toolbar_preset_key($postedToolbarPresetInput);
     $postedOnceHistoryPolicyInput = sr_post_string('once_history_policy', 40);
@@ -97,6 +99,8 @@ if (sr_request_method() === 'POST') {
         'editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedEditorInput)),
         'editor_toolbar_preset' => $postedToolbarPreset,
         'comment_editor' => sr_editor_effective_key($pdo, sr_editor_normalize_key($postedCommentEditorInput)),
+        'antispam_comment_mode' => sr_content_antispam_mode($postedAntispamCommentModeInput),
+        'antispam_submission_mode' => sr_content_antispam_mode($postedAntispamSubmissionModeInput),
         'external_embed_enabled' => sr_post_string('external_embed_enabled', 1) === '1',
         'internal_embed_enabled' => sr_post_string('internal_embed_enabled', 1) === '1',
         'plain_text_auto_link_urls' => sr_post_string('plain_text_auto_link_urls', 1) === '1',
@@ -137,6 +141,10 @@ if (sr_request_method() === 'POST') {
     }
     if ($postedCommentEditorInput !== (string) $postedSettings['comment_editor'] || !array_key_exists((string) $postedSettings['comment_editor'], $editorOptions)) {
         $errors[] = '댓글 에디터 값이 올바르지 않습니다.';
+    }
+    if ($postedAntispamCommentModeInput !== (string) $postedSettings['antispam_comment_mode']
+        || $postedAntispamSubmissionModeInput !== (string) $postedSettings['antispam_submission_mode']) {
+        $errors[] = '자동등록방지 적용 설정을 확인해 주세요.';
     }
     if ($postedToolbarPresetInput !== (string) $postedSettings['editor_toolbar_preset'] || !array_key_exists((string) $postedSettings['editor_toolbar_preset'], $toolbarPresetOptions)) {
         $errors[] = '툴바 구성 값이 올바르지 않습니다.';

@@ -13,8 +13,8 @@ if (sr_module_enabled($pdo, 'popup_layer') && is_file(SR_ROOT . '/modules/popup_
 }
 $communityBannerPublicAssets = function_exists('sr_banner_public_assets') ? sr_banner_public_assets() : [];
 $communityPopupLayerPublicAssets = function_exists('sr_popup_layer_public_assets') ? sr_popup_layer_public_assets() : [];
-if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
-    require_once SR_ROOT . '/modules/antispam/helpers.php';
+if (sr_module_enabled($pdo, 'antispam')) {
+    require_once SR_ROOT . '/modules/antispam/public-antispam.php';
 }
 
 $account = sr_member_current_account($pdo);
@@ -43,9 +43,11 @@ if (!empty($communityWriteIdentityPolicy['required']) && empty($communityWriteId
     sr_render_error(403, sr_community_identity_action_error_message('write', (string) ($communityWriteIdentityPolicy['purpose'] ?? 'real_name')));
 }
 $isGuestAuthor = !is_array($account);
-$antispamPostContext = ['account' => is_array($account) ? $account : null];
-
 $settings = sr_community_settings($pdo);
+$antispamPostContext = [
+    'account' => is_array($account) ? $account : null,
+    'mode' => sr_community_antispam_mode(sr_community_effective_board_setting($pdo, $board, 'antispam_post_mode', (string) $settings['antispam_post_mode'])),
+];
 $settings['attachment_max_bytes'] = sr_community_board_attachment_max_bytes($pdo, (int) $board['id'], $settings);
 $settings['attachment_max_count'] = sr_community_board_attachment_max_count($pdo, (int) $board['id'], $settings);
 $settings['file_attachment_max_bytes'] = sr_community_board_file_attachment_max_bytes($pdo, (int) $board['id'], $settings);

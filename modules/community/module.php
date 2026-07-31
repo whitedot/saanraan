@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.07.011',
+    'version' => '2026.07.012',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -63,6 +63,7 @@ return [
             'public-cookie-consent.php',
             'public-message-summary.php',
             'public-notification-summary.php',
+            'public-antispam.php',
         ],
     ],
     'service_domain' => [
@@ -125,6 +126,8 @@ return [
         'business_info_visible' => true,
         'post_editor' => 'textarea',
         'comment_editor' => 'textarea',
+        'antispam_post_mode' => 'guest',
+        'antispam_comment_mode' => 'guest',
         'post_toolbar_preset' => 'standard',
         'external_embed_enabled' => true,
         'internal_embed_enabled' => true,

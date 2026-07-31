@@ -66,6 +66,11 @@ if (sr_request_method() === 'POST') {
     $removedProfileExtraFieldValueCount = 0;
 
     $settings['allow_registration'] = ($_POST['allow_registration'] ?? '') === '1';
+    $registrationAntispamModeInput = sr_post_string('registration_antispam_mode', 20);
+    $settings['registration_antispam_mode'] = sr_member_registration_antispam_mode($registrationAntispamModeInput);
+    if ($registrationAntispamModeInput !== (string) $settings['registration_antispam_mode']) {
+        $errors[] = '회원가입 자동등록방지 적용 모드를 확인해 주세요.';
+    }
     $settings['email_verification_enabled'] = ($_POST['email_verification_enabled'] ?? '') === '1';
     $settings['identity_registration_mode'] = sr_member_identity_requirement_mode($_POST['identity_registration_mode'] ?? null);
     $settings['identity_withdrawal_required'] = ($_POST['identity_withdrawal_required'] ?? '') === '1';
@@ -259,6 +264,7 @@ if (sr_request_method() === 'POST') {
 
         $rows = [
             ['allow_registration', $settings['allow_registration'] ? '1' : '0', 'bool'],
+            ['registration_antispam_mode', (string) $settings['registration_antispam_mode'], 'string'],
             ['email_verification_enabled', $settings['email_verification_enabled'] ? '1' : '0', 'bool'],
             ['identity_registration_mode', (string) $settings['identity_registration_mode'], 'string'],
             ['identity_withdrawal_required', $settings['identity_withdrawal_required'] ? '1' : '0', 'bool'],

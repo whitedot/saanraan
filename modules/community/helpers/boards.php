@@ -71,6 +71,8 @@ function sr_community_board_group_setting_keys(): array
         'category_required',
         'secret_posts_enabled',
         'secret_comments_enabled',
+        'antispam_post_mode',
+        'antispam_comment_mode',
         'post_edit_lock_comment_count',
         'post_delete_lock_comment_count',
         'post_body_min_length',
@@ -270,6 +272,8 @@ function sr_community_board_default_settings(array $settings, array $groupSettin
     $defaults['skin_key'] = 'basic';
     $defaults['post_editor'] = sr_community_post_editor_key((string) ($settings['post_editor'] ?? 'textarea'));
     $defaults['comment_editor'] = sr_community_comment_editor_key((string) ($settings['comment_editor'] ?? 'textarea'));
+    $defaults['antispam_post_mode'] = sr_community_antispam_mode($settings['antispam_post_mode'] ?? 'guest');
+    $defaults['antispam_comment_mode'] = sr_community_antispam_mode($settings['antispam_comment_mode'] ?? 'guest');
     $defaults['extra_fields_json'] = sr_community_extra_field_definitions_json($settings['extra_fields_json'] ?? '[]');
     $defaults['comment_extra_fields_json'] = sr_comment_extra_field_definitions_json($settings['comment_extra_fields_json'] ?? '[]');
 

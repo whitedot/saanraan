@@ -152,6 +152,7 @@ $memberIdentityAccountSecurityInputAttributes = $memberIdentityAccountSecurityAv
     ? ''
     : ' disabled aria-describedby="member-settings-identity-unavailable"';
 $memberIdentityModuleReferences = [['module_key' => 'identity_verification', 'path' => '/admin/identity-providers']];
+$memberAntispamModuleReferences = [['module_key' => 'antispam', 'path' => '/admin/antispam/settings']];
 $memberPolicyDocumentModuleReferences = [['module_key' => 'policy_documents']];
 $memberRuntimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
 $memberRuntimeSessionLifetimeSeconds = (int) ($memberRuntimeConfig['session']['lifetime_seconds'] ?? 86400);
@@ -199,6 +200,14 @@ $memberSettingsSectionNavItems = [
                 <span class="form-label form-label-help"><?php echo sr_member_admin_help_button_html(sr_t('member::ui.email.active.f166bfe8'), $memberSettingsHelp['email_verification']['id'], $memberSettingsHelpOpenLabel); ?><span><?php echo sr_e(sr_t('member::ui.email.active.f166bfe8')); ?></span></span>
                 <div class="form-field">
                     <?php echo sr_admin_switch_html('modules_member_admin_settings_email_verification_enabled', 'email_verification_enabled', '1', !empty($settings['email_verification_enabled']), '사용'); ?>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label" for="modules_member_admin_settings_registration_antispam_mode">회원가입 자동등록방지</label>
+                <div class="form-field">
+                    <?php echo sr_admin_radio_toggle_group_html('modules_member_admin_settings_registration_antispam_mode', 'registration_antispam_mode', sr_member_registration_antispam_mode_options(), (string) ($settings['registration_antispam_mode'] ?? 'always'), true); ?>
+                    <small class="form-help">회원가입 제출 시 자동등록방지 모듈이 제공하는 검사를 요구합니다. 자동등록방지 모듈의 전체 사용 설정이 꺼져 있으면 검사하지 않습니다.</small>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $memberAntispamModuleReferences); ?>
                 </div>
             </div>
             <div class="form-row">

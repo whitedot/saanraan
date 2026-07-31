@@ -4,8 +4,16 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
+if (sr_module_enabled($pdo, 'antispam')) {
+    require_once SR_ROOT . '/modules/antispam/public-antispam.php';
+}
 
 $account = sr_member_require_login($pdo);
+$contentSettings = sr_content_settings($pdo);
+$contentAntispamSubmissionContext = [
+    'account' => $account,
+    'mode' => (string) $contentSettings['antispam_submission_mode'],
+];
 $contentSubmissionFlash = isset($_SESSION['sr_content_submission_flash']) && is_array($_SESSION['sr_content_submission_flash'])
     ? $_SESSION['sr_content_submission_flash']
     : [];
@@ -37,6 +45,18 @@ if (sr_request_method() === 'POST') {
         'summary' => sr_post_string('summary', 2000),
         'body_text' => sr_post_string_without_truncation('body_text', 200000),
     ];
+    if ($intent === 'submit' && function_exists('sr_antispam_verify')) {
+        $antispamResult = sr_antispam_verify($pdo, 'content.member_submission', 'content_member_submission', $_POST, $contentAntispamSubmissionContext);
+        $antispamErrors = (array) ($antispamResult['errors'] ?? []);
+        if ($antispamErrors !== []) {
+            $_SESSION['sr_content_submission_flash'] = [
+                'errors' => array_values(array_map('strval', $antispamErrors)),
+                'notice' => '',
+                'values' => $contentSubmissionFormValues,
+            ];
+            sr_redirect('/account/content' . ($submissionId > 0 ? '?id=' . (string) $submissionId . $contentSubmissionPageQuery : ($contentSubmissionPage > 1 ? '?page=' . (string) $contentSubmissionPage : '')));
+        }
+    }
     try {
         $savedSubmissionId = sr_content_save_member_submission($pdo, (int) $account['id'], $contentSubmissionFormValues, $postedSubmissionId, $intent === 'submit');
         $_SESSION['sr_content_submission_flash'] = [

@@ -21,6 +21,7 @@ function sr_member_default_settings(): array
 
     return [
         'allow_registration' => (bool) ($settings['allow_registration'] ?? true),
+        'registration_antispam_mode' => sr_member_registration_antispam_mode($settings['registration_antispam_mode'] ?? 'always'),
         'email_verification_enabled' => (bool) ($settings['email_verification_enabled'] ?? true),
         'identity_registration_mode' => sr_member_identity_requirement_mode($settings['identity_registration_mode'] ?? 'disabled'),
         'identity_withdrawal_required' => (bool) ($settings['identity_withdrawal_required'] ?? false),
@@ -66,6 +67,7 @@ function sr_member_settings(PDO $pdo): array
     $settings = array_merge(sr_member_default_settings(), sr_module_settings($pdo, 'member'));
 
     $settings['allow_registration'] = (bool) $settings['allow_registration'];
+    $settings['registration_antispam_mode'] = sr_member_registration_antispam_mode($settings['registration_antispam_mode'] ?? 'always');
     $settings['email_verification_enabled'] = (bool) $settings['email_verification_enabled'];
     $settings['identity_registration_mode'] = sr_member_identity_requirement_mode($settings['identity_registration_mode'] ?? 'disabled');
     $settings['identity_withdrawal_required'] = (bool) ($settings['identity_withdrawal_required'] ?? false);
@@ -111,6 +113,19 @@ function sr_member_settings(PDO $pdo): array
     }
 
     return $settings;
+}
+
+function sr_member_registration_antispam_mode(mixed $value): string
+{
+    return strtolower(trim((string) $value)) === 'off' ? 'off' : 'always';
+}
+
+function sr_member_registration_antispam_mode_options(): array
+{
+    return [
+        'off' => '사용 안 함',
+        'always' => '사용',
+    ];
 }
 
 function sr_member_identity_requirement_mode(mixed $value): string

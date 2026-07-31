@@ -439,6 +439,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                                                 </label>
                                                             </p>
                                                             <?php echo sr_comment_extra_fields_form_html($contentCommentExtraFieldDefinitions, (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] ? $contentCommentExtraFieldValues : [], 'comment_extra_fields', 'content_comment_reply_' . (string) $contentComment['id']); ?>
+                                                            <?php if (function_exists('sr_antispam_challenge_render')) { ?>
+                                                                <?php echo sr_antispam_challenge_render($pdo, 'content.comment', 'content_comment_' . (string) (int) $page['id'] . '_' . (string) (int) $contentComment['id'], $contentAntispamCommentContext); ?>
+                                                            <?php } ?>
                                                             <?php if (!empty($contentSecretCommentsEnabled)) { ?>
                                                                 <label class="content-comment-secret-toggle">
                                                                     <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($contentCommentParentId ?? 0) === (int) $contentComment['id'] && !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>
@@ -530,6 +533,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             </label>
                         </p>
                         <?php echo sr_comment_extra_fields_form_html($contentCommentExtraFieldDefinitions, (int) ($contentCommentParentId ?? 0) < 1 ? $contentCommentExtraFieldValues : [], 'comment_extra_fields', 'content_comment'); ?>
+                        <?php if (function_exists('sr_antispam_challenge_render')) { ?>
+                            <?php echo sr_antispam_challenge_render($pdo, 'content.comment', 'content_comment_' . (string) (int) $page['id'] . '_0', $contentAntispamCommentContext); ?>
+                        <?php } ?>
                         <?php if (!empty($contentSecretCommentsEnabled)) { ?>
                             <label class="content-comment-secret-toggle">
                                 <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo !empty($contentCommentIsSecret) ? ' checked' : ''; ?>>

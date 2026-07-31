@@ -1095,6 +1095,7 @@ function sr_module_known_contract_files(): array
         'public-banner.php',
         'public-popup-layer.php',
         'public-reaction.php',
+        'public-antispam.php',
         'public-branding.php',
         'public-cookie-consent.php',
         'public-message-summary.php',

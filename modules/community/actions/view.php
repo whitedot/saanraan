@@ -16,8 +16,8 @@ if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/
 }
 $communityBannerPublicAssets = function_exists('sr_banner_public_assets') ? sr_banner_public_assets() : [];
 $communityPopupLayerPublicAssets = function_exists('sr_popup_layer_public_assets') ? sr_popup_layer_public_assets() : [];
-if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
-    require_once SR_ROOT . '/modules/antispam/helpers.php';
+if (sr_module_enabled($pdo, 'antispam')) {
+    require_once SR_ROOT . '/modules/antispam/public-antispam.php';
 }
 
 if (sr_request_method() === 'POST') {
@@ -400,6 +400,12 @@ if (isset($_SESSION['sr_community_comment_parent_id'])) {
 unset($_SESSION['sr_community_comment_notice'], $_SESSION['sr_community_comment_errors'], $_SESSION['sr_community_comment_body'], $_SESSION['sr_community_comment_guest_author_name'], $_SESSION['sr_community_comment_is_secret'], $_SESSION['sr_community_comment_parent_id'], $_SESSION['sr_community_comment_extra_field_values']);
 $skinKey = sr_community_board_skin_key($pdo, $post);
 $skinView = sr_community_skin_view($skinKey, 'post');
+$antispamCommentContext = [
+    'account' => is_array($account) ? $account : null,
+    'mode' => is_array($postBoard)
+        ? sr_community_antispam_mode(sr_community_effective_board_setting($pdo, $postBoard, 'antispam_comment_mode', (string) $settings['antispam_comment_mode']))
+        : (string) $settings['antispam_comment_mode'],
+];
 
 $communityThemeFallbackViewFile = $skinView;
 if ($communityCommentFragmentRequest) {

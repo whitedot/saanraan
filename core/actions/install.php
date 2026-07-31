@@ -26,7 +26,7 @@ $addInstallError = function (string $message, string $stepKey, array $fieldNames
 $requiredModules = [
     'member' => [
         'name' => '회원',
-        'version' => '2026.07.004',
+        'version' => '2026.07.005',
         'label' => sr_t('install.module.member.label'),
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
@@ -128,9 +128,9 @@ $optionalModules = [
     ],
     'antispam' => [
         'name' => '자동등록방지',
-        'version' => '2026.06.001',
+        'version' => '2026.07.001',
         'label' => '자동등록방지',
-        'description' => '회원가입과 공개 제출 폼의 자동등록방지 challenge와 적용 정책을 설치합니다.',
+        'description' => '회원가입과 공개 제출 폼에서 참조 모듈이 호출하는 자동등록방지 검증 기반을 설치합니다.',
     ],
     'antispam_captcha_providers' => [
         'name' => '자동등록방지 CAPTCHA 제공자',
@@ -212,13 +212,13 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.07.010',
+        'version' => '2026.07.011',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.07.011',
+        'version' => '2026.07.012',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 스크랩 기능을 설치합니다.',
     ],

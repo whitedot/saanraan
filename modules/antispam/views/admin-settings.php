@@ -10,7 +10,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php
 $antispamSectionNavItems = [
     'antispam-section-policy' => '기본 정책',
-    'antispam-section-targets' => '적용 대상',
     'antispam-section-challenge' => '검증 방식',
     'antispam-section-provider-common' => '외부 검사 공통',
 ];
@@ -22,22 +21,8 @@ foreach ($providerOptions as $providerModuleOption) {
         $antispamProviderModuleReferences[$providerModuleKey] = ['module_key' => $providerModuleKey];
     }
 }
-$antispamTargetModuleReferences = [];
-foreach ($targetOptions as $targetSurfaceKey => $targetModuleOption) {
-    $targetModuleKey = is_array($targetModuleOption) ? (string) ($targetModuleOption['module_key'] ?? '') : '';
-    $antispamTargetModuleReferences[(string) $targetSurfaceKey] = $targetModuleKey !== ''
-        ? [['module_key' => $targetModuleKey]]
-        : [];
-}
 $antispamHelpOpenLabel = '도움말 보기';
 $antispamHelp = [
-    'mode' => [
-        'id' => 'antispam-admin-help-mode',
-        'title' => '적용 모드 도움말',
-        'body' => '<p><strong>사용 안 함</strong>은 해당 화면에서 자동등록방지 검사를 하지 않습니다.</p>'
-            . '<p><strong>비회원</strong>은 로그인하지 않은 방문자에게만 검사하고, <strong>항상</strong>은 로그인 여부와 관계없이 모든 제출을 검사합니다.</p>'
-            . '<p>기본 적용 모드는 개별 설정이 없는 화면에 사용합니다. 아래 적용 대상에서 화면별 모드를 따로 정할 수 있습니다.</p>',
-    ],
     'challenge_type' => [
         'id' => 'antispam-admin-help-challenge-type',
         'title' => '검증 방식 도움말',
@@ -99,14 +84,7 @@ $antispamHelp = [
                     <input id="antispam_admin_enabled" type="checkbox" name="enabled" value="1" class="form-switch form-switch-light"<?php echo !empty($settings['enabled']) ? ' checked' : ''; ?>>
                     <?php echo sr_admin_choice_label_html('사용'); ?>
                 </label>
-                <p class="form-help">끄면 아래 적용 대상 설정과 관계없이 모든 자동등록방지 검사를 중단합니다.</p>
-            </div>
-        </div>
-        <div class="form-row">
-            <?php echo sr_admin_form_label_help_html('antispam_admin_default_mode', '기본 적용 모드', $antispamHelp['mode']['id'], $antispamHelpOpenLabel, true); ?>
-            <div class="form-field">
-                <?php echo sr_admin_radio_toggle_group_html('antispam_admin_default_mode', 'default_mode', $modeOptions, (string) $settings['default_mode'], true); ?>
-                <p class="form-help">개별 설정이 없는 적용 대상에 사용할 기본값입니다.</p>
+                <p class="form-help">끄면 각 참조 모듈의 적용 설정과 관계없이 모든 자동등록방지 검사를 중단합니다.</p>
             </div>
         </div>
         <div class="form-row">
@@ -129,23 +107,6 @@ $antispamHelp = [
                 <p class="form-help">폼을 연 뒤 이 시간보다 빨리 제출하면 자동 요청으로 보고 거절합니다. 사용하지 않으려면 0을 입력합니다.</p>
             </div>
         </div>
-    </section>
-
-    <section id="antispam-section-targets" class="card" data-admin-section-anchor>
-        <h2>적용 대상</h2>
-        <?php foreach ($targetOptions as $surfaceKey => $targetOption) { ?>
-            <?php
-            $surfaceSettingKey = sr_antispam_surface_setting_key((string) $surfaceKey);
-            $surfaceLabel = (string) ($targetOption['label'] ?? $surfaceKey);
-            ?>
-            <div class="form-row">
-                <?php echo sr_admin_form_label_help_html('antispam_admin_' . $surfaceSettingKey, $surfaceLabel, $antispamHelp['mode']['id'], $antispamHelpOpenLabel, true); ?>
-                <div class="form-field">
-                    <?php echo sr_admin_radio_toggle_group_html('antispam_admin_' . $surfaceSettingKey, $surfaceSettingKey, $modeOptions, (string) $settings[$surfaceSettingKey], true); ?>
-                    <?php echo sr_admin_module_reference_list_html($pdo, $antispamTargetModuleReferences[(string) $surfaceKey] ?? []); ?>
-                </div>
-            </div>
-        <?php } ?>
     </section>
 
     <section id="antispam-section-challenge" class="card" data-admin-section-anchor>

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
-if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
-    require_once SR_ROOT . '/modules/antispam/helpers.php';
+if (sr_module_enabled($pdo, 'antispam')) {
+    require_once SR_ROOT . '/modules/antispam/public-antispam.php';
 }
 if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
     require_once SR_ROOT . '/modules/identity_verification/helpers.php';
@@ -92,7 +92,10 @@ foreach ($profileExtraFieldDefinitions as $profileExtraFieldDefinition) {
     }
 }
 $registrationIdentityLockedProfileExtraKeys = array_values(array_unique($registrationIdentityLockedProfileExtraKeys));
-$antispamRegisterContext = ['account' => null];
+$antispamRegisterContext = [
+    'account' => null,
+    'mode' => (string) $memberSettings['registration_antispam_mode'],
+];
 
 if (sr_request_method() === 'POST') {
     sr_require_csrf();

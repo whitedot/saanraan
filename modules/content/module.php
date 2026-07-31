@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.07.010',
+    'version' => '2026.07.011',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -28,6 +28,8 @@ return [
         'editor' => 'textarea',
         'editor_toolbar_preset' => 'standard',
         'comment_editor' => 'textarea',
+        'antispam_comment_mode' => 'always',
+        'antispam_submission_mode' => 'always',
         'external_embed_enabled' => true,
         'internal_embed_enabled' => true,
         'plain_text_auto_link_urls' => false,
@@ -82,6 +84,7 @@ return [
             'layout-options.php',
             'url-embed-targets.php',
             'reaction-targets.php',
+            'antispam-targets.php',
             'payment-ledger-targets.php',
         ],
         'consumes' => [
@@ -97,6 +100,7 @@ return [
             'public-cookie-consent.php',
             'public-message-summary.php',
             'public-notification-summary.php',
+            'public-antispam.php',
         ],
     ],
     'service_domain' => [

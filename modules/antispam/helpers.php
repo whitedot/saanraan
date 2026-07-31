@@ -6,9 +6,8 @@ require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
 
 function sr_antispam_default_settings(): array
 {
-    $settings = [
+    return [
         'enabled' => false,
-        'default_mode' => 'guest',
         'challenge_type' => 'math',
         'ttl_seconds' => 600,
         'min_submit_seconds' => 2,
@@ -18,26 +17,19 @@ function sr_antispam_default_settings(): array
         'provider_action_check_enabled' => true,
         'provider_hostname_check_enabled' => true,
     ];
-    foreach (sr_antispam_target_options() as $surfaceKey => $target) {
-        $settings[sr_antispam_surface_setting_key((string) $surfaceKey)] = sr_antispam_mode((string) ($target['default_mode'] ?? $settings['default_mode']));
-    }
-
-    return $settings;
 }
 
 function sr_antispam_settings(PDO $pdo): array
 {
     return sr_antispam_normalize_settings(
         array_merge(sr_antispam_default_settings(), sr_module_settings($pdo, 'antispam')),
-        sr_antispam_provider_options($pdo),
-        sr_antispam_target_options($pdo)
+        sr_antispam_provider_options($pdo)
     );
 }
 
-function sr_antispam_normalize_settings(array $settings, ?array $providerOptions = null, ?array $targetOptions = null): array
+function sr_antispam_normalize_settings(array $settings, ?array $providerOptions = null): array
 {
     $settings['enabled'] = sr_antispam_bool($settings['enabled'] ?? false);
-    $settings['default_mode'] = sr_antispam_mode((string) ($settings['default_mode'] ?? 'guest'));
     $settings['challenge_type'] = sr_antispam_challenge_type((string) ($settings['challenge_type'] ?? 'math'));
     $settings['ttl_seconds'] = min(3600, max(60, (int) ($settings['ttl_seconds'] ?? 600)));
     $settings['min_submit_seconds'] = min(60, max(0, (int) ($settings['min_submit_seconds'] ?? 2)));
@@ -62,12 +54,6 @@ function sr_antispam_normalize_settings(array $settings, ?array $providerOptions
             $settings[$scoreSetting] = min(1.0, max(0.0, (float) ($settings[$scoreSetting] ?? 0.5)));
         }
     }
-    foreach (($targetOptions ?? sr_antispam_target_options()) as $surfaceKey => $target) {
-        $settingKey = sr_antispam_surface_setting_key((string) $surfaceKey);
-        $defaultMode = sr_antispam_mode((string) ($target['default_mode'] ?? $settings['default_mode']));
-        $settings[$settingKey] = sr_antispam_mode((string) ($settings[$settingKey] ?? $defaultMode));
-    }
-
     return $settings;
 }
 
@@ -86,11 +72,6 @@ function sr_antispam_challenge_type(string $value): string
     return $value === 'math' || preg_match('/\A[a-z][a-z0-9_]{1,39}\z/', $value) === 1 ? $value : 'math';
 }
 
-function sr_antispam_surface_setting_key(string $surface): string
-{
-    return 'surface_' . str_replace('.', '_', $surface);
-}
-
 function sr_antispam_target_options(?PDO $pdo = null): array
 {
     $targets = [];
@@ -98,7 +79,7 @@ function sr_antispam_target_options(?PDO $pdo = null): array
     if ($pdo instanceof PDO) {
         $contractFiles = sr_enabled_module_contract_files($pdo, 'antispam-targets.php', ['antispam']);
     } else {
-        foreach (['member', 'community'] as $moduleKey) {
+        foreach (['member', 'community', 'content'] as $moduleKey) {
             $targetFile = SR_ROOT . '/modules/' . $moduleKey . '/antispam-targets.php';
             if (is_file($targetFile)) {
                 $contractFiles[$moduleKey] = $targetFile;
@@ -125,7 +106,6 @@ function sr_antispam_target_options(?PDO $pdo = null): array
             }
             $targets[$surfaceKey] = [
                 'label' => $label,
-                'default_mode' => sr_antispam_mode((string) ($target['default_mode'] ?? 'guest')),
                 'module_key' => (string) $moduleKey,
             ];
         }
@@ -262,8 +242,14 @@ function sr_antispam_provider_endpoint_is_allowed(string $url): bool
 
 function sr_antispam_policy(PDO $pdo, string $surface, array $context = []): array
 {
+    if (!array_key_exists($surface, sr_antispam_target_options($pdo))) {
+        throw new InvalidArgumentException('Antispam policy surface must be declared by an enabled consumer module.');
+    }
     $settings = sr_antispam_settings($pdo);
-    $mode = (string) ($settings[sr_antispam_surface_setting_key($surface)] ?? $settings['default_mode']);
+    if (!array_key_exists('mode', $context) || !in_array((string) $context['mode'], ['off', 'guest', 'always'], true)) {
+        throw new InvalidArgumentException('Antispam policy context requires an explicit valid mode.');
+    }
+    $mode = (string) $context['mode'];
     $account = $context['account'] ?? null;
     $isGuest = !is_array($account);
     $required = !empty($settings['enabled']) && ($mode === 'always' || ($mode === 'guest' && $isGuest));

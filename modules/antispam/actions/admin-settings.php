@@ -15,9 +15,7 @@ $flashResult = sr_admin_pop_flash_result();
 $errors = $flashResult['errors'];
 $notice = (string) $flashResult['notice'];
 $settings = sr_antispam_settings($pdo);
-$modeOptions = sr_antispam_mode_options();
 $providerOptions = sr_antispam_provider_options($pdo);
-$targetOptions = sr_antispam_target_options($pdo);
 $challengeTypeOptions = sr_antispam_challenge_type_options($pdo);
 
 if (sr_request_method() === 'POST') {
@@ -31,7 +29,6 @@ if (sr_request_method() === 'POST') {
 
     $postedSettings = [
         'enabled' => ($_POST['enabled'] ?? '') === '1',
-        'default_mode' => sr_antispam_mode(sr_post_string('default_mode', 20)),
         'challenge_type' => sr_antispam_challenge_type(sr_post_string('challenge_type', 30)),
         'ttl_seconds' => sr_admin_post_int_in_range('ttl_seconds', 60, 3600),
         'min_submit_seconds' => sr_admin_post_int_in_range('min_submit_seconds', 0, 60),
@@ -41,11 +38,6 @@ if (sr_request_method() === 'POST') {
         'provider_action_check_enabled' => ($_POST['provider_action_check_enabled'] ?? '') === '1',
         'provider_hostname_check_enabled' => ($_POST['provider_hostname_check_enabled'] ?? '') === '1',
     ];
-    foreach ($targetOptions as $surfaceKey => $targetOption) {
-        $targetSettingKey = sr_antispam_surface_setting_key((string) $surfaceKey);
-        $postedSettings[$targetSettingKey] = sr_antispam_mode(sr_post_string($targetSettingKey, 20));
-    }
-
     if (!array_key_exists((string) $postedSettings['challenge_type'], $challengeTypeOptions)) {
         $errors[] = '검증 방식이 올바르지 않습니다.';
         $postedSettings['challenge_type'] = 'math';
@@ -112,7 +104,7 @@ if (sr_request_method() === 'POST') {
                 $postedSettings[$scoreSetting] = (string) min(1, max(0, (float) $postedSettings[$scoreSetting]));
             }
         }
-        sr_antispam_save_settings($pdo, sr_antispam_normalize_settings($postedSettings, $providerOptions, $targetOptions));
+        sr_antispam_save_settings($pdo, sr_antispam_normalize_settings($postedSettings, $providerOptions));
         sr_audit_log($pdo, [
             'actor_account_id' => (int) $account['id'],
             'actor_type' => 'admin',

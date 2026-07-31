@@ -102,6 +102,14 @@ function sr_antispam_check_pdo(array $settings, bool $providersEnabled = false):
         'updated_at' => '',
     ]);
     $moduleId = (int) $pdo->lastInsertId();
+    $insertModule->execute([
+        'module_key' => 'member',
+        'name' => 'Member',
+        'version' => '2026.07.005',
+        'status' => 'enabled',
+        'installed_at' => '',
+        'updated_at' => '',
+    ]);
     if ($providersEnabled) {
         $insertModule->execute([
             'module_key' => 'antispam_captcha_providers',
@@ -139,6 +147,7 @@ sr_antispam_check_assert(is_array($module), 'Antispam module metadata must retur
 sr_antispam_check_assert(($module['admin']['settings_path'] ?? '') === '/admin/antispam/settings', 'Antispam module must expose admin settings path.');
 sr_antispam_check_assert(in_array('paths.php', (array) ($module['contracts']['provides'] ?? []), true), 'Antispam module must declare paths.php contract.');
 sr_antispam_check_assert(in_array('admin-menu.php', (array) ($module['contracts']['provides'] ?? []), true), 'Antispam module must declare admin-menu.php contract.');
+sr_antispam_check_assert(in_array('public-antispam.php', (array) ($module['contracts']['provides'] ?? []), true), 'Antispam module must declare public antispam contract.');
 sr_antispam_check_assert(in_array('antispam-providers.php', (array) ($module['contracts']['consumes'] ?? []), true), 'Antispam module must consume provider contract.');
 
 $providerPlugin = include SR_ROOT . '/modules/antispam_captcha_providers/module.php';
@@ -165,6 +174,8 @@ sr_antispam_check_assert(str_contains($adminAction, 'sr_post_string_without_trun
 sr_antispam_check_assert(!str_contains($adminAction, "'turnstile_secret_key' =>"), 'Antispam audit metadata must not include provider secrets.');
 sr_antispam_check_assert(!str_contains($adminAction, "'hcaptcha_secret_key' =>"), 'Antispam audit metadata must not include provider secrets.');
 sr_antispam_check_assert(!str_contains($adminAction, "'recaptcha_secret_key' =>"), 'Antispam audit metadata must not include provider secrets.');
+sr_antispam_check_assert(!str_contains($adminAction, 'default_mode'), 'Antispam admin action must not own target application modes.');
+sr_antispam_check_assert(!str_contains($adminAction, 'surface_'), 'Antispam admin action must not own target surface modes.');
 
 $adminView = sr_antispam_check_read('modules/antispam/views/admin-settings.php');
 sr_antispam_check_assert(str_contains($adminView, 'type="password"'), 'Antispam admin view must mask provider secret fields.');
@@ -180,8 +191,14 @@ sr_antispam_check_assert(!str_contains($adminView, 'data-antispam-challenge-swit
 sr_antispam_check_assert(str_contains($adminView, "'antispam-section-challenge' => '검증 방식'"), 'Antispam sticky tabs must include a challenge type section.');
 sr_antispam_check_assert(str_contains($adminView, "'antispam-section-provider-common' => '외부 검사 공통'"), 'Antispam sticky tabs must include a provider common section.');
 sr_antispam_check_assert(!str_contains($adminView, "str_replace('_', '-', (string) \$providerKey)"), 'Antispam sticky tabs must not expose provider-specific sections.');
+sr_antispam_check_assert(!str_contains($adminView, '적용 대상'), 'Antispam admin view must not expose consumer target settings.');
+sr_antispam_check_assert(!str_contains($adminView, 'default_mode'), 'Antispam admin view must not expose a default consumer mode.');
 
 $helpers = sr_antispam_check_read('modules/antispam/helpers.php');
+$publicContract = sr_antispam_check_read('modules/antispam/public-antispam.php');
+sr_antispam_check_assert(str_contains($publicContract, "'policy_function' => 'sr_antispam_policy'"), 'Public antispam contract must expose policy function metadata.');
+sr_antispam_check_assert(str_contains($publicContract, "'render_function' => 'sr_antispam_challenge_render'"), 'Public antispam contract must expose render function metadata.');
+sr_antispam_check_assert(str_contains($publicContract, "'verify_function' => 'sr_antispam_verify'"), 'Public antispam contract must expose verify function metadata.');
 sr_antispam_check_assert(str_contains($helpers, "sr_enabled_module_contract_files(\$pdo, 'antispam-providers.php'"), 'Antispam helper must read provider plugin contracts.');
 sr_antispam_check_assert(str_contains($helpers, "sr_enabled_module_contract_files(\$pdo, 'antispam-targets.php'"), 'Antispam helper must read target module contracts.');
 sr_antispam_check_assert(str_contains($helpers, 'function sr_antispam_target_options'), 'Antispam helper must expose target options from module contracts.');
@@ -196,8 +213,17 @@ $memberRegisterAction = sr_antispam_check_read('modules/member/actions/register.
 $memberRegisterView = sr_antispam_check_read('modules/member/views/register.php');
 $memberMetadata = sr_antispam_check_read('modules/member/module.php');
 $memberTargets = sr_antispam_check_read('modules/member/antispam-targets.php');
+$memberAdminAction = sr_antispam_check_read('modules/member/actions/admin-settings.php');
+$memberAdminView = sr_antispam_check_read('modules/member/views/admin-settings.php');
 sr_antispam_check_assert(str_contains($memberMetadata, "'antispam-targets.php'"), 'Member module must declare antispam target contract.');
+sr_antispam_check_assert(str_contains($memberMetadata, "'public-antispam.php'"), 'Member module must consume the public antispam contract.');
+sr_antispam_check_assert(str_contains($memberMetadata, "'registration_antispam_mode' => 'always'"), 'Member module must own the registration antispam setting.');
 sr_antispam_check_assert(str_contains($memberTargets, "'member.register'"), 'Member module must own member registration antispam target.');
+sr_antispam_check_assert(!str_contains($memberTargets, 'default_mode'), 'Member antispam target contract must not own the registration mode.');
+sr_antispam_check_assert(str_contains($memberAdminAction, "sr_post_string('registration_antispam_mode'"), 'Member settings action must save registration antispam mode.');
+sr_antispam_check_assert(str_contains($memberAdminView, 'registration_antispam_mode'), 'Member settings view must expose registration antispam mode.');
+sr_antispam_check_assert(str_contains($memberRegisterAction, "require_once SR_ROOT . '/modules/antispam/public-antispam.php'"), 'Member registration must load the public antispam contract explicitly.');
+sr_antispam_check_assert(str_contains($memberRegisterAction, "'mode' => (string) \$memberSettings['registration_antispam_mode']"), 'Member registration must pass its explicit module setting to antispam policy.');
 sr_antispam_check_assert(str_contains($memberRegisterAction, "sr_antispam_verify(\$pdo, 'member.register'"), 'Member registration must verify antispam challenge server-side.');
 sr_antispam_check_assert(str_contains($memberRegisterView, "sr_antispam_challenge_render(\$pdo, 'member.register'"), 'Member registration view must render antispam challenge.');
 
@@ -207,9 +233,24 @@ $communityCommentAction = sr_antispam_check_read('modules/community/actions/comm
 $communityCommentView = sr_antispam_check_read('modules/community/skins/basic/view.php');
 $communityMetadata = sr_antispam_check_read('modules/community/module.php');
 $communityTargets = sr_antispam_check_read('modules/community/antispam-targets.php');
+$communityAdminAction = sr_antispam_check_read('modules/community/actions/admin-settings.php');
+$communityAdminView = sr_antispam_check_read('modules/community/views/admin-settings.php');
+$communityBoardHelper = sr_antispam_check_read('modules/community/helpers/admin-boards.php');
+$communityBoardView = sr_antispam_check_read('modules/community/views/admin-boards.php');
 sr_antispam_check_assert(str_contains($communityMetadata, "'antispam-targets.php'"), 'Community module must declare antispam target contract.');
+sr_antispam_check_assert(str_contains($communityMetadata, "'public-antispam.php'"), 'Community module must consume the public antispam contract.');
+sr_antispam_check_assert(str_contains($communityMetadata, "'antispam_post_mode' => 'guest'"), 'Community module must own its global post antispam setting.');
+sr_antispam_check_assert(str_contains($communityMetadata, "'antispam_comment_mode' => 'guest'"), 'Community module must own its global comment antispam setting.');
 sr_antispam_check_assert(str_contains($communityTargets, "'community.post.guest'"), 'Community module must own guest post antispam target.');
 sr_antispam_check_assert(str_contains($communityTargets, "'community.comment.guest'"), 'Community module must own guest comment antispam target.');
+sr_antispam_check_assert(!str_contains($communityTargets, 'default_mode'), 'Community antispam target contract must not own post or comment modes.');
+sr_antispam_check_assert(str_contains($communityAdminAction, "sr_post_string('antispam_post_mode'"), 'Community settings action must save global post antispam mode.');
+sr_antispam_check_assert(str_contains($communityAdminAction, "sr_post_string('antispam_comment_mode'"), 'Community settings action must save global comment antispam mode.');
+sr_antispam_check_assert(str_contains($communityAdminView, 'antispam_post_mode') && str_contains($communityAdminView, 'antispam_comment_mode'), 'Community settings view must expose global post and comment antispam modes.');
+sr_antispam_check_assert(str_contains($communityBoardHelper, "sr_post_string('antispam_post_mode'") && str_contains($communityBoardHelper, "sr_post_string('antispam_comment_mode'"), 'Community board settings must save individual post and comment antispam modes.');
+sr_antispam_check_assert(str_contains($communityBoardView, 'source_antispam_post_mode') && str_contains($communityBoardView, 'source_antispam_comment_mode'), 'Community board settings must expose inheritance controls for antispam modes.');
+sr_antispam_check_assert(str_contains($communityWriteAction, "'mode' => sr_community_antispam_mode(sr_community_effective_board_setting"), 'Community write flow must pass the effective board post mode explicitly.');
+sr_antispam_check_assert(str_contains($communityCommentAction, "'mode' =>"), 'Community comment flow must pass the effective board comment mode explicitly.');
 sr_antispam_check_assert(str_contains($communityWriteAction, "sr_antispam_verify(\$pdo, 'community.post.guest'"), 'Community guest post action must verify antispam challenge server-side.');
 sr_antispam_check_assert(str_contains($communityWriteAction, '$errors = array_merge($errors, sr_community_validate_post_input($values, $pdo));'), 'Community guest post action must preserve antispam errors when post validation runs.');
 sr_antispam_check_assert(str_contains($communityWriteView, "sr_antispam_challenge_render(\$pdo, 'community.post.guest'"), 'Community guest post form must render antispam challenge.');
@@ -217,9 +258,37 @@ sr_antispam_check_assert(str_contains($communityWriteView, '!isset($postIdField)
 sr_antispam_check_assert(str_contains($communityCommentAction, "sr_antispam_verify(\$pdo, 'community.comment.guest'"), 'Community guest comment action must verify antispam challenge server-side.');
 sr_antispam_check_assert(str_contains($communityCommentView, "sr_antispam_challenge_render(\$pdo, 'community.comment.guest'"), 'Community guest comment form must render antispam challenge.');
 
+$contentMetadata = sr_antispam_check_read('modules/content/module.php');
+$contentTargets = sr_antispam_check_read('modules/content/antispam-targets.php');
+$contentAdminAction = sr_antispam_check_read('modules/content/actions/admin-settings.php');
+$contentAdminView = sr_antispam_check_read('modules/content/views/admin-settings.php');
+$contentRecords = sr_antispam_check_read('modules/content/helpers/records.php');
+$contentAdminViewItems = sr_antispam_check_read('modules/content/views/admin-contents.php');
+$contentCommentAction = sr_antispam_check_read('modules/content/actions/comment.php');
+$contentSubmissionAction = sr_antispam_check_read('modules/content/actions/account-content.php');
+$contentSubmissionView = sr_antispam_check_read('modules/content/views/account-content.php');
+$contentInstall = sr_antispam_check_read('modules/content/install.sql');
+$contentUpdate = sr_antispam_check_read('modules/content/updates/2026.07.011.sql');
+sr_antispam_check_assert(str_contains($contentMetadata, "'antispam-targets.php'"), 'Content module must declare antispam target contract.');
+sr_antispam_check_assert(str_contains($contentMetadata, "'public-antispam.php'"), 'Content module must consume the public antispam contract.');
+sr_antispam_check_assert(str_contains($contentMetadata, "'antispam_comment_mode' => 'always'"), 'Content module must own its global comment antispam setting.');
+sr_antispam_check_assert(str_contains($contentMetadata, "'antispam_submission_mode' => 'always'"), 'Content module must own its member submission antispam setting.');
+sr_antispam_check_assert(str_contains($contentTargets, "'content.comment'") && str_contains($contentTargets, "'content.member_submission'"), 'Content module must own comment and member submission antispam targets.');
+sr_antispam_check_assert(!str_contains($contentTargets, 'default_mode'), 'Content antispam target contract must not own comment or submission modes.');
+sr_antispam_check_assert(str_contains($contentAdminAction, "sr_post_string('antispam_comment_mode'") && str_contains($contentAdminAction, "sr_post_string('antispam_submission_mode'"), 'Content settings action must save comment and submission antispam modes.');
+sr_antispam_check_assert(str_contains($contentAdminView, 'antispam_comment_mode') && str_contains($contentAdminView, 'antispam_submission_mode'), 'Content settings view must expose comment and member submission antispam modes.');
+sr_antispam_check_assert(str_contains($contentRecords, "sr_post_string('antispam_comment_mode'"), 'Content item settings must save individual comment antispam mode.');
+sr_antispam_check_assert(str_contains($contentAdminViewItems, 'source_antispam_comment_mode'), 'Content item settings must expose inheritance control for comment antispam mode.');
+sr_antispam_check_assert(str_contains($contentCommentAction, "sr_antispam_verify(\$pdo, 'content.comment'"), 'Content comment action must verify antispam server-side.');
+sr_antispam_check_assert(str_contains($contentCommentAction, "'mode' => sr_content_antispam_mode(\$page['antispam_comment_mode'])"), 'Content comment flow must pass its individual content mode explicitly.');
+sr_antispam_check_assert(str_contains($contentSubmissionAction, "\$intent === 'submit' && function_exists('sr_antispam_verify')"), 'Content member submission must verify only final submissions.');
+sr_antispam_check_assert(str_contains($contentSubmissionAction, "'mode' => (string) \$contentSettings['antispam_submission_mode']"), 'Content member submission must pass its module setting explicitly.');
+sr_antispam_check_assert(str_contains($contentSubmissionView, 'value="draft" class="btn btn-solid-light" formnovalidate'), 'Content member draft submit must bypass final-submit challenge browser validation.');
+sr_antispam_check_assert(str_contains($contentInstall, 'antispam_comment_mode VARCHAR(20) NOT NULL'), 'Content install schema must include individual comment antispam mode.');
+sr_antispam_check_assert(str_contains($contentUpdate, 'ADD COLUMN antispam_comment_mode'), 'Content update must add individual comment antispam mode.');
+
 $settings = sr_antispam_normalize_settings([
     'enabled' => '1',
-    'default_mode' => 'always',
     'challenge_type' => 'math',
     'ttl_seconds' => '60',
     'min_submit_seconds' => '0',
@@ -235,9 +304,31 @@ sr_antispam_check_assert($settings['min_submit_seconds'] === 0, 'Antispam settin
 sr_antispam_check_assert($settings['recaptcha_min_score'] === 0.7, 'Antispam settings must normalize reCAPTCHA score.');
 sr_antispam_check_assert($settings['provider_action_check_enabled'] === true, 'Antispam settings must normalize provider action check boolean.');
 sr_antispam_check_assert($settings['provider_hostname_check_enabled'] === true, 'Antispam settings must normalize provider hostname check boolean.');
-sr_antispam_check_assert($settings['surface_member_register'] === 'always', 'Antispam surface settings must fall back to default mode.');
+sr_antispam_check_assert(!array_key_exists('default_mode', $settings), 'Antispam settings must not normalize a target default mode.');
+sr_antispam_check_assert(!array_key_exists('surface_member_register', $settings), 'Antispam settings must not normalize target surface modes.');
 sr_antispam_check_assert(str_contains($helpers, "if (\$errors !== []) {\n        unset(\$_SESSION[sr_antispam_session_key(\$surface, \$formKey)]);"), 'Antispam verification must stop before provider calls and discard challenge when local request checks fail.');
 sr_antispam_check_assert(str_contains($helpers, 'sr_antispam_provider_result_allows_math_fallback'), 'Antispam provider fallback must use a shared strict fallback policy.');
+
+$policyPdo = sr_antispam_check_pdo(['enabled' => true, 'challenge_type' => 'math']);
+$missingModeRejected = false;
+try {
+    sr_antispam_policy($policyPdo, 'member.register', ['account' => null]);
+} catch (InvalidArgumentException) {
+    $missingModeRejected = true;
+}
+sr_antispam_check_assert($missingModeRejected, 'Antispam policy must reject consumer calls without an explicit mode.');
+$undeclaredSurfaceRejected = false;
+try {
+    sr_antispam_policy($policyPdo, 'unknown.submit', ['account' => null, 'mode' => 'always']);
+} catch (InvalidArgumentException) {
+    $undeclaredSurfaceRejected = true;
+}
+sr_antispam_check_assert($undeclaredSurfaceRejected, 'Antispam policy must reject surfaces not declared by an enabled consumer module.');
+sr_antispam_check_assert(!empty(sr_antispam_policy($policyPdo, 'member.register', ['account' => null, 'mode' => 'always'])['required']), 'Always mode must require antispam for guests.');
+sr_antispam_check_assert(!empty(sr_antispam_policy($policyPdo, 'member.register', ['account' => ['id' => 1], 'mode' => 'always'])['required']), 'Always mode must require antispam for members.');
+sr_antispam_check_assert(!empty(sr_antispam_policy($policyPdo, 'member.register', ['account' => null, 'mode' => 'guest'])['required']), 'Guest mode must require antispam for guests.');
+sr_antispam_check_assert(empty(sr_antispam_policy($policyPdo, 'member.register', ['account' => ['id' => 1], 'mode' => 'guest'])['required']), 'Guest mode must not require antispam for members.');
+sr_antispam_check_assert(empty(sr_antispam_policy($policyPdo, 'member.register', ['account' => null, 'mode' => 'off'])['required']), 'Off mode must not require antispam.');
 
 $providerOptions = sr_antispam_provider_options();
 foreach (['turnstile', 'hcaptcha', 'recaptcha'] as $providerKey) {
@@ -338,7 +429,6 @@ sr_antispam_check_assert(!isset($_SESSION[$expiredKey]), 'Antispam math challeng
 
 $localFailurePdo = sr_antispam_check_pdo([
     'enabled' => true,
-    'default_mode' => 'always',
     'challenge_type' => 'math',
     'min_submit_seconds' => 0,
 ]);
@@ -348,13 +438,12 @@ $localFailureResult = sr_antispam_verify($localFailurePdo, 'member.register', 'f
     'sr_antispam_hp' => 'filled',
     'sr_antispam_form_key' => 'fixture_local_failure',
     'sr_antispam_answer' => sr_antispam_check_session_answer('member.register', 'fixture_local_failure'),
-]);
+], ['account' => null, 'mode' => 'always']);
 sr_antispam_check_assert(empty($localFailureResult['ok']), 'Antispam full verify must reject local request failures.');
 sr_antispam_check_assert(!isset($_SESSION[$localFailureKey]), 'Antispam full verify must discard challenge after local request failure.');
 
 $providerTimingPdo = sr_antispam_check_pdo([
     'enabled' => true,
-    'default_mode' => 'always',
     'challenge_type' => 'turnstile',
     'min_submit_seconds' => 5,
     'provider_failure_policy' => 'fallback_math',
@@ -368,7 +457,7 @@ $providerTimingResult = sr_antispam_verify($providerTimingPdo, 'member.register'
     'sr_antispam_form_key' => 'fixture_provider_timing',
     'sr_antispam_answer' => sr_antispam_check_session_answer('member.register', 'fixture_provider_timing'),
     'cf-turnstile-response' => 'dummy-token',
-]);
+], ['account' => null, 'mode' => 'always']);
 sr_antispam_check_assert(empty($providerTimingResult['ok']), 'Antispam provider full verify must reject too-fast submissions before provider calls.');
 sr_antispam_check_assert(!isset($_SESSION[$providerTimingKey]), 'Antispam provider full verify must discard challenge after local timing failure.');
 

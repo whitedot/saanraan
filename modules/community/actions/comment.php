@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
-if (sr_module_enabled($pdo, 'antispam') && is_file(SR_ROOT . '/modules/antispam/helpers.php')) {
-    require_once SR_ROOT . '/modules/antispam/helpers.php';
+if (sr_module_enabled($pdo, 'antispam')) {
+    require_once SR_ROOT . '/modules/antispam/public-antispam.php';
 }
 
 $account = sr_member_current_account($pdo);
@@ -57,7 +57,12 @@ $errors = [];
 if ($isGuestAuthor) {
     $values = array_merge($values, sr_community_guest_author_input_values());
 }
-$antispamCommentContext = ['account' => is_array($account) ? $account : null];
+$antispamCommentContext = [
+    'account' => is_array($account) ? $account : null,
+    'mode' => is_array($board)
+        ? sr_community_antispam_mode(sr_community_effective_board_setting($pdo, $board, 'antispam_comment_mode', (string) $settings['antispam_comment_mode']))
+        : (string) $settings['antispam_comment_mode'],
+];
 if (function_exists('sr_antispam_verify')) {
     $antispamFormKey = !$isGuestAuthor && (int) ($values['parent_comment_id'] ?? 0) > 0
         ? 'community_comment_' . (string) $postId . '_member_reply'

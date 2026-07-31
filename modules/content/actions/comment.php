@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/content/helpers.php';
+if (sr_module_enabled($pdo, 'antispam')) {
+    require_once SR_ROOT . '/modules/antispam/public-antispam.php';
+}
 
 $account = sr_member_require_login($pdo);
 sr_require_csrf();
@@ -30,7 +33,17 @@ $values = sr_content_comment_input_values($pdo, $contentSettings);
 if (empty($contentSettings['secret_comments_enabled'])) {
     $values['is_secret'] = 0;
 }
-$errors = sr_content_validate_comment_input($values);
+$contentAntispamCommentContext = [
+    'account' => $account,
+    'mode' => sr_content_antispam_mode($page['antispam_comment_mode']),
+];
+$errors = [];
+if (function_exists('sr_antispam_verify')) {
+    $antispamFormKey = 'content_comment_' . (string) $contentId . '_' . (string) (int) ($values['parent_comment_id'] ?? 0);
+    $antispamResult = sr_antispam_verify($pdo, 'content.comment', $antispamFormKey, $_POST, $contentAntispamCommentContext);
+    $errors = array_merge($errors, (array) ($antispamResult['errors'] ?? []));
+}
+$errors = array_merge($errors, sr_content_validate_comment_input($values));
 $errors = array_merge($errors, (array) ($commentExtraFieldInput['errors'] ?? []));
 $parentValidation = sr_content_validate_comment_parent($pdo, $contentId, $values);
 $parentComment = is_array($parentValidation['parent_comment'] ?? null) ? $parentValidation['parent_comment'] : null;
