@@ -457,6 +457,29 @@ $commentViewStateChecks = [
         'forbidden' => ['로그인 후 댓글 작성'],
     ],
 ];
+
+foreach (['modules/community/theme/basic/post.php', 'modules/community/skins/basic/view.php'] as $communityCommentFormViewPath) {
+    $contents = file_get_contents($root . '/' . $communityCommentFormViewPath);
+    $formStart = is_string($contents) ? strpos($contents, 'id="community-comment-form"') : false;
+    $formEnd = $formStart !== false ? strpos($contents, '</form>', $formStart) : false;
+    $formSource = $formStart !== false && $formEnd !== false
+        ? substr($contents, $formStart, $formEnd - $formStart)
+        : '';
+    $secretTogglePosition = strpos($formSource, 'class="community-comment-secret-toggle"');
+    $submitPosition = strpos($formSource, '<button type="submit" class="btn btn-solid-primary">');
+
+    $assert(
+        str_contains($formSource, 'class="form-textarea form-control-full"'),
+        $communityCommentFormViewPath . ' must render the new-comment textarea at the full form width.'
+    );
+    $assert(
+        str_contains($formSource, 'class="community-comment-form-actions"')
+            && $secretTogglePosition !== false
+            && $submitPosition !== false
+            && $secretTogglePosition < $submitPosition,
+        $communityCommentFormViewPath . ' must place the secret-comment option immediately before the submit control group.'
+    );
+}
 foreach ($commentViewStateChecks as $commentViewPath => $stateChecks) {
     $contents = file_get_contents($root . '/' . $commentViewPath);
     foreach ((array) ($stateChecks['required'] ?? []) as $marker) {

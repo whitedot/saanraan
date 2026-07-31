@@ -71,13 +71,17 @@ $communityFrameModifier = 'form';
             <?php echo sr_popup_layer_render_public_layer($pdo, (int) ($board['popup_layer_form_id'] ?? 0)); ?>
         <?php } ?>
 
-        <p>
-            <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
-                <?php echo sr_e((string) $board['title']); ?>
-            </a>
-        </p>
-
-        <h1><?php echo sr_e($pageTitle); ?></h1>
+        <section class="community-post-form-panel">
+            <header class="community-post-form-header">
+                <div class="community-post-heading">
+                    <p class="community-post-view-board">
+                        <a href="<?php echo sr_e(sr_url('/community/board?key=' . rawurlencode((string) $board['board_key']))); ?>">
+                            <?php echo sr_e((string) $board['title']); ?>
+                        </a>
+                    </p>
+                    <h1 class="type-page-title community-post-form-title"><?php echo sr_e($pageTitle); ?></h1>
+                </div>
+            </header>
 
         <?php echo sr_render_output_slot($pdo, [
             'module_key' => 'community',
@@ -103,7 +107,7 @@ $communityFrameModifier = 'form';
             </div>
         <?php } ?>
 
-        <form method="post" action="<?php echo sr_e(sr_url($formAction)); ?>"<?php echo $imageUploadEnabled || $fileUploadEnabled ? ' enctype="multipart/form-data"' : ''; ?><?php echo $communityDraftEnabled ? ' data-community-draft-form' : ''; ?>>
+        <form class="community-post-form" method="post" action="<?php echo sr_e(sr_url($formAction)); ?>"<?php echo $imageUploadEnabled || $fileUploadEnabled ? ' enctype="multipart/form-data"' : ''; ?><?php echo $communityDraftEnabled ? ' data-community-draft-form' : ''; ?>>
             <?php echo sr_csrf_field(); ?>
             <?php if ($communityDraftEnabled) { ?>
                 <input type="hidden" name="draft_mode" value="<?php echo sr_e($communityDraftMode); ?>">
@@ -118,13 +122,13 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_guest_author_name">
                         <span><?php echo sr_e('작성자명'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                        <input id="modules_community_form_guest_author_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo sr_e((string) ($values['guest_author_name'] ?? '')); ?>" required class="form-input form-control-short">
+                        <input id="modules_community_form_guest_author_name" type="text" name="guest_author_name" maxlength="120" value="<?php echo sr_e((string) ($values['guest_author_name'] ?? '')); ?>" required class="form-input form-control-full">
                     </label>
                 </p>
                 <p>
                     <label for="modules_community_form_guest_password">
                         <span><?php echo sr_e('수정/삭제 비밀번호'); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                        <input id="modules_community_form_guest_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input form-control-short">
+                        <input id="modules_community_form_guest_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="new-password" required class="form-input form-control-full">
                     </label>
                     <small class="ui-kit-hint"><?php echo sr_e('비회원 글 수정과 삭제에 사용됩니다.'); ?></small>
                 </p>
@@ -133,7 +137,7 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_category_id">
                         <span><?php echo sr_e('카테고리'); ?><?php echo !empty($categoryRequired) ? ' <span class="sr-required-label">' . sr_e(sr_t('community::ui.required.1f227c67')) . '</span>' : ''; ?></span>
-                        <select id="modules_community_form_category_id" name="category_id" class="form-select form-control-medium"<?php echo !empty($categoryRequired) ? ' required' : ''; ?>>
+                        <select id="modules_community_form_category_id" name="category_id" class="form-select form-control-full"<?php echo !empty($categoryRequired) ? ' required' : ''; ?>>
                             <option value=""><?php echo sr_e('선택 안 함'); ?></option>
                             <?php foreach ($categories as $category) { ?>
                                 <option value="<?php echo sr_e((string) $category['id']); ?>"<?php echo (int) ($values['category_id'] ?? 0) === (int) $category['id'] ? ' selected' : ''; ?>>
@@ -147,27 +151,27 @@ $communityFrameModifier = 'form';
             <p>
                 <label for="modules_community_form_title">
                     <span><?php echo sr_e(sr_t('community::ui.text.08b17e43')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <input id="modules_community_form_title" type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required class="form-input form-control-medium">
+                    <input id="modules_community_form_title" type="text" name="title" maxlength="160" value="<?php echo sr_e(is_string($values['title']) ? $values['title'] : ''); ?>" required class="form-input form-control-full">
                 </label>
             </p>
             <p>
                 <label for="modules_community_form_body_text">
                     <span><?php echo sr_e(sr_t('community::ui.text.9118bb57')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80"<?php echo $ckeditorEnabled ? '' : ' required'; ?> class="form-textarea form-control-wide"<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
+                    <textarea id="modules_community_form_body_text" name="body_text" rows="12" cols="80"<?php echo $ckeditorEnabled ? '' : ' required'; ?> class="form-textarea form-control-full"<?php echo $communityEditorAttributes; ?>><?php echo sr_e(is_string($values['body_text']) ? $values['body_text'] : ''); ?></textarea>
                 </label>
             </p>
             <?php echo sr_community_extra_fields_form_html(is_array($extraFieldDefinitions ?? null) ? $extraFieldDefinitions : [], is_array($extraFieldValues ?? null) ? $extraFieldValues : []); ?>
-            <?php if ($secretPostsEnabled) { ?>
-                <label class="community-post-secret-toggle">
-                    <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo (int) ($values['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    <span><?php echo sr_e('비밀글'); ?></span>
-                </label>
-            <?php } ?>
-            <?php if ($canWriteNotice) { ?>
-                <label class="community-post-notice-toggle">
-                    <input type="checkbox" name="is_notice" value="1" class="form-checkbox"<?php echo (int) ($values['is_notice'] ?? 0) === 1 ? ' checked' : ''; ?>>
-                    <span><?php echo sr_e('공지사항'); ?></span>
-                </label>
+            <?php if ($secretPostsEnabled || $canWriteNotice) { ?>
+                <div class="btn-group community-post-option-toggles" role="group" aria-label="<?php echo sr_e('게시글 옵션'); ?>">
+                    <?php if ($secretPostsEnabled) { ?>
+                        <input id="modules_community_form_is_secret" type="checkbox" name="is_secret" value="1" class="form-choice-toggle-input sr-only"<?php echo (int) ($values['is_secret'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        <label for="modules_community_form_is_secret" class="btn btn-choice-light<?php echo $canWriteNotice ? ' btn-group-start' : ''; ?>"><?php echo sr_e('비밀글'); ?></label>
+                    <?php } ?>
+                    <?php if ($canWriteNotice) { ?>
+                        <input id="modules_community_form_is_notice" type="checkbox" name="is_notice" value="1" class="form-choice-toggle-input sr-only"<?php echo (int) ($values['is_notice'] ?? 0) === 1 ? ' checked' : ''; ?>>
+                        <label for="modules_community_form_is_notice" class="btn btn-choice-light<?php echo $secretPostsEnabled ? ' btn-group-end' : ''; ?>"><?php echo sr_e('공지사항'); ?></label>
+                    <?php } ?>
+                </div>
             <?php } ?>
             <?php if (!$isGuestAuthorForm && !empty($seriesEnabled)) { ?>
             <fieldset>
@@ -192,7 +196,7 @@ $communityFrameModifier = 'form';
                     <p>
                         <label for="modules_community_form_series_id">
                             <span><?php echo sr_e('기존 시리즈'); ?></span>
-                            <select id="modules_community_form_series_id" name="series_id" class="form-select form-control-medium">
+                            <select id="modules_community_form_series_id" name="series_id" class="form-select form-control-full">
                                 <option value="0"><?php echo sr_e('선택'); ?></option>
                                 <?php foreach ($seriesOptions as $seriesOption) { ?>
                                     <option value="<?php echo sr_e((string) $seriesOption['id']); ?>"<?php echo (int) ($seriesValues['series_id'] ?? 0) === (int) $seriesOption['id'] ? ' selected' : ''; ?>>
@@ -206,20 +210,20 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_new_series_title">
                         <span><?php echo sr_e('새 시리즈 제목'); ?></span>
-                        <input id="modules_community_form_new_series_title" type="text" name="new_series_title" maxlength="160" value="<?php echo sr_e((string) ($seriesValues['new_series_title'] ?? '')); ?>" class="form-input form-control-medium">
+                        <input id="modules_community_form_new_series_title" type="text" name="new_series_title" maxlength="160" value="<?php echo sr_e((string) ($seriesValues['new_series_title'] ?? '')); ?>" class="form-input form-control-full">
                     </label>
                 </p>
                 <p>
                     <label for="modules_community_form_series_episode_label">
                         <span><?php echo sr_e('회차 표시'); ?></span>
-                        <input id="modules_community_form_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) ($seriesValues['episode_label'] ?? '')); ?>" class="form-input form-control-short">
+                        <input id="modules_community_form_series_episode_label" type="text" name="series_episode_label" maxlength="80" value="<?php echo sr_e((string) ($seriesValues['episode_label'] ?? '')); ?>" class="form-input form-control-full">
                     </label>
                     <small class="ui-kit-hint"><?php echo sr_e('예: 1화, 프롤로그, 후기'); ?></small>
                 </p>
                 <p>
                     <label for="modules_community_form_series_sort_order">
                         <span><?php echo sr_e('정렬 순서'); ?></span>
-                        <input id="modules_community_form_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($seriesValues['sort_order'] ?? 0)); ?>" class="form-input form-control-compact">
+                        <input id="modules_community_form_series_sort_order" type="number" name="series_sort_order" min="0" max="1000000" value="<?php echo sr_e((string) (int) ($seriesValues['sort_order'] ?? 0)); ?>" class="form-input form-control-full">
                     </label>
                 </p>
             </fieldset>
@@ -228,7 +232,7 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_image_attachment">
                     <span><?php echo sr_e(sr_t('community::ui.text.42bb44a5')); ?></span>
-                        <input id="modules_community_form_image_attachment" type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp" class="form-input form-control-medium">
+                        <input id="modules_community_form_image_attachment" type="file" name="image_attachment" accept="image/jpeg,image/png,image/webp" class="form-input form-control-full">
                     </label>
                     <small class="ui-kit-hint"><?php echo sr_e(sr_t('community::ui.jpeg.png.webp.eefc7fda')); ?> <?php echo sr_e(sr_community_format_bytes($attachmentMaxBytes)); ?></small>
                 </p>
@@ -237,7 +241,7 @@ $communityFrameModifier = 'form';
                 <p>
                     <label for="modules_community_form_file_attachments">
                     <span><?php echo sr_e(sr_t('community::ui.text.1fe3755c')); ?></span>
-                        <input id="modules_community_form_file_attachments" type="file" name="file_attachments[]" multiple class="form-input form-control-medium">
+                        <input id="modules_community_form_file_attachments" type="file" name="file_attachments[]" multiple class="form-input form-control-full">
                     </label>
                     <small class="ui-kit-hint">
                         <?php echo sr_e(sr_t('community::ui.text.ee3b70e7')); ?> <?php echo sr_e((string) $fileAttachmentMaxCount); ?><?php echo sr_e(sr_t('community::ui.text.2254e4c9')); ?> <?php echo sr_e(sr_community_format_bytes($fileAttachmentMaxBytes)); ?> <?php echo sr_e(sr_t('community::ui.text.3cf0ac82')); ?> <?php echo sr_e(implode(', ', $fileAllowedExtensions)); ?>
@@ -260,6 +264,7 @@ $communityFrameModifier = 'form';
         <?php if (function_exists('sr_banner_render_public_banner') && sr_module_enabled($pdo, 'banner')) { ?>
             <?php echo sr_banner_render_public_banner($pdo, (int) ($board['banner_after_form_id'] ?? 0)); ?>
         <?php } ?>
+        </section>
         <?php if ($ckeditorEnabled && function_exists('sr_ckeditor_public_assets_html')) { ?>
             <?php echo sr_ckeditor_public_assets_html($pdo, $communityEditorToolbarPreset); ?>
         <?php } ?>

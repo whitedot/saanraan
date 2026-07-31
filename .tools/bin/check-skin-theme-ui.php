@@ -1202,6 +1202,11 @@ $publicCommonStylesheetPaths = [
     'modules/quiz/theme/basic/assets/common.css',
     'modules/survey/theme/basic/assets/common.css',
 ];
+sr_skin_theme_check_contains(array_merge($publicCommonStylesheetPaths, ['modules/admin/assets/common.css']), [
+    ':is(.btn-group,.filtering-toggle-group):has(.form-choice-toggle-input){flex-direction:column;overflow-x:visible;width:100%}',
+    'justify-content:flex-start;min-height:calc(var(--spacing) * 9.25);padding-block:calc(var(--spacing) * 2);text-align:start;width:100%',
+    'border-block-start-width:0!important;border-inline-start-width:1px!important',
+], 'Responsive checkbox and radio toggle groups');
 sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
     '.card{border:1px solid var(--sr-border,var(--color-default-300));',
     'height:fit-content;box-shadow:none;',

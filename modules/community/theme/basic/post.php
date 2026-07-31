@@ -853,7 +853,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                     <p>
                         <label for="modules_community_view_body_text_2">
                     <span><?php echo sr_e(sr_t('community::ui.text.c9fff683')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('community::ui.required.1f227c67')); ?></span></span>
-                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80"<?php echo $communityCommentEditorRequiredAttribute; ?> class="form-textarea"<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?><?php echo $communityCommentEditorAttributes; ?>><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
+                            <textarea id="modules_community_view_body_text_2" name="body_text" rows="5" cols="80"<?php echo $communityCommentEditorRequiredAttribute; ?> class="form-textarea form-control-full"<?php echo is_array($account) ? ' data-sr-mention-input data-sr-mention-endpoint="' . sr_e(sr_url('/member/mention-search')) . '"' : ''; ?><?php echo $communityCommentEditorAttributes; ?>><?php echo $commentParentId < 1 ? sr_e($commentBody) : ''; ?></textarea>
                         </label>
                     </p>
                     <?php echo sr_comment_extra_fields_form_html($commentExtraFieldDefinitions, $commentParentId < 1 ? $commentExtraFieldValues : [], 'comment_extra_fields', 'community_comment'); ?>
@@ -871,17 +871,19 @@ unset($_SESSION['sr_member_follow_feedback']);
                             </label>
                         </p>
                     <?php } ?>
-                    <?php if (!empty($secretCommentsEnabled)) { ?>
-                        <label class="community-comment-secret-toggle">
-                            <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo !empty($commentIsSecret) ? ' checked' : ''; ?>>
-                            <span><?php echo sr_e('비밀 댓글'); ?></span>
-                        </label>
-                    <?php } ?>
                     <?php echo sr_community_privacy_consent_field_html($pdo, ['id' => (int) $post['board_id']] + $post, ['comment'], true, 'comment_new'); ?>
                     <?php if (function_exists('sr_antispam_challenge_render')) { ?>
                         <?php echo sr_antispam_challenge_render($pdo, 'community.comment.guest', 'community_comment_' . (string) (int) $post['id'] . '_0', ['account' => is_array($account ?? null) ? $account : null]); ?>
                     <?php } ?>
-                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
+                    <div class="community-comment-form-actions">
+                        <?php if (!empty($secretCommentsEnabled)) { ?>
+                            <label class="community-comment-secret-toggle">
+                                <input type="checkbox" name="is_secret" value="1" class="form-checkbox"<?php echo !empty($commentIsSecret) ? ' checked' : ''; ?>>
+                                <span><?php echo sr_e('비밀 댓글'); ?></span>
+                            </label>
+                        <?php } ?>
+                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.create.8033fdca')); ?></button>
+                    </div>
                 </form>
             <?php } elseif ($commentUnavailableMessage !== '') { ?>
                 <p class="community-comment-unavailable"><?php echo sr_e($commentUnavailableMessage); ?></p>

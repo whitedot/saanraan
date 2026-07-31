@@ -39,6 +39,16 @@ function sr_check_community_board_settings_contains(string $path, array $needles
     }
 }
 
+function sr_check_community_board_settings_not_contains(string $path, array $needles, string $label): void
+{
+    $content = sr_check_community_board_settings_content($path);
+    foreach ($needles as $needle) {
+        if (str_contains($content, (string) $needle)) {
+            sr_check_community_board_settings_error($label . ' must not contain: ' . (string) $needle);
+        }
+    }
+}
+
 function sr_check_community_board_settings_runtime(): void
 {
     if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
@@ -865,6 +875,54 @@ foreach ([
         "'slot_key' => 'after_latest_comments'",
     ], 'community summary sidebar output slot asset context');
 }
+foreach (['modules/community/theme/basic/form.php', 'modules/community/skins/basic/form.php'] as $communityPostFormView) {
+    sr_check_community_board_settings_contains($communityPostFormView, [
+        'class="community-post-form-panel"',
+        'class="community-post-form-header"',
+        'class="community-post-heading"',
+        'class="community-post-view-board"',
+        'class="type-page-title community-post-form-title"',
+        'class="community-post-form"',
+        'class="btn-group community-post-option-toggles"',
+        'id="modules_community_form_is_secret"',
+        'id="modules_community_form_is_notice"',
+        'class="form-choice-toggle-input sr-only"',
+        'class="btn btn-choice-light',
+        'id="modules_community_form_guest_author_name"',
+        'id="modules_community_form_guest_password"',
+        'id="modules_community_form_category_id"',
+        'id="modules_community_form_title"',
+        'id="modules_community_form_body_text"',
+        'id="modules_community_form_series_id"',
+        'id="modules_community_form_new_series_title"',
+        'id="modules_community_form_series_episode_label"',
+        'id="modules_community_form_series_sort_order"',
+        'id="modules_community_form_image_attachment"',
+        'id="modules_community_form_file_attachments"',
+        'form-control-full',
+    ], 'community post form full-width controls');
+    sr_check_community_board_settings_not_contains($communityPostFormView, [
+        'form-control-compact',
+        'form-control-short',
+        'form-control-medium',
+        'form-control-wide',
+        'community-post-secret-toggle',
+        'community-post-notice-toggle',
+        'class="community-post-title community-post-view-title"',
+    ], 'community post form fixed-width controls');
+}
+sr_check_community_board_settings_contains('modules/community/helpers/posts-extra-fields.php', [
+    'class="form-textarea form-control-full"',
+    'class="form-select form-control-full"',
+    'class="form-input form-control-full"',
+], 'community post extra field full-width controls');
+sr_check_community_board_settings_contains('modules/community/theme/basic/assets/module.css', [
+    ".community-post-view,\n.community-post-form-panel {",
+    ".community-post-view-header,\n.community-post-form-header {",
+    '.community-post-option-toggles {',
+    '.community-screen .community-post-option-toggles > .btn {',
+    "[data-color-scheme=\"dark\"] .community-post-view,\n[data-color-scheme=\"dark\"] .community-post-form-panel {",
+], 'community post form and view shared panel style');
 sr_check_community_board_settings_contains('modules/community/theme/basic/board-sidebar-menu.php', [
     "\$communityBoardSidebarMenuTitle",
     "sr_e(\$communityBoardSidebarMenuTitle)",

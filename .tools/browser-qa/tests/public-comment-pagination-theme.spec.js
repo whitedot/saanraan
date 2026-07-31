@@ -76,7 +76,268 @@ for (const [name, className, commonStylesheet, stylesheet] of fixtures) {
       currentBorder: 'rgb(229, 236, 245)',
     });
   });
+
+  test(`${name} choice toggle group stacks and aligns left on mobile`, async ({ page }) => {
+    await page.setContent(`<!doctype html>
+      <html lang="ko" data-color-scheme="light">
+      <head><style>:root { --radius: 8px; }</style></head>
+      <body>
+        <div class="btn-group" data-choice-toggle-group>
+          <input id="choice_first" type="checkbox" class="form-choice-toggle-input sr-only">
+          <label for="choice_first" class="btn btn-choice-light btn-group-start">첫 번째 옵션</label>
+          <input id="choice_second" type="checkbox" class="form-choice-toggle-input sr-only">
+          <label for="choice_second" class="btn btn-choice-light btn-group-end">두 번째 옵션</label>
+        </div>
+      </body>
+      </html>`);
+    await page.addStyleTag({ path: path.join(root, commonStylesheet.replace('/common.css', '/reset.css')) });
+    await page.addStyleTag({ path: path.join(root, commonStylesheet) });
+
+    expect(await page.locator('[data-choice-toggle-group]').evaluate((group) => ({
+      display: getComputedStyle(group).display,
+      direction: getComputedStyle(group).flexDirection,
+    }))).toEqual({ display: 'inline-flex', direction: 'row' });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobile = await page.locator('[data-choice-toggle-group]').evaluate((group) => {
+      const labels = Array.from(group.querySelectorAll('label'));
+      const groupRect = group.getBoundingClientRect();
+      const labelRects = labels.map((label) => label.getBoundingClientRect());
+      return {
+        direction: getComputedStyle(group).flexDirection,
+        groupWidth: Math.round(groupRect.width),
+        labelWidths: labelRects.map((rect) => Math.round(rect.width)),
+        secondTop: Math.round(labelRects[1].top),
+        firstBottom: Math.round(labelRects[0].bottom),
+        justify: labels.map((label) => getComputedStyle(label).justifyContent),
+        textAlign: labels.map((label) => getComputedStyle(label).textAlign),
+        borderTopWidths: labels.map((label) => getComputedStyle(label).borderTopWidth),
+        topLeftRadii: labels.map((label) => getComputedStyle(label).borderTopLeftRadius),
+        bottomLeftRadii: labels.map((label) => getComputedStyle(label).borderBottomLeftRadius),
+      };
+    });
+
+    expect(mobile.direction).toBe('column');
+    expect(mobile.labelWidths).toEqual([mobile.groupWidth, mobile.groupWidth]);
+    expect(mobile.secondTop).toBe(mobile.firstBottom);
+    expect(mobile.justify).toEqual(['flex-start', 'flex-start']);
+    expect(mobile.textAlign).toEqual(['start', 'start']);
+    expect(mobile.borderTopWidths).toEqual(['1px', '0px']);
+    expect(mobile.topLeftRadii[0]).not.toBe('0px');
+    expect(mobile.topLeftRadii[1]).toBe('0px');
+    expect(mobile.bottomLeftRadii).toEqual(['0px', mobile.topLeftRadii[0]]);
+  });
 }
+
+test('community new comment form fills its row and keeps the secret option before submit', async ({ page }) => {
+  await page.setContent(`<!doctype html>
+    <html lang="ko" data-color-scheme="light">
+    <body>
+      <main class="community-screen">
+        <section class="community-comments-panel">
+          <form class="community-comment-form" style="--community-comments-padding-inline: 28px">
+            <p><label><span>댓글</span><textarea class="form-textarea form-control-full"></textarea></label></p>
+            <div class="community-comment-form-actions">
+              <label class="community-comment-secret-toggle"><input type="checkbox"><span>비밀 댓글</span></label>
+              <button type="submit" class="btn btn-solid-primary">댓글 등록</button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </body>
+    </html>`);
+  await page.addStyleTag({ path: path.join(root, 'modules/community/theme/basic/assets/reset.css') });
+  await page.addStyleTag({ path: path.join(root, 'modules/community/theme/basic/assets/common.css') });
+  await page.addStyleTag({ path: path.join(root, 'modules/community/theme/basic/assets/module.css') });
+
+  const layout = await page.evaluate(() => {
+    const textarea = document.querySelector('.community-comment-form textarea');
+    const label = textarea.closest('label');
+    const actions = document.querySelector('.community-comment-form-actions');
+    const secret = actions.querySelector('.community-comment-secret-toggle');
+    const submit = actions.querySelector('[type="submit"]');
+
+    return {
+      textareaWidth: Math.round(textarea.getBoundingClientRect().width),
+      labelWidth: Math.round(label.getBoundingClientRect().width),
+      textareaMaxWidth: getComputedStyle(textarea).maxWidth,
+      actionsDisplay: getComputedStyle(actions).display,
+      actionsJustify: getComputedStyle(actions).justifyContent,
+      secretFontWeight: getComputedStyle(secret).fontWeight,
+      secretBeforeSubmit: Boolean(secret.compareDocumentPosition(submit) & Node.DOCUMENT_POSITION_FOLLOWING),
+    };
+  });
+
+  expect(layout.textareaWidth).toBe(layout.labelWidth);
+  expect(layout.textareaWidth).toBeGreaterThan(768);
+  expect(layout).toMatchObject({
+    textareaMaxWidth: '100%',
+    actionsDisplay: 'flex',
+    actionsJustify: 'flex-end',
+    secretFontWeight: '400',
+    secretBeforeSubmit: true,
+  });
+});
+
+test('community post write controls fill their form rows', async ({ page }) => {
+  await page.setContent(`<!doctype html>
+    <html lang="ko" data-color-scheme="light">
+    <head><style>
+      *, *::before, *::after { transition: none !important; }
+      :root[data-color-scheme="light"] {
+        --radius: 8px;
+        --sr-text: #172033;
+        --sr-border: #ccd4e0;
+        --sr-surface: #ffffff;
+      }
+      :root[data-color-scheme="dark"] {
+        --radius: 8px;
+        --sr-text: #e5ecf5;
+        --sr-border: #475569;
+        --sr-surface: #111827;
+      }
+    </style></head>
+    <body>
+      <main class="community-screen">
+        <section class="community-post-form-panel" data-community-post-form-panel>
+          <header class="community-post-form-header"><div class="community-post-heading"><p class="community-post-view-board"><a href="#">게시판</a></p><h1 class="type-page-title community-post-form-title">글쓰기</h1></div></header>
+          <form class="community-post-form" data-community-post-form>
+            <p><label><span>제목</span><input class="form-input form-control-full" type="text"></label></p>
+            <p><label><span>카테고리</span><select class="form-select form-control-full"><option>선택</option></select></label></p>
+            <p><label><span>본문</span><textarea class="form-textarea form-control-full"></textarea></label></p>
+            <p><label><span>정렬 순서</span><input class="form-input form-control-full" type="number"></label></p>
+            <div class="btn-group community-post-option-toggles" role="group" aria-label="게시글 옵션" data-community-post-option-toggles>
+              <input id="community_post_secret" type="checkbox" name="is_secret" value="1" class="form-choice-toggle-input sr-only" checked>
+              <label for="community_post_secret" class="btn btn-choice-light btn-group-start">비밀글</label>
+              <input id="community_post_notice" type="checkbox" name="is_notice" value="1" class="form-choice-toggle-input sr-only">
+              <label for="community_post_notice" class="btn btn-choice-light btn-group-end">공지사항</label>
+            </div>
+          </form>
+        </section>
+        <article class="community-post-view" data-community-post-view><header class="community-post-view-header"><div class="community-post-heading"><p class="community-post-view-board"><a href="#">게시판</a></p><h1 class="community-post-title community-post-view-title">읽기</h1></div></header><div>본문</div></article>
+      </main>
+    </body>
+    </html>`);
+  await page.addStyleTag({ path: path.join(root, 'modules/community/theme/basic/assets/reset.css') });
+  await page.addStyleTag({ path: path.join(root, 'modules/community/theme/basic/assets/common.css') });
+  await page.addStyleTag({ path: path.join(root, 'modules/community/theme/basic/assets/module.css') });
+
+  const controls = await page.locator('[data-community-post-form] :is(.form-input, .form-select, .form-textarea)').evaluateAll((elements) => elements.map((element) => {
+    const label = element.closest('label');
+    return {
+      width: Math.round(element.getBoundingClientRect().width),
+      labelWidth: Math.round(label.getBoundingClientRect().width),
+      maxWidth: getComputedStyle(element).maxWidth,
+    };
+  }));
+
+  expect(controls).toHaveLength(4);
+  for (const control of controls) {
+    expect(control.width).toBe(control.labelWidth);
+    expect(control.width).toBeGreaterThan(768);
+    expect(control.maxWidth).toBe('100%');
+  }
+
+  const panelMetrics = async () => page.evaluate(() => {
+    const metrics = (selector) => {
+      const element = document.querySelector(selector);
+      const style = getComputedStyle(element);
+      return {
+        background: style.backgroundColor,
+        border: style.borderTopColor,
+        radius: style.borderTopLeftRadius,
+        gap: style.gap,
+        paddingTop: style.paddingTop,
+        paddingInline: [style.paddingLeft, style.paddingRight],
+      };
+    };
+
+    return {
+      form: metrics('[data-community-post-form-panel]'),
+      view: metrics('[data-community-post-view]'),
+    };
+  });
+
+  const lightPanelMetrics = await panelMetrics();
+  expect(lightPanelMetrics.form).toEqual(lightPanelMetrics.view);
+  expect(lightPanelMetrics.form.background).toBe('rgb(255, 255, 255)');
+  expect(lightPanelMetrics.form.border).toBe('rgb(204, 212, 224)');
+
+  const titleMetrics = await page.evaluate(() => ({
+    formSize: getComputedStyle(document.querySelector('.community-post-form-title')).fontSize,
+    formMargin: getComputedStyle(document.querySelector('.community-post-form-title')).margin,
+    viewSize: getComputedStyle(document.querySelector('.community-post-view-title')).fontSize,
+  }));
+  expect(titleMetrics.formSize).toBe('26px');
+  expect(titleMetrics.formMargin).toBe('0px');
+  expect(parseFloat(titleMetrics.viewSize)).toBeGreaterThan(parseFloat(titleMetrics.formSize));
+
+  const optionMetrics = await page.evaluate(() => {
+    const group = document.querySelector('[data-community-post-option-toggles]');
+    const secretInput = document.querySelector('#community_post_secret');
+    const secretLabel = document.querySelector('[for="community_post_secret"]');
+    const noticeLabel = document.querySelector('[for="community_post_notice"]');
+    return {
+      groupDisplay: getComputedStyle(group).display,
+      secretChecked: secretInput.checked,
+      secretLabelDisplay: getComputedStyle(secretLabel).display,
+      secretBackground: getComputedStyle(secretLabel).backgroundColor,
+      noticeBackground: getComputedStyle(noticeLabel).backgroundColor,
+    };
+  });
+  expect(optionMetrics).toMatchObject({
+    groupDisplay: 'flex',
+    secretChecked: true,
+    secretLabelDisplay: 'flex',
+    noticeBackground: 'rgb(255, 255, 255)',
+  });
+  expect(optionMetrics.secretBackground).not.toBe(optionMetrics.noticeBackground);
+  await page.locator('[for="community_post_notice"]').click();
+  await expect(page.locator('#community_post_notice')).toBeChecked();
+
+  await page.locator('html').evaluate((element) => element.setAttribute('data-color-scheme', 'dark'));
+  const darkPanelMetrics = await panelMetrics();
+  expect(darkPanelMetrics.form).toEqual(darkPanelMetrics.view);
+  expect(darkPanelMetrics.form.background).toBe('rgb(17, 24, 39)');
+  expect(darkPanelMetrics.form.border).toBe('rgb(71, 85, 105)');
+  const darkOptionMetrics = await page.evaluate(() => ({
+    secretBackground: getComputedStyle(document.querySelector('[for="community_post_secret"]')).backgroundColor,
+    noticeBackground: getComputedStyle(document.querySelector('[for="community_post_notice"]')).backgroundColor,
+  }));
+  expect(darkOptionMetrics.secretBackground).toBe(darkOptionMetrics.noticeBackground);
+  expect(darkOptionMetrics.secretBackground).not.toBe(darkPanelMetrics.form.background);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileOptionMetrics = await page.evaluate(() => {
+    const group = document.querySelector('[data-community-post-option-toggles]');
+    const labels = Array.from(group.querySelectorAll('label'));
+    const groupRect = group.getBoundingClientRect();
+    const labelRects = labels.map((label) => label.getBoundingClientRect());
+    return {
+      display: getComputedStyle(group).display,
+      direction: getComputedStyle(group).flexDirection,
+      groupWidth: Math.round(groupRect.width),
+      labelWidths: labelRects.map((rect) => Math.round(rect.width)),
+      labelTops: labelRects.map((rect) => Math.round(rect.top)),
+      firstLabelBottom: Math.round(labelRects[0].bottom),
+      labelJustify: labels.map((label) => getComputedStyle(label).justifyContent),
+      labelTextAlign: labels.map((label) => getComputedStyle(label).textAlign),
+      borderInlineStartWidths: labels.map((label) => getComputedStyle(label).borderInlineStartWidth),
+      borderRadii: labels.map((label) => getComputedStyle(label).borderTopLeftRadius),
+    };
+  });
+  expect(mobileOptionMetrics.display).toBe('flex');
+  expect(mobileOptionMetrics.direction).toBe('column');
+  expect(mobileOptionMetrics.labelWidths).toEqual([
+    mobileOptionMetrics.groupWidth,
+    mobileOptionMetrics.groupWidth,
+  ]);
+  expect(mobileOptionMetrics.labelTops[1]).toBe(mobileOptionMetrics.firstLabelBottom);
+  expect(mobileOptionMetrics.labelJustify).toEqual(['flex-start', 'flex-start']);
+  expect(mobileOptionMetrics.labelTextAlign).toEqual(['start', 'start']);
+  expect(mobileOptionMetrics.borderInlineStartWidths).toEqual(['1px', '1px']);
+  expect(mobileOptionMetrics.borderRadii).toEqual(['8px', '0px']);
+});
 
 const panelFixtures = [
   {
