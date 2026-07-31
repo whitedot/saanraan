@@ -191,7 +191,13 @@ sr_check_content_search_contains($root . '/modules/content/theme/basic/assets/la
     '.content-layout-topbar',
     '.content-layout-search',
     '[data-color-scheme="dark"] .content-layout-search',
+    '.content-layout-header.is-content-layout-header-stuck::before',
     '.content-layout-nav.is-content-layout-nav-stuck::before',
+]);
+sr_check_content_search_contains($root . '/modules/content/assets/layout.js', [
+    "var HEADER_SELECTOR = '.content-layout-header';",
+    "var HEADER_STUCK_CLASS = 'is-content-layout-header-stuck';",
+    'header.classList.toggle(HEADER_STUCK_CLASS, isStuck);',
 ]);
 sr_check_content_search_runtime();
 

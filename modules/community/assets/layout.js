@@ -2,6 +2,8 @@
   'use strict';
 
   var SCROLL_NAV_SELECTOR = '[data-community-scroll-nav]';
+  var HEADER_SELECTOR = '.community-layout-header';
+  var HEADER_STUCK_CLASS = 'is-community-layout-header-stuck';
   var HIDDEN_CLASS = 'is-community-layout-nav-hidden';
   var STUCK_CLASS = 'is-community-layout-nav-stuck';
   var MIN_DELTA = 4;
@@ -12,6 +14,7 @@
   }
 
   function bindScrollNav(nav) {
+    var header = document.querySelector(HEADER_SELECTOR);
     var lastY = getScrollY();
     var ticking = false;
 
@@ -20,7 +23,12 @@
       var delta = currentY - lastY;
       var hideAfter = Math.max(nav.offsetHeight + 16, 76);
 
-      nav.classList.toggle(STUCK_CLASS, currentY > TOP_OFFSET);
+      var isStuck = currentY > TOP_OFFSET;
+
+      nav.classList.toggle(STUCK_CLASS, isStuck);
+      if (header) {
+        header.classList.toggle(HEADER_STUCK_CLASS, isStuck);
+      }
 
       if (currentY <= TOP_OFFSET) {
         nav.classList.remove(HIDDEN_CLASS);

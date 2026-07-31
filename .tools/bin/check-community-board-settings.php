@@ -903,13 +903,21 @@ sr_check_community_board_settings_contains('modules/community/theme/basic/layout
     'data-community-layout-search-alert',
 ], 'community layout search form frontend hook');
 sr_check_community_board_settings_contains('modules/community/assets/layout.js', [
+    "var HEADER_SELECTOR = '.community-layout-header';",
+    "var HEADER_STUCK_CLASS = 'is-community-layout-header-stuck';",
     'function handleSearchFormSubmit(event)',
     "form.hasAttribute('data-community-layout-search-form')",
     'keyword.length >= minLength',
     'window.alert(alertMessage);',
     'event.stopImmediatePropagation();',
     'event.preventDefault();',
+    'header.classList.toggle(HEADER_STUCK_CLASS, isStuck);',
 ], 'community layout search frontend guard');
+sr_check_community_board_settings_contains('modules/community/theme/basic/assets/layout.css', [
+    '.community-layout-header.is-community-layout-header-stuck::before',
+    '.community-layout-nav.is-community-layout-nav-stuck::before',
+    'background: var(--sr-surface, var(--color-card, #fff));',
+], 'community split header sticky surface');
 
 if (sr_community_board_list_sort_key('views') !== 'views' || sr_community_board_list_sort_key('bad') !== 'latest') {
     sr_check_community_board_settings_error('community list sort key normalization failed.');
