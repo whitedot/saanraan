@@ -1148,7 +1148,7 @@ return [
 
 `public-cookie-consent.php`:
 
-- 개인정보 모듈이 쿠키 동의 안내 renderer와 필요한 stylesheet 목록을 제공한다.
+- 개인정보 모듈이 `helpers/public-cookie-consent.php`에서 쿠키 동의 상태·안전한 복귀 경로·안내 renderer와 필요한 stylesheet 목록을 함께 제공한다. 공개 요청은 개인정보 관리자 workflow나 회원·관리자 통합 helper를 로드하지 않는다.
 
 `public-message-summary.php`:
 

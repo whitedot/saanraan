@@ -44,7 +44,7 @@ $requiredModules = [
     ],
     'privacy' => [
         'name' => '개인정보',
-        'version' => '2026.07.002',
+        'version' => '2026.07.003',
         'label' => sr_t('install.module.privacy.label'),
         'description' => '운영자 개인정보 대응 기록과 개인정보 사본 제공 보조 기능을 제공합니다.',
     ],

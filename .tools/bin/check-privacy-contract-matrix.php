@@ -606,7 +606,7 @@ foreach ([
         "document.cookie = 'sr_popup_layer_' + popupId + '_dismissed=1;",
         'SameSite=Lax',
     ],
-    'modules/privacy/helpers.php' => [
+    'modules/privacy/helpers/public-cookie-consent.php' => [
         'function sr_privacy_cookie_consent_cookie_name(): string',
         "'sr_cookie_consent'",
         'function sr_privacy_cookie_consent_essential_items(): array',
@@ -627,7 +627,7 @@ foreach ([
     ],
     'modules/privacy/actions/cookie-settings.php' => [
         'sr_get_string_without_truncation',
-        'sr_member_safe_next_path',
+        'sr_privacy_cookie_safe_return_path',
         'sr_privacy_cookie_consent_selected_items()',
         "views/cookie-settings.php",
     ],
@@ -639,7 +639,7 @@ foreach ([
         'optional_items',
         'sr_privacy_cookie_consent_value_from_items',
         'sr_privacy_cookie_consent_set($consent);',
-        'sr_member_safe_next_path',
+        'sr_privacy_cookie_safe_return_path',
     ],
     'modules/privacy/views/account-privacy-requests.php' => [
         "sr_privacy_cookie_consent_selected_items()",

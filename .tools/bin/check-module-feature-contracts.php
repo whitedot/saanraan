@@ -328,6 +328,7 @@ $publicFeatureContracts = [
     ],
     'privacy' => [
         'file' => 'public-cookie-consent.php',
+        'helper_file' => 'helpers/public-cookie-consent.php',
         'consumers' => ['content', 'community', 'quiz', 'survey'],
         'functions' => [
             'sr_privacy_cookie_consent_public_html',
@@ -472,6 +473,22 @@ if (!is_string($notificationPublicSummaryContractSource)
     || !str_contains($notificationPublicSummaryContractSource, "require_once __DIR__ . '/helpers/public-summary.php';")
 ) {
     $fail('notification public summary contract must load its narrow read-only helper instead of the aggregate notification helper.');
+}
+
+$privacyCookieContractSource = file_get_contents($root . '/modules/privacy/public-cookie-consent.php');
+if (!is_string($privacyCookieContractSource)
+    || str_contains($privacyCookieContractSource, "require_once __DIR__ . '/helpers.php';")
+    || !str_contains($privacyCookieContractSource, "require_once __DIR__ . '/helpers/public-cookie-consent.php';")
+) {
+    $fail('privacy public cookie contract must load its narrow helper instead of the aggregate privacy helper.');
+}
+$privacyCookieHelperSource = file_get_contents($root . '/modules/privacy/helpers/public-cookie-consent.php');
+if (!is_string($privacyCookieHelperSource)
+    || str_contains($privacyCookieHelperSource, '/modules/member/')
+    || str_contains($privacyCookieHelperSource, '/modules/admin/')
+    || str_contains($privacyCookieHelperSource, 'sr_member_safe_next_path(')
+) {
+    $fail('privacy public cookie helper must own return-path policy without loading member or admin internals.');
 }
 
 $messageReportActionSource = file_get_contents($root . '/modules/message/actions/message-view.php');

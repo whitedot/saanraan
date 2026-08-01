@@ -9,7 +9,7 @@ $cookieConsentSelectedItems = sr_privacy_cookie_consent_selected_items();
 $cookieConsentCurrent = $cookieConsentSelectedItems !== []
     ? sr_t('privacy::cookie.manage.current.functional')
     : sr_t('privacy::cookie.manage.current.essential');
-$cookieConsentReturnTo = sr_member_safe_next_path((string) ($_SERVER['REQUEST_URI'] ?? '/account/privacy-requests'));
+$cookieConsentReturnTo = sr_privacy_cookie_safe_return_path((string) ($_SERVER['REQUEST_URI'] ?? '/account/privacy-requests'));
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
 ?>
     <main class="ui-page">

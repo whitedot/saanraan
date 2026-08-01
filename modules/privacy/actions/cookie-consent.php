@@ -22,4 +22,4 @@ if ($consent === 'all') {
 sr_privacy_cookie_consent_set($consent);
 
 $returnTo = sr_post_string_without_truncation('return_to', 1024);
-sr_redirect(sr_member_safe_next_path(is_string($returnTo) ? $returnTo : '/'));
+sr_redirect(sr_privacy_cookie_safe_return_path(is_string($returnTo) ? $returnTo : '/'));
