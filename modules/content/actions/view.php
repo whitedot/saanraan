@@ -174,5 +174,4 @@ foreach ($contentComments as $contentAuthorComment) {
 $contentPublicIdentityContext = sr_member_public_identity_context($pdo, is_array($account) ? $account : null, $contentAuthorAccountIds);
 $contentPublicIdentityAssets = sr_member_public_identity_assets();
 
-$contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/content.php';
 include sr_content_public_view_file($pdo, $contentLayoutSettings, 'content.php');

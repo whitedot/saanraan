@@ -11,6 +11,7 @@ if (!defined('SR_ROOT')) {
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/community/helpers.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -25,7 +26,7 @@ function sr_check_community_feed_cache_contract_assert(bool $condition, string $
 function sr_check_community_feed_cache_contract_contains(string $path, array $needles): void
 {
     global $errors;
-    $content = file_get_contents($path);
+    $content = sr_check_source_with_basic_theme_delegate(SR_ROOT, $path);
     if (!is_string($content)) {
         $errors[] = 'cannot read contract source: ' . $path;
         return;

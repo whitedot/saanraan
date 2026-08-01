@@ -9,6 +9,7 @@ chdir($root);
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/content/helpers.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
@@ -17,7 +18,7 @@ $assert = static function (bool $condition, string $message) use (&$errors): voi
     }
 };
 $read = static function (string $relativePath) use ($root, &$errors): string {
-    $body = file_get_contents($root . '/' . $relativePath);
+    $body = sr_check_source_with_basic_theme_delegate($root, $relativePath);
     if (!is_string($body)) {
         $errors[] = 'Cannot read ' . $relativePath . '.';
         return '';

@@ -11,6 +11,7 @@ if (!defined('SR_ROOT')) {
 
 require_once SR_ROOT . '/core/helpers.php';
 require_once SR_ROOT . '/modules/reaction/helpers.php';
+require_once SR_ROOT . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -24,7 +25,7 @@ function sr_reaction_check_assert(bool $condition, string $message): void
 
 function sr_reaction_check_read(string $path): string
 {
-    $content = file_get_contents(SR_ROOT . '/' . $path);
+    $content = sr_check_source_with_basic_theme_delegate(SR_ROOT, $path);
     if (!is_string($content)) {
         sr_reaction_check_assert(false, 'cannot read ' . $path);
         return '';

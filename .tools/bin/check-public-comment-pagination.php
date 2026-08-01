@@ -45,6 +45,7 @@ require_once $root . '/modules/member/helpers/public-identity.php';
 require_once $root . '/modules/content/helpers/comments.php';
 require_once $root . '/modules/quiz/helpers/comments.php';
 require_once $root . '/modules/survey/helpers/comments.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
@@ -52,6 +53,7 @@ $assert = static function (bool $condition, string $message) use (&$errors): voi
         $errors[] = $message;
     }
 };
+$readViewSource = static fn (string $file): string|false => sr_check_source_with_basic_theme_delegate($root, $file);
 
 $pdo = new PDO('sqlite::memory:', null, null, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -232,12 +234,12 @@ $sourceChecks = [
 ];
 foreach ($sourceChecks as $sourceKey => $marker) {
     $file = explode('#', $sourceKey, 2)[0];
-    $contents = file_get_contents($root . '/' . $file);
+    $contents = $readViewSource($file);
     $assert(is_string($contents) && str_contains($contents, $marker), $file . ' must use public comment pagination marker: ' . $marker);
 }
 
 foreach (['modules/community/theme/basic/list.php', 'modules/community/skins/basic/list.php'] as $communityListViewPath) {
-    $contents = file_get_contents($root . '/' . $communityListViewPath);
+    $contents = $readViewSource($communityListViewPath);
     $assert(
         is_string($contents)
             && str_contains($contents, 'sr_member_public_identity_parts(')
@@ -259,7 +261,7 @@ foreach ([
     'modules/survey/theme/basic/view.php' => ['$surveyPostAvatarSizePixels', '$surveyCommentAvatarSizePixels'],
     'modules/survey/skins/basic/view.php' => ['$surveyPostAvatarSizePixels', '$surveyCommentAvatarSizePixels'],
 ] as $avatarViewPath => $_avatarSizeMarkers) {
-    $contents = file_get_contents($root . '/' . $avatarViewPath);
+    $contents = $readViewSource($avatarViewPath);
     $assert(
         is_string($contents)
             && str_contains($contents, 'sr_member_public_identity_parts(')
@@ -284,7 +286,7 @@ foreach ([
     'modules/survey/theme/basic/view.php' => ['$surveyOwnerPublicName', '$surveyCommentAuthorLabel'],
     'modules/survey/skins/basic/view.php' => ['$surveyOwnerPublicName', '$surveyCommentAuthorLabel'],
 ] as $fallbackProfileImageViewPath => $fallbackLabelMarkers) {
-    $contents = file_get_contents($root . '/' . $fallbackProfileImageViewPath);
+    $contents = $readViewSource($fallbackProfileImageViewPath);
     $assert(
         is_string($contents)
             && str_contains($contents, 'sr_member_public_identity_parts(')
@@ -302,7 +304,7 @@ foreach ([
     'modules/survey/theme/basic/view.php',
     'modules/survey/skins/basic/view.php',
 ] as $commentViewPath) {
-    $contents = file_get_contents($root . '/' . $commentViewPath);
+    $contents = $readViewSource($commentViewPath);
     $assert(
         is_string($contents)
             && str_contains($contents, "'compact_edges' => true")
@@ -320,7 +322,7 @@ foreach ([
     'modules/survey/theme/basic/view.php' => ['survey-comments-panel', 'survey-comment-list', 'survey-comment-meta-item', 'survey-comment-unavailable', '$surveyReactionCommentSummaries'],
     'modules/survey/skins/basic/view.php' => ['survey-comments-panel', 'survey-comment-list', 'survey-comment-meta-item', 'survey-comment-unavailable', '$surveyReactionCommentSummaries'],
 ] as $commentViewPath => $commentStructureMarkers) {
-    $contents = file_get_contents($root . '/' . $commentViewPath);
+    $contents = $readViewSource($commentViewPath);
     foreach ($commentStructureMarkers as $marker) {
         $assert(
             is_string($contents) && str_contains($contents, $marker),
@@ -342,7 +344,7 @@ foreach ([
 }
 
 foreach (['modules/content/theme/basic/content.php', 'modules/content/views/content.php'] as $contentCommentViewPath) {
-    $contents = file_get_contents($root . '/' . $contentCommentViewPath);
+    $contents = $readViewSource($contentCommentViewPath);
     $articleClosePosition = is_string($contents) ? strpos($contents, '</article>') : false;
     $commentPanelPosition = is_string($contents) ? strpos($contents, 'id="content-comments" class="content-comments-panel"') : false;
     $assert(
@@ -459,7 +461,7 @@ $commentViewStateChecks = [
 ];
 
 foreach (['modules/community/theme/basic/post.php', 'modules/community/skins/basic/view.php'] as $communityCommentFormViewPath) {
-    $contents = file_get_contents($root . '/' . $communityCommentFormViewPath);
+    $contents = $readViewSource($communityCommentFormViewPath);
     $formStart = is_string($contents) ? strpos($contents, 'id="community-comment-form"') : false;
     $formEnd = $formStart !== false ? strpos($contents, '</form>', $formStart) : false;
     $formSource = $formStart !== false && $formEnd !== false
@@ -481,7 +483,7 @@ foreach (['modules/community/theme/basic/post.php', 'modules/community/skins/bas
     );
 }
 foreach ($commentViewStateChecks as $commentViewPath => $stateChecks) {
-    $contents = file_get_contents($root . '/' . $commentViewPath);
+    $contents = $readViewSource($commentViewPath);
     foreach ((array) ($stateChecks['required'] ?? []) as $marker) {
         $assert(
             is_string($contents) && str_contains($contents, (string) $marker),
@@ -496,25 +498,12 @@ foreach ($commentViewStateChecks as $commentViewPath => $stateChecks) {
     }
 }
 
-foreach ([
-    ['modules/content/theme/basic/content.php', 'modules/content/views/content.php', []],
-    ['modules/quiz/theme/basic/view.php', 'modules/quiz/skins/basic/view.php', [
-        "require_once SR_ROOT . '/modules/quiz/helpers.php';" => "require_once __DIR__ . '/../../helpers.php';",
-    ]],
-    ['modules/survey/theme/basic/view.php', 'modules/survey/skins/basic/view.php', [
-        "require_once SR_ROOT . '/modules/survey/helpers.php';" => "require_once __DIR__ . '/../../helpers.php';",
-    ]],
-] as [$themeViewPath, $fallbackViewPath, $normalizations]) {
+foreach (sr_check_basic_theme_delegates() as $themeViewPath => $delegate) {
     $themeContents = file_get_contents($root . '/' . $themeViewPath);
-    $fallbackContents = file_get_contents($root . '/' . $fallbackViewPath);
-    if (is_string($themeContents)) {
-        $themeContents = strtr($themeContents, $normalizations);
-    }
+    $delegateMarker = (string) ($delegate['marker'] ?? '');
     $assert(
-        is_string($themeContents)
-            && is_string($fallbackContents)
-            && $themeContents === $fallbackContents,
-        $fallbackViewPath . ' must keep the same complete request-flow branches as ' . $themeViewPath . '.'
+        $delegateMarker !== '' && is_string($themeContents) && str_contains($themeContents, $delegateMarker),
+        $themeViewPath . ' must delegate to the canonical selected skin/view.'
     );
 }
 

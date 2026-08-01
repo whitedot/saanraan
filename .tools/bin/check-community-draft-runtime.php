@@ -8,6 +8,7 @@ chdir($root);
 if (!defined('SR_ROOT')) {
     define('SR_ROOT', $root);
 }
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -45,7 +46,7 @@ function sr_community_body_file_token_is_valid(string $token): bool
 
 function sr_community_draft_check_file(string $path): string
 {
-    $content = is_file($path) ? file_get_contents($path) : false;
+    $content = is_file($path) ? sr_check_source_with_basic_theme_delegate(SR_ROOT, $path) : false;
     if (!is_string($content)) {
         sr_community_draft_check_error('Cannot read required file: ' . $path);
         return '';

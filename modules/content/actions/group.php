@@ -24,5 +24,4 @@ $contentGroupAuthorAccountIds = array_map(
 $contentGroupPublicIdentityContext = sr_member_public_identity_context($pdo, $contentGroupAccount, $contentGroupAuthorAccountIds);
 $contentGroupPublicIdentityAssets = sr_member_public_identity_assets();
 
-$contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/group.php';
 include sr_content_public_view_file($pdo, $contentLayoutSettings, 'group.php');

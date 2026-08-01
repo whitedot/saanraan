@@ -17,5 +17,4 @@ $surveyListTotalPages = max(1, (int) ceil($surveyListCount / $surveyListPerPage)
 $surveyListPage = min(max(1, $surveyListPage), $surveyListTotalPages);
 $surveyListPagination = ['page' => $surveyListPage, 'total_pages' => $surveyListTotalPages];
 $surveys = sr_survey_public_forms($pdo, $surveyListPerPage, ($surveyListPage - 1) * $surveyListPerPage, $surveyListGroupId);
-$surveyThemeFallbackViewFile = sr_survey_skin_view_file($settings, 'list');
 include sr_survey_public_view_file($pdo, $settings, 'list');

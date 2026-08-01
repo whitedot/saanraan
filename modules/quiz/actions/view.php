@@ -11,5 +11,4 @@ if (sr_request_method() === 'POST') {
 }
 $quizReactionPublicAssets = function_exists('sr_reaction_public_assets') ? sr_reaction_public_assets() : [];
 
-$quizThemeFallbackViewFile = sr_quiz_skin_view_file($quizSettings, 'view');
 include sr_quiz_public_view_file($pdo, $quizSettings, 'view');

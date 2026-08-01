@@ -10,6 +10,7 @@ chdir($root);
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/community/helpers.php';
 require_once $root . '/modules/community/helpers/admin-boards.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -21,7 +22,7 @@ function sr_check_community_board_settings_error(string $message): void
 
 function sr_check_community_board_settings_content(string $path): string
 {
-    $content = file_get_contents($path);
+    $content = sr_check_source_with_basic_theme_delegate(SR_ROOT, $path);
     if (!is_string($content)) {
         sr_check_community_board_settings_error('file cannot be read: ' . $path);
         return '';

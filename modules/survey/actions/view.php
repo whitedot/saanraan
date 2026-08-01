@@ -11,5 +11,4 @@ if (sr_request_method() === 'POST') {
 }
 $surveyReactionPublicAssets = function_exists('sr_reaction_public_assets') ? sr_reaction_public_assets() : [];
 
-$surveyThemeFallbackViewFile = sr_survey_skin_view_file($settings, 'view');
 include sr_survey_public_view_file($pdo, $settings, 'view');

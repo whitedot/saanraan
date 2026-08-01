@@ -84,6 +84,21 @@ $communityFrameModifier = 'view';
 $communityFrameSummaryDeferred = true;
 $communityPostCommentCount = (int) ($post['published_comment_count'] ?? (is_array($comments ?? null) ? count($comments) : 0));
 $communityPostBoardUrl = sr_url('/community/board?key=' . rawurlencode((string) $post['board_key']));
+$communityCanEditPost = false;
+$communityCanWriteNotice = false;
+$communityCanHidePost = false;
+$communityCanDeletePost = false;
+if (is_array($account)) {
+    $communityCanEditPost = sr_community_account_can_edit_post($post, $account);
+    $communityCanWriteNotice = sr_community_account_can_write_notice($pdo, [
+        'id' => (int) ($post['board_id'] ?? 0),
+        'status' => (string) ($post['board_status'] ?? 'enabled'),
+    ], $account, sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit'));
+    $communityCanHidePost = sr_community_account_can_hide_post($pdo, $post, $account);
+    $communityCanDeletePost = sr_community_account_can_delete_post($post, $account);
+}
+$communityHasPostManagementActions = $communityCanWriteNotice || $communityCanHidePost;
+$communityPostManagementMenuId = 'community_post_management_menu_' . (string) (int) $post['id'];
 $memberFollowFeedback = isset($_SESSION['sr_member_follow_feedback']) && is_array($_SESSION['sr_member_follow_feedback'])
     ? $_SESSION['sr_member_follow_feedback']
     : ['notice' => '', 'errors' => []];
@@ -152,54 +167,20 @@ unset($_SESSION['sr_member_follow_feedback']);
                 </div>
             </div>
             <div class="community-post-view-actions">
-                <a class="btn btn-ghost-default" href="<?php echo sr_e($communityPostBoardUrl); ?>"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
-                <button type="button" class="btn btn-ghost-default community-post-comments-jump" data-community-scroll-target="#comments" aria-label="<?php echo sr_e('댓글 ' . number_format($communityPostCommentCount) . '개로 바로가기'); ?>">
-                    <?php echo sr_material_icon_html('comment', '', ''); ?>
-                    <span><?php echo sr_e(number_format($communityPostCommentCount)); ?></span>
-                </button>
+                <div class="community-action-group community-action-group-leading">
+                <a class="btn btn-outline-default" href="<?php echo sr_e($communityPostBoardUrl); ?>"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
             <?php if (is_array($account)) { ?>
-                <?php if (sr_community_account_can_edit_post($post, $account)) { ?>
-                    <a class="btn btn-ghost-default" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></a>
-                <?php } ?>
-                <?php
-                $communityCanWriteNotice = sr_community_account_can_write_notice($pdo, [
-                    'id' => (int) ($post['board_id'] ?? 0),
-                    'status' => (string) ($post['board_status'] ?? 'enabled'),
-                ], $account, sr_admin_has_permission($pdo, (int) $account['id'], '/admin/community/posts', 'edit'));
-                ?>
-                <?php if ($communityCanWriteNotice) { ?>
-                    <form method="post" action="<?php echo sr_e(sr_url('/community/notice')); ?>">
-                        <?php echo sr_csrf_field(); ?>
-                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <input type="hidden" name="intent" value="<?php echo (int) ($post['is_notice'] ?? 0) === 1 ? 'remove' : 'set'; ?>">
-                        <button type="submit" class="btn btn-ghost-default"><?php echo sr_e((int) ($post['is_notice'] ?? 0) === 1 ? '공지 해제' : '공지 지정'); ?></button>
-                    </form>
-                <?php } ?>
-                <?php if (sr_community_account_can_hide_post($pdo, $post, $account)) { ?>
-                    <form method="post" action="<?php echo sr_e(sr_url('/community/hide')); ?>">
-                        <?php echo sr_csrf_field(); ?>
-                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <button type="submit" class="btn btn-ghost-warning"><?php echo sr_e('숨김'); ?></button>
-                    </form>
-                <?php } ?>
-                <?php if (sr_community_account_can_delete_post($post, $account)) { ?>
-                    <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
-                        <?php echo sr_csrf_field(); ?>
-                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
-                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
-                    </form>
-                <?php } ?>
                 <form method="post" action="<?php echo sr_e(sr_url('/community/scrap')); ?>">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
                     <input type="hidden" name="intent" value="<?php echo $isScrapped ? 'remove' : 'add'; ?>">
-                    <button type="submit" class="btn btn-ghost-default"><?php echo sr_e($isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a')); ?></button>
+                    <button type="submit" class="btn btn-outline-default"><?php echo sr_e($isScrapped ? sr_t('community::ui.text.d013b859') : sr_t('community::ui.text.3eac8b2a')); ?></button>
                 </form>
                 <?php if ($canReportPost) { ?>
                     <?php
                     $communityPostReportModalId = 'community_report_post_modal_' . (string) (int) $post['id'];
                     ?>
-                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityPostReportModalId); ?>" data-overlay="#<?php echo sr_e($communityPostReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
+                    <button type="button" class="btn btn-outline-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityPostReportModalId); ?>" data-overlay="#<?php echo sr_e($communityPostReportModalId); ?>"><?php echo sr_e(sr_t('community::ui.text.a8faafc9')); ?></button>
                     <div id="<?php echo sr_e($communityPostReportModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityPostReportModalId . '_title'); ?>" aria-hidden="true" inert>
                         <div class="modal-dialog">
                             <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>" class="modal-content">
@@ -238,9 +219,55 @@ unset($_SESSION['sr_member_follow_feedback']);
                         </div>
                     </div>
                 <?php } ?>
+            <?php } ?>
+                </div>
+                <div class="community-action-group community-action-group-trailing">
+                <button type="button" class="btn btn-outline-default community-post-comments-jump" data-community-scroll-target="#comments" aria-label="<?php echo sr_e('댓글 ' . number_format($communityPostCommentCount) . '개로 바로가기'); ?>">
+                    <?php echo sr_material_icon_html('comment', '', ''); ?>
+                    <span><?php echo sr_e(number_format($communityPostCommentCount)); ?></span>
+                </button>
+            <?php if (is_array($account)) { ?>
+                <?php if ($communityCanEditPost) { ?>
+                    <a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></a>
+                <?php } ?>
+                <?php if ($communityCanDeletePost) { ?>
+                    <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
+                        <?php echo sr_csrf_field(); ?>
+                        <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
+                    </form>
+                <?php } ?>
+                <?php if ($communityHasPostManagementActions) { ?>
+                    <div class="dropdown community-post-management-dropdown" data-dropdown-placement="bottom-end">
+                        <button type="button" class="dropdown-toggle btn btn-outline-default" aria-haspopup="menu" aria-expanded="false" aria-controls="<?php echo sr_e($communityPostManagementMenuId); ?>">
+                            <?php echo sr_e('관리'); ?>
+                            <?php echo sr_ui_arrow_icon_html('down', 'dropdown-icon'); ?>
+                        </button>
+                        <div id="<?php echo sr_e($communityPostManagementMenuId); ?>" class="dropdown-menu community-post-management-menu" role="menu" aria-orientation="vertical">
+                            <?php if ($communityCanWriteNotice) { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url('/community/notice')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                                    <input type="hidden" name="intent" value="<?php echo (int) ($post['is_notice'] ?? 0) === 1 ? 'remove' : 'set'; ?>">
+                                    <button type="submit" class="dropdown-item" role="menuitem"><?php echo sr_e((int) ($post['is_notice'] ?? 0) === 1 ? '공지 해제' : '공지 지정'); ?></button>
+                                </form>
+                            <?php } ?>
+                            <?php if ($communityCanWriteNotice && $communityCanHidePost) { ?>
+                                <hr class="dropdown-divider">
+                            <?php } ?>
+                            <?php if ($communityCanHidePost) { ?>
+                                <form method="post" action="<?php echo sr_e(sr_url('/community/hide')); ?>">
+                                    <?php echo sr_csrf_field(); ?>
+                                    <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
+                                    <button type="submit" class="dropdown-item" role="menuitem"><?php echo sr_e('숨김'); ?></button>
+                                </form>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
             <?php } elseif ((int) ($post['author_account_id'] ?? 0) < 1 && (string) ($post['guest_password_hash'] ?? '') !== '') { ?>
                 <details>
-                    <summary class="btn btn-ghost-default"><?php echo sr_e('비회원 글 관리'); ?></summary>
+                    <summary class="btn btn-outline-default"><?php echo sr_e('비회원 글 수정·삭제'); ?></summary>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/edit?id=' . (string) $post['id'])); ?>">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="post_id" value="<?php echo sr_e((string) $post['id']); ?>">
@@ -250,7 +277,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                 <input id="modules_community_view_guest_post_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                             </label>
                         </p>
-                        <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
+                        <button type="submit" class="btn btn-outline-primary"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                     </form>
                     <form method="post" action="<?php echo sr_e(sr_url('/community/delete')); ?>">
                         <?php echo sr_csrf_field(); ?>
@@ -261,10 +288,11 @@ unset($_SESSION['sr_member_follow_feedback']);
                                 <input id="modules_community_view_guest_post_delete_password" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                             </label>
                         </p>
-                        <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
+                        <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                     </form>
                 </details>
             <?php } ?>
+                </div>
             </div>
             </header>
 
@@ -288,13 +316,14 @@ unset($_SESSION['sr_member_follow_feedback']);
                 <?php
                 $assetConfirmationAssetLabel = (string) ($paidReadConfirmationResult['asset_label'] ?? '');
                 $assetConfirmationAmount = (int) ($paidReadConfirmationResult['amount'] ?? 0);
-                $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 게시글을 열람하시겠습니까?';
+                $assetConfirmationMessage = (string) (($paidReadConfirmationResult['message'] ?? '') ?: (trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 게시글을 열람하시겠습니까?'));
                 $assetConfirmationAction = '/community/post';
                 $assetConfirmationId = (int) $post['id'];
                 $assetConfirmationRequestToken = (string) ($paidReadConfirmationRequestToken ?? '');
                 $assetConfirmationTitle = '게시글 열람 확인';
                 $assetConfirmationSubmitLabel = sr_t('community::ui.text.ac5b575f');
                 $assetConfirmationCouponIssues = is_array($paidReadConfirmationCouponIssues ?? null) ? $paidReadConfirmationCouponIssues : [];
+                $assetConfirmationExchangeSuggestion = is_array($paidReadConfirmationResult['asset_exchange_suggestion'] ?? null) ? $paidReadConfirmationResult['asset_exchange_suggestion'] : [];
                 $assetConfirmationModalId = 'community_paid_read_confirmation_modal';
                 $assetConfirmationCloseOnSubmit = false;
                 include SR_ROOT . '/modules/community/views/asset-confirmation-modal.php';
@@ -438,13 +467,14 @@ unset($_SESSION['sr_member_follow_feedback']);
                                     <?php
                                     $assetConfirmationAssetLabel = (string) ($communityAttachmentDownloadAccess['asset_label'] ?? '');
                                     $assetConfirmationAmount = (int) ($communityAttachmentDownloadAccess['amount'] ?? 0);
-                                    $assetConfirmationMessage = trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 첨부 파일을 다운로드하시겠습니까?';
+                                    $assetConfirmationMessage = (string) (($communityAttachmentDownloadAccess['message'] ?? '') ?: (trim($assetConfirmationAssetLabel . ' ' . number_format($assetConfirmationAmount)) . ' 차감 후 첨부 파일을 다운로드하시겠습니까?'));
                                     $assetConfirmationAction = '/community/attachment';
                                     $assetConfirmationId = (int) ($attachment['id'] ?? 0);
                                     $assetConfirmationRequestToken = (string) ($communityAttachmentDownloadAccess['confirmation_request_token'] ?? '');
                                     $assetConfirmationTitle = (string) ($attachment['original_name'] ?? sr_t('community::ui.text.0e89a5d4'));
                                     $assetConfirmationSubmitLabel = '다운로드';
                                     $assetConfirmationCouponIssues = sr_community_available_attachment_download_coupon_issues($pdo, (int) ($account['id'] ?? 0), (int) ($attachment['id'] ?? 0));
+                                    $assetConfirmationExchangeSuggestion = is_array($communityAttachmentDownloadAccess['asset_exchange_suggestion'] ?? null) ? $communityAttachmentDownloadAccess['asset_exchange_suggestion'] : [];
                                     $assetConfirmationModalId = 'community_attachment_download_confirmation_' . (string) (int) ($attachment['id'] ?? 0);
                                     $assetConfirmationOpen = false;
                                     $assetConfirmationCancelUrl = '';
@@ -508,11 +538,13 @@ unset($_SESSION['sr_member_follow_feedback']);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);
                             $communityCommentCanHide = is_array($account) && sr_community_account_can_hide_comment($pdo, $comment, $post, $account, $communityCommentPermissionContext ?? []);
                             $communityCommentCanDelete = is_array($account) && sr_community_account_can_delete_comment($comment, $account, $pdo, $post, $communityCommentPermissionContext ?? []);
+                            $communityCommentHasModerationActions = $communityCommentCanHide;
                             $communityCommentIsGuestAuthor = (int) ($comment['author_account_id'] ?? 0) < 1 && (string) ($comment['guest_password_hash'] ?? '') !== '';
                             $communityCommentCanReply = $canComment && $communityCommentCanViewBody && $communityCommentDepth < 3;
                             $communityCommentEditId = 'modules_community_view_comment_edit_' . (string) $comment['id'];
                             $communityCommentReplyId = 'modules_community_view_comment_reply_' . (string) $comment['id'];
                             $communityCommentReplyModalId = 'community_comment_reply_modal_' . (string) (int) $comment['id'];
+                            $communityCommentManagementMenuId = 'community_comment_management_menu_' . (string) (int) $comment['id'];
                             $communityCommentCreatedAt = (string) ($comment['created_at'] ?? '');
                             $communityCommentUrl = sr_url('/community/post?id=' . rawurlencode((string) (int) $post['id']) . '#community-comment-' . rawurlencode((string) (int) ($comment['id'] ?? 0)));
                             ?>
@@ -567,9 +599,8 @@ unset($_SESSION['sr_member_follow_feedback']);
                                 <p class="community-comment-secret"><?php echo sr_e('비밀 댓글입니다.'); ?></p>
                             <?php } ?>
                             <div class="community-comment-actions">
-                                <?php if (is_array($account) || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
-                                    <?php if ($communityCommentCanEdit || $communityCommentCanHide || $communityCommentCanDelete || $communityCommentCanReply || $communityCommentIsGuestAuthor) { ?>
-                                        <?php if ($communityCommentCanReply) { ?>
+                                <div class="community-action-group community-action-group-leading">
+                                <?php if ($communityCommentCanReply) { ?>
                                             <?php if (is_array($account)) { ?>
                                                 <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_reply_modal" data-overlay="#community_comment_reply_modal" data-community-comment-reply data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e(sr_community_comment_body_plain_text($pdo, $comment, $postBoard, $communityLayoutSettings)); ?>">답글</button>
                                             <?php } else { ?>
@@ -630,17 +661,15 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                 </div>
                                             </div>
                                             <?php } ?>
-                                        <?php } ?>
+                                <?php } ?>
+                                <?php if (is_array($account) && $communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
+                                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_report_comment_modal" data-overlay="#community_report_comment_modal" data-community-comment-report data-comment-id="<?php echo sr_e((string) $comment['id']); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
+                                <?php } ?>
+                                </div>
+                                <div class="community-action-group community-action-group-trailing">
+                                    <?php if ($communityCommentCanEdit || $communityCommentCanHide || $communityCommentCanDelete || $communityCommentIsGuestAuthor) { ?>
                                         <?php if ($communityCommentCanEdit) { ?>
                                             <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_edit_modal" data-overlay="#community_comment_edit_modal" data-community-comment-edit data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e((string) $comment['body_text']); ?>" data-comment-secret="<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? '1' : '0'; ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
-                                        <?php } ?>
-                                        <?php if ($communityCommentCanHide) { ?>
-                                            <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
-                                                <?php echo sr_csrf_field(); ?>
-                                                <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
-                                                <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
-                                                <button type="submit" class="btn btn-ghost-warning"><?php echo sr_e('숨김'); ?></button>
-                                            </form>
                                         <?php } ?>
                                         <?php if ($communityCommentCanDelete) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
@@ -650,9 +679,24 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                 <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                             </form>
                                         <?php } ?>
+                                        <?php if ($communityCommentHasModerationActions) { ?>
+                                            <div class="dropdown community-comment-management-dropdown" data-dropdown-placement="bottom-end">
+                                                <button type="button" class="dropdown-toggle btn btn-ghost-default" aria-haspopup="menu" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentManagementMenuId); ?>">
+                                                    <?php echo sr_e('관리'); ?>
+                                                </button>
+                                                <div id="<?php echo sr_e($communityCommentManagementMenuId); ?>" class="dropdown-menu community-comment-management-menu" role="menu" aria-orientation="vertical">
+                                                    <form method="post" action="<?php echo sr_e(sr_url('/community/comment/hide')); ?>">
+                                                        <?php echo sr_csrf_field(); ?>
+                                                        <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
+                                                        <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
+                                                        <button type="submit" class="dropdown-item" role="menuitem"><?php echo sr_e('숨김'); ?></button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
                                         <?php if (!is_array($account) && $communityCommentIsGuestAuthor) { ?>
                                             <details>
-                                                <summary class="btn btn-ghost-default"><?php echo sr_e('비회원 댓글 관리'); ?></summary>
+                                                <summary class="btn btn-ghost-default"><?php echo sr_e('비회원 댓글 수정·삭제'); ?></summary>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/edit')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
                                                     <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
@@ -669,7 +713,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                             <input id="<?php echo sr_e($communityCommentEditId . '_guest_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                                                         </label>
                                                     </p>
-                                                    <button type="submit" class="btn btn-solid-primary"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
+                                                    <button type="submit" class="btn btn-outline-primary"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                                                 </form>
                                                 <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                     <?php echo sr_csrf_field(); ?>
@@ -681,15 +725,12 @@ unset($_SESSION['sr_member_follow_feedback']);
                                                             <input id="<?php echo sr_e($communityCommentEditId . '_guest_delete_password'); ?>" type="password" name="guest_password" minlength="8" maxlength="255" autocomplete="current-password" required class="form-input">
                                                         </label>
                                                     </p>
-                                                    <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
+                                                    <button type="submit" class="btn btn-outline-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                                 </form>
                                             </details>
                                         <?php } ?>
                                     <?php } ?>
-                                <?php } ?>
-                                <?php if (is_array($account) && $communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
-                                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_report_comment_modal" data-overlay="#community_report_comment_modal" data-community-comment-report data-comment-id="<?php echo sr_e((string) $comment['id']); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
-                                <?php } ?>
+                                </div>
                             </div>
                         </li>
                     <?php } ?>

@@ -10,6 +10,7 @@ if (!defined('SR_ROOT')) {
 }
 require_once 'core/version.php';
 require_once 'core/helpers/settings.php';
+require_once '.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -1353,7 +1354,9 @@ function sr_check_module_public_ui_kit_stylesheets(): void
 
             foreach ($modulePublicTargetViews[$moduleKey] ?? [] as $requiredTarget => $targetViewFiles) {
                 foreach ($targetViewFiles as $targetViewFile) {
-                    $targetViewSource = is_file($targetViewFile) ? file_get_contents($targetViewFile) : false;
+                    $targetViewSource = is_file($targetViewFile)
+                        ? sr_check_source_with_basic_theme_delegate(SR_ROOT, $targetViewFile)
+                        : false;
                     if (!is_string($targetViewSource)) {
                         sr_check_add_error('Module public target view cannot be read: ' . $targetViewFile);
                         continue;

@@ -561,10 +561,7 @@ function sr_quiz_check_submission_prg(): void
         sr_quiz_check_error('Quiz submission flash must be consumed once.');
     }
 
-    foreach ([
-        'modules/quiz/theme/basic/view.php',
-        'modules/quiz/skins/basic/view.php',
-    ] as $viewFile) {
+    foreach (['modules/quiz/skins/basic/view.php'] as $viewFile) {
         sr_quiz_check_file_contains($viewFile, [
             'sr_quiz_submission_flash_take(',
             'sr_quiz_submission_flash_store(',
@@ -574,6 +571,10 @@ function sr_quiz_check_submission_prg(): void
             "? ' checked' : ''",
         ]);
     }
+
+    sr_quiz_check_file_contains('modules/quiz/theme/basic/view.php', [
+        "include sr_quiz_skin_view_file(\$quizSettings, 'view');",
+    ]);
 }
 
 sr_quiz_check_module_files();

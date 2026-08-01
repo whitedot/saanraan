@@ -11,6 +11,7 @@ require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/quiz/helpers.php';
 require_once $root . '/modules/survey/helpers.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $publicDataCacheFixtureRoot = sys_get_temp_dir() . '/saanraan-public-sidebar-cache-' . (string) getmypid() . '-' . bin2hex(random_bytes(4));
 $GLOBALS['sr_public_data_cache_root_override'] = $publicDataCacheFixtureRoot;
@@ -54,7 +55,7 @@ $assert(
     'public sidebar cache fixture must not use the repository storage directory.'
 );
 $source = static function (string $file) use ($root, &$errors): string {
-    $contents = file_get_contents($root . '/' . $file);
+    $contents = sr_check_source_with_basic_theme_delegate($root, $file);
     if (!is_string($contents)) {
         $errors[] = 'cannot read public sidebar source: ' . $file;
         return '';

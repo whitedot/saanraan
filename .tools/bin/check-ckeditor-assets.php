@@ -16,6 +16,7 @@ require_once $root . '/modules/quiz/helpers.php';
 require_once $root . '/modules/survey/helpers.php';
 require_once $root . '/modules/ckeditor/helpers.php';
 require_once $root . '/modules/popup_layer/helpers/body-files.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -27,12 +28,14 @@ function sr_ckeditor_assets_error(string $message): void
 
 function sr_ckeditor_assets_read(string $file): string
 {
+    global $root;
+
     if (!is_file($file)) {
         sr_ckeditor_assets_error('CKEditor asset file is missing: ' . $file);
         return '';
     }
 
-    $contents = file_get_contents($file);
+    $contents = sr_check_source_with_basic_theme_delegate($root, $file);
     if (!is_string($contents)) {
         sr_ckeditor_assets_error('CKEditor asset file cannot be read: ' . $file);
         return '';

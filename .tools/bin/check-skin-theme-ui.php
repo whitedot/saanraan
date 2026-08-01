@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 $errors = [];
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 function sr_skin_theme_check_read(string $path): string
 {
@@ -15,7 +16,7 @@ function sr_skin_theme_check_read(string $path): string
         return '';
     }
 
-    $content = file_get_contents($fullPath);
+    $content = sr_check_source_with_basic_theme_delegate($root, $path);
     if (!is_string($content)) {
         $errors[] = 'Required skin/layout UI file cannot be read: ' . $path;
         return '';

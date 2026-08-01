@@ -24,6 +24,7 @@ function sr_url(string $path): string
 }
 
 require_once $root . '/modules/community/helpers/posts-comments.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -167,7 +168,7 @@ foreach ([
     'modules/community/skins/basic/view.php',
     'modules/community/theme/basic/post.php',
 ] as $viewFile) {
-    $view = file_get_contents($root . '/' . $viewFile);
+    $view = sr_check_source_with_basic_theme_delegate($root, $viewFile);
     sr_community_comment_pagination_assert(is_string($view) && str_contains($view, 'sr_community_comment_pagination_html('), $viewFile . ' must render numeric comment pagination.');
     sr_community_comment_pagination_assert(is_string($view) && str_contains($view, 'name="comment_page"'), $viewFile . ' must preserve the active numeric page on validation failure.');
     sr_community_comment_pagination_assert(is_string($view) && str_contains($view, '$communityCommentFragmentResponse'), $viewFile . ' must suppress the post layout for a comments-only response.');

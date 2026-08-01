@@ -59,5 +59,4 @@ foreach ($items as $itemIndex => $item) {
 
 $contentLayoutSettings = $settings;
 $contentSearchLayoutKey = sr_content_default_layout_key($pdo, $site ?? null);
-$contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/search.php';
 include sr_content_public_view_file($pdo, $contentLayoutSettings, 'search.php');

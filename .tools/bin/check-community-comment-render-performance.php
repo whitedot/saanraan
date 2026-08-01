@@ -10,6 +10,7 @@ if (!defined('SR_ROOT')) {
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/member/helpers/follows.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $adminPermissionSnapshotCalls = 0;
 $boardPermissionSnapshotCalls = 0;
@@ -97,7 +98,7 @@ foreach ([
     'modules/community/theme/basic/post.php',
     'modules/community/skins/basic/view.php',
 ] as $viewFile) {
-    $view = file_get_contents($root . '/' . $viewFile);
+    $view = sr_check_source_with_basic_theme_delegate($root, $viewFile);
     $assert(is_string($view) && str_contains($view, 'sr_reaction_record_summaries('), $viewFile . ' must batch comment reaction summaries.');
     $assert(is_string($view) && str_contains($view, 'sr_member_public_identity_parts('), $viewFile . ' must render names through the prepared member public identity context.');
     $assert(is_string($view) && str_contains($view, "\$communityCommentPermissionContext ?? []"), $viewFile . ' must reuse the prepared comment permission context.');

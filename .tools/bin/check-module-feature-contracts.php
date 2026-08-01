@@ -10,6 +10,7 @@ if (!defined('SR_ROOT')) {
 }
 require_once $root . '/core/version.php';
 require_once $root . '/core/helpers/settings.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 $fail = static function (string $message) use (&$errors): void {
@@ -143,19 +144,12 @@ foreach ($requestFiles as $requestFile) {
 
 $consumerViewFiles = [
     'modules/admin/themes/basic/layout-header.php',
-    'modules/content/theme/basic/home.php',
     'modules/content/views/home.php',
-    'modules/content/theme/basic/group.php',
     'modules/content/views/group.php',
-    'modules/content/theme/basic/content.php',
     'modules/content/views/content.php',
-    'modules/community/theme/basic/list.php',
     'modules/community/skins/basic/list.php',
-    'modules/community/theme/basic/post.php',
     'modules/community/skins/basic/view.php',
-    'modules/quiz/theme/basic/view.php',
     'modules/quiz/skins/basic/view.php',
-    'modules/survey/theme/basic/view.php',
     'modules/survey/skins/basic/view.php',
 ];
 foreach ($consumerViewFiles as $consumerViewFile) {
@@ -165,6 +159,14 @@ foreach ($consumerViewFiles as $consumerViewFile) {
         || !str_contains($source, 'PublicIdentityAssets')
     ) {
         $fail($consumerViewFile . ' must render through the public identity contract and merge its assets explicitly.');
+    }
+}
+
+foreach (sr_check_basic_theme_delegates() as $themeFile => $delegate) {
+    $source = file_get_contents($root . '/' . $themeFile);
+    $delegateMarker = (string) ($delegate['marker'] ?? '');
+    if ($delegateMarker === '' || !is_string($source) || !str_contains($source, $delegateMarker)) {
+        $fail($themeFile . ' must remain a thin delegate to the canonical skin/view.');
     }
 }
 

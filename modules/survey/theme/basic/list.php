@@ -1,5 +1,6 @@
 <?php
 
-$surveyListScreenContext = ['consumer_target' => 'survey.list'];
-$surveyScreenTarget = (string) $surveyListScreenContext['consumer_target'];
-include __DIR__ . '/home.php';
+declare(strict_types=1);
+
+require_once SR_ROOT . '/modules/survey/helpers.php';
+include sr_survey_skin_view_file($settings, 'list');

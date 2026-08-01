@@ -11,6 +11,7 @@ require_once $root . '/core/helpers.php';
 require_once $root . '/modules/quiz/helpers.php';
 require_once $root . '/modules/survey/helpers.php';
 require_once $root . '/modules/coupon/helpers.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
@@ -19,7 +20,7 @@ $assert = static function (bool $condition, string $message) use (&$errors): voi
     }
 };
 $source = static function (string $file) use ($root, &$errors): string {
-    $contents = file_get_contents($root . '/' . $file);
+    $contents = sr_check_source_with_basic_theme_delegate($root, $file);
     if (!is_string($contents)) {
         $errors[] = 'cannot read public service list source: ' . $file;
         return '';

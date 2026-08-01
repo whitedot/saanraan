@@ -9,6 +9,7 @@ define('SR_ROOT', $root);
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/community/helpers/posts.php';
 require_once $root . '/modules/community/helpers/boards.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -41,7 +42,7 @@ function sr_sanitizer_check_file_contains(string $file, array $needles, string $
         return;
     }
 
-    $contents = file_get_contents($file);
+    $contents = sr_check_source_with_basic_theme_delegate(SR_ROOT, $file);
     if (!is_string($contents)) {
         sr_sanitizer_check_assert(false, $label . ' file cannot be read: ' . $file);
         return;

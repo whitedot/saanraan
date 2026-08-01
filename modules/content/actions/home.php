@@ -19,5 +19,4 @@ foreach ($contentHomeSections as $contentHomeAuthorSection) {
 $contentHomePublicIdentityContext = sr_member_public_identity_context($pdo, $contentHomeAccount, $contentHomeAuthorAccountIds);
 $contentHomePublicIdentityAssets = sr_member_public_identity_assets();
 
-$contentThemeFallbackViewFile = SR_ROOT . '/modules/content/views/home.php';
 include sr_content_public_view_file($pdo, $contentLayoutSettings, 'home.php');

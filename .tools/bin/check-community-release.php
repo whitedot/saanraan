@@ -9,6 +9,7 @@ chdir($root);
 
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/community/helpers.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -51,7 +52,7 @@ function sr_community_release_file_contains(string $path, array $needles, string
         return;
     }
 
-    $content = file_get_contents($path);
+    $content = sr_check_source_with_basic_theme_delegate(SR_ROOT, $path);
     if (!is_string($content)) {
         sr_community_release_error('Required community release file cannot be read: ' . $path);
         return;
@@ -73,7 +74,7 @@ function sr_community_release_file_not_contains(string $path, array $needles, st
         return;
     }
 
-    $content = file_get_contents($path);
+    $content = sr_check_source_with_basic_theme_delegate(SR_ROOT, $path);
     if (!is_string($content)) {
         sr_community_release_error('Required community release file cannot be read: ' . $path);
         return;

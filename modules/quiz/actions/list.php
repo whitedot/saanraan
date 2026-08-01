@@ -17,5 +17,4 @@ $quizListTotalPages = max(1, (int) ceil($quizListCount / $quizListPerPage));
 $quizListPage = min(max(1, $quizListPage), $quizListTotalPages);
 $quizListPagination = ['page' => $quizListPage, 'total_pages' => $quizListTotalPages];
 $quizzes = sr_quiz_public_quizzes($pdo, $quizListPerPage, ($quizListPage - 1) * $quizListPerPage, $quizListGroupId);
-$quizThemeFallbackViewFile = sr_quiz_skin_view_file($quizSettings, 'list');
 include sr_quiz_public_view_file($pdo, $quizSettings, 'list');

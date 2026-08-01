@@ -10,6 +10,7 @@ require_once $root . '/core/version.php';
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/output.php';
 require_once $root . '/modules/member/helpers/nicknames.php';
+require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
 
@@ -90,7 +91,7 @@ foreach ([
     '/modules/community/skins/basic/list.php',
     '/modules/community/theme/basic/list.php',
 ] as $listViewPath) {
-    $listView = file_get_contents($root . $listViewPath);
+    $listView = sr_check_source_with_basic_theme_delegate($root, $listViewPath);
     sr_mention_check_assert(is_string($listView) && !str_contains($listView, '/assets/mention-input.js'), 'community list should not request mention input: ' . $listViewPath);
     sr_mention_check_assert(is_string($listView) && !str_contains($listView, '/assets/member-recipient-picker.js'), 'community list should not request the message recipient picker: ' . $listViewPath);
     sr_mention_check_assert(is_string($listView) && !str_contains($listView, 'sr_enabled_module_asset_paths('), 'community list should not load optional module assets solely because their modules are enabled: ' . $listViewPath);
@@ -100,7 +101,7 @@ foreach ([
     '/modules/community/skins/basic/view.php',
     '/modules/community/theme/basic/post.php',
 ] as $viewPath) {
-    $view = file_get_contents($root . $viewPath);
+    $view = sr_check_source_with_basic_theme_delegate($root, $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, "is_array(\$account ?? null) ? ['/assets/mention-input.js'] : []"), 'community post view should request mention input only for a signed-in account: ' . $viewPath);
 }
 
@@ -108,7 +109,7 @@ foreach ([
     '/modules/content/views/content.php',
     '/modules/content/theme/basic/content.php',
 ] as $viewPath) {
-    $view = file_get_contents($root . $viewPath);
+    $view = sr_check_source_with_basic_theme_delegate($root, $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, "is_array(\$account ?? null) && !empty(\$pageAccess['allowed']) ? ['/assets/mention-input.js'] : []"), 'content view should request mention input only when a signed-in account can view the content: ' . $viewPath);
 }
 
@@ -116,7 +117,7 @@ foreach ([
     '/modules/quiz/skins/basic/view.php',
     '/modules/quiz/theme/basic/view.php',
 ] as $viewPath) {
-    $view = file_get_contents($root . $viewPath);
+    $view = sr_check_source_with_basic_theme_delegate($root, $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, "\$quizCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'quiz view should request mention input only when a signed-in account can use comments: ' . $viewPath);
 }
 
@@ -124,7 +125,7 @@ foreach ([
     '/modules/survey/skins/basic/view.php',
     '/modules/survey/theme/basic/view.php',
 ] as $viewPath) {
-    $view = file_get_contents($root . $viewPath);
+    $view = sr_check_source_with_basic_theme_delegate($root, $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, "\$surveyCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'survey view should request mention input only when a signed-in account can use comments: ' . $viewPath);
 }
 
