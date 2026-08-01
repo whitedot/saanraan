@@ -200,7 +200,7 @@ $optionalModules = [
     ],
     'notification' => [
         'name' => '알림',
-        'version' => '2026.07.006',
+        'version' => '2026.07.007',
         'label' => sr_t('install.module.notification.label'),
         'description' => '사이트 내 알림과 이메일 발송 작업을 관리합니다.',
     ],

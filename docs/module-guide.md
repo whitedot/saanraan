@@ -1157,7 +1157,7 @@ return [
 
 `public-notification-summary.php`:
 
-- 알림 모듈이 계정별 헤더 요약, 항목 링크 속성, 한 줄 문구와 표시 시각 함수를 제공한다.
+- 알림 모듈이 `helpers/public-summary.php`의 읽기 전용 경계에서 계정별 헤더 요약, 항목 링크 속성, 한 줄 문구와 표시 시각 함수를 제공한다. 공개 요청은 알림 생성·발송·관리 기능이 포함된 통합 `helpers.php`를 로드하지 않는다.
 - 공개 layout shell은 선택 기능이 활성화된 경우 해당 소유 모듈의 공개 계약 파일을 명시적으로 로드한다. 소유 모듈의 `helpers.php`나 asset 경로를 직접 참조하지 않는다.
 - 선택 기능이 비활성 상태이면 기존 텍스트 로고, 빈 안내/요약 같은 layout 기본값을 유지하며 다른 모듈의 정책을 복제하지 않는다.
 - 신규 설치에서 `site_menu`가 선택되면 설치 후 seed helper가 `service_domain.main_page`를 선언한 설치 모듈의 메인 페이지를 기본 `header` 메뉴에 추가한다. 메뉴 항목 표시명은 모듈명이나 초기화면 후보 표시명과 분리된 `service_domain.main_page.menu_label`을 우선하고, 선언이 없을 때만 `label`로 대체한다. 번들 기본값은 `Home`, `Contents`, `Community`, `Quiz`, `Survey`다. `menu-links.php` 후보 전체를 자동 등록하지 않으며, 로그인/회원가입 링크도 기본 header에 자동 삽입하지 않는다.

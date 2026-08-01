@@ -348,6 +348,7 @@ $publicFeatureContracts = [
     ],
     'notification' => [
         'file' => 'public-notification-summary.php',
+        'helper_file' => 'helpers/public-summary.php',
         'consumers' => ['content', 'community', 'quiz', 'survey'],
         'functions' => [
             'sr_notification_public_header_summary',
@@ -463,6 +464,14 @@ foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey)
     ) {
         $fail($layoutFile . ' must obtain message visibility and unread count through the provider-owned summary context.');
     }
+}
+
+$notificationPublicSummaryContractSource = file_get_contents($root . '/modules/notification/public-notification-summary.php');
+if (!is_string($notificationPublicSummaryContractSource)
+    || str_contains($notificationPublicSummaryContractSource, "require_once __DIR__ . '/helpers.php';")
+    || !str_contains($notificationPublicSummaryContractSource, "require_once __DIR__ . '/helpers/public-summary.php';")
+) {
+    $fail('notification public summary contract must load its narrow read-only helper instead of the aggregate notification helper.');
 }
 
 $messageReportActionSource = file_get_contents($root . '/modules/message/actions/message-view.php');

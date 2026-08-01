@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/helpers/public-summary.php';
 
 return [
     'summary_function' => 'sr_notification_public_header_summary',
