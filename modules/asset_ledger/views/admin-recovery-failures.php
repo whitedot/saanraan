@@ -162,13 +162,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <td class="admin-table-actions">
                             <?php if ($status === 'open') { ?>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/assets/recovery-failures?' . (string) ($_SERVER['QUERY_STRING'] ?? ''))); ?>">
-                                    <?php echo sr_csrf_input(); ?>
+                                    <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="retry">
                                     <input type="hidden" name="failure_id" value="<?php echo sr_e((string) $failureId); ?>">
                                     <button type="submit" class="btn btn-sm btn-solid-primary">재회수</button>
                                 </form>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/assets/recovery-failures?' . (string) ($_SERVER['QUERY_STRING'] ?? ''))); ?>" class="admin-inline-form">
-                                    <?php echo sr_csrf_input(); ?>
+                                    <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="manual_resolve">
                                     <input type="hidden" name="failure_id" value="<?php echo sr_e((string) $failureId); ?>">
                                     <input type="text" name="admin_reason" maxlength="500" class="form-input form-input-sm" placeholder="사유" required>
@@ -176,7 +176,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <button type="submit" class="btn btn-sm btn-outline-light">해소</button>
                                 </form>
                                 <form method="post" action="<?php echo sr_e(sr_url('/admin/assets/recovery-failures?' . (string) ($_SERVER['QUERY_STRING'] ?? ''))); ?>" class="admin-inline-form">
-                                    <?php echo sr_csrf_input(); ?>
+                                    <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="manual_cancel">
                                     <input type="hidden" name="failure_id" value="<?php echo sr_e((string) $failureId); ?>">
                                     <input type="text" name="admin_reason" maxlength="500" class="form-input form-input-sm" placeholder="사유" required>

@@ -76,7 +76,12 @@ $requireContains('modules/asset_ledger/views/admin-recovery-failures.php', [
     '미회수 기록',
     'manual_resolve',
     'manual_cancel',
+    'sr_csrf_field()',
 ]);
+$assetRecoveryView = $read('modules/asset_ledger/views/admin-recovery-failures.php');
+if (str_contains($assetRecoveryView, 'sr_csrf_input()')) {
+    $errors[] = 'asset recovery admin forms must use the shared sr_csrf_field() helper.';
+}
 $requireContains('modules/asset_ledger/module.php', [
     "'version' => '2026.06.002'",
     'privacy-export.php',
