@@ -465,8 +465,8 @@ $targets = [
         'action_needles' => [
             '$communitySkinOptions = sr_community_skin_options()',
             "sr_post_string('skin_key', 40)",
-            'if (!isset($communitySkinOptions[$skinKey]))',
-            "'skin_key' => \$skinKey",
+            "if (!isset(\$save['communitySkinOptions'][\$save['skinKey']]))",
+            "'skin_key' => \$save['skinKey']",
             'sr_community_admin_apply_board_settings(',
         ],
         'view_needles' => [

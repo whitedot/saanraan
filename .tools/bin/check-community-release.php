@@ -758,7 +758,7 @@ sr_community_release_file_contains('modules/community/helpers/posts-extra-fields
 ], 'Community post extra field input validation');
 sr_community_release_file_contains('modules/community/helpers/admin-boards.php', [
     '$extraFieldDefinitionErrors = sr_community_extra_field_definitions_input_errors($extraFieldsInput)',
-    '$errors = array_merge($errors, $extraFieldDefinitionErrors)',
+    "\$save['errors'] = array_merge(\$save['errors'], \$save['extraFieldDefinitionErrors'])",
 ], 'Community admin board extra field definition validation');
 sr_community_release_file_contains('modules/community/actions/admin-settings.php', [
     "sr_post_string_without_truncation('extra_fields_json', 20000)",
@@ -772,7 +772,7 @@ sr_community_release_file_contains('modules/community/actions/admin-settings.php
 ], 'Community settings comment editor');
 sr_community_release_file_contains('modules/community/helpers/admin-boards.php', [
     "sr_post_string('comment_editor', 30)",
-    "'comment_editor' => \$commentEditor",
+    "'comment_editor' => \$save['commentEditor']",
 ], 'Community board comment editor');
 sr_community_release_file_contains('modules/community/views/admin-settings.php', [
     "'comment_editor', \$editorOptions",
@@ -987,10 +987,10 @@ sr_community_release_file_contains('modules/community/helpers/admin-boards.php',
     'sr_admin_post_int_in_range(\'read_min_level\', 0, $maxLevel)',
     'sr_admin_post_int_in_range(\'write_min_level\', 0, $maxLevel)',
     'sr_admin_post_int_in_range(\'comment_min_level\', 0, $maxLevel)',
-    "'read_group_keys' => sr_community_board_group_keys_setting_value(\$readGroupKeys)",
-    "'write_group_keys' => sr_community_board_group_keys_setting_value(\$writeGroupKeys)",
-    "'comment_group_keys' => sr_community_board_group_keys_setting_value(\$commentGroupKeys)",
-    "'file_allowed_extensions' => implode(',', \$fileAllowedExtensions)",
+    "'read_group_keys' => sr_community_board_group_keys_setting_value(\$save['readGroupKeys'])",
+    "'write_group_keys' => sr_community_board_group_keys_setting_value(\$save['writeGroupKeys'])",
+    "'comment_group_keys' => sr_community_board_group_keys_setting_value(\$save['commentGroupKeys'])",
+    "'file_allowed_extensions' => implode(',', \$save['fileAllowedExtensions'])",
     'sr_community_admin_apply_board_settings(',
     "'event_type' => 'community.board.created'",
     "'event_type' => 'community.board.updated'",

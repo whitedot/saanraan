@@ -747,6 +747,29 @@ sr_check_community_board_settings_contains('modules/community/helpers/admin-boar
     '게시글 본문 최소 길이는 최대 길이보다 클 수 없습니다.',
 ]), 'community board admin setting save');
 $adminBoardSaveContent = sr_check_community_board_settings_content('modules/community/helpers/admin-boards.php');
+foreach ([
+    'sr_community_admin_prepare_board_save_post' => 450,
+    'sr_community_admin_validate_board_save_post' => 450,
+    'sr_community_admin_create_board_from_save' => 150,
+    'sr_community_admin_update_board_from_save' => 250,
+    'sr_community_admin_persist_board_save_post' => 20,
+    'sr_community_admin_handle_board_save_post' => 15,
+] as $boardSaveFunction => $maximumLines) {
+    $reflection = new ReflectionFunction($boardSaveFunction);
+    $functionLines = $reflection->getEndLine() - $reflection->getStartLine() + 1;
+    if ($functionLines > $maximumLines) {
+        sr_check_community_board_settings_error($boardSaveFunction . ' must stay within its focused responsibility boundary.');
+    }
+}
+foreach ([
+    'sr_community_admin_prepare_board_save_post($pdo, $intent, $context)',
+    'sr_community_admin_validate_board_save_post($pdo, $intent, $save)',
+    'sr_community_admin_persist_board_save_post($pdo, $intent, $account, $save)',
+] as $boardSavePipelineMarker) {
+    if (!str_contains($adminBoardSaveContent, $boardSavePipelineMarker)) {
+        sr_check_community_board_settings_error('community board save pipeline is missing: ' . $boardSavePipelineMarker);
+    }
+}
 if (substr_count($adminBoardSaveContent, 'sr_community_admin_apply_board_settings(') !== 3) {
     sr_check_community_board_settings_error('community board create and update must share the board setting persistence helper.');
 }
@@ -905,10 +928,10 @@ sr_check_community_board_settings_contains('modules/community/actions/admin-sett
     '게시판 사이드에 표시할 사이트 메뉴를 선택하세요.',
 ], 'community global board sidebar menu save');
 sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', [
-    "'board_sidebar_menu_type' => \$boardSidebarMenuType",
-    "'board_sidebar_site_menu_key' => \$boardSidebarSiteMenuKey",
+    "'board_sidebar_menu_type' => \$save['boardSidebarMenuType']",
+    "'board_sidebar_site_menu_key' => \$save['boardSidebarSiteMenuKey']",
     "\$settingSources['board_sidebar_site_menu_key'] = (string) (\$settingSources['board_sidebar_menu_type'] ?? 'board')",
-    'sr_community_board_sidebar_menu_type_options($siteMenuAvailable)',
+    "sr_community_board_sidebar_menu_type_options(\$save['siteMenuAvailable'])",
 ], 'community board sidebar menu save');
 sr_check_community_board_settings_contains('modules/community/views/admin-settings.php', [
     'name="board_sidebar_menu_type"',
