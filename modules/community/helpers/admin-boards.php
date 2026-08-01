@@ -45,6 +45,18 @@ function sr_community_admin_apply_board_settings(
     }
 }
 
+function sr_community_admin_generate_category_key(array $usedKeys): string
+{
+    for ($attempt = 0; $attempt < 10; $attempt++) {
+        $categoryKey = 'category_' . bin2hex(random_bytes(8));
+        if (!isset($usedKeys[$categoryKey])) {
+            return $categoryKey;
+        }
+    }
+
+    throw new RuntimeException('카테고리 Key를 생성하지 못했습니다. 다시 시도해 주세요.');
+}
+
 function sr_community_admin_board_categories_from_json(?string $json): array
 {
     if ($json === null) {
@@ -68,11 +80,13 @@ function sr_community_admin_board_categories_from_json(?string $json): array
             continue;
         }
 
-        $categoryKey = strtolower(trim((string) ($item['category_key'] ?? '')));
         $categoryIdValue = $item['id'] ?? 0;
         $categoryId = filter_var($categoryIdValue, FILTER_VALIDATE_INT, [
             'options' => ['min_range' => 1],
         ]);
+        $categoryKey = $categoryId === false
+            ? sr_community_admin_generate_category_key($seenKeys)
+            : strtolower(trim((string) ($item['category_key'] ?? '')));
         $title = trim((string) ($item['title'] ?? ''));
         $description = trim((string) ($item['description'] ?? ''));
         $status = (string) ($item['status'] ?? 'enabled');
@@ -81,7 +95,7 @@ function sr_community_admin_board_categories_from_json(?string $json): array
             'options' => ['min_range' => 0, 'max_range' => 1000000],
         ]);
 
-        if (!sr_community_category_key_is_valid($categoryKey)) {
+        if ($categoryId !== false && !sr_community_category_key_is_valid($categoryKey)) {
             $errors[] = '카테고리 ' . (string) ($index + 1) . '번 Key가 올바르지 않습니다.';
         } elseif (isset($seenKeys[$categoryKey])) {
             $errors[] = '카테고리 Key는 게시판 안에서 중복될 수 없습니다: ' . $categoryKey;

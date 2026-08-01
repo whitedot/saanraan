@@ -321,14 +321,26 @@ function sr_check_community_board_settings_runtime(): void
     $pdo->exec("INSERT INTO sr_member_accounts (id, status) VALUES (7, 'withdrawn')");
     $pdo->exec("UPDATE sr_community_posts SET author_account_id = 7, author_public_name_snapshot = '탈퇴 전 이름' WHERE id = 3");
     $initialCategoryResult = sr_community_admin_board_categories_from_json(json_encode([
-        ['category_key' => 'notice', 'title' => '공지', 'description' => '', 'status' => 'enabled', 'sort_order' => 10],
+        ['title' => '공지', 'description' => '', 'status' => 'enabled', 'sort_order' => 10],
+        ['title' => '질문', 'description' => '', 'status' => 'enabled', 'sort_order' => 20],
     ], JSON_UNESCAPED_UNICODE));
-    if (($initialCategoryResult['errors'] ?? []) !== [] || (string) ($initialCategoryResult['items'][0]['category_key'] ?? '') !== 'notice') {
-        sr_check_community_board_settings_error('community board initial category input normalization failed.');
+    $generatedCategoryKey = (string) ($initialCategoryResult['items'][0]['category_key'] ?? '');
+    $secondGeneratedCategoryKey = (string) ($initialCategoryResult['items'][1]['category_key'] ?? '');
+    if (($initialCategoryResult['errors'] ?? []) !== []
+        || !sr_community_category_key_is_valid($generatedCategoryKey)
+        || !str_starts_with($generatedCategoryKey, 'category_')
+        || !sr_community_category_key_is_valid($secondGeneratedCategoryKey)
+        || $secondGeneratedCategoryKey === $generatedCategoryKey
+    ) {
+        sr_check_community_board_settings_error('community board initial category input must generate unique valid keys.');
     }
-    $duplicateInitialCategoryResult = sr_community_admin_board_categories_from_json('[{"category_key":"notice","title":"공지","status":"enabled","sort_order":0},{"category_key":"notice","title":"중복","status":"enabled","sort_order":1}]');
-    if (($duplicateInitialCategoryResult['errors'] ?? []) === []) {
-        sr_check_community_board_settings_error('community board initial category input must reject duplicate keys.');
+    $ignoredSubmittedCategoryKeyResult = sr_community_admin_board_categories_from_json('[{"category_key":"admin","title":"공지","status":"enabled","sort_order":0}]');
+    if (($ignoredSubmittedCategoryKeyResult['errors'] ?? []) !== [] || (string) ($ignoredSubmittedCategoryKeyResult['items'][0]['category_key'] ?? '') === 'admin') {
+        sr_check_community_board_settings_error('community board initial category input must ignore a submitted key for new categories.');
+    }
+    $duplicateExistingCategoryResult = sr_community_admin_board_categories_from_json('[{"id":1,"category_key":"notice","title":"공지","status":"enabled","sort_order":0},{"id":2,"category_key":"notice","title":"중복","status":"enabled","sort_order":1}]');
+    if (($duplicateExistingCategoryResult['errors'] ?? []) === []) {
+        sr_check_community_board_settings_error('community board initial category input must reject duplicate existing keys.');
     }
     $initialManagerResult = sr_community_admin_board_managers_from_json($pdo, '[{"account_id":7,"permission_keys":["view_manage","hide_post"]}]');
     if (($initialManagerResult['errors'] ?? []) !== [] || count($initialManagerResult['items'][0]['permission_keys'] ?? []) !== 2) {
@@ -766,6 +778,7 @@ sr_check_community_board_settings_contains('modules/community/views/admin-boards
     '기존 댓글의 공개 출력 방식도 함께 바뀔 수 있습니다.',
 ], 'community board post/comment editor operational warning');
 sr_check_community_board_settings_contains('modules/community/helpers/admin-boards.php', [
+    'function sr_community_admin_generate_category_key(',
     'function sr_community_admin_board_categories_from_json(',
     'function sr_community_admin_validate_board_category_sync(',
     'function sr_community_admin_sync_board_children(',
@@ -785,6 +798,12 @@ sr_check_community_board_settings_contains('modules/community/views/admin-boards
     'admin-community-board-manager-permission-list',
     '게시판 저장을 눌러야 최종 반영됩니다.',
 ], 'community board single form child management UI');
+$adminBoardCategoryViewContent = sr_check_community_board_settings_content('modules/community/views/admin-boards.php');
+foreach (['id="community_initial_category_key"', 'data-community-initial-category-input="category_key"'] as $categoryKeyInputNeedle) {
+    if (str_contains($adminBoardCategoryViewContent, $categoryKeyInputNeedle)) {
+        sr_check_community_board_settings_error('community board category form must not ask administrators for a category key: ' . $categoryKeyInputNeedle);
+    }
+}
 sr_check_community_board_settings_contains('modules/community/assets/admin.css', [
     '.admin-community-board-manager-permission-list{display:flex;flex-direction:column;',
     '.admin-community-board-manager-permission-list>.filtering-toggle-item{display:flex;width:100%}',

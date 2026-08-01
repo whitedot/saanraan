@@ -741,7 +741,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="table-wrapper" data-community-initial-category-table-wrap hidden>
                     <table class="table table-list">
                         <caption class="sr-only">저장할 카테고리 목록</caption>
-                        <thead><tr><th>이름</th><th>Key</th><th>상태</th><th>정렬</th><th class="text-end">관리</th></tr></thead>
+                        <thead><tr><th>이름</th><th>상태</th><th>정렬</th><th class="text-end">관리</th></tr></thead>
                         <tbody data-community-initial-category-list></tbody>
                     </table>
                 </div>
@@ -1560,7 +1560,6 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <div class="modal-body">
                         <input type="hidden" data-community-initial-category-index>
                         <div class="form-row"><label class="form-label" for="community_initial_category_title">이름 <span class="sr-required-label">(필수)</span></label><div class="form-field"><input id="community_initial_category_title" type="text" maxlength="120" required class="form-input" data-community-initial-category-input="title" data-overlay-focus></div></div>
-                        <div class="form-row"><label class="form-label" for="community_initial_category_key">카테고리 Key <span class="sr-required-label">(필수)</span></label><div class="form-field"><input id="community_initial_category_key" type="text" maxlength="60" pattern="[a-z][a-z0-9_]{1,59}" inputmode="latin" autocapitalize="none" spellcheck="false" required class="form-input" data-admin-key-input data-admin-key-suggest-source="#community_initial_category_title" data-admin-key-suggest-fallback="category" data-community-initial-category-input="category_key"></div></div>
                         <div class="form-row"><label class="form-label" for="community_initial_category_description">설명</label><div class="form-field"><textarea id="community_initial_category_description" rows="2" maxlength="2000" class="form-textarea" data-community-initial-category-input="description"></textarea></div></div>
                         <div class="form-row"><label class="form-label" for="community_initial_category_status">상태 <span class="sr-required-label">(필수)</span></label><div class="form-field"><select id="community_initial_category_status" class="form-select" required data-community-initial-category-input="status"><option value="enabled">사용</option><option value="disabled">사용안함</option></select></div></div>
                         <div class="form-row"><label class="form-label" for="community_initial_category_sort_order">정렬 <span class="sr-required-label">(필수)</span></label><div class="form-field"><input id="community_initial_category_sort_order" type="number" min="0" max="1000000" value="0" required class="form-input" data-community-initial-category-input="sort_order"></div></div>
@@ -2428,7 +2427,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         empty.hidden = items.length !== 0;
         items.forEach(function (item, index) {
             var row = document.createElement('tr');
-            [item.title || '', item.category_key || '', item.status === 'disabled' ? '사용안함' : '사용', String(item.sort_order || 0)].forEach(function (value) {
+            [item.title || '', item.status === 'disabled' ? '사용안함' : '사용', String(item.sort_order || 0)].forEach(function (value) {
                 var cell = document.createElement('td');
                 cell.textContent = value;
                 row.appendChild(cell);
@@ -2457,17 +2456,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
         modal.querySelector('[data-community-initial-category-index]').value = index >= 0 ? String(index) : '';
         modal.querySelector('[data-community-initial-category-modal-title]').textContent = index >= 0 ? '카테고리 수정' : '카테고리 추가';
-        ['title', 'category_key', 'description', 'status', 'sort_order'].forEach(function (key) {
+        ['title', 'description', 'status', 'sort_order'].forEach(function (key) {
             var input = modal.querySelector('[data-community-initial-category-input="' + key + '"]');
             if (input) {
                 input.value = item[key] === undefined ? (key === 'status' ? 'enabled' : (key === 'sort_order' ? '0' : '')) : String(item[key]);
                 input.setCustomValidity('');
             }
         });
-        var keyInput = modal.querySelector('[data-community-initial-category-input="category_key"]');
-        if (keyInput) {
-            keyInput.readOnly = index >= 0 && parseInt(item.id || '0', 10) > 0;
-        }
     }
 
     function communityInitialCategoryCollect() {
@@ -2479,18 +2474,13 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         var indexValue = modal.querySelector('[data-community-initial-category-index]').value;
         var index = indexValue === '' ? -1 : parseInt(indexValue, 10);
         var item = {};
-        ['title', 'category_key', 'description', 'status', 'sort_order'].forEach(function (key) {
+        ['title', 'description', 'status', 'sort_order'].forEach(function (key) {
             var input = modal.querySelector('[data-community-initial-category-input="' + key + '"]');
             item[key] = input ? input.value.trim() : '';
         });
-        item.category_key = item.category_key.toLowerCase();
         item.sort_order = parseInt(item.sort_order || '0', 10);
         item.id = index >= 0 && items[index] ? parseInt(items[index].id || '0', 10) : 0;
-        var keyInput = modal.querySelector('[data-community-initial-category-input="category_key"]');
-        var duplicate = items.some(function (existing, existingIndex) {
-            return existingIndex !== index && existing.category_key === item.category_key;
-        });
-        keyInput.setCustomValidity(duplicate ? '같은 카테고리 Key를 이미 사용하고 있습니다.' : '');
+        item.category_key = item.id > 0 && items[index] ? String(items[index].category_key || '') : '';
         var inputs = modal.querySelectorAll('[data-community-initial-category-input]');
         for (var inputIndex = 0; inputIndex < inputs.length; inputIndex++) {
             if (!inputs[inputIndex].checkValidity()) {
@@ -2894,7 +2884,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
         var initialCategoryAdd = event.target.closest && event.target.closest('[data-community-initial-category-add]');
         if (initialCategoryAdd) {
-            communityInitialCategoryModalSet({title: '', category_key: '', description: '', status: 'enabled', sort_order: 0}, -1);
+            communityInitialCategoryModalSet({title: '', description: '', status: 'enabled', sort_order: 0}, -1);
             return;
         }
 
