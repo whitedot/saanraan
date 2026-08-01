@@ -1152,7 +1152,8 @@ return [
 
 `public-message-summary.php`:
 
-- 쪽지 모듈이 기능 사용 상태와 계정별 미확인 개수 함수를 제공한다.
+- 쪽지 모듈이 `helpers/public-summary.php`의 읽기 전용 context로 기능 사용 상태와 계정별 미확인 개수를 함께 제공한다. 공개 요청은 발송·삭제·신고·관리 기능이 포함된 통합 `helpers.php`를 로드하지 않는다.
+- 공개 layout shell은 context의 `enabled`를 메뉴 표시 기준으로 사용하고, 비활성 상태에서 미확인 개수를 별도로 조회하거나 자체 fallback으로 메뉴를 노출하지 않는다.
 
 `public-notification-summary.php`:
 

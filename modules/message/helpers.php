@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/helpers/public-summary.php';
+
 function sr_message_default_settings(): array
 {
     $metadata = sr_module_metadata('message');
@@ -238,13 +240,6 @@ function sr_message_save_settings(PDO $pdo, array $settings): void
     }
 
     sr_clear_module_settings_cache('message');
-}
-
-function sr_message_enabled(PDO $pdo, ?array $settings = null): bool
-{
-    $settings = is_array($settings) ? $settings : sr_message_settings($pdo);
-
-    return !empty($settings['message_enabled']);
 }
 
 function sr_message_member_settings(PDO $pdo, int $accountId, ?array $settings = null): array
@@ -671,24 +666,6 @@ function sr_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50, 
     $stmt->execute();
 
     return $stmt->fetchAll();
-}
-
-function sr_message_unread_count(PDO $pdo, int $accountId): int
-{
-    if ($accountId < 1) {
-        return 0;
-    }
-
-    $stmt = $pdo->prepare(
-        'SELECT COUNT(*)
-         FROM sr_messages
-         WHERE recipient_account_id = :account_id
-           AND recipient_deleted_at IS NULL
-           AND read_at IS NULL'
-    );
-    $stmt->execute(['account_id' => $accountId]);
-
-    return max(0, (int) $stmt->fetchColumn());
 }
 
 function sr_message_by_id_for_account(PDO $pdo, int $messageId, int $accountId): ?array

@@ -2,7 +2,7 @@
 
 return [
     'name' => '쪽지',
-    'version' => '2026.07.004',
+    'version' => '2026.07.005',
     'type' => 'module',
     'description' => '회원 간 쪽지 수발신을 제공하는 모듈입니다.',
     'admin' => [

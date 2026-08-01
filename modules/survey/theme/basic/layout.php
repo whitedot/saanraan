@@ -149,10 +149,14 @@ if (
         $layoutCurrentAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
         if (sr_module_enabled($layoutPdo, 'message') && is_file(SR_ROOT . '/modules/message/public-message-summary.php')) {
             require_once SR_ROOT . '/modules/message/public-message-summary.php';
-            $layoutCommunityMemberMenuEnabled = true;
             try {
-                $layoutUnreadCommunityMessageCount = function_exists('sr_message_unread_count') ? sr_message_unread_count($layoutPdo, $layoutCurrentAccountId) : 0;
+                $layoutMessageSummaryContext = function_exists('sr_message_public_summary_context')
+                    ? sr_message_public_summary_context($layoutPdo, $layoutCurrentAccountId)
+                    : [];
+                $layoutCommunityMemberMenuEnabled = !empty($layoutMessageSummaryContext['enabled']);
+                $layoutUnreadCommunityMessageCount = (int) ($layoutMessageSummaryContext['unread_count'] ?? 0);
             } catch (Throwable) {
+                $layoutCommunityMemberMenuEnabled = false;
                 $layoutUnreadCommunityMessageCount = 0;
             }
         }

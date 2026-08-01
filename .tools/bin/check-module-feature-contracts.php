@@ -337,8 +337,10 @@ $publicFeatureContracts = [
     ],
     'message' => [
         'file' => 'public-message-summary.php',
+        'helper_file' => 'helpers/public-summary.php',
         'consumers' => ['content', 'community', 'quiz', 'survey'],
         'functions' => [
+            'sr_message_public_summary_context',
             'sr_message_enabled',
             'sr_message_unread_count',
         ],
@@ -441,6 +443,25 @@ foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey)
         || str_contains($layoutSource, 'sr_admin_first_permitted_menu_path(')
     ) {
         $fail($layoutFile . ' must obtain its admin badge and entry URL through admin/public-account-access.php.');
+    }
+}
+
+$messagePublicSummaryContractSource = file_get_contents($root . '/modules/message/public-message-summary.php');
+if (!is_string($messagePublicSummaryContractSource)
+    || str_contains($messagePublicSummaryContractSource, "require_once __DIR__ . '/helpers.php';")
+    || !str_contains($messagePublicSummaryContractSource, "require_once __DIR__ . '/helpers/public-summary.php';")
+) {
+    $fail('message public summary contract must load its narrow read-only helper instead of the aggregate message helper.');
+}
+foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey) {
+    $layoutFile = 'modules/' . $layoutProviderModuleKey . '/theme/basic/layout.php';
+    $layoutSource = file_get_contents($root . '/' . $layoutFile);
+    if (!is_string($layoutSource)
+        || !str_contains($layoutSource, 'sr_message_public_summary_context(')
+        || str_contains($layoutSource, 'sr_message_enabled(')
+        || str_contains($layoutSource, 'sr_message_unread_count(')
+    ) {
+        $fail($layoutFile . ' must obtain message visibility and unread count through the provider-owned summary context.');
     }
 }
 

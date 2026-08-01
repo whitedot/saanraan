@@ -122,7 +122,7 @@ $optionalModules = [
     ],
     'message' => [
         'name' => '쪽지',
-        'version' => '2026.07.004',
+        'version' => '2026.07.005',
         'label' => '쪽지',
         'description' => '회원 간 쪽지 수발신과 수신 설정을 설치합니다.',
     ],
