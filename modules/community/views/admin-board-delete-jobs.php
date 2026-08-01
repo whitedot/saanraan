@@ -18,12 +18,17 @@ $communityBoardDeleteJobStatusClass = static function (string $status): string {
     };
 };
 $communityBoardDeleteJobs = is_array($jobs ?? null) ? $jobs : [];
+$communityBoardDeleteJobStatus = is_array($job ?? null) ? (string) ($job['status'] ?? '') : '';
+$communityBoardDeleteJobRunLabel = $communityBoardDeleteJobStatus === 'cleanup_required' ? '파일 정리 다시 시도' : '현재 단계 계속';
+$communityBoardDeleteJobRetryHelp = $communityBoardDeleteJobStatus === 'cleanup_required'
+    ? ''
+    : '<p>실패한 경우 ‘재시도 준비’를 누르면 멈춘 위치에서 다시 진행할 수 있는 상태로 바뀝니다. 준비한 뒤에는 ‘현재 단계 계속’을 눌러야 재시도합니다. ‘정리 필요’는 게시판 데이터 삭제 후 일부 첨부 파일만 남은 상태입니다.</p>';
 $communityBoardDeleteJobHelp = [
     'id' => 'community-board-delete-job-process-help',
     'title' => '게시판 삭제 작업 진행 도움말',
     'body' => '<p>삭제 작업을 만드는 즉시 해당 게시판은 ‘사용 중지’ 상태가 됩니다. 작업을 만든 뒤에는 취소하는 기능이 없고, 이미 삭제된 항목은 재시도하거나 오류를 해결해도 복원되지 않습니다.</p>'
-        . '<p>이 작업은 화면을 닫아도 자동으로 끝까지 진행되지 않습니다. ‘현재 단계 계속’을 누를 때마다 현재 단계의 일정한 양을 삭제하며, 남은 항목이 있으면 같은 단계가 유지됩니다.</p>'
-        . '<p>실패한 경우 ‘재시도 준비’를 누르면 멈춘 위치에서 다시 진행할 수 있는 상태로 바뀍니다. 준비한 뒤에 ‘현재 단계 계속’을 눌러야 재시도합니다. ‘정리 필요’는 게시판 데이터 삭제 후 일부 첨부 파일만 남은 상태입니다.</p>',
+        . '<p>이 작업은 화면을 닫아도 자동으로 끝까지 진행되지 않습니다. ‘' . $communityBoardDeleteJobRunLabel . '’을 누를 때마다 현재 단계의 일정한 양을 삭제하며, 남은 항목이 있으면 같은 단계가 유지됩니다.</p>'
+        . $communityBoardDeleteJobRetryHelp,
 ];
 $communityBoardDeleteJobStatusCounts = [];
 foreach ($communityBoardDeleteJobs as $communityBoardDeleteJobRow) {
@@ -44,7 +49,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     $processed = sr_community_board_delete_job_json($job, 'processed_json');
     $snapshot = sr_community_board_delete_job_json($job, 'board_snapshot_json');
     $stageProgressLabel = sr_community_board_delete_job_stage_progress_label((string) ($job['stage'] ?? 'prepare'));
-    $jobStatus = (string) ($job['status'] ?? '');
+    $jobStatus = $communityBoardDeleteJobStatus;
     $canRun = in_array($jobStatus, ['pending', 'running', 'cleanup_required'], true);
     $canRetry = $jobStatus === 'failed';
     $mapStatusCounts = is_array($jobMapStatusCounts ?? null) ? $jobMapStatusCounts : [];
@@ -74,7 +79,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <p class="admin-form-static"><?php echo sr_e($stageProgressLabel); ?></p>
                 <?php if ($canRun) { ?>
-                    <p class="form-help"><?php echo sr_e('자동으로 다음 처리가 시작되지 않습니다. 아래에서 현재 단계를 계속하세요.'); ?></p>
+                    <p class="form-help"><?php echo sr_e('자동으로 다음 처리가 시작되지 않습니다. 아래에서 ‘' . $communityBoardDeleteJobRunLabel . '’을 누르세요.'); ?></p>
                 <?php } ?>
             </div>
         </div>
@@ -190,7 +195,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <button type="submit" name="intent" value="retry" class="btn btn-solid-light" data-confirm="<?php echo sr_e('멈춘 위치에서 다시 진행할 수 있는 상태로 바꿉니다. 이미 삭제된 항목은 복원되지 않으며, 준비한 뒤 현재 단계를 계속해야 재시도합니다. 계속할까요?'); ?>"><?php echo sr_e('재시도 준비'); ?></button>
                     <?php } ?>
                     <?php if ($canRun) { ?>
-                        <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '파일 정리 다시 시도' : '현재 단계 계속'); ?></button>
+                        <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($communityBoardDeleteJobRunLabel); ?></button>
                     <?php } ?>
                 </div>
             </form>

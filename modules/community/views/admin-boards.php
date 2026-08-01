@@ -243,6 +243,9 @@ $communityLevelSelectHtml = static function (string $id, string $name, int $sele
 $selectedBoard = is_array($editBoard ?? null) ? $editBoard : [];
 $newBoardGroupId = isset($newBoardGroupId) ? (int) $newBoardGroupId : 0;
 $newBoardDefaults = sr_community_board_default_settings($settings);
+$communityBoardFinalActionLabel = $communityBoardsPage === 'edit'
+    ? sr_t('community::ui.edit.3537f0cc')
+    : sr_t('community::ui.save');
 $formBoard = $communityBoardsPage === 'edit' ? $selectedBoard : array_merge($newBoardDefaults, [
     'board_group_id' => $newBoardGroupId,
     'board_key' => '',
@@ -708,7 +711,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 </table>
             </div>
             <p class="form-help">
-                게시글 작성/수정 폼에서 받을 추가 항목입니다. 항목을 추가하거나 수정하거나 순서를 바꾼 뒤 게시판 저장을 눌러야 최종 반영됩니다.<br>
+                게시글 작성/수정 폼에서 받을 추가 항목입니다. 항목을 추가하거나 수정하거나 순서를 바꾼 뒤 ‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 눌러야 최종 반영됩니다.<br>
                 필수로 바꾸기 전에는 기존 게시글에 값이 없어도 괜찮은지 확인하세요. 값이 없는 게시글은 다음 저장 때 입력이 필요할 수 있습니다.
             </p>
             <p class="admin-empty-state" data-community-extra-field-empty hidden>추가 입력 항목이 없습니다.</p>
@@ -746,7 +749,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </table>
                 </div>
                 <p class="admin-empty-state" data-community-initial-category-empty hidden>카테고리가 없습니다.</p>
-                <p class="form-help">게시글 추가 입력 항목과 같이 이 목록에서 추가·수정·삭제한 뒤 게시판 저장을 눌러야 최종 반영됩니다. 게시글에서 사용 중인 카테고리는 삭제할 수 없습니다.</p>
+                <p class="form-help">게시글 추가 입력 항목과 같이 이 목록에서 추가·수정·삭제한 뒤 ‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 눌러야 최종 반영됩니다. 게시글에서 사용 중인 카테고리는 삭제할 수 없습니다.</p>
                 <textarea name="categories_json" hidden data-community-initial-categories-json><?php echo sr_e($boardField($formBoard, 'categories_json', '[]')); ?></textarea>
             </section>
 
@@ -765,7 +768,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </table>
                 </div>
                 <p class="admin-empty-state" data-community-initial-manager-empty hidden>운영 스탭이 없습니다.</p>
-                <p class="form-help">선택한 회원의 공개 게시판 운영 권한을 이 목록에서 편집한 뒤 게시판 저장을 눌러야 최종 반영됩니다. 관리자 모드 접근 권한은 부여하지 않습니다.</p>
+                <p class="form-help">선택한 회원의 공개 게시판 운영 권한을 이 목록에서 편집한 뒤 ‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 눌러야 최종 반영됩니다. 관리자 모드 접근 권한은 부여하지 않습니다.</p>
                 <textarea name="board_managers_json" hidden data-community-initial-managers-json><?php echo sr_e($boardField($formBoard, 'board_managers_json', '[]')); ?></textarea>
             </section>
         <?php } ?>
@@ -1539,7 +1542,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <button type="button" class="btn btn-icon btn-outline-danger" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($boardDeleteModalId); ?>" data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>" aria-label="<?php echo sr_e('삭제'); ?>" title="<?php echo sr_e('삭제'); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
             <?php } ?>
             <div class="admin-form-secondary-actions admin-form-draft-actions">
-                <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e($communityBoardsPage === 'edit' ? sr_t('community::ui.edit.3537f0cc') : sr_t('community::ui.save')); ?></button>
+                <button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e($communityBoardFinalActionLabel); ?></button>
                 <button type="submit" name="admin_form_action" value="save_draft" class="btn btn-solid-light admin-form-draft-save" formnovalidate>임시저장</button>
                 <?php if (is_array($adminFormDraft ?? null)) { ?>
                     <button type="submit" name="admin_form_action" value="discard_draft" class="btn btn-outline-danger admin-form-draft-delete" formnovalidate>임시저장 삭제</button>
@@ -1564,7 +1567,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <div class="form-row"><label class="form-label" for="community_initial_category_status">상태 <span class="sr-required-label">(필수)</span></label><div class="form-field"><select id="community_initial_category_status" class="form-select" required data-community-initial-category-input="status"><option value="enabled">사용</option><option value="disabled">사용안함</option></select></div></div>
                         <div class="form-row"><label class="form-label" for="community_initial_category_sort_order">정렬 <span class="sr-required-label">(필수)</span></label><div class="form-field"><input id="community_initial_category_sort_order" type="number" min="0" max="1000000" value="0" required class="form-input" data-community-initial-category-input="sort_order"></div></div>
                     </div>
-                    <div class="modal-footer-note"><p class="form-help">적용한 카테고리는 게시판 저장 전까지 임시 목록에만 반영됩니다.</p></div>
+                    <div class="modal-footer-note"><p class="form-help">적용한 카테고리는 화면 하단의 ‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 누르기 전까지 임시 목록에만 반영됩니다.</p></div>
                     <div class="modal-footer"><button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-initial-category-modal">닫기</button><button type="button" class="btn btn-solid-primary modal-action" data-community-initial-category-save>적용</button></div>
                 </div>
             </div>
@@ -1598,7 +1601,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             </div></div>
                         </div>
                     </div>
-                    <div class="modal-footer-note"><p class="form-help">적용한 운영 스탭은 게시판 저장 전까지 임시 목록에만 반영됩니다.</p></div>
+                    <div class="modal-footer-note"><p class="form-help">적용한 운영 스탭은 화면 하단의 ‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 누르기 전까지 임시 목록에만 반영됩니다.</p></div>
                     <div class="modal-footer"><button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-initial-manager-modal">닫기</button><button type="button" class="btn btn-solid-primary modal-action" data-community-initial-manager-save>적용</button></div>
                 </div>
             </div>
@@ -1710,7 +1713,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">이 모달의 적용 버튼은 현재 게시판 저장 form의 추가 입력 항목 값만 바꿉니다. 최종 반영은 게시판 저장 버튼을 눌러야 합니다.</p>
+                    <p class="form-help">이 모달의 적용 버튼은 현재 게시판 편집 화면의 추가 입력 항목 값만 바꿉니다. 최종 반영은 화면 하단의 ‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 눌러야 합니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#community-extra-field-modal">닫기</button>

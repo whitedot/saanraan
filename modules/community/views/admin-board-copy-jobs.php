@@ -20,11 +20,16 @@ $communityBoardCopyJobStatusClass = static function (string $status): string {
     };
 };
 $communityBoardCopyJobs = is_array($jobs ?? null) ? $jobs : [];
+$communityBoardCopyJobStatus = is_array($job ?? null) ? (string) ($job['status'] ?? '') : '';
+$communityBoardCopyJobRunLabel = $communityBoardCopyJobStatus === 'cleanup_required' ? '정리 다시 시도' : '현재 단계 계속';
+$communityBoardCopyJobRetryHelp = $communityBoardCopyJobStatus === 'cleanup_required'
+    ? ''
+    : '<p>‘재시도 준비’는 실패한 항목만 다시 처리할 수 있는 상태로 바꾸며, 이미 복사된 항목은 유지합니다. 준비한 뒤에 ‘현재 단계 계속’을 눌러야 재시도합니다.</p>';
 $communityBoardCopyJobHelp = [
     'id' => 'community-board-copy-job-process-help',
     'title' => '게시판 복사 작업 진행 도움말',
-    'body' => '<p>이 작업은 화면을 닫아도 자동으로 끝까지 진행되지 않습니다. ‘현재 단계 계속’을 누를 때마다 현재 단계의 일정한 양을 처리하며, 남은 항목이 있으면 같은 단계가 유지됩니다.</p>'
-        . '<p>‘재시도 준비’는 실패한 항목만 다시 처리할 수 있는 상태로 바꾸며, 이미 복사된 항목은 유지합니다. 준비한 뒤에 ‘현재 단계 계속’을 눌러야 재시도합니다.</p>'
+    'body' => '<p>이 작업은 화면을 닫아도 자동으로 끝까지 진행되지 않습니다. ‘' . $communityBoardCopyJobRunLabel . '’을 누를 때마다 현재 단계의 일정한 양을 처리하며, 남은 항목이 있으면 같은 단계가 유지됩니다.</p>'
+        . $communityBoardCopyJobRetryHelp
         . '<p>‘취소 및 정리’는 원본 게시판은 그대로 두고, 이 작업이 만든 대상 게시판과 복사한 데이터·파일을 삭제합니다. 파일 일부를 정리하지 못하면 ‘정리 필요’ 상태로 남으므로 실패 항목을 확인하고 다시 시도하세요.</p>',
 ];
 $communityBoardCopyJobStatusCounts = [];
@@ -56,7 +61,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         }
     }
     $stageProgressLabel = sr_community_board_copy_job_stage_progress_label((string) ($job['stage'] ?? 'prepare'));
-    $jobStatus = (string) ($job['status'] ?? '');
+    $jobStatus = $communityBoardCopyJobStatus;
     $canRun = in_array($jobStatus, ['pending', 'running', 'cleanup_required'], true);
     $canRetry = in_array($jobStatus, ['failed', 'paused'], true);
     $canCancel = in_array($jobStatus, ['pending', 'failed', 'paused'], true);
@@ -93,7 +98,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <div class="form-field">
                 <p class="admin-form-static"><?php echo sr_e($stageProgressLabel); ?></p>
                 <?php if ($canRun) { ?>
-                    <p class="form-help"><?php echo sr_e('자동으로 다음 처리가 시작되지 않습니다. 아래에서 현재 단계를 계속하세요.'); ?></p>
+                    <p class="form-help"><?php echo sr_e('자동으로 다음 처리가 시작되지 않습니다. 아래에서 ‘' . $communityBoardCopyJobRunLabel . '’을 누르세요.'); ?></p>
                 <?php } ?>
             </div>
         </div>
@@ -216,7 +221,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                         <button type="submit" name="intent" value="retry" class="btn btn-solid-light" data-confirm="<?php echo sr_e('실패한 항목만 다시 처리할 수 있는 상태로 바꿉니다. 이미 복사된 항목은 유지되며, 준비한 뒤 현재 단계를 계속해야 재시도합니다. 계속할까요?'); ?>"><?php echo sr_e('재시도 준비'); ?></button>
                     <?php } ?>
                     <?php if ($canRun) { ?>
-                        <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($jobStatus === 'cleanup_required' ? '정리 다시 시도' : '현재 단계 계속'); ?></button>
+                        <button type="submit" name="intent" value="run" class="btn btn-solid-primary"><?php echo sr_e($communityBoardCopyJobRunLabel); ?></button>
                     <?php } ?>
                 </div>
             </form>

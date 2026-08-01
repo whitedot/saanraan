@@ -1025,6 +1025,8 @@ sr_community_release_file_contains('modules/community/views/admin-board-copy.php
 ], 'Community board copy operator guidance');
 sr_community_release_file_contains('modules/community/views/admin-board-copy-jobs.php', [
     '화면을 닫아도 자동으로 끝까지 진행되지 않습니다.',
+    '$communityBoardCopyJobRunLabel = $communityBoardCopyJobStatus === \'cleanup_required\'',
+    'sr_e($communityBoardCopyJobRunLabel)',
     '‘재시도 준비’는 실패한 항목만 다시 처리할 수 있는 상태로 바꾸며',
     '원본 게시판은 그대로 두고, 이 작업이 만든 대상 게시판과 복사한 데이터·파일을 삭제합니다.',
     "'completed' => '복사가 끝났습니다. 대상 게시판은 사용 중지 상태로 남습니다.'",
@@ -1033,6 +1035,8 @@ sr_community_release_file_contains('modules/community/views/admin-board-delete-j
     '삭제 작업을 만드는 즉시 해당 게시판은 ‘사용 중지’ 상태가 됩니다.',
     '작업을 만든 뒤에는 취소하는 기능이 없고',
     '화면을 닫아도 자동으로 끝까지 진행되지 않습니다.',
+    '$communityBoardDeleteJobRunLabel = $communityBoardDeleteJobStatus === \'cleanup_required\'',
+    'sr_e($communityBoardDeleteJobRunLabel)',
     '‘정리 필요’는 게시판 데이터 삭제 후 일부 첨부 파일만 남은 상태입니다.',
     "'pending' => '아직 첫 단계를 시작하지 않았습니다. 게시판은 이미 사용 중지 상태입니다.'",
 ], 'Community board delete job operator guidance');

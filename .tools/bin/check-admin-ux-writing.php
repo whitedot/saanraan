@@ -16,6 +16,7 @@ $requiredGuidePhrases = [
     '민감하거나 운영자 판단에 필요하지 않은 값은 토스트, alert, 도움말에 노출하지 않는다',
     '마지막 `importantHelp` 인자를 명시적으로 켠 항목에만 `?`를 출력',
     '대표 필드나 섹션 제목 한 곳에만 `?`를 둔다',
+    '버튼명을 직접 가리킬 때는 화면에 표시된 전체 버튼명과 정확히 맞춘다',
 ];
 
 $guidePath = $root . '/docs/admin-ui-guide.md';
@@ -95,6 +96,79 @@ foreach ($scanFiles as $relativePath) {
         }
         if (preg_match($pattern, $scanContent) === 1) {
             $errors[] = $message . ' file=' . $relativePath;
+        }
+    }
+}
+
+$buttonLabelContracts = [
+    'modules/community/views/admin-boards.php' => [
+        'required' => [
+            '$communityBoardFinalActionLabel = $communityBoardsPage === \'edit\'',
+            '‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 눌러야 최종 반영됩니다.',
+            '<button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e($communityBoardFinalActionLabel); ?></button>',
+        ],
+        'blocked' => ['게시판 저장을 눌러야', '게시판 저장 버튼', '게시판 저장 전까지'],
+    ],
+    'modules/community/views/admin-board-copy-jobs.php' => [
+        'required' => [
+            '$communityBoardCopyJobRunLabel = $communityBoardCopyJobStatus === \'cleanup_required\'',
+            '$communityBoardCopyJobRetryHelp = $communityBoardCopyJobStatus === \'cleanup_required\'',
+            '‘\' . $communityBoardCopyJobRunLabel . \'’을 누를 때마다',
+            '<?php echo sr_e($communityBoardCopyJobRunLabel); ?></button>',
+        ],
+        'blocked' => ["sr_e(\$jobStatus === 'cleanup_required' ? '정리 다시 시도' : '현재 단계 계속')"],
+    ],
+    'modules/community/views/admin-board-delete-jobs.php' => [
+        'required' => [
+            '$communityBoardDeleteJobRunLabel = $communityBoardDeleteJobStatus === \'cleanup_required\'',
+            '$communityBoardDeleteJobRetryHelp = $communityBoardDeleteJobStatus === \'cleanup_required\'',
+            '‘\' . $communityBoardDeleteJobRunLabel . \'’을 누를 때마다',
+            '<?php echo sr_e($communityBoardDeleteJobRunLabel); ?></button>',
+        ],
+        'blocked' => ["sr_e(\$jobStatus === 'cleanup_required' ? '파일 정리 다시 시도' : '현재 단계 계속')"],
+    ],
+    'modules/site_menu/views/admin-site-menus.php' => [
+        'required' => [
+            '$siteMenuMenuDraftSaveLabel = sr_t(',
+            '$siteMenuItemDraftSaveLabel = sr_t(',
+            '$siteMenuDraftOrderSaveLabel = sr_t(',
+            '$siteMenuPublishLabel = sr_t(',
+            '<?php echo sr_e($siteMenuMenuDraftSaveLabel); ?>’을 누르면',
+            '<?php echo sr_e($siteMenuItemDraftSaveLabel); ?>’을 누르면',
+            '<?php echo sr_e($siteMenuPublishLabel); ?>’을 누르면',
+        ],
+        'blocked' => ['여기서 저장하면', '초안 저장 작업은'],
+    ],
+    'modules/markdown_editor/views/admin-settings.php' => [
+        'required' => ['현재 요소 스타일 초기화 버튼은 현재 선택한 요소의 설정만 기본값으로 돌립니다.'],
+        'blocked' => ['. 초기화 버튼은 현재 선택한 요소의 설정만 기본값으로 돌립니다.'],
+    ],
+    'modules/admin/lang/ko.php' => [
+        'required' => [
+            '‘선택한 방식으로 정리’를 누르면 바로 정리되고',
+            '선택한 뒤 ‘선택 권한 추가’를 누르면',
+        ],
+        'blocked' => ['정리 실행 버튼을 누르면', '선택한 뒤 추가를 누르면'],
+    ],
+    'modules/community/lang/ko.php' => [
+        'required' => ['규정에 맞지 않는 닉네임은 닉네임 초기화 버튼으로'],
+        'blocked' => ['규정에 맞지 않는 닉네임은 초기화 버튼으로'],
+    ],
+];
+foreach ($buttonLabelContracts as $relativePath => $contract) {
+    $content = file_get_contents($root . '/' . $relativePath);
+    if (!is_string($content)) {
+        $errors[] = '버튼 안내 문구 검사 파일을 읽을 수 없습니다: ' . $relativePath;
+        continue;
+    }
+    foreach ($contract['required'] as $marker) {
+        if (!str_contains($content, $marker)) {
+            $errors[] = '안내 문구와 실제 버튼명이 같은 라벨을 사용해야 합니다: ' . $relativePath . ' marker=' . $marker;
+        }
+    }
+    foreach ($contract['blocked'] as $marker) {
+        if (str_contains($content, $marker)) {
+            $errors[] = '실제 버튼과 다른 안내 명칭을 제거해야 합니다: ' . $relativePath . ' marker=' . $marker;
         }
     }
 }

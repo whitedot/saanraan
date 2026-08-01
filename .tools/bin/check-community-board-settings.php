@@ -796,7 +796,9 @@ sr_check_community_board_settings_contains('modules/community/views/admin-boards
     'data-community-initial-managers-builder',
     'name="board_managers_json"',
     'admin-community-board-manager-permission-list',
-    '게시판 저장을 눌러야 최종 반영됩니다.',
+    '$communityBoardFinalActionLabel = $communityBoardsPage === \'edit\'',
+    '‘<?php echo sr_e($communityBoardFinalActionLabel); ?>’을 눌러야 최종 반영됩니다.',
+    '<button type="submit" class="btn btn-solid-primary admin-form-final-save"><?php echo sr_e($communityBoardFinalActionLabel); ?></button>',
 ], 'community board single form child management UI');
 $adminBoardCategoryViewContent = sr_check_community_board_settings_content('modules/community/views/admin-boards.php');
 foreach (['id="community_initial_category_key"', 'data-community-initial-category-input="category_key"'] as $categoryKeyInputNeedle) {

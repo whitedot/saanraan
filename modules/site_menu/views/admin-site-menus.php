@@ -6,6 +6,10 @@ $adminContainerClass = 'admin-page-site-menu admin-ui-scope';
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 $siteMenuHelpOpenLabel = '도움말 보기';
+$siteMenuMenuDraftSaveLabel = sr_t('site_menu::ui.menu.draft.save.97477650');
+$siteMenuItemDraftSaveLabel = sr_t('site_menu::ui.item.draft.save.73d4c98b');
+$siteMenuDraftOrderSaveLabel = sr_t('site_menu::ui.draft.order.save.17fa471c');
+$siteMenuPublishLabel = sr_t('site_menu::ui.publish.30a64fe2');
 $siteMenuHelp = [
     'menu' => [
         'id' => 'site-menu-help-menu',
@@ -30,7 +34,7 @@ $siteMenuHelp = [
         'id' => 'site-menu-help-order',
         'title' => '표시 순서와 공개 반영',
         'body' => '<p>같은 상위 항목 안에서 표시 순서 숫자가 작을수록 먼저 나옵니다. 드래그하거나 이동 버튼을 누르면 목록의 숫자가 바뀍니다.</p>'
-            . '<p>항목 추가·수정 창에서 저장하면 그 항목의 표시 순서만 저장됩니다. 목록에서 바꾼 여러 항목의 순서는 <strong>초안 순서 저장</strong> 또는 <strong>공개 반영</strong>을 눌러야 저장됩니다. 공개 사이트에는 공개 반영을 누른 시점의 초안 전체가 적용됩니다.</p>',
+            . '<p>항목 추가·수정 창에서 <strong>' . sr_e($siteMenuItemDraftSaveLabel) . '</strong>을 누르면 그 항목의 표시 순서만 저장됩니다. 목록에서 바꾼 여러 항목의 순서는 <strong>' . sr_e($siteMenuDraftOrderSaveLabel) . '</strong> 또는 <strong>' . sr_e($siteMenuPublishLabel) . '</strong>을 눌러야 저장됩니다. 공개 사이트에는 ' . sr_e($siteMenuPublishLabel) . '을 누른 시점의 초안 전체가 적용됩니다.</p>',
     ],
 ];
 
@@ -190,7 +194,7 @@ $siteMenuModalCloseButton = static function (string $modalId): void {
     <?php
 };
 
-$siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuModalCloseButton): void {
+$siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuMenuDraftSaveLabel, $siteMenuPublishLabel, $siteMenuModalCloseButton): void {
     $editingMenu = is_array($menu);
     $menuKey = $editingMenu ? (string) ($menu['menu_key'] ?? '') : '';
     $label = $editingMenu ? (string) ($menu['label'] ?? '') : '';
@@ -236,11 +240,11 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">여기서 저장하면 메뉴 초안만 바뀍니다. 공개 사이트에 적용하려면 목록에서 공개 반영을 눌러야 합니다.</p>
+                    <p class="form-help">‘<?php echo sr_e($siteMenuMenuDraftSaveLabel); ?>’을 누르면 메뉴 초안만 바뀝니다. 공개 사이트에 적용하려면 목록에서 ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 눌러야 합니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.menu.draft.save.97477650')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e($siteMenuMenuDraftSaveLabel); ?></button>
                 </div>
             </form>
         </div>
@@ -248,7 +252,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
     <?php
 };
 
-$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuIconOptions, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions): void {
+$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuItemDraftSaveLabel, $siteMenuPublishLabel, $siteMenuIconOptions, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions): void {
     $editingItem = is_array($item);
     $itemId = $editingItem ? (int) ($item['id'] ?? 0) : 0;
     $itemMenuId = $editingItem ? (int) ($item['menu_id'] ?? $menuId) : $menuId;
@@ -367,11 +371,11 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">여기서 저장하면 이 항목의 초안만 바뀍니다. 목록에서 바꾼 다른 항목의 표시 순서는 함께 저장되지 않으며, 공개 사이트에 적용하려면 공개 반영을 눌러야 합니다.</p>
+                    <p class="form-help">‘<?php echo sr_e($siteMenuItemDraftSaveLabel); ?>’을 누르면 이 항목의 초안만 바뀝니다. 목록에서 바꾼 다른 항목의 표시 순서는 함께 저장되지 않으며, 공개 사이트에 적용하려면 ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 눌러야 합니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
-                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e(sr_t('site_menu::ui.item.draft.save.73d4c98b')); ?></button>
+                    <button type="submit" class="btn btn-solid-primary modal-action"><?php echo sr_e($siteMenuItemDraftSaveLabel); ?></button>
                 </div>
             </form>
         </div>
@@ -512,9 +516,9 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
 </section>
 
 <div class="form-actions form-sticky-actions admin-site-menu-form-actions">
-    <p class="form-help">초안 저장 작업은 공개 사이트에 바로 반영되지 않습니다. 공개 반영을 누르면 현재 초안이 실제 메뉴로 적용됩니다.</p>
-    <button type="submit" form="site-menu-order-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('site_menu::ui.draft.order.save.17fa471c')); ?></button>
-    <button type="submit" form="site-menu-publish-form" class="btn btn-solid-primary" data-confirm-message="<?php echo sr_e(sr_t('site_menu::ui.publish.confirm.46c70ccb')); ?>"><?php echo sr_e(sr_t('site_menu::ui.publish.30a64fe2')); ?></button>
+    <p class="form-help">‘<?php echo sr_e($siteMenuDraftOrderSaveLabel); ?>’은 공개 사이트에 바로 반영되지 않습니다. ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 누르면 현재 초안이 실제 메뉴로 적용됩니다.</p>
+    <button type="submit" form="site-menu-order-form" class="btn btn-solid-light"><?php echo sr_e($siteMenuDraftOrderSaveLabel); ?></button>
+    <button type="submit" form="site-menu-publish-form" class="btn btn-solid-primary" data-confirm-message="<?php echo sr_e(sr_t('site_menu::ui.publish.confirm.46c70ccb')); ?>"><?php echo sr_e($siteMenuPublishLabel); ?></button>
 </div>
 
 <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
