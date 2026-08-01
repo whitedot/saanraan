@@ -72,6 +72,8 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 `storage/`에 쓸 수 없으면 설치 잠금 파일, 오류 로그, 업데이트 실패 marker, 모듈 백업 디렉터리, 업로드 파일 저장 디렉터리를 만들 수 없다. 설치 전에 웹서버/PHP 실행 사용자가 `storage/` 아래에 하위 디렉터리를 만들 수 있도록 쓰기 권한을 조정하고, 운영 중 권한을 바꾸는 경우 `storage/logs/error.log` 기록 여부와 이미지 업로드 저장 여부를 다시 확인한다. 권한을 넓힐 수 없는 호스팅에서는 사용하는 모듈의 저장 디렉터리 예를 들어 `storage/seo`, `storage/banner`, `storage/logo_manager`, `storage/content`, `storage/community`를 웹서버 사용자가 쓸 수 있게 미리 만든다.
 
+운영 설치가 끝난 뒤 `config/`에는 다른 OS 사용자의 쓰기 권한을 남기지 않는다. `storage/`와 실제 쓰기 하위 디렉터리는 웹서버 사용자 소유 또는 전용 배포 그룹 소유로 두고 `0750` 또는 필요한 경우 setgid를 포함한 `2770`을 우선한다. 소유권이나 그룹을 바꿀 수 없는 공유호스팅에서만 world-writable 디렉터리에 sticky bit를 적용한 `1777`을 제한적 fallback으로 사용할 수 있다. 평범한 `0777`은 다른 계정이 기존 파일을 교체하거나 삭제할 수 있으므로 허용하지 않는다. sticky fallback은 다른 계정의 파일 선점에 의한 서비스 거부까지 막지는 못하므로 가능한 즉시 전용 소유권 또는 그룹 권한으로 전환한다.
+
 ## 서버별 처리
 
 Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/reset.css`, `/assets/layout.css`, `/assets/module.css`, `/assets/editor-md.css`, `/assets/common.css`, `/assets/ui-kit-layout.css`, `/modules/ckeditor/vendor/ckeditor5/ckeditor5.css`, `/modules/ckeditor/assets/saanraan-ckeditor.css`, `/modules/content/theme/basic/assets/reset.css`, `/modules/content/theme/basic/assets/layout.css`, `/modules/content/theme/basic/assets/module.css`, `/modules/content/assets/layout.js`, `/modules/content/assets/module.js`, `/modules/community/theme/basic/assets/reset.css`, `/modules/community/theme/basic/assets/layout.css`, `/modules/community/theme/basic/assets/module.css`, `/modules/community/assets/layout.js`, `/modules/community/assets/module.js`, `/modules/member/skins/basic/skin.css`, `/modules/quiz/theme/basic/assets/layout.css`, `/modules/quiz/assets/layout.js`, `/modules/quiz/assets/module.js`, `/modules/survey/theme/basic/assets/layout.css`, `/modules/survey/assets/layout.js`, `/modules/survey/assets/module.js`, `/modules/admin/assets/tokens.css`, `/modules/admin/assets/ui-kit-layout.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다. 썸네일 캐시를 사용하는 환경에서는 `/storage/cache/thumbnails/community/{hash-prefix}/{hash}_{variant}_{source_version}.jpg` 같은 생성 파일만 열리고 `/storage/cache/private-thumbnails/...`, `/storage/.gitignore`, 임의 storage 파일은 계속 막히는지도 확인한다.
@@ -135,7 +137,7 @@ DB 비밀번호는 `config/config.php`의 `db.password_env`에 지정한 환경�
 
 카페24 일반 웹호스팅처럼 환경변수 주입을 보장하기 어려운 공유호스팅에서는 `db.password`에 DB 비밀번호를 저장하는 fallback을 허용한다. 이 경우 `config/config.php`는 웹 서버 사용자만 읽을 수 있도록 가능한 한 `600` 권한으로 두고, `config/` 직접 접근 차단과 `.htaccess` 적용 여부를 반드시 함께 점검한다.
 
-배포 후에는 다음 로컬 점검으로 `config/config.php` 파일 권한과 DB 비밀번호 설정을 확인한다. 환경변수가 없고 `db.password` fallback이 있으면 공유호스팅용 경고를 출력하되 통과한다.
+배포 후에는 다음 로컬 점검으로 `config/`, `storage/`, `config/config.php` 권한과 DB 비밀번호 설정을 확인한다. `config/` 또는 `storage/` 아래에 sticky bit 없는 world-writable 디렉터리가 있으면 실패한다. sticky fallback은 경고로 보고한다. 환경변수가 없고 `db.password` fallback이 있으면 공유호스팅용 경고를 출력하되 통과한다.
 
 ```bash
 php .tools/bin/check-deployment-config.php
