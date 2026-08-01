@@ -196,6 +196,10 @@ foreach ([
     ],
     '.tools/bin/release-preflight.php' => [
         'release-preflight-version: 1',
+        'SR_MINIMUM_PHP_VERSION_ID',
+        'SR_ALLOW_UNSUPPORTED_PHP_FOR_CHECKS',
+        'php-minimum-version',
+        'php-version-supported',
         'purifier-available',
         'purifier-version',
         'purifier-module-autoload',
@@ -419,6 +423,8 @@ if ($preflight !== '') {
     foreach ([
         '/^release-preflight-version: 1$/m',
         '/^php-version: .+$/m',
+        '/^php-minimum-version: 8\.3\.0$/m',
+        '/^php-version-supported: (?:yes|no)$/m',
         '/^purifier-available: yes$/m',
         '/^purifier-version: 4\.19\.0$/m',
         '/^purifier-module-autoload: present$/m',

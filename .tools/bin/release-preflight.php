@@ -10,6 +10,7 @@ if (!defined('SR_ROOT')) {
     define('SR_ROOT', $root);
 }
 
+require_once $root . '/core/version.php';
 require_once $root . '/core/helpers/output.php';
 
 $errors = [];
@@ -73,6 +74,16 @@ $purifierStatus = function_exists('sr_rich_text_purifier_status') ? sr_rich_text
 $purifierAvailable = ($purifierStatus['available'] ?? false) === true;
 $expectedPurifierAutoloadPath = 'modules/htmlpurifier/vendor/autoload.php';
 $expectedPurifierCacheDir = 'storage/cache/htmlpurifier';
+$unsupportedPhpOverride = getenv('SR_ALLOW_UNSUPPORTED_PHP_FOR_CHECKS') === '1';
+
+if (PHP_VERSION_ID < SR_MINIMUM_PHP_VERSION_ID) {
+    $message = 'PHP ' . SR_MINIMUM_PHP_VERSION . ' or newer is required for release validation; current version is ' . PHP_VERSION . '.';
+    if ($unsupportedPhpOverride) {
+        fwrite(STDERR, 'Warning: ' . $message . " Unsupported-version override is for local checks only.\n");
+    } else {
+        $errors[] = $message;
+    }
+}
 
 if ($purifierVersion === '') {
     $errors[] = 'HTML Purifier VERSION file is empty.';
@@ -157,6 +168,8 @@ if ($errors !== []) {
 
 echo 'release-preflight-version: 1' . "\n";
 echo 'php-version: ' . PHP_VERSION . "\n";
+echo 'php-minimum-version: ' . SR_MINIMUM_PHP_VERSION . "\n";
+echo 'php-version-supported: ' . (PHP_VERSION_ID >= SR_MINIMUM_PHP_VERSION_ID ? 'yes' : 'no') . "\n";
 echo 'purifier-available: ' . ($purifierAvailable ? 'yes' : 'no') . "\n";
 echo 'purifier-version: ' . $purifierVersion . "\n";
 echo 'purifier-module-autoload: present' . "\n";

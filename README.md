@@ -24,7 +24,7 @@ saanraan의 핵심 방향은 기능을 코어에 계속 쌓는 것이 아니라,
 | 항목 | 내용 |
 | --- | --- |
 | 성격 | 저가형 PHP 웹호스팅 운영을 고려한 탐구형 회원 중심 모듈형 웹 솔루션 베이스 |
-| 언어 | PHP 8.1 이상 |
+| 언어 | PHP 8.3 이상 |
 | DB | MySQL 또는 MySQL 호환 DB, `pdo_mysql` 필요 |
 | 프론트엔드 | Vanilla JavaScript, plain CSS |
 | 기본 설치 | `core + member + admin + policy_documents + privacy` |

@@ -489,15 +489,14 @@ $configAccessible = $configReadable && $configWritable;
 $storageWritable = is_dir(SR_ROOT . '/storage')
     ? is_writable(SR_ROOT . '/storage')
     : is_writable(SR_ROOT);
-$minimumPhpVersion = '8.1.0';
-$minimumPhpVersionId = 80100;
-$phpVersionSupported = PHP_VERSION_ID >= $minimumPhpVersionId;
+$minimumPhpVersion = SR_MINIMUM_PHP_VERSION;
+$phpVersionSupported = PHP_VERSION_ID >= SR_MINIMUM_PHP_VERSION_ID;
 $installChecks = [
     [
         'label' => 'PHP',
         'status' => $phpVersionSupported ? 'ok' : 'error',
         'message' => PHP_VERSION . ' / 필요: ' . $minimumPhpVersion . ' 이상',
-        'guide' => $phpVersionSupported ? '현재 PHP 버전으로 설치를 진행할 수 있습니다.' : '호스팅 관리자에서 PHP 8.1 이상으로 변경한 뒤 설치하세요.',
+        'guide' => $phpVersionSupported ? '현재 PHP 버전으로 설치를 진행할 수 있습니다.' : '호스팅 관리자에서 PHP 8.3 이상으로 변경한 뒤 설치하세요.',
     ],
     [
         'label' => 'PDO MySQL',
@@ -609,7 +608,7 @@ if (sr_request_method() === 'POST' && !$installPreviewMode) {
     }
 
     if (!$phpVersionSupported) {
-        $addInstallError('PHP 8.1 이상에서만 설치할 수 있습니다.', 'environment');
+        $addInstallError('PHP 8.3 이상에서만 설치할 수 있습니다.', 'environment');
     }
 
     if (!$configReadable) {

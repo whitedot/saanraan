@@ -14,7 +14,7 @@
 - [1.0 전 구현 스냅샷](implementation-snapshot.md)이 현재 번들 모듈, 대표 경로, 주요 DB 테이블과 맞는지 확인한다. 1.0 배포 전에는 GitHub Wiki가 아니라 저장소 `docs/`를 운영 문서 기준으로 사용한다.
 - 외부 라이브러리나 vendored asset이 포함되면 [외부 의존성 배치 기준](dependency-policy.md)에 따라 버전, 출처, 라이선스, cache 쓰기 경로를 확인한다. HTML Purifier 포함 릴리스는 `modules/htmlpurifier/`에서 `composer install --no-dev --prefer-dist`로 `composer.lock` 기준 vendor를 재현하고, 버전 변경 때만 `composer update ezyang/htmlpurifier --no-dev --prefer-dist`를 사용한다.
 - 기본 점검을 통과시키고, [검증 상태와 증거 기준](verification-status.md)에 맞춰 필요한 로컬/스테이징 HTTP 스모크 점검을 실행한다.
-- `main` 또는 릴리스 후보 commit의 GitHub `Checks` workflow가 PHP 8.1/8.3에서 통과했는지 확인한다. workflow의 미설치 HTTP smoke는 설치 DB 게이트를 대체하지 않는다.
+- `main` 또는 릴리스 후보 commit의 GitHub `Checks` workflow가 PHP 8.3/8.4에서 통과했는지 확인한다. workflow의 미설치 HTTP smoke는 설치 DB 게이트를 대체하지 않는다.
 - 검증 결과는 [릴리스 검증 기록 템플릿](release-verification-template.md)을 기준으로 `docs/records/`에 남긴다.
 
 ```sh
@@ -69,7 +69,7 @@ Apache 배포에서는 루트 `.htaccess`가 함께 올라가야 한다. nginx �
 
 릴리스 zip을 직접 만들었다면 SHA-256 checksum을 함께 기록한다. 직접 제작 zip은 `php .tools/bin/release-package-dry-run.php --manifest` 출력의 파일 수와 `manifest-sha256`도 함께 남겨 zip 생성 전 후보 파일 집합을 고정한다. dry-run은 루트 `vendor/`, `dist/`, `storage/`, 비밀 파일, 백업/임시 파일, DB dump, SQLite/DB 파일, SSH key, package registry token 파일이 후보에 들어오면 실패해야 한다. 모듈 내부 vendor처럼 릴리스에 포함하기로 한 vendored 의존성은 허용하되, 모듈 내부의 `.env`, dump, key 파일은 제외한다. 설치 DB smoke용 `.tools/bin/smoke-*.php` 도구 중 릴리스 검증 절차에서 직접 실행하는 파일은 패키지 정책 점검에서 실행권한도 확인한다. GitHub source zip을 그대로 사용하는 경우에는 태그와 commit SHA를 릴리스 노트에 기록한다.
 
-릴리스 전 요약값은 다음 명령으로 한 번에 확인할 수 있다. 이 출력은 Purifier 로드 상태, HTML Purifier 버전, 모듈 내부 autoload 존재, cache 경로/쓰기 가능 여부, release package dry-run 파일 수, manifest hash를 릴리스 검증 기록에 옮겨 적기 위한 read-only preflight다. HTML Purifier가 로드되지 않거나, 런타임 버전이 `VERSION` 파일과 다르거나, 모듈 내부 autoload 대신 다른 경로를 쓰거나, cache가 `storage/cache/htmlpurifier` 아래에 쓰기 가능하게 준비되지 않으면 preflight는 실패해야 한다.
+릴리스 전 요약값은 다음 명령으로 한 번에 확인할 수 있다. 이 출력은 PHP 최소 버전 충족 여부, Purifier 로드 상태, HTML Purifier 버전, 모듈 내부 autoload 존재, cache 경로/쓰기 가능 여부, release package dry-run 파일 수, manifest hash를 릴리스 검증 기록에 옮겨 적기 위한 read-only preflight다. PHP 8.3 미만이거나 HTML Purifier가 로드되지 않거나, 런타임 버전이 `VERSION` 파일과 다르거나, 모듈 내부 autoload 대신 다른 경로를 쓰거나, cache가 `storage/cache/htmlpurifier` 아래에 쓰기 가능하게 준비되지 않으면 preflight는 실패해야 한다. `SR_ALLOW_UNSUPPORTED_PHP_FOR_CHECKS=1`은 지원 버전 PHP를 준비하기 전 로컬 회귀 확인에만 사용하는 임시 우회이며 릴리스 판정에는 사용할 수 없다.
 
 ```sh
 php .tools/bin/release-preflight.php
