@@ -122,7 +122,7 @@ $optionalModules = [
     ],
     'message' => [
         'name' => '쪽지',
-        'version' => '2026.07.003',
+        'version' => '2026.07.004',
         'label' => '쪽지',
         'description' => '회원 간 쪽지 수발신과 수신 설정을 설치합니다.',
     ],
@@ -218,7 +218,7 @@ $optionalModules = [
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.07.012',
+        'version' => '2026.07.013',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 스크랩 기능을 설치합니다.',
     ],

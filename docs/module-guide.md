@@ -139,6 +139,7 @@ modules/{module_key}/
 - public-popup-layer.php (optional)
 - public-reaction.php (optional)
 - public-antispam.php (optional)
+- public-report.php (optional)
 - public-branding.php (optional)
 - public-cookie-consent.php (optional)
 - public-message-summary.php (optional)
@@ -1056,6 +1057,7 @@ return [
 - `public-popup-layer.php`: 선택된 공개 팝업레이어의 조회·렌더링, 관리자 선택 후보, 공통 stylesheet를 팝업레이어 모듈이 제공하는 계약
 - `public-reaction.php`: 리액션 대상 batch resolve·집계·렌더링, preset 설정, 삭제 정리와 공통 stylesheet/script를 리액션 모듈이 제공하는 계약
 - `public-antispam.php`: 소비 모듈이 자기 설정에서 결정한 명시적 적용 모드로 자동등록방지 정책 조회, challenge 렌더링, 서버 검증을 호출하는 계약
+- `public-report.php`: 신고 사유·결과 flash·공통 신고 폼 마크업을 신고 기능 소유 모듈이 제공하는 계약
 - `public-branding.php`: 공개 레이아웃의 데스크톱·모바일·심볼 로고와 favicon 렌더링을 로고 매니저가 제공하는 계약
 - `public-cookie-consent.php`: 쿠키 동의 안내 마크업과 필요한 stylesheet를 개인정보 모듈이 함께 제공하는 계약
 - `public-message-summary.php`: 공개 회원 메뉴의 쪽지 사용 상태와 읽지 않은 개수를 쪽지 모듈이 제공하는 계약
@@ -1126,6 +1128,12 @@ return [
 - 출력 슬롯에서 뒤늦게 생성된 배너·팝업 마크업의 stylesheet가 필요하면 layout shell은 `sr_module_contract_function()`으로 해당 공개 계약의 `assets_function`을 읽는다.
 - 리액션 목록·댓글은 item loop 안에서 대상 정책과 집계를 다시 조회하지 않고 계약의 batch resolve·summary 결과를 renderer에 전달한다.
 - 소비 모듈은 자기 전역·개별 설정으로 사용 여부를 먼저 판정한다. 사용하지 않는 상태에서는 공개 계약을 로드하거나 대상 조회·asset 병합·renderer 호출을 하지 않는다.
+
+`public-report.php`:
+
+- 커뮤니티 모듈이 신고 사유 표시 모델, 신고 결과 flash 소비와 공통 신고 폼 renderer를 제공한다.
+- 쪽지 요청은 커뮤니티 모듈이 활성화된 경우에만 계약 파일을 명시적으로 로드한다. 쪽지 모듈은 커뮤니티 내부 helper, 신고 action URL, 사유 fallback 또는 신고 폼 마크업을 다시 구현하지 않는다.
+- 커뮤니티 모듈이 없거나 비활성화된 경우 쪽지 읽기와 답장·삭제는 그대로 유지하고 신고 UI만 표시하지 않는다.
 
 `public-branding.php`:
 
@@ -1573,6 +1581,7 @@ return [
 | `public-popup-layer.php` | `content`, `community`, `quiz`, `survey` 모듈과 공개 layout shell | 선택 팝업레이어 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 팝업 공개 기간·상태 정책, 마크업과 공통 stylesheet |
 | `public-reaction.php` | `content`, `community`, `quiz`, `survey` 모듈 | 리액션 대상 batch resolve·집계, widget 렌더링, 설정 후보와 삭제 정리 | 리액션 정책·원장·마크업과 공통 stylesheet/script |
 | `public-antispam.php` | `member`, `content`, `community` 모듈 | 소비 모듈이 명시한 적용 모드에 따른 challenge 렌더링과 제출 검증 | challenge/provider 정책과 공통 렌더링·검증 함수 |
+| `public-report.php` | `message` 모듈 | 커뮤니티 활성 상태에서 쪽지 신고 context·결과 flash 준비와 폼 렌더링 | 신고 사유·결과·공통 폼 마크업 |
 | `public-branding.php` | `content`, `community`, `quiz`, `survey` 공개 layout shell | 공개 로고와 favicon 렌더링 | 로고 선택·기간·대상 정책과 마크업 |
 | `public-cookie-consent.php` | `content`, `community`, `quiz`, `survey` 공개 layout shell | 쿠키 동의 안내 렌더링과 asset 병합 | 동의 상태·안내 마크업과 공통 stylesheet |
 | `public-message-summary.php` | `content`, `community`, `quiz`, `survey` 공개 layout shell | 회원 메뉴의 쪽지 사용 상태와 미확인 수 표시 | 쪽지 사용 정책과 미확인 집계 |
@@ -1632,8 +1641,8 @@ return [
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `asset_exchange` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-action-rows.php`, `dashboard.php` | `asset-exchange.php`, `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-withdrawal-assets.php`, `member-summary-rows.php`, `coupon-references.php`, `dashboard.php`, `url-embed-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php`, `public-identity.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php`, `public-antispam.php` |
-| `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `member-registration.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php`, `public-message-summary.php` | `member-assets.php`, `notification-events.php` |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `public-report.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php`, `public-identity.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php`, `public-antispam.php` |
+| `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `member-registration.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php`, `public-message-summary.php` | `member-assets.php`, `notification-events.php`, `public-report.php` |
 | `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
 | `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
 | `antispam` | `paths.php`, `admin-menu.php`, `public-antispam.php` | `antispam-targets.php`, `antispam-providers.php` |
@@ -1864,6 +1873,8 @@ CKEditor 본문 이미지는 다운로드 파일과 DB 참조 테이블 없이 �
 커뮤니티의 게시판 읽기/쓰기/댓글과 쪽지 발송에서 회원 그룹과 최소 레벨이 함께 설정된 경우 두 조건을 모두 통과해야 허용한다. 회원 그룹만 설정된 조건은 회원 그룹만, 최소 레벨만 설정된 조건은 최소 레벨만 확인한다. 게시판과 게시판 그룹에서 선택한 회원 그룹에게만 권한을 부여하려면 해당 읽기/쓰기/댓글 정책을 그룹으로 선택해야 한다. 회원 그룹이 비어 있으면 회원 그룹 제한을 적용하지 않고, 최소 레벨이 있으면 레벨 조건만 확인한다. 게시판과 게시판 그룹 저장 시 쓰기/댓글 회원 그룹은 읽기 회원 그룹의 하위 집합으로 저장한다. 쓰기/댓글에서 선택하면 읽기에도 포함하고, 읽기에서 제거하면 쓰기/댓글에서도 제거한다. 커뮤니티 활동 점수는 게시글과 댓글을 게시판별로 집계한 뒤 각 게시판의 유효 게시글 점수와 댓글 점수를 곱해서 합산한다. 커뮤니티 레벨 사용, 자동 재계산, 최대 레벨, 전역 게시글/댓글 점수는 `/admin/community/settings`의 레벨 섹션에서 관리하며, 전역 게시글/댓글 점수 입력은 자동 재계산을 사용할 때만 노출한다. 커뮤니티 최대 레벨은 `level_max_value` 모듈 설정으로 1-100 범위에서 관리하며, 값을 늘리면 부족한 `sr_community_levels` 행을 기본 최소 점수로 자동 추가한다. 값을 줄여도 기존 레벨 행은 삭제하지 않고 레벨 판정과 선택지를 새 최대값까지만 사용한다. 최대 레벨 변경은 모달의 영향 안내 확인 단계와 확인 문구 입력 단계, 서버 확인 플래그/문구 검증을 거쳐 저장한다. 커뮤니티 활동으로 레벨이 바뀔 수 있는 게시글/댓글 생성, 삭제, 상태 변경 흐름은 레벨을 먼저 재계산한 뒤 커뮤니티 자동 회원 그룹 규칙을 평가해야 `community.level_at_least` 규칙이 최신 레벨을 기준으로 동작한다. 레벨 설정 페이지는 레벨 미사용 상태에서 환경설정으로 이동해 레벨을 먼저 켜라는 안내를 제공한다. 레벨 최대값이나 최소 점수 변경 후 기존 회원 레벨을 반영하려면 관리자가 재계산을 실행해야 하며, 재계산은 `sr_community_level_recalculate_jobs` row를 먼저 만든 뒤 모달의 부하 가능성 확인 단계와 확인 문구 입력 단계, 서버 확인 플래그/문구 검증을 거쳐 활성/대기 회원을 배치로 처리한다. 레벨 자동 재계산을 사용하지 않을 때 관리자는 멤버 관리 목록에서 활성 멤버를 선택한 뒤 상단 일괄 작업으로 레벨을 직접 변경할 수 있으며, 목록의 레벨 열은 현재 레벨 텍스트만 표시한다.
 
 쪽지 작성 화면은 받는 회원 입력에 닉네임 자동완성 선택을 제공하며, 선택된 여러 회원에게 같은 본문을 한 번에 발송할 수 있다. 쪽지 발송이 성공하면 알림 모듈이 활성화된 환경에서 `message.message.received` 계정 이벤트로 수신자 알림을 만들고, 운영자는 `/admin/message/notification-templates`에서 문구와 채널, 사용 여부를 관리한다. `/admin/community/settings`의 자산/과금 섹션에서 쪽지 차감을 켜면 수신자별 쪽지 생성과 차감이 같은 트랜잭션에서 처리되고, 차감 실패 시 해당 발송 묶음은 저장되지 않는다.
+
+쪽지 신고는 신고 원장과 처리 정책을 소유한 커뮤니티 모듈의 `public-report.php`를 선택적으로 소비한다. 쪽지 모듈은 신고 가능한 쪽지 target을 `report-targets.php`로 제공하고, 커뮤니티는 신고 POST에서 이 계약을 이용해 대상과 상대 계정을 확인한다. 반대 방향의 공개 화면에서는 쪽지 요청이 커뮤니티 활성 상태를 확인한 뒤 `public-report.php`의 context·flash·renderer만 호출한다. 따라서 어느 한쪽의 내부 helper를 직접 include하지 않으며, 커뮤니티가 비활성화된 상태에서는 쪽지 신고 폼만 숨기고 쪽지 열람 자체는 유지한다.
 
 커뮤니티 신고 임계치 자동 임시 조치는 커뮤니티 모듈 경계 안에서 소유한다. 기본 설정은 비활성이며, v1 대상은 게시글과 댓글이다. `/admin/community/settings`의 신고 자동조치 섹션은 사용 여부, 임계 신고자 수, 집계 기간, 공개 처리 방식을 저장한다. 자동 조치 이력은 `sr_community_report_auto_actions`에 저장하고 같은 대상의 활성 row는 `active_target_uid` unique 기준으로 하나만 허용한다. 자동 조치 집계는 같은 대상의 최신 terminal 신고 검토 시각과 terminal 자동조치 시각 이후 생성된 `open`/`reviewing` 신고자만 유효 신고자로 센다. 숨김 상태 자체는 대상 row의 `status = hidden`으로 판단하고, 숨김 시각·사유·처리자·복원 전 상태는 `sr_community_hidden_targets`에서 target type/id로 읽는다. 자동 숨김이 성공하면 이 hidden target row를 read-back해 `hidden_at`, `hidden_reason`, `hidden_by_account_id` fingerprint를 자동조치 row에 저장한다. `/admin/community/reports`는 활성 자동조치가 연결된 신고에 자동조치 상태와 임계치 도달 수를 표시하고, 단건 신고 처리에서 확정 또는 해제를 저장할 수 있다. 해제는 대상이 아직 신고 임계치 자동 숨김 상태이고 read-back fingerprint가 맞을 때 숨김 전 상태로 복원하며, 게시글을 공개 상태로 복원하면 첨부도 active로 되돌린다. 운영자가 조치를 확정, 해제, 실패, 건너뜀 같은 terminal 상태로 전이하면 helper가 활성 UID를 비워 이후 새 판단이 같은 대상에 대해 다시 기록될 수 있게 한다. 코어 moderation 계약이나 범용 target registry는 만들지 않는다.
 

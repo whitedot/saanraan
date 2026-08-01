@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
-require_once SR_ROOT . '/modules/community/helpers/reports.php';
 require_once SR_ROOT . '/modules/message/helpers.php';
 
 $account = sr_member_require_login($pdo);
@@ -30,19 +29,20 @@ $replyAccountId = (int) $message['sender_account_id'] === (int) $account['id']
     ? (int) $message['recipient_account_id']
     : (int) $message['sender_account_id'];
 $replyAccountHash = sr_member_public_account_hash($config, $replyAccountId);
-$reportReasonKeys = sr_community_report_reason_keys();
-$reportErrors = [];
-$reportNotice = '';
-if (isset($_SESSION['sr_community_report_errors']) && is_array($_SESSION['sr_community_report_errors'])) {
-    foreach ($_SESSION['sr_community_report_errors'] as $error) {
-        if (is_string($error) && $error !== '') {
-            $reportErrors[] = $error;
-        }
+$messageReportAvailable = false;
+$messageReportContext = [];
+$messageReportFeedback = ['errors' => [], 'notice' => ''];
+$messageReportContractFile = SR_ROOT . '/modules/community/public-report.php';
+if (sr_module_enabled($pdo, 'community') && is_file($messageReportContractFile)) {
+    require_once $messageReportContractFile;
+    $messageReportAvailable = function_exists('sr_community_public_report_context')
+        && function_exists('sr_community_public_report_pop_feedback')
+        && function_exists('sr_community_public_report_form_html');
+    if ($messageReportAvailable) {
+        $messageReportContext = sr_community_public_report_context('message', (int) $message['id']);
+        $messageReportFeedback = sr_community_public_report_pop_feedback();
+        $messageReportAvailable = $messageReportContext !== [];
     }
 }
-if (isset($_SESSION['sr_community_report_notice']) && is_string($_SESSION['sr_community_report_notice'])) {
-    $reportNotice = $_SESSION['sr_community_report_notice'];
-}
-unset($_SESSION['sr_community_report_errors'], $_SESSION['sr_community_report_notice']);
 
 include SR_ROOT . '/modules/message/views/message-view.php';

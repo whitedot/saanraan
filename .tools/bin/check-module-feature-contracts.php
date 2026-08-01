@@ -275,6 +275,17 @@ $publicFeatureContracts = [
         ],
         'asset_markers' => [],
     ],
+    'community' => [
+        'file' => 'public-report.php',
+        'helper_file' => 'helpers/reports.php',
+        'consumers' => ['message'],
+        'functions' => [
+            'sr_community_public_report_context',
+            'sr_community_public_report_pop_feedback',
+            'sr_community_public_report_form_html',
+        ],
+        'asset_markers' => [],
+    ],
     'logo_manager' => [
         'file' => 'public-branding.php',
         'consumers' => ['content', 'community', 'quiz', 'survey'],
@@ -324,7 +335,8 @@ foreach ($publicFeatureContracts as $providerModuleKey => $definition) {
 
     $contractPath = $root . '/modules/' . $providerModuleKey . '/' . $contractFile;
     $contractSource = is_file($contractPath) ? file_get_contents($contractPath) : false;
-    $helperSource = file_get_contents($root . '/modules/' . $providerModuleKey . '/helpers.php');
+    $helperFile = (string) ($definition['helper_file'] ?? 'helpers.php');
+    $helperSource = file_get_contents($root . '/modules/' . $providerModuleKey . '/' . $helperFile);
     foreach ((array) $definition['functions'] as $function) {
         if (!is_string($contractSource) || !str_contains($contractSource, "'" . $function . "'")) {
             $fail($providerModuleKey . '/' . $contractFile . ' must export ' . $function . '.');
@@ -359,6 +371,7 @@ $publicFeatureRequestContracts = [
     'modules/community/actions/edit.php' => ['public-banner.php', 'public-popup-layer.php'],
     'modules/quiz/actions/view.php' => ['public-reaction.php'],
     'modules/survey/actions/view.php' => ['public-reaction.php'],
+    'modules/message/actions/message-view.php' => ['public-report.php'],
 ];
 foreach ($publicFeatureRequestContracts as $requestFile => $contractFiles) {
     $source = file_get_contents($root . '/' . $requestFile);
@@ -383,6 +396,35 @@ foreach (['content', 'community', 'quiz', 'survey'] as $consumerModuleKey) {
             $fail($layoutFile . ' must explicitly load ' . $contractFile . '.');
         }
     }
+}
+
+$messageReportActionSource = file_get_contents($root . '/modules/message/actions/message-view.php');
+$messageReportViewSource = file_get_contents($root . '/modules/message/views/message-view.php');
+$communityPublicReportHelperSource = file_get_contents($root . '/modules/community/helpers/reports.php');
+if (!is_string($communityPublicReportHelperSource)
+    || !str_contains($communityPublicReportHelperSource, "sr_url('/community/report')")
+    || !str_contains($communityPublicReportHelperSource, 'sr_csrf_field()')
+    || !str_contains($communityPublicReportHelperSource, 'name="target_type"')
+    || !str_contains($communityPublicReportHelperSource, 'name="reason_key"')
+    || !str_contains($communityPublicReportHelperSource, "unset(\$_SESSION['sr_community_report_errors'], \$_SESSION['sr_community_report_notice'])")
+) {
+    $fail('community public report contract must own the action path, CSRF form, reason model, and one-time feedback.');
+}
+if (!is_string($messageReportActionSource)
+    || !str_contains($messageReportActionSource, "sr_module_enabled(\$pdo, 'community')")
+    || !str_contains($messageReportActionSource, 'sr_community_public_report_context(')
+    || !str_contains($messageReportActionSource, 'sr_community_public_report_pop_feedback(')
+    || str_contains($messageReportActionSource, '/modules/community/helpers/reports.php')
+) {
+    $fail('message view action must consume the optional community public report contract without loading community internals.');
+}
+if (!is_string($messageReportViewSource)
+    || !str_contains($messageReportViewSource, 'if ($messageReportAvailable)')
+    || !str_contains($messageReportViewSource, 'sr_community_public_report_form_html($messageReportContext)')
+    || str_contains($messageReportViewSource, '/community/report')
+    || str_contains($messageReportViewSource, 'sr_community_report_reason_')
+) {
+    $fail('message view must render reports only through the owner contract and hide the surface when unavailable.');
 }
 
 $forbiddenPublicFeaturePaths = [

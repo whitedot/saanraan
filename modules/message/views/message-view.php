@@ -57,33 +57,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         </div>
         </article>
 
-        <?php echo sr_public_feedback_toasts('message-report', $reportNotice, $reportErrors); ?>
-
-        <form method="post" action="<?php echo sr_e(sr_url('/community/report')); ?>" class="card">
-            <div class="card-header"><h2 class="card-title">쪽지 신고</h2></div>
-            <div class="card-body ui-card-body-stack">
-            <?php echo sr_csrf_field(); ?>
-            <input type="hidden" name="target_type" value="message">
-            <input type="hidden" name="target_id" value="<?php echo sr_e((string) $message['id']); ?>">
-            <p>
-                <label class="ui-field" for="modules_message_view_reason_key">
-                    <span>신고 사유 <span class="sr-required-label">(필수)</span></span>
-                    <select id="modules_message_view_reason_key" name="reason_key" required class="form-select form-control-medium">
-                        <?php foreach ($reportReasonKeys as $reasonKey) { ?>
-                            <option value="<?php echo sr_e($reasonKey); ?>"><?php echo sr_e(sr_community_report_reason_label($reasonKey)); ?></option>
-                        <?php } ?>
-                    </select>
-                </label>
-            </p>
-            <p>
-                <label class="ui-field" for="modules_message_view_memo_text">
-                    <span>메모</span>
-                    <textarea id="modules_message_view_memo_text" name="memo_text" rows="3" cols="60" class="form-textarea form-control-wide"></textarea>
-                </label>
-            </p>
-            <button type="submit" class="btn btn-solid-primary">신고</button>
-            </div>
-        </form>
+        <?php if ($messageReportAvailable) { ?>
+            <?php echo sr_public_feedback_toasts('message-report', (string) ($messageReportFeedback['notice'] ?? ''), (array) ($messageReportFeedback['errors'] ?? [])); ?>
+            <?php echo sr_community_public_report_form_html($messageReportContext); ?>
+        <?php } ?>
 
         <div class="ui-actions">
         <?php if ($replyAccountHash !== '') { ?>

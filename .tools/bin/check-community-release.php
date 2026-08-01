@@ -336,6 +336,7 @@ $requiredPackageEntries = [
     'popup-layer-references.php',
     'privacy-cleanup.php',
     'privacy-export.php',
+    'public-report.php',
     'reaction-targets.php',
     'retention-targets.php',
     'antispam-targets.php',
@@ -384,6 +385,7 @@ $requiredContracts = [
     'operational-status.php',
     'retention-targets.php',
     'antispam-targets.php',
+    'public-report.php',
     'asset-recovery-targets.php',
 ];
 $provides = isset($module['contracts']['provides']) && is_array($module['contracts']['provides'])
