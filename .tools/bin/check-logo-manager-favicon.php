@@ -82,9 +82,17 @@ if (!function_exists('sr_storage_reference')) {
     }
 }
 
+require_once 'modules/logo_manager/public-branding.php';
+$logoManagerPublicContractLoadedNarrowly = function_exists('sr_logo_manager_render_logo')
+    && function_exists('sr_logo_manager_render_public_symbol_logo')
+    && function_exists('sr_logo_manager_favicon_link_tag')
+    && !function_exists('sr_logo_manager_upload_image');
 require_once 'modules/logo_manager/helpers.php';
 
 $errors = [];
+if (!$logoManagerPublicContractLoadedNarrowly) {
+    $errors[] = 'public branding contract must load renderers without aggregate upload/admin helpers.';
+}
 
 foreach ([
     'modules/logo_manager/updates/2026.06.001.sql',
@@ -98,7 +106,7 @@ foreach ([
 }
 
 $logoManagerSources = array_merge(
-    ['modules/logo_manager/install.sql', 'modules/logo_manager/helpers.php', 'modules/logo_manager/actions/admin-logo-manager.php'],
+    ['modules/logo_manager/install.sql', 'modules/logo_manager/helpers.php', 'modules/logo_manager/helpers/public-branding.php', 'modules/logo_manager/actions/admin-logo-manager.php'],
     glob('modules/logo_manager/updates/*.sql') ?: []
 );
 foreach ($logoManagerSources as $sourcePath) {

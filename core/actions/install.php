@@ -92,7 +92,7 @@ $optionalModules = [
     ],
     'logo_manager' => [
         'name' => '로고 매니저',
-        'version' => '2026.07.002',
+        'version' => '2026.07.003',
         'label' => sr_t('install.module.logo_manager.label'),
         'description' => '관리자/공개 화면 로고와 기간별 대체 적용을 관리합니다.',
     ],

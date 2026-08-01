@@ -318,6 +318,7 @@ $publicFeatureContracts = [
     ],
     'logo_manager' => [
         'file' => 'public-branding.php',
+        'helper_file' => 'helpers/public-branding.php',
         'consumers' => ['content', 'community', 'quiz', 'survey'],
         'functions' => [
             'sr_logo_manager_render_logo',
@@ -489,6 +490,20 @@ if (!is_string($privacyCookieHelperSource)
     || str_contains($privacyCookieHelperSource, 'sr_member_safe_next_path(')
 ) {
     $fail('privacy public cookie helper must own return-path policy without loading member or admin internals.');
+}
+
+$logoBrandingContractSource = file_get_contents($root . '/modules/logo_manager/public-branding.php');
+if (!is_string($logoBrandingContractSource)
+    || str_contains($logoBrandingContractSource, "require_once __DIR__ . '/helpers.php';")
+    || !str_contains($logoBrandingContractSource, "require_once __DIR__ . '/helpers/public-branding.php';")
+) {
+    $fail('logo manager public branding contract must load its narrow read-only helper instead of the aggregate helper.');
+}
+$logoBrandingHelperSource = file_get_contents($root . '/modules/logo_manager/helpers/public-branding.php');
+foreach (['sr_logo_manager_upload_image(', 'sr_logo_manager_generate_icon_variants(', 'sr_logo_manager_save_icon_variants('] as $adminFunctionMarker) {
+    if (!is_string($logoBrandingHelperSource) || str_contains($logoBrandingHelperSource, $adminFunctionMarker)) {
+        $fail('logo manager public branding helper must not include upload or variant mutation functions.');
+    }
 }
 
 $messageReportActionSource = file_get_contents($root . '/modules/message/actions/message-view.php');

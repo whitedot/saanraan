@@ -1144,7 +1144,7 @@ return [
 
 `public-branding.php`:
 
-- 로고 매니저가 공개 위치별 로고·심볼 로고 renderer와 favicon renderer를 제공한다.
+- 로고 매니저가 `helpers/public-branding.php`의 읽기 전용 선택·렌더 경계에서 공개 위치별 로고·심볼 로고 renderer와 favicon renderer를 제공한다. 공개 layout은 업로드·아이콘 생성·관리 기능이 포함된 통합 `helpers.php`를 로드하지 않는다.
 
 `public-cookie-consent.php`:
 

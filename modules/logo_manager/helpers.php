@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
 require_once dirname(__DIR__, 2) . '/core/helpers/upload.php';
+require_once __DIR__ . '/helpers/public-branding.php';
 
 function sr_logo_manager_default_position_options(): array
 {
@@ -1435,97 +1436,6 @@ function sr_logo_manager_active_logo(PDO $pdo, string $positionKey, ?string $now
     }
 }
 
-function sr_logo_manager_render_logo(PDO $pdo, string $positionKey, ?array $site = null, array $attributes = []): string
-{
-    $usageTarget = [];
-    $layoutProviderKey = sr_logo_manager_clean_usage_provider_key((string) ($attributes['layout_provider_key'] ?? $attributes['provider_key'] ?? ''));
-    $usageSlotKey = sr_logo_manager_clean_usage_slot_key((string) ($attributes['usage_slot_key'] ?? $attributes['slot_key'] ?? ''));
-    if ($layoutProviderKey !== '' && $usageSlotKey !== '') {
-        $usageTarget = [
-            'layout_provider_key' => $layoutProviderKey,
-            'slot_key' => $usageSlotKey,
-        ];
-        if (array_key_exists('allow_untargeted_fallback', $attributes)) {
-            $usageTarget['allow_untargeted_fallback'] = !empty($attributes['allow_untargeted_fallback']);
-        }
-    }
-
-    $logo = sr_logo_manager_active_logo($pdo, $positionKey, null, $usageTarget);
-    if (!is_array($logo) && isset($attributes['fallback_position_key'])) {
-        $fallbackPositionKey = sr_logo_manager_clean_position_key((string) $attributes['fallback_position_key']);
-        if ($fallbackPositionKey !== '' && $fallbackPositionKey !== sr_logo_manager_clean_position_key($positionKey)) {
-            $logo = sr_logo_manager_active_logo($pdo, $fallbackPositionKey, null, $usageTarget);
-        }
-    }
-    if (!is_array($logo)) {
-        return '';
-    }
-
-    $src = sr_logo_manager_logo_url([
-        'public_url' => $logo['public_url'] ?? '',
-        'storage_driver' => $logo['storage_driver'] ?? 'local',
-        'storage_key' => $logo['storage_key'] ?? '',
-    ]);
-    if ($src === '') {
-        return '';
-    }
-
-    if (array_key_exists('alt', $attributes)) {
-        $alt = sr_logo_manager_clean_single_line((string) $attributes['alt'], 160);
-    } else {
-        $alt = trim((string) ($logo['alt_text'] ?? ''));
-        if ($alt === '') {
-            $alt = is_array($site) ? trim((string) ($site['site_name'] ?? $site['name'] ?? '')) : '';
-        }
-    }
-
-    $class = sr_logo_manager_clean_single_line((string) ($attributes['class'] ?? 'site-logo-image'), 120);
-    $width = (int) ($logo['width'] ?? 0);
-    $height = (int) ($logo['height'] ?? 0);
-
-    $html = '<img class="' . sr_e($class) . '" src="' . sr_e(sr_logo_manager_url_for_output($src)) . '" alt="' . sr_e($alt) . '"';
-    if ($width > 0 && $height > 0) {
-        $html .= ' width="' . sr_e((string) $width) . '" height="' . sr_e((string) $height) . '"';
-    }
-    $html .= ' loading="eager" decoding="async">';
-
-    return $html;
-}
-
-function sr_logo_manager_render_public_symbol_logo(PDO $pdo, ?array $site = null, array $attributes = []): string
-{
-    $logo = sr_logo_manager_public_symbol_logo($pdo);
-    if (!is_array($logo)) {
-        return '';
-    }
-
-    $src = sr_logo_manager_logo_url($logo);
-    if ($src === '') {
-        return '';
-    }
-
-    if (array_key_exists('alt', $attributes)) {
-        $alt = sr_logo_manager_clean_single_line((string) $attributes['alt'], 160);
-    } else {
-        $alt = trim((string) ($logo['alt_text'] ?? ''));
-        if ($alt === '') {
-            $alt = is_array($site) ? trim((string) ($site['site_name'] ?? $site['name'] ?? '')) : '';
-        }
-    }
-
-    $class = sr_logo_manager_clean_single_line((string) ($attributes['class'] ?? 'site-logo-image'), 120);
-    $width = (int) ($logo['width'] ?? 0);
-    $height = (int) ($logo['height'] ?? 0);
-
-    $html = '<img class="' . sr_e($class) . '" src="' . sr_e(sr_logo_manager_url_for_output($src)) . '" alt="' . sr_e($alt) . '"';
-    if ($width > 0 && $height > 0) {
-        $html .= ' width="' . sr_e((string) $width) . '" height="' . sr_e((string) $height) . '"';
-    }
-    $html .= ' loading="eager" decoding="async">';
-
-    return $html;
-}
-
 function sr_logo_manager_active_url(PDO $pdo, string $positionKey): string
 {
     $logo = sr_logo_manager_active_logo($pdo, $positionKey);
@@ -1647,46 +1557,4 @@ function sr_logo_manager_url_with_cache_version(string $url, string $version): s
 
     $separator = str_contains($url, '?') ? '&' : '?';
     return $url . $separator . 'v=' . rawurlencode($version) . $fragment;
-}
-
-function sr_logo_manager_favicon_link_tag(PDO $pdo): string
-{
-    $cacheVersion = sr_logo_manager_favicon_cache_version($pdo);
-    $logo = sr_logo_manager_active_logo($pdo, sr_logo_manager_favicon_position_key());
-    if (!is_array($logo)) {
-        return '';
-    }
-
-    $variants = sr_logo_manager_icon_variants_by_logo($pdo, (int) ($logo['id'] ?? 0));
-    if ($variants !== []) {
-        $html = [];
-        foreach ($variants as $variant) {
-            $url = sr_logo_manager_icon_variant_url($variant);
-            if ($url === '') {
-                continue;
-            }
-            $url = sr_logo_manager_url_with_cache_version($url, $cacheVersion);
-            $purpose = (string) ($variant['purpose'] ?? '');
-            $sizes = (string) (int) ($variant['width'] ?? 0) . 'x' . (string) (int) ($variant['height'] ?? 0);
-            $href = sr_e(sr_logo_manager_url_for_output($url));
-            if ($purpose === 'apple_touch') {
-                $html[] = '<link rel="apple-touch-icon" sizes="' . sr_e($sizes) . '" href="' . $href . '">';
-            } else {
-                $html[] = '<link rel="icon" type="image/png" sizes="' . sr_e($sizes) . '" href="' . $href . '">';
-            }
-        }
-        if ($html !== []) {
-            return implode(PHP_EOL, $html);
-        }
-    }
-
-    $url = sr_logo_manager_logo_url($logo);
-    if ($url === '') {
-        return '';
-    }
-
-    $url = sr_logo_manager_url_with_cache_version($url, $cacheVersion);
-    $href = sr_e(sr_logo_manager_url_for_output($url));
-    return '<link rel="icon" href="' . $href . '">' . PHP_EOL
-        . '<link rel="apple-touch-icon" href="' . $href . '">';
 }

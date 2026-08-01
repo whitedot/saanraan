@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/helpers/public-branding.php';
 
 return [
     'render_function' => 'sr_logo_manager_render_logo',
