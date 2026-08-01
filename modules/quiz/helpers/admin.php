@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+function sr_quiz_preserved_reaction_preset_key(mixed $value): string
+{
+    $value = trim((string) $value);
+
+    return preg_match('/\A[a-z_][a-z0-9_]{0,79}\z/', $value) === 1 ? $value : '';
+}
+
 function sr_quiz_default_admin_values(?array $settings = null): array
 {
     $settings = sr_quiz_normalize_settings(is_array($settings) ? $settings : []);
@@ -149,8 +156,8 @@ function sr_quiz_admin_values_from_row(array $quiz): array
         'member_group_keys' => sr_quiz_member_group_keys_from_value($quiz['member_group_keys_json'] ?? ''),
         'comments_enabled' => (int) ($quiz['comments_enabled'] ?? 0),
         'secret_comments_enabled' => (int) ($quiz['secret_comments_enabled'] ?? 0),
-        'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], $quiz['reaction_preset_key'] ?? '') : '',
-        'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], $quiz['reaction_comment_preset_key'] ?? '') : '',
+        'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], $quiz['reaction_preset_key'] ?? '') : sr_quiz_preserved_reaction_preset_key($quiz['reaction_preset_key'] ?? ''),
+        'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], $quiz['reaction_comment_preset_key'] ?? '') : sr_quiz_preserved_reaction_preset_key($quiz['reaction_comment_preset_key'] ?? ''),
         'comment_editor_key' => sr_editor_normalize_key((string) ($quiz['comment_editor_key'] ?? 'inherit'), true),
         'comment_extra_fields_json' => sr_comment_extra_field_definitions_json($quiz['comment_extra_fields_json'] ?? '[]'),
         'reward_enabled' => (int) ($quiz['reward_enabled'] ?? 0),
@@ -316,8 +323,8 @@ function sr_quiz_admin_values_from_post(): array
         'member_group_keys' => sr_quiz_member_group_keys_from_value($memberGroupKeys),
         'comments_enabled' => ($_POST['comments_enabled'] ?? '') === '1' ? 1 : 0,
         'secret_comments_enabled' => ($_POST['secret_comments_enabled'] ?? '') === '1' ? 1 : 0,
-        'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : '',
-        'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : '',
+        'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_quiz_preserved_reaction_preset_key(sr_post_string('reaction_preset_key', 80)),
+        'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_quiz_preserved_reaction_preset_key(sr_post_string('reaction_comment_preset_key', 80)),
         'comment_editor_key' => sr_editor_normalize_key($rawCommentEditorKey, true),
         'raw_comment_editor_key' => $rawCommentEditorKey,
         'comment_extra_fields_json' => sr_post_string_without_truncation('comment_extra_fields_json', 20000) ?? '[]',
@@ -1070,7 +1077,7 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
     try {
         if ($quizId > 0) {
             $existingStmt = $pdo->prepare(
-                'SELECT id
+                'SELECT id, reaction_preset_key, reaction_comment_preset_key
                  FROM sr_quiz_sets
                  WHERE id = :id
                    AND deleted_at IS NULL
@@ -1078,9 +1085,18 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                  FOR UPDATE'
             );
             $existingStmt->execute(['id' => $quizId]);
-            if (!is_array($existingStmt->fetch())) {
+            $existingQuiz = $existingStmt->fetch();
+            if (!is_array($existingQuiz)) {
                 throw new RuntimeException('Quiz to update was not found.');
             }
+            $reactionContractAvailable = sr_module_enabled($pdo, 'reaction')
+                && function_exists('sr_reaction_setting_preset_key_or_disabled');
+            $reactionPresetKey = $reactionContractAvailable
+                ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_preset_key'] ?? '')
+                : sr_quiz_preserved_reaction_preset_key($existingQuiz['reaction_preset_key'] ?? '');
+            $reactionCommentPresetKey = $reactionContractAvailable
+                ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_comment_preset_key'] ?? '')
+                : sr_quiz_preserved_reaction_preset_key($existingQuiz['reaction_comment_preset_key'] ?? '');
 
             $stmt = $pdo->prepare(
                 'UPDATE sr_quiz_sets
@@ -1129,8 +1145,8 @@ function sr_quiz_save_admin_quiz(PDO $pdo, array $values, int $accountId): int
                 'member_group_keys_json' => is_string($memberGroupKeysJson) ? $memberGroupKeysJson : '[]',
                 'comments_enabled' => $commentsEnabled,
                 'secret_comments_enabled' => $secretCommentsEnabled,
-                'reaction_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_preset_key'] ?? '') : '',
-                'reaction_comment_preset_key' => sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, $values['reaction_comment_preset_key'] ?? '') : '',
+                'reaction_preset_key' => $reactionPresetKey,
+                'reaction_comment_preset_key' => $reactionCommentPresetKey,
                 'comment_editor_key' => $commentEditorKey,
                 'comment_extra_fields_json' => $commentExtraFieldsJson,
                 'reward_enabled' => (int) $values['reward_enabled'],

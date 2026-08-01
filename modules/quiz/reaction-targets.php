@@ -37,10 +37,13 @@ if (!function_exists('sr_quiz_reaction_quiz_result')) {
         $domainCanView = $status === 'active' && sr_quiz_reaction_can_view($pdo, $quiz, $viewerAccountId);
         $settings = sr_quiz_settings($pdo);
         $reactionModuleEnabled = sr_module_enabled($pdo, 'reaction');
-        $presetKey = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key_or_disabled')
+        $reactionContractAvailable = $reactionModuleEnabled
+            && function_exists('sr_reaction_setting_preset_key_or_disabled')
+            && function_exists('sr_reaction_disabled_preset_key');
+        $presetKey = $reactionContractAvailable
             ? sr_reaction_setting_preset_key_or_disabled($pdo, $quiz['reaction_preset_key'] ?? '')
-            : (string) ($quiz['reaction_preset_key'] ?? '');
-        $itemReactionEnabled = $presetKey !== (function_exists('sr_reaction_disabled_preset_key') ? sr_reaction_disabled_preset_key() : '__disabled');
+            : '';
+        $itemReactionEnabled = $reactionContractAvailable && $presetKey !== sr_reaction_disabled_preset_key();
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_preset_key'] ?? '');
         }
@@ -96,10 +99,13 @@ if (!function_exists('sr_quiz_reaction_comment_result')) {
         $ownerAccountId = (int) ($row['author_account_id'] ?? 0);
         $settings = sr_quiz_settings($pdo);
         $reactionModuleEnabled = sr_module_enabled($pdo, 'reaction');
-        $presetKey = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key_or_disabled')
+        $reactionContractAvailable = $reactionModuleEnabled
+            && function_exists('sr_reaction_setting_preset_key_or_disabled')
+            && function_exists('sr_reaction_disabled_preset_key');
+        $presetKey = $reactionContractAvailable
             ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_comment_preset_key'] ?? '')
-            : (string) ($row['reaction_comment_preset_key'] ?? '');
-        $itemReactionEnabled = $presetKey !== (function_exists('sr_reaction_disabled_preset_key') ? sr_reaction_disabled_preset_key() : '__disabled');
+            : '';
+        $itemReactionEnabled = $reactionContractAvailable && $presetKey !== sr_reaction_disabled_preset_key();
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_comment_preset_key'] ?? '');
         }

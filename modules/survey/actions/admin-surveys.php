@@ -6,7 +6,8 @@ require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
 require_once SR_ROOT . '/modules/survey/helpers/admin-surveys.php';
 require_once SR_ROOT . '/core/helpers/url-embed.php';
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+$surveyReactionItemAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
+if ($surveyReactionItemAvailable) {
     require_once SR_ROOT . '/modules/reaction/public-reaction.php';
 }
 
@@ -18,7 +19,7 @@ $memberGroups = sr_member_groups($pdo);
 $surveyMemberGroupsForAdmin = array_values(array_filter($memberGroups, static function (array $memberGroup): bool {
     return (string) ($memberGroup['status'] ?? '') === 'enabled';
 }));
-$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = $surveyReactionItemAvailable && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
 $commentEditorOptions = sr_editor_options($pdo, true);
 $enabledMemberGroupKeys = [];
 foreach ($memberGroups as $memberGroup) {
@@ -934,11 +935,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <label class="form-label" for="survey_reaction_preset_key">설문 리액션 프리셋</label>
                     <div class="form-field">
-                        <select id="survey_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                        <select id="survey_reaction_preset_key" name="reaction_preset_key" class="form-select"<?php echo !$surveyReactionItemAvailable ? ' disabled' : ''; ?>>
+                            <?php if (!$surveyReactionItemAvailable && (string) ($values['reaction_preset_key'] ?? '') !== ''): ?>
+                                <option value="<?php echo sr_e((string) $values['reaction_preset_key']); ?>" selected>저장된 설정 (리액션 모듈 활성화 후 적용)</option>
+                            <?php endif; ?>
                             <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
                                 <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <?php if (!$surveyReactionItemAvailable): ?><input type="hidden" name="reaction_preset_key" value="<?php echo sr_e((string) ($values['reaction_preset_key'] ?? '')); ?>"><?php endif; ?>
                         <p class="form-help">비워두면 설문 환경설정의 프리셋을 사용하고, 사용안함은 이 설문에서만 리액션을 숨깁니다.</p>
                         <?php echo $surveyScopeRadioHtml('reaction_preset_key', (string) ($values['source_reaction_preset_key'] ?? 'item')); ?>
                     </div>
@@ -946,11 +951,15 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                 <div class="form-row">
                     <label class="form-label" for="survey_reaction_comment_preset_key">댓글 리액션 프리셋</label>
                     <div class="form-field">
-                        <select id="survey_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                        <select id="survey_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo !$surveyReactionItemAvailable ? ' disabled' : ''; ?>>
+                            <?php if (!$surveyReactionItemAvailable && (string) ($values['reaction_comment_preset_key'] ?? '') !== ''): ?>
+                                <option value="<?php echo sr_e((string) $values['reaction_comment_preset_key']); ?>" selected>저장된 설정 (리액션 모듈 활성화 후 적용)</option>
+                            <?php endif; ?>
                             <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel): ?>
                                 <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <?php if (!$surveyReactionItemAvailable): ?><input type="hidden" name="reaction_comment_preset_key" value="<?php echo sr_e((string) ($values['reaction_comment_preset_key'] ?? '')); ?>"><?php endif; ?>
                         <p class="form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용하고, 사용안함은 이 설문의 댓글 리액션만 숨깁니다.</p>
                         <?php echo $surveyScopeRadioHtml('reaction_comment_preset_key', (string) ($values['source_reaction_comment_preset_key'] ?? 'item')); ?>
                     </div>

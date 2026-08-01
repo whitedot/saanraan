@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/groups.php';
 
+function sr_survey_preserved_reaction_preset_key(mixed $value): string
+{
+    $value = trim((string) $value);
+
+    return preg_match('/\A[a-z_][a-z0-9_]{0,79}\z/', $value) === 1 ? $value : '';
+}
+
 function sr_survey_admin_list_count(PDO $pdo, array $where, array $params): int
 {
     if ($where === []) {
@@ -444,8 +451,9 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     $commentEditorKey = sr_editor_normalize_key($rawCommentEditorKey, true);
     $commentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
     $commentExtraFieldsInput = is_string($commentExtraFieldsInput) ? $commentExtraFieldsInput : '[]';
-    $reactionPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_preset_key', 80)) : '';
-    $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+    $reactionContractAvailable = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled');
+    $reactionPresetKey = $reactionContractAvailable ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_preset_key', 80)) : '';
+    $reactionCommentPresetKey = $reactionContractAvailable ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
     $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
     $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
     $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);
@@ -453,6 +461,10 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     $rewardAmount = (int) sr_post_string('reward_amount', 20);
     $rewardDedupeScope = sr_survey_clean_key(sr_post_string('reward_dedupe_scope', 20), 20);
     $existingSurveyForSave = $surveyId > 0 ? sr_survey_by_id($pdo, $surveyId) : null;
+    if (!$reactionContractAvailable && is_array($existingSurveyForSave)) {
+        $reactionPresetKey = sr_survey_preserved_reaction_preset_key($existingSurveyForSave['reaction_preset_key'] ?? '');
+        $reactionCommentPresetKey = sr_survey_preserved_reaction_preset_key($existingSurveyForSave['reaction_comment_preset_key'] ?? '');
+    }
     $beforeCoverImageUrl = is_array($existingSurveyForSave) ? sr_survey_clean_cover_image_url((string) ($existingSurveyForSave['cover_image_url'] ?? '')) : '';
     if (sr_post_string('cover_image_delete', 1) === '1') {
         $coverImageUrl = '';

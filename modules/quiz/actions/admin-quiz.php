@@ -3,7 +3,8 @@
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once __DIR__ . '/../helpers.php';
-if (sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php')) {
+$quizReactionItemAvailable = sr_module_enabled($pdo, 'reaction') && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
+if ($quizReactionItemAvailable) {
     require_once SR_ROOT . '/modules/reaction/public-reaction.php';
 }
 
@@ -15,7 +16,7 @@ $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
 $memberGroups = sr_quiz_member_groups_for_admin($pdo);
-$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = $quizReactionItemAvailable && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
 $commentEditorOptions = sr_editor_options($pdo, true);
 
 if (sr_request_method() === 'POST') {
@@ -1151,11 +1152,15 @@ $quizSectionNavItems = [
             <div class="form-row">
                 <label class="form-label" for="quiz_reaction_preset_key">퀴즈 리액션 프리셋</label>
                 <div class="form-field">
-                    <select id="quiz_reaction_preset_key" name="reaction_preset_key" class="form-select">
+                    <select id="quiz_reaction_preset_key" name="reaction_preset_key" class="form-select"<?php echo !$quizReactionItemAvailable ? ' disabled' : ''; ?>>
+                        <?php if (!$quizReactionItemAvailable && (string) ($values['reaction_preset_key'] ?? '') !== '') { ?>
+                            <option value="<?php echo sr_e((string) $values['reaction_preset_key']); ?>" selected>저장된 설정 (리액션 모듈 활성화 후 적용)</option>
+                        <?php } ?>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
+                    <?php if (!$quizReactionItemAvailable) { ?><input type="hidden" name="reaction_preset_key" value="<?php echo sr_e((string) ($values['reaction_preset_key'] ?? '')); ?>"><?php } ?>
                     <p class="form-help">비워두면 퀴즈 환경설정의 프리셋을 사용하고, 사용안함은 이 퀴즈에서만 리액션을 숨깁니다.</p>
                     <?php echo $quizScopeRadioHtml('reaction_preset_key', (string) ($values['source_reaction_preset_key'] ?? 'item')); ?>
                 </div>
@@ -1163,11 +1168,15 @@ $quizSectionNavItems = [
             <div class="form-row">
                 <label class="form-label" for="quiz_reaction_comment_preset_key">댓글 리액션 프리셋</label>
                 <div class="form-field">
-                    <select id="quiz_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select">
+                    <select id="quiz_reaction_comment_preset_key" name="reaction_comment_preset_key" class="form-select"<?php echo !$quizReactionItemAvailable ? ' disabled' : ''; ?>>
+                        <?php if (!$quizReactionItemAvailable && (string) ($values['reaction_comment_preset_key'] ?? '') !== '') { ?>
+                            <option value="<?php echo sr_e((string) $values['reaction_comment_preset_key']); ?>" selected>저장된 설정 (리액션 모듈 활성화 후 적용)</option>
+                        <?php } ?>
                         <?php foreach ($reactionPresetOptions as $presetKey => $presetLabel) { ?>
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
+                    <?php if (!$quizReactionItemAvailable) { ?><input type="hidden" name="reaction_comment_preset_key" value="<?php echo sr_e((string) ($values['reaction_comment_preset_key'] ?? '')); ?>"><?php } ?>
                     <p class="form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용하고, 사용안함은 이 퀴즈의 댓글 리액션만 숨깁니다.</p>
                     <?php echo $quizScopeRadioHtml('reaction_comment_preset_key', (string) ($values['source_reaction_comment_preset_key'] ?? 'item')); ?>
                 </div>
