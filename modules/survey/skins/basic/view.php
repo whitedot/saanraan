@@ -362,7 +362,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     <input id="survey_share_url" type="url" value="<?php echo sr_e($surveyShareUrl); ?>" class="form-input form-control-medium" readonly data-sr-share-url>
                     <button type="button" class="btn btn-solid-light" data-sr-share-copy="<?php echo sr_e($surveyShareUrl); ?>">공유 주소 복사</button>
                 </div>
-                <script>
+                <script<?php echo sr_csp_nonce_attribute(); ?>>
                 (function () {
                     var buttons = document.querySelectorAll('[data-sr-share-copy]');
                     if (!buttons.length) {

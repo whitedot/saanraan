@@ -691,7 +691,7 @@ foreach ($optionalModules as $moduleKey => $module) {
             </span>
         </div>
     </main>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
         (function () {
             document.body.classList.add('sr-install-enhanced');
 

@@ -334,8 +334,8 @@ $memberSettingsSectionNavItems = [
         <textarea id="member_admin_settings_profile_field_order_json" name="profile_field_order_json" hidden data-member-profile-field-order-json><?php echo sr_e($memberProfileFieldOrderJson); ?></textarea>
         <input type="hidden" name="profile_removed_field_values_confirmed" value="0" data-member-profile-removed-field-values-confirmed>
         <div data-member-profile-fixed-field-inputs></div>
-        <script type="application/json" data-member-profile-fixed-fields-json><?php echo sr_js_json_encode($memberProfileFixedFields); ?></script>
-        <script type="application/json" data-member-profile-original-extra-field-keys-json><?php echo sr_js_json_encode($memberProfileOriginalExtraFieldKeys); ?></script>
+        <script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" data-member-profile-fixed-fields-json><?php echo sr_js_json_encode($memberProfileFixedFields); ?></script>
+        <script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" data-member-profile-original-extra-field-keys-json><?php echo sr_js_json_encode($memberProfileOriginalExtraFieldKeys); ?></script>
     </section>
 
     <section id="member-settings-section-policy-consent" class="card" data-admin-section-anchor>
@@ -695,7 +695,7 @@ $memberSettingsSectionNavItems = [
     <?php echo sr_admin_help_modal_html((string) $memberSettingsHelpModal['id'], (string) $memberSettingsHelpModal['title'], (string) $memberSettingsHelpModal['body_html']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 document.addEventListener('DOMContentLoaded', function () {
     function memberProfileExtraFieldAllowedType(value) {
         return ['text', 'textarea', 'select', 'checkbox'].indexOf(value) !== -1 ? value : 'text';

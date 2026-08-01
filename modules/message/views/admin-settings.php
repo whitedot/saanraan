@@ -186,7 +186,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $messageSettingsHelpModal['id'], (string) $messageSettingsHelpModal['title'], (string) $messageSettingsHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var form = document.querySelector('[data-message-settings-form]');
     if (!form) {

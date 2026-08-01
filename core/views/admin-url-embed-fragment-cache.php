@@ -135,7 +135,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.querySelector('[data-admin-url-embed-cache-cleanup-form]');
     if (!form) {

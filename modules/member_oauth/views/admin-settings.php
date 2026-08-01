@@ -392,9 +392,9 @@ if ($memberOauthExternalProviders === []) {
 <?php foreach ($memberOauthHelp as $memberOauthHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $memberOauthHelpModal['id'], (string) $memberOauthHelpModal['title'], (string) $memberOauthHelpModal['body']); ?>
 <?php } ?>
-<script type="application/json" data-oauth-profile-sync-targets><?php echo sr_js_json_encode($memberOauthProfileSyncTargets); ?></script>
-<script type="application/json" data-oauth-profile-sync-claims><?php echo sr_js_json_encode($memberOauthClaimPathOptionsByProvider); ?></script>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" data-oauth-profile-sync-targets><?php echo sr_js_json_encode($memberOauthProfileSyncTargets); ?></script>
+<script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" data-oauth-profile-sync-claims><?php echo sr_js_json_encode($memberOauthClaimPathOptionsByProvider); ?></script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 function srMemberOauthCreateButton(icon, label, action) {
     var button = document.createElement('button');
     button.type = 'button';

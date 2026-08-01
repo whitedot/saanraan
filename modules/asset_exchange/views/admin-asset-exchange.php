@@ -423,7 +423,7 @@ foreach ($policySlots as $assetExchangeNavSlot) {
     <?php echo sr_admin_help_modal_html((string) $assetExchangeHelpModal['id'], (string) $assetExchangeHelpModal['title'], (string) $assetExchangeHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var policyForm = document.querySelector('[data-asset-exchange-policy-form]');
 

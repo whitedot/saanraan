@@ -1460,7 +1460,7 @@ function sr_icon(string $name, string $class = '', string $label = '', string $i
 
 function sr_icon_bootstrap_script(): string
 {
-    return '<script>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}function n(){r.classList.add("sr-material-icons-unavailable");y()}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"").then(y,function(){if(document.fonts.ready){document.fonts.ready.then(y,n)}else{n()}})}else{y()}})();</script>';
+    return '<script' . sr_csp_nonce_attribute() . '>(function(){var r=document.documentElement;function y(){r.classList.add("sr-material-icons-ready")}function n(){r.classList.add("sr-material-icons-unavailable");y()}if(document.fonts&&document.fonts.load){document.fonts.load("24px \\"Material Symbols Outlined\\"").then(y,function(){if(document.fonts.ready){document.fonts.ready.then(y,n)}else{n()}})}else{y()}})();</script>';
 }
 
 function sr_public_style_profile_paths(string $profile): array
@@ -2758,7 +2758,7 @@ function sr_pwa_registration_script(): string
 {
     $serviceWorkerUrl = sr_url('/service-worker.js');
     $scopeUrl = sr_url('/');
-    return '<script>(function(){if(!("serviceWorker" in navigator)){return;}window.addEventListener("load",function(){navigator.serviceWorker.register('
+    return '<script' . sr_csp_nonce_attribute() . '>(function(){if(!("serviceWorker" in navigator)){return;}window.addEventListener("load",function(){navigator.serviceWorker.register('
         . sr_js_json_encode($serviceWorkerUrl)
         . ',{scope:'
         . sr_js_json_encode($scopeUrl)

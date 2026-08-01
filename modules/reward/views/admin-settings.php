@@ -192,7 +192,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var root = document.querySelector('[data-reward-withdrawal-targets]');
     if (!root) {

@@ -241,7 +241,7 @@ $auditDetailFilterOpen = (string) ($filters['event_type'] ?? '') !== '' || (stri
     </div>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     'use strict';
 

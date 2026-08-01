@@ -1080,8 +1080,8 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_form_draft_restore_script($adminFormDraftForDisplay ?? null, 'content-item-form'); ?>
     <?php echo $editing ? $contentCopyModalHtml($editPage, '/admin/content/edit?id=' . rawurlencode((string) $editPage['id'])) : ''; ?>
     <?php echo $editing ? $contentDeleteModalHtml($editPage) : ''; ?>
-    <script type="application/json" id="content-admin-editor-config"><?php echo sr_js_json_encode($contentEditorClientConfigs); ?></script>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" id="content-admin-editor-config"><?php echo sr_js_json_encode($contentEditorClientConfigs); ?></script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var configElement = document.getElementById('content-admin-editor-config');
         var configs = {};
@@ -1449,7 +1449,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($pageAdminPage === 'list') { ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     document.addEventListener('DOMContentLoaded', function () {
         var bulkForm = document.querySelector('[data-content-bulk-form]');
         if (bulkForm) {
@@ -1550,7 +1550,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($pageAdminPage === 'form') { ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     document.addEventListener('DOMContentLoaded', function () {
         var groupSelect = document.querySelector('[data-content-group-select]');
         var scopeOptions = document.querySelectorAll('[data-content-group-scope-option]');

@@ -31,7 +31,7 @@
         </div>
         </section>
     </main>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var form = document.forms.form_auth || document.getElementById('identity-provider-form');
         var submitButton = document.querySelector('[data-identity-provider-submit]');

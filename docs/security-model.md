@@ -39,7 +39,7 @@ semantic contract: 어떤 계정이 어떤 대상에 어떤 작업을 할 수 �
 
 ## 1-1. 콘텐츠 보안 정책
 
-기본 CSP는 자체 출처를 기준으로 한다. 외부 스타일/폰트와 연결 출처는 현재 관리자 폰트 로딩과 브라우저 개발자 도구의 보조 요청에 필요한 `https://cdn.jsdelivr.net`을 허용한다. YouTube URL 임베드를 위해 frame 출처는 자체 출처와 `https://www.youtube-nocookie.com`, `https://www.youtube.com`만 허용한다. 본인확인 시작 응답은 외부 provider POST 전송이 필요하므로 `form-action`에 한해 KCP 테스트/운영 gateway와 KG이니시스 본인확인 origin을 추가 허용한다. CKEditor 플러그인의 기본 운영값은 저장소에 포함된 `modules/ckeditor/vendor/ckeditor5/` 파일을 쓰는 직접 호스팅이다. 선택 CDN 모드는 공식 CDN의 스크립트와 스타일을 불러올 수 있도록 `https://cdn.ckeditor.com`을 허용한다. 외부 스크립트, 연결 출처, frame 출처를 추가할 때는 UI 렌더링에 필요한지, 자체 호스팅으로 대체할 수 있는지, 운영 화면 전체에 주는 영향을 함께 검토한다.
+기본 CSP는 자체 출처를 기준으로 한다. 인라인 스크립트는 응답마다 새로 생성한 nonce가 있는 `script` 요소만 허용하고, 인라인 event handler와 `javascript:` URL은 허용하지 않는다. 확인 대화상자처럼 마크업에서 시작하는 동작은 `data-*` 속성과 자체 호스팅 JavaScript의 event listener로 연결한다. 외부 스타일/폰트와 연결 출처는 현재 관리자 폰트 로딩과 브라우저 개발자 도구의 보조 요청에 필요한 `https://cdn.jsdelivr.net`을 허용한다. YouTube URL 임베드를 위해 frame 출처는 자체 출처와 `https://www.youtube-nocookie.com`, `https://www.youtube.com`만 허용한다. 본인확인 시작 응답은 외부 provider POST 전송이 필요하므로 `form-action`에 한해 KCP 테스트/운영 gateway와 KG이니시스 본인확인 origin을 추가 허용한다. CKEditor 플러그인의 기본 운영값은 저장소에 포함된 `modules/ckeditor/vendor/ckeditor5/` 파일을 쓰는 직접 호스팅이다. 선택 CDN 모드는 공식 CDN의 스크립트와 스타일을 불러올 수 있도록 `https://cdn.ckeditor.com`을 허용한다. 외부 스크립트, 연결 출처, frame 출처를 추가할 때는 UI 렌더링에 필요한지, 자체 호스팅으로 대체할 수 있는지, 운영 화면 전체에 주는 영향을 함께 검토한다.
 
 공개 모듈 theme와 skin은 저장소 내부 PHP view로 실행되며 별도 sandbox가 아니다. 새 theme나 skin을 배포하는 것은 저장소 코드를 배포하는 것과 같은 승인 수준으로 다룬다. 공개 asset은 `modules/{module_key}/theme/{theme_key}/assets/`처럼 허용된 정적 asset 디렉터리에서만 직접 열리고, PHP view 파일과 모듈 내부 파일은 웹에서 직접 열리지 않아야 한다. 자세한 계약은 [공개 모듈 테마 기준](public-module-themes.md)을 따른다.
 

@@ -39,7 +39,7 @@ $contentNoLayoutStylesheets = array_values(array_unique($contentNoLayoutStyleshe
     <?php foreach ($contentNoLayoutStylesheets as $contentNoLayoutStylesheet) { ?>
         <link rel="stylesheet" href="<?php echo sr_e(sr_asset_url((string) $contentNoLayoutStylesheet)); ?>">
     <?php } ?>
-    <script>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
 </head>
 <body>
 <main>

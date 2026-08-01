@@ -183,7 +183,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
             </div>
         </section>
     </main>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
         (function () {
             var identityLocked = <?php echo !empty($registrationIdentityFieldsLocked) ? 'true' : 'false'; ?>;
             var identityBirthDateLocked = <?php echo !empty($memberRegisterIdentityBirthDateLocked) ? 'true' : 'false'; ?>;

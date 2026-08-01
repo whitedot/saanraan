@@ -514,7 +514,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
 <div class="form-actions form-sticky-actions admin-site-menu-form-actions">
     <p class="form-help">초안 저장 작업은 공개 사이트에 바로 반영되지 않습니다. 공개 반영을 누르면 현재 초안이 실제 메뉴로 적용됩니다.</p>
     <button type="submit" form="site-menu-order-form" class="btn btn-solid-light"><?php echo sr_e(sr_t('site_menu::ui.draft.order.save.17fa471c')); ?></button>
-    <button type="submit" form="site-menu-publish-form" class="btn btn-solid-primary" onclick="return confirm(<?php echo sr_e(sr_js_json_encode(sr_t('site_menu::ui.publish.confirm.46c70ccb'))); ?>);"><?php echo sr_e(sr_t('site_menu::ui.publish.30a64fe2')); ?></button>
+    <button type="submit" form="site-menu-publish-form" class="btn btn-solid-primary" data-confirm-message="<?php echo sr_e(sr_t('site_menu::ui.publish.confirm.46c70ccb')); ?>"><?php echo sr_e(sr_t('site_menu::ui.publish.30a64fe2')); ?></button>
 </div>
 
 <form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">

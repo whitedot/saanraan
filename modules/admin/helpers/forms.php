@@ -589,7 +589,7 @@ function sr_admin_select_badge_list_html(string $id, string $name, array $option
     static $scriptPrinted = false;
     if (!$scriptPrinted) {
         $scriptPrinted = true;
-        $html .= '<script>
+        $html .= '<script' . sr_csp_nonce_attribute() . '>
 (function () {
     function optionLabel(option) {
         return option ? (option.getAttribute("data-admin-select-badge-label") || option.textContent || "").replace(/\s+/g, " ").trim() : "";
@@ -892,5 +892,5 @@ function sr_admin_row_action_confirm_attr(string $status, string $label): string
         return '';
     }
 
-    return ' onclick="return confirm(\'' . sr_e($message) . '\');"';
+    return ' data-confirm-message="' . sr_e($message) . '"';
 }

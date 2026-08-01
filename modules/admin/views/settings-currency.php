@@ -138,7 +138,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </div>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var currencyChangeForm = document.querySelector('[data-admin-currency-change-form]');
     if (!currencyChangeForm) {

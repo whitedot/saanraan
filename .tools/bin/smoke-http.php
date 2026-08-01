@@ -33,7 +33,7 @@ $checks = [
             'x-content-type-options' => 'nosniff',
             'x-frame-options' => 'SAMEORIGIN',
             'referrer-policy' => 'no-referrer',
-            'content-security-policy' => ["default-src 'self'", "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com"],
+            'content-security-policy' => ["default-src 'self'", "script-src 'self' 'nonce-", "script-src-attr 'none'", "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com"],
             'cache-control' => 'no-store',
         ],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -46,7 +46,7 @@ $checks = [
             'x-content-type-options' => 'nosniff',
             'x-frame-options' => 'SAMEORIGIN',
             'referrer-policy' => 'no-referrer',
-            'content-security-policy' => ["default-src 'self'", "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com"],
+            'content-security-policy' => ["default-src 'self'", "script-src 'self' 'nonce-", "script-src-attr 'none'", "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com"],
             'cache-control' => 'no-store',
         ],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
@@ -1138,6 +1138,33 @@ foreach ($checks as $check) {
             $expectedValuePart = (string) $expectedValuePart;
             if ($actualHeader === '' || !str_contains($actualHeader, $expectedValuePart)) {
                 $checkErrors[] = $label . ' missing required response header "' . $headerName . ': ' . $expectedValuePart . '" for ' . $url;
+            }
+        }
+    }
+
+    $contentSecurityPolicy = (string) ($headers['content-security-policy'] ?? '');
+    if ($contentSecurityPolicy !== '') {
+        if (preg_match('/(?:^|;)\s*script-src\s+[^;]*\'unsafe-inline\'/i', $contentSecurityPolicy) === 1) {
+            $checkErrors[] = $label . ' CSP script-src still allows unsafe-inline for ' . $url;
+        }
+        if ($status === 200 && preg_match("/(?:^|;)\\s*script-src\\s+[^;]*'nonce-([A-Za-z0-9_-]{32})'/i", $contentSecurityPolicy, $nonceMatch) === 1) {
+            $expectedNonce = (string) $nonceMatch[1];
+            if (preg_match_all('/<script\b([^>]*)>/i', $body, $scriptMatches, PREG_SET_ORDER)) {
+                foreach ($scriptMatches as $scriptMatch) {
+                    $scriptAttributes = (string) ($scriptMatch[1] ?? '');
+                    if (preg_match('/\bsrc\s*=/i', $scriptAttributes) === 1) {
+                        continue;
+                    }
+                    if (preg_match('/\bnonce=["\']([^"\']+)["\']/i', $scriptAttributes, $scriptNonceMatch) !== 1
+                        || !hash_equals($expectedNonce, (string) $scriptNonceMatch[1])
+                    ) {
+                        $checkErrors[] = $label . ' contains an inline script without the response CSP nonce for ' . $url;
+                        break;
+                    }
+                }
+            }
+            if (preg_match('/\son[a-z]+\s*=/i', $body) === 1) {
+                $checkErrors[] = $label . ' contains an inline event handler forbidden by CSP for ' . $url;
             }
         }
     }

@@ -570,7 +570,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $roleHelpModal['id'], (string) $roleHelpModal['title'], (string) $roleHelpModal['body_html']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var groups = <?php echo $permissionPickerJson ?: '[]'; ?>;
     var actionLabels = <?php echo $permissionActionLabelJson ?: '{}'; ?>;

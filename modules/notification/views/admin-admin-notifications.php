@@ -213,7 +213,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_pagination_html($adminNotificationPagination, '운영 알림 목록 페이지'); ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var bulkForm = document.querySelector('[data-admin-notification-bulk-form]');
     if (!bulkForm) {

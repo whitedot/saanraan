@@ -361,7 +361,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 	    </section>
     <?php echo sr_admin_pagination_html($notificationPagination, '알림 목록 페이지'); ?>
 
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var bulkForm = document.querySelector('[data-notification-bulk-form]');
         if (!bulkForm) {
@@ -530,7 +530,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     ];
     include SR_ROOT . '/modules/admin/views/asset-adjust-lookup-modals.php';
     ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var form = document.querySelector('[data-notification-create-form]');
         if (!form) {

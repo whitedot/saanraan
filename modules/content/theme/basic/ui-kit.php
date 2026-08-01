@@ -60,7 +60,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_ui_kit_layo
         </div>
     </main>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var root = document.querySelector('.content-ui-kit-samples');
     if (!root) {

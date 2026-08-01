@@ -273,7 +273,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         <?php echo sr_admin_status_description_list_html('content_download_file_status', ['active' => '사용', 'hidden' => '숨김']); ?>
     </section>
     <?php echo sr_admin_pagination_html($downloadFilePagination, '다운로드 파일 목록 페이지'); ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var bulkForm = document.querySelector('[data-content-file-bulk-form]');
         if (!bulkForm) {

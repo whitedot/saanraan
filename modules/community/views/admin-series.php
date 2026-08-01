@@ -167,7 +167,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     $statusConfirmAttribute = sr_admin_row_action_confirm_attr($status, $statusLabel);
                                     if (in_array($status, ['archived', 'deleted'], true)) {
                                         $statusConfirmMessage = $statusLabel . ' 상태로 변경할까요? 모든 글의 시리즈 연결이 해제되며 상태를 되돌려도 자동 복원되지 않습니다.';
-                                        $statusConfirmAttribute = ' onclick="return confirm(\'' . sr_e($statusConfirmMessage) . '\');"';
+                                        $statusConfirmAttribute = ' data-confirm-message="' . sr_e($statusConfirmMessage) . '"';
                                     }
                                     ?>
                                     <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo $statusConfirmAttribute; ?>><?php echo sr_e($statusLabel); ?></button>

@@ -316,7 +316,7 @@ $assetGroupPolicyModeHelpBodyHtml .= '</ul>'
     . '<p>' . sr_e('여러 포인트/금액 항목을 지원하는 조정 규칙에서는 한 행에 항목 하나와 조정값 하나만 입력합니다. 다른 항목에는 규칙을 추가해 별도 행으로 관리합니다.') . '</p>';
 echo sr_admin_help_modal_html($assetGroupPolicyModeHelpModalId, '계산 방식 도움말', $assetGroupPolicyModeHelpBodyHtml);
 ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var editors = document.querySelectorAll('[data-admin-asset-group-policy-editor]');
     var rowSequence = 0;

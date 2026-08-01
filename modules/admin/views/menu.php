@@ -125,7 +125,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </table>
     </div>
     <div class="form-actions form-sticky-actions admin-menu-form-actions">
-        <button type="submit" form="admin-menu-reset-form" class="btn btn-outline-danger" data-admin-menu-reset-confirm data-confirm-message="<?php echo sr_e(sr_t('admin::ui.admin.menu.settings.d694bdec')); ?>"><?php echo sr_e(sr_t('admin::ui.text.4fa71701')); ?></button>
+        <button type="submit" form="admin-menu-reset-form" class="btn btn-outline-danger" data-admin-menu-reset-confirm data-confirm-message="<?php echo sr_e(sr_t('admin::ui.admin.menu.settings.d694bdec')); ?>" data-confirm-managed><?php echo sr_e(sr_t('admin::ui.text.4fa71701')); ?></button>
         <button type="submit" name="intent" value="save_menu_overrides" class="btn btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.menu.settings.save.914d293b')); ?></button>
     </div>
 </form>

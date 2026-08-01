@@ -95,7 +95,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                     <form method="post" action="<?php echo sr_e(sr_url('/admin/logo-manager' . $logoManagerActionSuffix)); ?>" class="admin-inline-form logo-manager-current-action">
                         <?php echo sr_csrf_field(); ?>
                         <input type="hidden" name="intent" value="purge_favicon_icons">
-                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" title="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" onclick="return confirm('<?php echo sr_e('파비콘 로고와 생성된 아이콘 파일을 완전 삭제할까요? 삭제 후에는 활성 파비콘 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.'); ?>');"><?php echo sr_material_icon_html('delete_forever'); ?></button>
+                        <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" aria-label="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" title="<?php echo sr_e(sr_t('logo_manager::ui.favicon.purge')); ?>" data-confirm-message="<?php echo sr_e('파비콘 로고와 생성된 아이콘 파일을 완전 삭제할까요? 삭제 후에는 활성 파비콘 후보가 없으면 icon/apple-touch-icon link를 출력하지 않습니다.'); ?>"><?php echo sr_material_icon_html('delete_forever'); ?></button>
                     </form>
                 <?php } ?>
             </article>
@@ -379,7 +379,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php $logoManagerStatusConfirmMessage = $logoManagerPositionKey === sr_logo_manager_favicon_position_key()
                                             ? '이 파비콘 로고를 중지할까요? 이 로고와 아이콘 세트는 head link 후보에서 제외됩니다. 같은 용도의 다른 활성 후보가 있으면 그 후보가 적용될 수 있습니다.'
                                             : '이 로고 배치를 사용안함 처리할까요? 같은 용도에 다른 활성 로고가 있으면 그 로고가 적용될 수 있습니다.'; ?>
-                                        <?php $logoManagerStatusConfirm = $logoManagerNextStatus === 'disabled' ? ' onclick="return confirm(' . sr_e(sr_js_json_encode($logoManagerStatusConfirmMessage)) . ');"' : ''; ?>
+                                        <?php $logoManagerStatusConfirm = $logoManagerNextStatus === 'disabled' ? ' data-confirm-message="' . sr_e($logoManagerStatusConfirmMessage) . '"' : ''; ?>
                                         <input type="hidden" name="status" value="<?php echo sr_e($logoManagerNextStatus); ?>">
                                         <button type="submit" class="btn btn-sm btn-icon <?php echo sr_e($logoManagerStatusButtonClass); ?>" aria-label="<?php echo sr_e($logoManagerStatusButtonLabel); ?>" title="<?php echo sr_e($logoManagerStatusButtonLabel); ?>"<?php echo $logoManagerStatusConfirm; ?>><?php echo sr_material_icon_html($logoManagerStatusButtonIcon); ?></button>
                                     </form>
@@ -387,7 +387,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                         <?php echo sr_csrf_field(); ?>
                                         <input type="hidden" name="intent" value="delete_logo">
                                         <input type="hidden" name="logo_id" value="<?php echo sr_e((string) $logo['id']); ?>">
-                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="로고 배치 삭제" title="삭제" onclick="return confirm('이 로고 배치를 삭제할까요? 원본 이미지와 생성된 아이콘 세트 파일도 함께 정리됩니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                        <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="로고 배치 삭제" title="삭제" data-confirm-message="이 로고 배치를 삭제할까요? 원본 이미지와 생성된 아이콘 세트 파일도 함께 정리됩니다."><?php echo sr_material_icon_html('delete'); ?></button>
                                     </form>
                                 </div>
                             </td>
@@ -633,7 +633,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $logoManagerHelpModal['id'], (string) $logoManagerHelpModal['title'], (string) $logoManagerHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var bulkForm = document.querySelector('[data-logo-manager-bulk-form]');
     if (bulkForm) {

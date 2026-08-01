@@ -231,7 +231,7 @@ $antispamHelp = [
     <?php echo sr_admin_help_modal_html((string) $antispamHelpModal['id'], (string) $antispamHelpModal['title'], (string) $antispamHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var select = document.querySelector('[data-antispam-challenge-type-select]');
     var panels = Array.prototype.slice.call(document.querySelectorAll('[data-antispam-challenge-panel]'));

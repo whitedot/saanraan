@@ -593,7 +593,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     function updateRequiredCheckboxGroup(root) {
         var checkboxes = Array.prototype.slice.call(root.querySelectorAll('input[type="checkbox"]'));

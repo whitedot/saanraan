@@ -208,7 +208,7 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'popup_layer') &&
     <?php echo sr_seo_tags($layoutPdo instanceof PDO ? sr_site_apply_public_meta_defaults($layoutPdo, $layoutSeo) : $layoutSeo, $layoutSite); ?>
     <?php echo $layoutFaviconHtml; ?>
     <?php echo sr_pwa_head_tags($layoutPdo, $layoutSite); ?>
-    <script>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>

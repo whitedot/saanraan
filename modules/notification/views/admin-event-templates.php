@@ -345,7 +345,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $notificationTemplateHelpModal['id'], (string) $notificationTemplateHelpModal['title'], (string) $notificationTemplateHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var bulkSwitch = document.querySelector('[data-notification-template-bulk-switch]');
     if (bulkSwitch) {

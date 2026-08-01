@@ -74,7 +74,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $seoHelpModal['id'], (string) $seoHelpModal['title'], (string) $seoHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var copyButtons = Array.prototype.slice.call(document.querySelectorAll('[data-seo-copy-url]'));
     var fallbackCopy = function (value) {

@@ -112,8 +112,8 @@ $communityFrameModifier = 'form';
             <?php if ($communityDraftEnabled) { ?>
                 <input type="hidden" name="draft_mode" value="<?php echo sr_e($communityDraftMode); ?>">
                 <input type="hidden" name="board_key" value="<?php echo sr_e((string) ($board['board_key'] ?? '')); ?>">
-                <script type="application/json" data-community-draft-config><?php echo sr_js_json_encode($communityDraftConfig); ?></script>
-                <script type="application/json" data-community-draft-payload><?php echo sr_js_json_encode($communityDraftPayload); ?></script>
+                <script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" data-community-draft-config><?php echo sr_js_json_encode($communityDraftConfig); ?></script>
+                <script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" data-community-draft-payload><?php echo sr_js_json_encode($communityDraftPayload); ?></script>
             <?php } ?>
             <?php if (isset($postIdField) && is_int($postIdField)) { ?>
                 <input type="hidden" name="post_id" value="<?php echo sr_e((string) $postIdField); ?>">

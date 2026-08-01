@@ -587,7 +587,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 	    </section>
     <?php echo $bannerCopyModals; ?>
     <?php echo sr_admin_pagination_html($bannerPagination, '배너 목록 페이지'); ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var form = document.querySelector('[data-banner-bulk-form]');
         if (!form) {
@@ -713,7 +713,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($bannerAdminPage === 'form') { ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var form = document.querySelector('[data-admin-subject-form]');
         if (!form) {
@@ -878,7 +878,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </script>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     document.querySelectorAll('form').forEach(function (form) {
         var service = form.querySelector('[data-admin-target-service]');

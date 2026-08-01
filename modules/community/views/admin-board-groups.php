@@ -344,7 +344,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="delete_group">
                                     <input type="hidden" name="group_id" value="<?php echo sr_e((string) $boardGroup['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 그룹 삭제" title="게시판 그룹 삭제" onclick="return confirm('이 게시판 그룹을 삭제할까요? 연결 게시판은 삭제하지 않고 그룹 연결만 해제합니다. 사이트 메뉴에서 사용 중이면 삭제할 수 없습니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="게시판 그룹 삭제" title="게시판 그룹 삭제" data-confirm-message="이 게시판 그룹을 삭제할까요? 연결 게시판은 삭제하지 않고 그룹 연결만 해제합니다. 사이트 메뉴에서 사용 중이면 삭제할 수 없습니다."><?php echo sr_material_icon_html('delete'); ?></button>
                                 </form>
                             </div>
                         </td>
@@ -470,7 +470,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if (in_array($communityBoardGroupsPage, ['new', 'edit'], true)) { ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var privacyConsentEnabled = document.querySelector('[data-community-privacy-consent-enabled]');
     var privacyConsentControls = document.querySelector('[data-community-privacy-consent-controls]');

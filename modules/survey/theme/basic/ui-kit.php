@@ -60,7 +60,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_ui_kit_layou
         </div>
     </main>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var root = document.querySelector('.survey-ui-kit-samples');
     if (!root) {

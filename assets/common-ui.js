@@ -449,6 +449,36 @@
   }
 
   document.addEventListener('click', function (event) {
+    var confirmTrigger = findClosest(event.target, '[data-confirm-message]:not([data-confirm-managed])');
+    if (!confirmTrigger || confirmTrigger.tagName === 'FORM') {
+      return;
+    }
+
+    var message = confirmTrigger.getAttribute('data-confirm-message') || '';
+    if (message && !window.confirm(message)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
+  document.addEventListener('submit', function (event) {
+    var form = event.target;
+    if (!form || form.tagName !== 'FORM') {
+      return;
+    }
+
+    if (form.hasAttribute('data-confirm-managed')) {
+      return;
+    }
+
+    var message = form.getAttribute('data-confirm-message') || '';
+    if (message && !window.confirm(message)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
+  document.addEventListener('click', function (event) {
     var target = getElementTarget(event.target);
     var activeDropdown = findClosest(target, DROPDOWN_SELECTOR);
 

@@ -196,7 +196,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                                     $statusConfirmAttribute = sr_admin_row_action_confirm_attr($status, $statusLabel);
                                     if (in_array($status, ['archived', 'deleted'], true)) {
                                         $statusConfirmMessage = $statusLabel . ' 상태로 변경할까요? 모든 회차 연결이 해제되며 상태를 되돌려도 자동 복원되지 않습니다.';
-                                        $statusConfirmAttribute = ' onclick="return confirm(\'' . sr_e($statusConfirmMessage) . '\');"';
+                                        $statusConfirmAttribute = ' data-confirm-message="' . sr_e($statusConfirmMessage) . '"';
                                     }
                                     ?>
                                     <button form="<?php echo sr_e($seriesUpdateFormId); ?>" type="submit" name="status" value="<?php echo sr_e($status); ?>" class="btn btn-sm <?php echo sr_e(sr_admin_row_action_button_class($status)); ?>"<?php echo $statusConfirmAttribute; ?>><?php echo sr_e($statusLabel); ?></button>
@@ -227,7 +227,7 @@ $contentSeriesActionSuffix = $contentSeriesCurrentQuery !== '' ? '?' . $contentS
                                     <?php echo sr_csrf_field(); ?>
                                     <input type="hidden" name="intent" value="delete">
                                     <input type="hidden" name="series_id" value="<?php echo sr_e((string) $series['id']); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 시리즈 삭제" title="콘텐츠 시리즈 삭제" onclick="return confirm('이 콘텐츠 시리즈를 삭제할까요? 콘텐츠는 삭제되지 않지만 모든 회차 연결 기록은 삭제됩니다.');"><?php echo sr_material_icon_html('delete'); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="콘텐츠 시리즈 삭제" title="콘텐츠 시리즈 삭제" data-confirm-message="이 콘텐츠 시리즈를 삭제할까요? 콘텐츠는 삭제되지 않지만 모든 회차 연결 기록은 삭제됩니다."><?php echo sr_material_icon_html('delete'); ?></button>
                                 </form>
                             </div>
                         </td>

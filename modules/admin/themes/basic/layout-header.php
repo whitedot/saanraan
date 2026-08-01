@@ -133,7 +133,7 @@ $adminBrandLinkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has
 <html lang="<?php echo sr_e(sr_locale()); ?>" data-color-scheme="<?php echo sr_e(sr_admin_color_scheme(is_array($adminSettings ?? null) ? $adminSettings : [])); ?>">
 <head>
     <meta charset="utf-8">
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var scheme = document.documentElement.getAttribute('data-color-scheme') || 'light';
         try {
@@ -154,7 +154,7 @@ $adminBrandLinkClass .= $adminBrandLogoHtml !== '' ? ' has-sidebar-logo' : ' has
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         try {
             if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches && localStorage.getItem('sr_admin_sidebar_collapsed') === '1') {

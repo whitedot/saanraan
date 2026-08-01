@@ -462,7 +462,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </div>
         </form>
         <?php if ($memberEditCanSuspend) { ?>
-            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'suspend'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다.');" hidden>
+            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'suspend'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form data-confirm-message="이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다." hidden>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
                 <input type="hidden" name="intent" value="status">
@@ -471,7 +471,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         <?php } ?>
         <?php if ($memberEditCanWithdraw) { ?>
-            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'withdraw'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberEditWithdrawConfirmMessage)); ?>);" hidden>
+            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'withdraw'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form data-confirm-message="<?php echo sr_e($memberEditWithdrawConfirmMessage); ?>" hidden>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
                 <input type="hidden" name="intent" value="status">
@@ -480,7 +480,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             </form>
         <?php } ?>
         <?php if ($memberEditCanAnonymize) { ?>
-            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'anonymize'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberEditAnonymizeConfirmMessage)); ?>);" hidden>
+            <form id="<?php echo sr_e($memberEditActionFormPrefix . 'anonymize'); ?>" method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form data-confirm-message="<?php echo sr_e($memberEditAnonymizeConfirmMessage); ?>" hidden>
                 <?php echo sr_csrf_field(); ?>
                 <input type="hidden" name="return_to" value="<?php echo sr_e($memberEditReturnTo); ?>">
                 <input type="hidden" name="intent" value="status">
@@ -706,7 +706,7 @@ foreach ($allowedStatuses as $status) {
                     </div>
                     <div class="modal-footer admin-member-risk-actions">
                         <?php if (!in_array($memberStatus, $memberTerminalStatuses, true) && $memberStatus !== 'suspended') { ?>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm('이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다.');">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form data-confirm-message="이 회원을 차단할까요? 활성 세션이 함께 폐기됩니다.">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                 <input type="hidden" name="intent" value="status">
@@ -716,7 +716,7 @@ foreach ($allowedStatuses as $status) {
                             </form>
                         <?php } ?>
                         <?php if (!in_array($memberStatus, $memberTerminalStatuses, true)) { ?>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberWithdrawConfirmMessage)); ?>);">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form data-confirm-message="<?php echo sr_e($memberWithdrawConfirmMessage); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                 <input type="hidden" name="intent" value="status">
@@ -726,7 +726,7 @@ foreach ($allowedStatuses as $status) {
                             </form>
                         <?php } ?>
                         <?php if ($memberStatus !== 'anonymized') { ?>
-                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form onsubmit="return confirm(<?php echo sr_e(sr_js_json_encode($memberAnonymizeConfirmMessage)); ?>);">
+                            <form method="post" action="<?php echo sr_e(sr_url('/admin/members')); ?>" data-sr-validate-form data-confirm-message="<?php echo sr_e($memberAnonymizeConfirmMessage); ?>">
                                 <?php echo sr_csrf_field(); ?>
                                 <input type="hidden" name="return_to" value="<?php echo sr_e(sr_admin_current_get_url('/admin/members')); ?>">
                                 <input type="hidden" name="intent" value="status">
@@ -791,7 +791,7 @@ foreach ($allowedStatuses as $status) {
 
 <?php echo sr_admin_pagination_html($memberPagination, '회원 목록 페이지'); ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var selfPasswordSection = document.querySelector('[data-member-admin-self-password-change]');
     if (selfPasswordSection) {

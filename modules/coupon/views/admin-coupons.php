@@ -266,7 +266,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
     </div>
 </section>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var message = <?php echo sr_js_json_encode($claimCampaignDefinitionRequiredMessage . ' 쿠폰 등록 페이지로 이동하겠습니까?'); ?>;
     if (window.confirm(message)) {
@@ -717,7 +717,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_pagination_html($claimCampaignPagination, '쿠폰 발급 캠페인 페이지'); ?>
 </section>
 <?php if (!$claimCampaignCanCreate) { ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var button = document.querySelector('[data-coupon-campaign-definition-required]');
     if (!button) {
@@ -928,7 +928,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo $couponDefinitionReferenceModals; ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var form = document.querySelector('[data-coupon-definition-bulk-form]');
     if (!form) {
@@ -1265,7 +1265,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $couponDefinitionHelpModal['id'], (string) $couponDefinitionHelpModal['title'], (string) $couponDefinitionHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var form = document.querySelector('#<?php echo sr_e($couponCreateModalId); ?> form');
     if (!form) {
@@ -1365,7 +1365,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     'use strict';
 
@@ -1857,7 +1857,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     document.querySelectorAll('form[data-coupon-email-warning]').forEach(function (form) {
         form.addEventListener('submit', function (event) {

@@ -602,7 +602,7 @@ $contentSettingsSectionNavItems = [
 <?php } ?>
 
 <?php if ($siteMenuOptions !== []) { ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         'use strict';
         var form = document.getElementById('content-settings-form');

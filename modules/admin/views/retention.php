@@ -396,7 +396,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.querySelector('[data-admin-retention-cleanup-form]');
     if (!form) {

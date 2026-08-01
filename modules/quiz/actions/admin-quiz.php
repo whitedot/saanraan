@@ -1548,7 +1548,7 @@ $quizSectionNavItems = [
     </div>
 </form>
 <?php echo sr_admin_form_draft_restore_script($adminFormDraftForDisplay ?? null, 'quiz-item-form'); ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var policy = document.getElementById('quiz_attempt_limit_policy');
     var period = document.querySelector('[data-quiz-attempt-period]');

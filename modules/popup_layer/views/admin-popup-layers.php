@@ -536,7 +536,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 	    </section>
     <?php echo $popupLayerCopyModals; ?>
     <?php echo sr_admin_pagination_html($popupPagination, '팝업레이어 목록 페이지'); ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var form = document.querySelector('[data-popup-layer-bulk-form]');
         if (!form) {
@@ -663,7 +663,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php if ($popupLayerAdminPage === 'form') { ?>
     <?php echo sr_editor_assets_html($pdo, $popupLayerEditorKey, 'standard'); ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var form = document.querySelector('[data-admin-subject-form]');
         if (!form) {
@@ -779,7 +779,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </script>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     document.querySelectorAll('form').forEach(function (form) {
         var service = form.querySelector('[data-admin-target-service]');

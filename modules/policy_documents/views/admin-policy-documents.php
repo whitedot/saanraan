@@ -309,7 +309,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                             <?php } elseif ($policyDocumentStandardTemplateRevisionDateLabel !== '') { ?>
                                 <span class="badge badge-soft-secondary"><?php echo sr_e($policyDocumentStandardTemplateRevisionDateLabel); ?></span>
                             <?php } ?>
-                            <script type="application/json" data-policy-document-standard-template-json><?php echo sr_js_json_encode($policyDocumentStandardTemplateHtml); ?></script>
+                            <script<?php echo sr_csp_nonce_attribute(); ?> type="application/json" data-policy-document-standard-template-json><?php echo sr_js_json_encode($policyDocumentStandardTemplateHtml); ?></script>
                         </div>
                     <?php } ?>
                     <p class="form-help"><?php echo sr_e(sr_t('policy_documents::ui.body.help')); ?></p>
@@ -467,7 +467,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                                                 <input type="hidden" name="action" value="publish_version">
                                                                 <input type="hidden" name="version_id" value="<?php echo sr_e((string) (int) $version['id']); ?>">
                                                                 <input type="hidden" name="document_id" value="<?php echo sr_e((string) (int) $version['document_id']); ?>">
-                                                                <button type="submit" class="btn btn-sm btn-icon btn-solid-primary" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" onclick="return confirm('<?php echo sr_e(sr_t('policy_documents::ui.publish.confirm')); ?>');"><?php echo sr_material_icon_html('publish'); ?></button>
+                                                                <button type="submit" class="btn btn-sm btn-icon btn-solid-primary" aria-label="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" title="<?php echo sr_e(sr_t('policy_documents::ui.publish')); ?>" data-confirm-message="<?php echo sr_e(sr_t('policy_documents::ui.publish.confirm')); ?>"><?php echo sr_material_icon_html('publish'); ?></button>
                                                             </form>
                                                         <?php } ?>
                                                     </div>
@@ -623,7 +623,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if ($policyDocumentAdminPage === 'form' && !$creatingDocument && $policyDocumentStandardTemplateHtml !== '') { ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     function policyDocumentText(value) {
         return String(value || '').replace(/\s+/g, ' ').trim();

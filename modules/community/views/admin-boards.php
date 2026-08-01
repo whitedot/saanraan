@@ -1775,7 +1775,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
         </div>
 
         <?php if (sr_get_string('delete', 1) === '1') { ?>
-            <script>
+            <script<?php echo sr_csp_nonce_attribute(); ?>>
             window.addEventListener('DOMContentLoaded', function () {
                 var trigger = document.querySelector('[data-overlay="#<?php echo sr_e($boardDeleteModalId); ?>"]');
                 if (trigger && typeof trigger.click === 'function') {
@@ -1793,7 +1793,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 
 <?php if (in_array($communityBoardsPage, ['new', 'edit'], true)) { ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var identityVerificationEnabled = document.querySelector('#community_admin_boards_identity_verification_enabled');
     var identityPurpose = document.querySelector('[data-community-board-identity-purpose]');
@@ -3035,7 +3035,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 </script>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     function syncCommunityBoardSidebarSiteMenu(root) {
         var scope = root || document;

@@ -407,7 +407,7 @@ $notificationSettingsSectionNavItems = [
     </div>
 </div>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var form = document.querySelector('[data-notification-settings-form]');
     if (!form) {

@@ -177,6 +177,6 @@ function sr_ckeditor_public_assets_html(PDO $pdo, string $presetKey = 'default')
 {
     $configJson = sr_js_json_encode(sr_ckeditor_public_config($pdo, $presetKey));
 
-    return '<script type="application/json" id="sr-ckeditor-config">' . $configJson . '</script>' . PHP_EOL
+    return '<script' . sr_csp_nonce_attribute() . ' type="application/json" id="sr-ckeditor-config">' . $configJson . '</script>' . PHP_EOL
         . '<script src="' . sr_e(sr_asset_url('/modules/ckeditor/assets/saanraan-ckeditor.js')) . '" defer></script>';
 }

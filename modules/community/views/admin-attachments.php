@@ -143,7 +143,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 
 <?php echo sr_admin_pagination_html($attachmentPagination, '첨부파일 목록 페이지'); ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var countNode = document.querySelector('[data-community-attachment-selected-count]');
     var submitButtons = Array.prototype.slice.call(document.querySelectorAll('[data-community-attachment-bulk-submit]'));

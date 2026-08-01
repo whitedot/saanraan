@@ -54,9 +54,67 @@ function sr_security_baseline_assert(bool $condition, string $message): void
     }
 }
 
+function sr_security_baseline_check_csp_script_sources(): void
+{
+    foreach (['core', 'layouts', 'modules'] as $sourceRoot) {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(SR_ROOT . '/' . $sourceRoot, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $entry) {
+            if (!$entry->isFile() || $entry->getExtension() !== 'php') {
+                continue;
+            }
+            $path = str_replace('\\', '/', $entry->getPathname());
+            if (str_contains($path, '/vendor/')) {
+                continue;
+            }
+            $relativePath = ltrim(substr($path, strlen(SR_ROOT)), '/');
+            $contents = file_get_contents($path);
+            if (!is_string($contents)) {
+                sr_security_baseline_error('CSP source file cannot be read: ' . $relativePath);
+                continue;
+            }
+
+            if (preg_match_all('/<script\b([^>]*)>/i', $contents, $scriptMatches, PREG_SET_ORDER)) {
+                foreach ($scriptMatches as $scriptMatch) {
+                    $attributes = (string) ($scriptMatch[1] ?? '');
+                    if (preg_match('/\bsrc\s*=/i', $attributes) !== 1
+                        && !str_contains($attributes, 'sr_csp_nonce_attribute')
+                        && preg_match('/\bnonce\s*=/i', $attributes) !== 1
+                    ) {
+                        sr_security_baseline_error('Inline script is missing the request CSP nonce: ' . $relativePath);
+                        break;
+                    }
+                }
+            }
+            if (preg_match('/\son[a-z]+\s*=/i', $contents) === 1) {
+                sr_security_baseline_error('Inline event handler is forbidden by CSP: ' . $relativePath);
+            }
+            if (preg_match('/\bhref\s*=\s*["\']javascript:/i', $contents) === 1) {
+                sr_security_baseline_error('javascript: URL is forbidden by CSP: ' . $relativePath);
+            }
+        }
+    }
+}
+
 function sr_security_baseline_check_runtime_fixtures(): void
 {
     $config = ['app_key' => str_repeat('a', 64)];
+
+    unset($GLOBALS['sr_csp_nonce']);
+    $firstNonce = sr_csp_nonce();
+    $firstNonceAttribute = sr_csp_nonce_attribute();
+    sr_security_baseline_assert(
+        preg_match('/\A[A-Za-z0-9_-]{32}\z/', $firstNonce) === 1
+            && $firstNonceAttribute === ' nonce="' . $firstNonce . '"'
+            && sr_csp_nonce() === $firstNonce,
+        'CSP nonce fixture should create one stable 192-bit base64url value per request.'
+    );
+    unset($GLOBALS['sr_csp_nonce']);
+    sr_security_baseline_assert(
+        !hash_equals($firstNonce, sr_csp_nonce()),
+        'CSP nonce fixture should create a new value for the next request.'
+    );
 
     $hash = sr_hmac_hash('security-fixture', $config);
     sr_security_baseline_assert(
@@ -298,6 +356,9 @@ sr_security_baseline_require_markers('core/helpers/runtime.php', [
     'session_id_hash',
     "hash('sha256', \$id)",
     'function sr_send_security_headers(?array $config = null): void',
+    'function sr_csp_nonce(): string',
+    'function sr_csp_nonce_attribute(): string',
+    'script-src-attr \'none\'',
     'X-Content-Type-Options: nosniff',
     'X-Frame-Options: SAMEORIGIN',
     'Content-Security-Policy:',
@@ -316,6 +377,16 @@ sr_security_baseline_require_markers('core/helpers/runtime.php', [
     "throw new RuntimeException('app_key is required.')",
     'function sr_is_public_http_url(string $url): bool',
     'function sr_ip_is_public_network_address(string $address): bool',
+]);
+
+$runtimeSource = sr_security_baseline_read('core/helpers/runtime.php');
+sr_security_baseline_assert(
+    preg_match('/script-src[^"\n]*unsafe-inline/', $runtimeSource) !== 1,
+    'CSP script-src must not allow unsafe-inline.'
+);
+sr_security_baseline_require_markers('assets/common-ui.js', [
+    '[data-confirm-message]',
+    "document.addEventListener('submit'",
 ]);
 
 sr_security_baseline_require_markers('core/helpers/output.php', [
@@ -470,6 +541,7 @@ sr_security_baseline_require_markers('docs/security-checklist.md', [
 
 sr_security_baseline_check_runtime_fixtures();
 sr_security_baseline_check_exception_log_fallback_fixture();
+sr_security_baseline_check_csp_script_sources();
 
 if ($errors !== []) {
     fwrite(STDERR, "security baseline checks failed:\n");

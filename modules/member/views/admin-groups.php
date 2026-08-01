@@ -874,7 +874,7 @@ $memberRuleFormFields = static function (?array $formRule, string $fieldPrefix, 
         </div>
     </div>
     <?php if ($canSelectEvaluateExcludeGroups) { ?>
-        <script>
+        <script<?php echo sr_csp_nonce_attribute(); ?>>
         (function () {
             'use strict';
 

@@ -80,9 +80,11 @@ function sr_send_security_headers(?array $config = null): void
     }
 
     $formActionSources = sr_content_security_policy_form_action_sources();
+    $scriptNonce = sr_csp_nonce();
     $contentSecurityPolicy = [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' https://cdn.ckeditor.com",
+        "script-src 'self' 'nonce-" . $scriptNonce . "' https://cdn.ckeditor.com",
+        "script-src-attr 'none'",
         "connect-src 'self' https://cdn.jsdelivr.net",
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.ckeditor.com",
         "font-src 'self' https://cdn.jsdelivr.net data:",
@@ -104,6 +106,20 @@ function sr_send_security_headers(?array $config = null): void
     if ((sr_is_https_request($config) || !empty($security['force_https'])) && (empty($config) || (string) ($config['env'] ?? 'production') === 'production')) {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }
+}
+
+function sr_csp_nonce(): string
+{
+    if (!is_string($GLOBALS['sr_csp_nonce'] ?? null) || $GLOBALS['sr_csp_nonce'] === '') {
+        $GLOBALS['sr_csp_nonce'] = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
+    }
+
+    return $GLOBALS['sr_csp_nonce'];
+}
+
+function sr_csp_nonce_attribute(): string
+{
+    return ' nonce="' . htmlspecialchars(sr_csp_nonce(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"';
 }
 
 function sr_content_security_policy_form_action_sources(): array

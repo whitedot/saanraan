@@ -205,7 +205,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $communityBoardCopyHelpModal['id'], (string) $communityBoardCopyHelpModal['title'], (string) $communityBoardCopyHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-copy-scope-group]').forEach(function (group) {
         var form = group.closest('form');

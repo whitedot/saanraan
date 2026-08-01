@@ -223,7 +223,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $identityVerificationHelpModal['id'], (string) $identityVerificationHelpModal['title'], (string) $identityVerificationHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 var identityVerificationEnabled = document.getElementById('identity_verification_enabled');
 var identityDefaultProviderSelect = document.querySelector('[data-identity-default-provider-select]');
 var identityDefaultProviderRequired = document.querySelector('[data-identity-default-provider-required]');

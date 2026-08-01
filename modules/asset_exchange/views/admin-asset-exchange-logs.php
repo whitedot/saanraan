@@ -108,7 +108,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                     <input type="hidden" name="exchange_group_id" value="<?php echo sr_e((string) $log['exchange_group_id']); ?>">
                                     <input type="hidden" name="correction_reason" value="관리자 환전 정정">
                                     <input type="hidden" name="return_to" value="<?php echo sr_e($assetExchangeLogReturnTo); ?>">
-                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="환전 묶음 정정" title="환전 묶음 정정" onclick="return confirm('이 완료 환전 묶음을 반대 원장 거래로 정정할까요?');"><?php echo sr_material_icon_html('undo'); ?></button>
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="환전 묶음 정정" title="환전 묶음 정정" data-confirm-message="이 완료 환전 묶음을 반대 원장 거래로 정정할까요?"><?php echo sr_material_icon_html('undo'); ?></button>
                                 </form>
                             <?php } else { ?>
                                 <span class="text-muted">-</span>

@@ -362,7 +362,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $privacyRequestHelpModal['id'], (string) $privacyRequestHelpModal['title'], (string) $privacyRequestHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     function syncPrivacyRequestForm(form) {
         var status = form.querySelector('[data-privacy-status]');
@@ -395,12 +395,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             }
         });
         form.querySelectorAll('[data-privacy-status-action]').forEach(function (button) {
-            button.addEventListener('click', function (event) {
-                var confirmMessage = button.getAttribute('data-confirm-message') || '';
-                if (confirmMessage !== '' && !window.confirm(confirmMessage)) {
-                    event.preventDefault();
-                    return;
-                }
+            button.addEventListener('click', function () {
                 var status = form.querySelector('[data-privacy-status]');
                 if (status) {
                     status.value = button.value;

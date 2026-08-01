@@ -13,7 +13,7 @@
                             <div class="card-body">
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.7ba351cf')); ?></p>
 
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -25,7 +25,7 @@
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.70c54fc0')); ?></h5>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.7ba351cf')); ?></p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -37,7 +37,7 @@
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.2d879867')); ?></h5>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.eee7408d')); ?></p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -49,7 +49,7 @@
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.2d871c9c')); ?></h5>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.eee7408d')); ?></p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -67,7 +67,7 @@
                                 <h5 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.576b084e')); ?></h5>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -92,7 +92,7 @@
                             <div class="card-header"><?php echo sr_e(sr_t('admin::ui.text.4d36295e')); ?></div>
 
                             <div class="card-body">
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -149,7 +149,7 @@
                             <div class="card-body">
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -176,7 +176,7 @@
 
                             <div class="card-body">
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.214f3518')); ?></p>
-                                <a href="javascript: void(0);" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('admin::ui.text.37de216a')); ?></a>
+                                <a href="#" class="btn btn-sm btn-solid-light"><?php echo sr_e(sr_t('admin::ui.text.37de216a')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
                         </div>
@@ -193,7 +193,7 @@
                             <div class="card-body">
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.cd6d7daf')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -215,7 +215,7 @@
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.3fd450cb')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -227,7 +227,7 @@
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.8192e13f')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -239,7 +239,7 @@
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.d7742378')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -251,7 +251,7 @@
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.d7742378')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-dark"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -263,7 +263,7 @@
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.3fd450cb')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-primary"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->
@@ -275,7 +275,7 @@
                                 <h4 class="card-title"><?php echo sr_e(sr_t('admin::ui.text.3fd450cb')); ?></h4>
                                 <p class="ui-kit-space-after-4"><?php echo sr_e(sr_t('admin::ui.text.702b1a50')); ?>
                                 </p>
-                                <a href="javascript: void(0);"
+                                <a href="#"
                                     class="btn btn-sm btn-solid-info"><?php echo sr_e(sr_t('admin::ui.text.60563203')); ?></a>
                             </div>
                             <!-- 카드 본문 끝-->

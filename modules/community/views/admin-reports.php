@@ -504,7 +504,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 <?php } ?>
 <?php echo sr_admin_pagination_html($reportPagination, '신고 목록 페이지'); ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var bulkForm = document.querySelector('[data-community-report-bulk-form]');
     if (!bulkForm) {
@@ -680,7 +680,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 })();
 </script>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     document.querySelectorAll('[id^="community-report-process-modal-"]').forEach(function (modal) {
         var status = modal.querySelector('select[name="status"]');

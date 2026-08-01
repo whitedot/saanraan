@@ -209,7 +209,7 @@ $currentQuery = http_build_query(array_filter($filters, static fn (string $value
     </div>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.querySelector('[data-admin-storage-cache-cleanup-form]');
     if (!form) {

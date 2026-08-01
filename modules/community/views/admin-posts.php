@@ -465,7 +465,7 @@ $communityHideHelp = [
 
 <?php echo sr_admin_help_modal_html($communityHideHelp['id'], $communityHideHelp['title'], $communityHideHelp['body']); ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var modal = document.getElementById('community-hide-status-modal');
     if (!modal) {
@@ -568,7 +568,7 @@ $communityHideHelp = [
 })();
 </script>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var bulkForm = document.querySelector('[data-community-comment-bulk-form]');
     if (!bulkForm) {

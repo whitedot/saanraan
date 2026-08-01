@@ -240,7 +240,7 @@ if ($quizEmbedded) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php echo sr_seo_tags($quizEmbedSeo, is_array($site ?? null) ? $site : null); ?>
-    <script>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
     <?php echo sr_stylesheet_tag($quizEmbedStylesheets, $pdo, ['style_profile' => (string) ($quizLayoutContext['style_profile'] ?? 'minimal')]); ?>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
@@ -349,7 +349,7 @@ if ($quizEmbedded) {
                     <input id="quiz_share_url" type="url" value="<?php echo sr_e($quizShareUrl); ?>" class="form-input form-control-medium" readonly data-sr-share-url>
                     <button type="button" class="btn btn-solid-light" data-sr-share-copy="<?php echo sr_e($quizShareUrl); ?>">공유 주소 복사</button>
                 </div>
-                <script>
+                <script<?php echo sr_csp_nonce_attribute(); ?>>
                 (function () {
                     var buttons = document.querySelectorAll('[data-sr-share-copy]');
                     if (!buttons.length) {

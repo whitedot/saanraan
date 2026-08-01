@@ -1089,7 +1089,7 @@ $communitySettingsSectionNavItems = [
 <?php foreach ($communitySettingsHelp as $communitySettingsHelpModal) { ?>
     <?php echo sr_admin_help_modal_html((string) $communitySettingsHelpModal['id'], (string) $communitySettingsHelpModal['title'], (string) $communitySettingsHelpModal['body']); ?>
 <?php } ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var enabled = document.querySelector('[data-community-privacy-consent-enabled]');
     var controls = document.querySelector('[data-community-privacy-consent-controls]');
@@ -1435,7 +1435,7 @@ $communitySettingsSectionNavItems = [
     </div>
 </div>
 <?php echo sr_admin_help_modal_html((string) $communitySettingsHelp['level_min_score']['id'], (string) $communitySettingsHelp['level_min_score']['title'], (string) $communitySettingsHelp['level_min_score']['body']); ?>
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var form = document.querySelector('[data-community-level-recalculate-form]');
     if (!form || !window.fetch || !window.FormData) {
@@ -1690,7 +1690,7 @@ $communitySettingsSectionNavItems = [
 </script>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     function syncCommunityBoardSidebarSiteMenu(root) {
         var scope = root || document;

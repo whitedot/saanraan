@@ -259,7 +259,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </form>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var columnList = document.querySelector('[data-member-export-column-list]');
     var addButton = document.querySelector('[data-member-export-column-add]');

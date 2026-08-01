@@ -336,7 +336,7 @@ function sr_admin_form_draft_restore_script(?array $draft, string $formId): stri
 
     ob_start();
     ?>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (() => {
         const restore = () => {
             const form = document.getElementById(<?php echo json_encode($formId); ?>);

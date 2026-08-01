@@ -496,7 +496,7 @@ $surveySettingsSectionNavItems = [
 </form>
 <?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'survey-settings-form'); ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     'use strict';
     var menuTypeControls = Array.prototype.slice.call(document.querySelectorAll('[data-survey-settings-sidebar-menu-type]'));

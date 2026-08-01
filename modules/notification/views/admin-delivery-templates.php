@@ -191,7 +191,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php echo sr_admin_help_modal_html((string) $deliveryTemplateHelpModal['id'], (string) $deliveryTemplateHelpModal['title'], (string) $deliveryTemplateHelpModal['body']); ?>
 <?php } ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     function insertVariable(button) {
         var variable = button.getAttribute('data-delivery-template-variable') || '';

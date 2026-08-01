@@ -696,7 +696,7 @@ $quizSettingsSectionNavItems = [
 </form>
 <?php echo sr_admin_form_draft_restore_script($adminFormDraft ?? null, 'quiz-settings-form'); ?>
 
-<script>
+<script<?php echo sr_csp_nonce_attribute(); ?>>
 (function () {
     var attemptPolicyControls = Array.prototype.slice.call(document.querySelectorAll('[data-quiz-settings-attempt-policy]'));
     var attemptPeriod = document.querySelector('[data-quiz-settings-attempt-period]');

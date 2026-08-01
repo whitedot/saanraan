@@ -47,7 +47,7 @@ if ($finishResult === 'success') {
         </div>
         </section>
     </main>
-    <script>
+    <script<?php echo sr_csp_nonce_attribute(); ?>>
     (function () {
         var finishUrl = <?php echo sr_js_json_encode((string) $finishUrl); ?>;
         var resultPayload = <?php echo sr_js_json_encode([
