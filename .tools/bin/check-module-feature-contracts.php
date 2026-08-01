@@ -277,7 +277,7 @@ $publicFeatureContracts = [
     ],
     'community' => [
         'file' => 'public-report.php',
-        'helper_file' => 'helpers/reports.php',
+        'helper_file' => 'helpers/public-report.php',
         'consumers' => ['message'],
         'functions' => [
             'sr_community_public_report_context',
@@ -400,7 +400,8 @@ foreach (['content', 'community', 'quiz', 'survey'] as $consumerModuleKey) {
 
 $messageReportActionSource = file_get_contents($root . '/modules/message/actions/message-view.php');
 $messageReportViewSource = file_get_contents($root . '/modules/message/views/message-view.php');
-$communityPublicReportHelperSource = file_get_contents($root . '/modules/community/helpers/reports.php');
+$communityPublicReportContractSource = file_get_contents($root . '/modules/community/public-report.php');
+$communityPublicReportHelperSource = file_get_contents($root . '/modules/community/helpers/public-report.php');
 if (!is_string($communityPublicReportHelperSource)
     || !str_contains($communityPublicReportHelperSource, "sr_url('/community/report')")
     || !str_contains($communityPublicReportHelperSource, 'sr_csrf_field()')
@@ -409,6 +410,12 @@ if (!is_string($communityPublicReportHelperSource)
     || !str_contains($communityPublicReportHelperSource, "unset(\$_SESSION['sr_community_report_errors'], \$_SESSION['sr_community_report_notice'])")
 ) {
     $fail('community public report contract must own the action path, CSRF form, reason model, and one-time feedback.');
+}
+if (!is_string($communityPublicReportContractSource)
+    || !str_contains($communityPublicReportContractSource, '/helpers/public-report.php')
+    || str_contains($communityPublicReportContractSource, '/helpers/reports.php')
+) {
+    $fail('community public report contract must load only its narrow public helper.');
 }
 if (!is_string($messageReportActionSource)
     || !str_contains($messageReportActionSource, "sr_module_enabled(\$pdo, 'community')")
