@@ -1052,7 +1052,7 @@ return [
 - `notification-events.php`: 계정 이벤트 알림 생성 후보
 - `url-embed-targets.php`: URL 기반 임베딩 resolver와 renderer 후보. 공개 렌더링은 이 계약으로 canonical URL, target allowlist, snapshot, 모듈별 표시 HTML, 대상 모듈 전용 `embed_stylesheet`, fragment cache schema를 결정한다.
 - `report-targets.php`: 신고 모듈이 특정 target type/id의 공개 가능 제목, URL, 소유자, 신고 가능 상태를 확인할 때 쓰는 대상 resolver 후보
-- `public-identity.php`: 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업, 공통 stylesheet/script를 한 번에 제공하는 회원 모듈 공개 표현 계약
+- `public-identity.php`: 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업, public layout의 현재 계정 표시 모델, 공통 stylesheet/script를 한 번에 제공하는 회원 모듈 공개 표현 계약
 - `public-banner.php`: 선택된 공개 배너의 조회·렌더링, 관리자 선택 후보, 공통 stylesheet를 배너 모듈이 제공하는 계약
 - `public-popup-layer.php`: 선택된 공개 팝업레이어의 조회·렌더링, 관리자 선택 후보, 공통 stylesheet를 팝업레이어 모듈이 제공하는 계약
 - `public-reaction.php`: 리액션 대상 batch resolve·집계·렌더링, preset 설정, 삭제 정리와 공통 stylesheet/script를 리액션 모듈이 제공하는 계약
@@ -1576,7 +1576,7 @@ return [
 | `member-only-routes.php` | core member-only guard | 사이트 회원전용 모드 비로그인 요청 판단 | 모듈 공개 화면 route/prefix와 파일성 보호 route |
 | `member-registration.php` | `member` 모듈 | 회원가입 추가 필드 렌더링, `registration_extensions[...]` POST 값 검증, 가입 트랜잭션 저장, 선택적인 계정 화면 값 조회·수정 | 서비스 모듈이 회원가입 시 필요한 추가 입력과 이후 회원 설정 관리를 함께 제공할 때 |
 | `member-mfa-providers.php` | `member` 모듈 | 로그인 MFA 운영자 설정, 로그인 challenge provider 결정, 회원 보안 화면 등록 가능 여부 판단 | TOTP, 이메일, SMS, 다른 OTP 같은 로그인 2차 인증 방식 후보 |
-| `public-identity.php` | `admin`, `content`, `community`, `quiz`, `survey` 모듈 | 관리자 회원 메뉴와 목록·읽기·댓글의 작성자 context 일괄 준비 및 렌더링 | 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업 및 공통 stylesheet/script |
+| `public-identity.php` | `admin`, `content`, `community`, `quiz`, `survey` 모듈 | 관리자 회원 메뉴, public layout 현재 계정 표시 모델, 목록·읽기·댓글의 작성자 context 일괄 준비 및 렌더링 | 회원 공개 이름, 프로필 이미지 공개 정책과 fallback, 팔로우 상태, 프로필 메뉴 마크업 및 공통 stylesheet/script |
 | `public-banner.php` | `content`, `community` 모듈과 공개 layout shell | 선택 배너 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 배너 공개 정책, 마크업과 공통 stylesheet |
 | `public-popup-layer.php` | `content`, `community`, `quiz`, `survey` 모듈과 공개 layout shell | 선택 팝업레이어 렌더링, 관리자 선택 후보, 출력 마크업 asset 합류 | 팝업 공개 기간·상태 정책, 마크업과 공통 stylesheet |
 | `public-reaction.php` | `content`, `community`, `quiz`, `survey` 모듈 | 리액션 대상 batch resolve·집계, widget 렌더링, 설정 후보와 삭제 정리 | 리액션 정책·원장·마크업과 공통 stylesheet/script |

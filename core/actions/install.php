@@ -26,7 +26,7 @@ $addInstallError = function (string $message, string $stepKey, array $fieldNames
 $requiredModules = [
     'member' => [
         'name' => '회원',
-        'version' => '2026.07.005',
+        'version' => '2026.07.006',
         'label' => sr_t('install.module.member.label'),
         'description' => '회원가입, 로그인, 계정 화면, 비밀번호 재설정, 이메일 인증을 제공합니다.',
     ],
@@ -212,25 +212,25 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.07.011',
+        'version' => '2026.07.012',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.07.013',
+        'version' => '2026.07.014',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 스크랩 기능을 설치합니다.',
     ],
     'quiz' => [
         'name' => '퀴즈·테스트',
-        'version' => '2026.07.010',
+        'version' => '2026.07.011',
         'label' => '퀴즈·테스트',
         'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
     ],
     'survey' => [
         'name' => '설문·여론조사',
-        'version' => '2026.07.010',
+        'version' => '2026.07.011',
         'label' => '설문·여론조사',
         'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
     ],

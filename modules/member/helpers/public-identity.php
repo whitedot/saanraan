@@ -10,6 +10,39 @@ function sr_member_public_identity_assets(): array
     ];
 }
 
+function sr_member_public_layout_account_model(PDO $pdo, ?array $account, array $config = []): array
+{
+    $displayName = '내 계정';
+    $displayLabel = '내 계정';
+    $email = '';
+    $initial = 'M';
+    $avatarColorClass = 'member-avatar-color-8';
+
+    if (is_array($account)) {
+        $accountId = (int) ($account['id'] ?? 0);
+        $displayName = sr_member_public_name_for_account_id($pdo, $accountId, '내 계정');
+        $displayLabel = $displayName . ' 님';
+        $email = trim((string) ($account['email'] ?? ''));
+        $initialSource = $displayName !== '' ? $displayName : ($email !== '' ? $email : 'M');
+        $initial = function_exists('mb_substr') ? mb_substr($initialSource, 0, 1) : substr($initialSource, 0, 1);
+        $avatarColorClass = sr_member_default_avatar_color_class(sr_member_public_account_hash($config, $accountId));
+    }
+
+    return [
+        'account' => $account,
+        'display_name' => $displayName,
+        'display_label' => $displayLabel,
+        'email' => $email,
+        'initial' => $initial,
+        'avatar_color_class' => $avatarColorClass,
+    ];
+}
+
+function sr_member_public_layout_account_context(PDO $pdo, array $config = []): array
+{
+    return sr_member_public_layout_account_model($pdo, sr_member_current_account($pdo), $config);
+}
+
 function sr_member_public_identity_context(PDO $pdo, ?array $viewerAccount, array $accountIds, array $options = []): array
 {
     $normalizedAccountIds = [];

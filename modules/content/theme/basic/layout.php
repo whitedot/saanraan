@@ -135,20 +135,22 @@ $layoutAdminUrl = sr_url('/admin');
 if (
     $layoutPdo instanceof PDO
     && sr_module_enabled($layoutPdo, 'member')
-    && is_file(SR_ROOT . '/modules/member/helpers.php')
+    && is_file(SR_ROOT . '/modules/member/public-identity.php')
 ) {
-    $layoutMemberEnabled = true;
-    require_once SR_ROOT . '/modules/member/helpers.php';
+    require_once SR_ROOT . '/modules/member/public-identity.php';
     $layoutRuntimeConfig = isset($config) && is_array($config) ? $config : sr_runtime_config();
-    $layoutCurrentAccount = sr_member_current_account($layoutPdo);
+    $layoutMemberContext = function_exists('sr_member_public_layout_account_context')
+        ? sr_member_public_layout_account_context($layoutPdo, $layoutRuntimeConfig)
+        : [];
+    $layoutMemberEnabled = $layoutMemberContext !== [];
+    $layoutCurrentAccount = is_array($layoutMemberContext['account'] ?? null) ? $layoutMemberContext['account'] : null;
+    $layoutMemberDisplayName = (string) ($layoutMemberContext['display_name'] ?? $layoutMemberDisplayName);
+    $layoutMemberDisplayLabel = (string) ($layoutMemberContext['display_label'] ?? $layoutMemberDisplayLabel);
+    $layoutMemberEmail = (string) ($layoutMemberContext['email'] ?? '');
+    $layoutMemberInitial = (string) ($layoutMemberContext['initial'] ?? $layoutMemberInitial);
+    $layoutMemberAvatarColorClass = (string) ($layoutMemberContext['avatar_color_class'] ?? $layoutMemberAvatarColorClass);
     if (is_array($layoutCurrentAccount)) {
         $layoutCurrentAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
-        $layoutMemberDisplayName = sr_member_public_name_for_account_id($layoutPdo, (int) ($layoutCurrentAccount['id'] ?? 0), '내 계정');
-        $layoutMemberDisplayLabel = $layoutMemberDisplayName . ' 님';
-        $layoutMemberEmail = trim((string) ($layoutCurrentAccount['email'] ?? ''));
-        $layoutMemberInitialSource = $layoutMemberDisplayName !== '' ? $layoutMemberDisplayName : ($layoutMemberEmail !== '' ? $layoutMemberEmail : 'M');
-        $layoutMemberInitial = function_exists('mb_substr') ? mb_substr($layoutMemberInitialSource, 0, 1) : substr($layoutMemberInitialSource, 0, 1);
-        $layoutMemberAvatarColorClass = sr_member_default_avatar_color_class(sr_member_public_account_hash($layoutRuntimeConfig, $layoutCurrentAccountId));
         if (sr_module_enabled($layoutPdo, 'message') && is_file(SR_ROOT . '/modules/message/public-message-summary.php')) {
             require_once SR_ROOT . '/modules/message/public-message-summary.php';
             $layoutCommunityMemberMenuEnabled = true;

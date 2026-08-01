@@ -204,7 +204,7 @@ foreach ($publicIdentityConsumers as $consumerModuleKey) {
 
 $contractSource = file_get_contents($root . '/modules/member/public-identity.php');
 $helperSource = file_get_contents($root . '/modules/member/helpers/public-identity.php');
-foreach (['context_function', 'parts_function', 'assets_function'] as $contractKey) {
+foreach (['context_function', 'parts_function', 'assets_function', 'layout_account_function'] as $contractKey) {
     if (!is_string($contractSource) || !str_contains($contractSource, "'" . $contractKey . "'")) {
         $fail('member/public-identity.php must expose ' . $contractKey . '.');
     }
@@ -213,11 +213,32 @@ foreach ([
     'function sr_member_public_identity_context(',
     'function sr_member_public_identity_parts(',
     'function sr_member_public_identity_assets(',
+    'function sr_member_public_layout_account_context(',
     "'/modules/member/assets/public-identity.css'",
     "'/modules/member/assets/profile-menu.js'",
 ] as $helperMarker) {
     if (!is_string($helperSource) || !str_contains($helperSource, $helperMarker)) {
         $fail('member public identity helper is missing: ' . $helperMarker);
+    }
+}
+if (!is_string($contractSource)
+    || str_contains($contractSource, "require_once __DIR__ . '/helpers.php';")
+    || !str_contains($contractSource, "require_once __DIR__ . '/helpers/public-identity.php';")
+) {
+    $fail('member public identity contract must load explicit narrow helper dependencies instead of the aggregate member helper.');
+}
+
+foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey) {
+    $layoutFile = 'modules/' . $layoutProviderModuleKey . '/theme/basic/layout.php';
+    $layoutSource = file_get_contents($root . '/' . $layoutFile);
+    if (!is_string($layoutSource)
+        || !str_contains($layoutSource, '/modules/member/public-identity.php')
+        || !str_contains($layoutSource, 'sr_member_public_layout_account_context(')
+        || str_contains($layoutSource, '/modules/member/helpers.php')
+        || str_contains($layoutSource, 'sr_member_current_account(')
+        || str_contains($layoutSource, 'sr_member_public_name_for_account_id(')
+    ) {
+        $fail($layoutFile . ' must obtain its current member display model through member/public-identity.php.');
     }
 }
 
