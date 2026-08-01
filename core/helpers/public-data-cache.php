@@ -18,6 +18,12 @@ function sr_public_data_cache_schema(string $schema): string
 
 function sr_public_data_cache_root(string $root = ''): string
 {
+    if ($root === '') {
+        $override = $GLOBALS['sr_public_data_cache_root_override'] ?? '';
+        if (is_string($override) && trim($override) !== '') {
+            return rtrim($override, '/\\');
+        }
+    }
     $root = $root !== '' ? $root : (string) SR_ROOT;
 
     return rtrim($root, '/\\') . '/storage/cache/public-data';

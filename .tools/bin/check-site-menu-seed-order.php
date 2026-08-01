@@ -9,6 +9,27 @@ chdir(SR_ROOT);
 require_once SR_ROOT . '/core/helpers.php';
 require_once SR_ROOT . '/modules/site_menu/helpers.php';
 
+$siteMenuCacheFixtureRoot = sys_get_temp_dir() . '/saanraan-site-menu-cache-' . (string) getmypid() . '-' . bin2hex(random_bytes(4));
+$GLOBALS['sr_public_data_cache_root_override'] = $siteMenuCacheFixtureRoot;
+register_shutdown_function(static function () use ($siteMenuCacheFixtureRoot): void {
+    if (!is_dir($siteMenuCacheFixtureRoot)) {
+        return;
+    }
+
+    $items = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($siteMenuCacheFixtureRoot, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($items as $item) {
+        if ($item->isDir() && !$item->isLink()) {
+            @rmdir($item->getPathname());
+        } else {
+            @unlink($item->getPathname());
+        }
+    }
+    @rmdir($siteMenuCacheFixtureRoot);
+});
+
 $errors = [];
 
 function sr_site_menu_check_error(string $message): void
@@ -23,6 +44,11 @@ function sr_site_menu_check_assert(bool $condition, string $message): void
         sr_site_menu_check_error($message);
     }
 }
+
+sr_site_menu_check_assert(
+    sr_public_data_cache_root() === $siteMenuCacheFixtureRoot,
+    'site menu cache fixture must not use the repository storage directory.'
+);
 
 $siteMenuProvider = require SR_ROOT . '/modules/site_menu/site-menu-provider.php';
 sr_site_menu_check_assert(is_array($siteMenuProvider), 'Site menu provider contract must return an array.');

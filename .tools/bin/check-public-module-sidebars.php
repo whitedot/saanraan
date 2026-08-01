@@ -12,6 +12,27 @@ require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/quiz/helpers.php';
 require_once $root . '/modules/survey/helpers.php';
 
+$publicDataCacheFixtureRoot = sys_get_temp_dir() . '/saanraan-public-sidebar-cache-' . (string) getmypid() . '-' . bin2hex(random_bytes(4));
+$GLOBALS['sr_public_data_cache_root_override'] = $publicDataCacheFixtureRoot;
+register_shutdown_function(static function () use ($publicDataCacheFixtureRoot): void {
+    if (!is_dir($publicDataCacheFixtureRoot)) {
+        return;
+    }
+
+    $items = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($publicDataCacheFixtureRoot, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($items as $item) {
+        if ($item->isDir() && !$item->isLink()) {
+            @rmdir($item->getPathname());
+        } else {
+            @unlink($item->getPathname());
+        }
+    }
+    @rmdir($publicDataCacheFixtureRoot);
+});
+
 if (!function_exists('sr_log_exception')) {
     function sr_log_exception(Throwable $exception, string $context): void
     {
@@ -28,6 +49,10 @@ $assert = static function (bool $condition, string $message) use (&$errors): voi
         $errors[] = $message;
     }
 };
+$assert(
+    sr_public_data_cache_root() === $publicDataCacheFixtureRoot,
+    'public sidebar cache fixture must not use the repository storage directory.'
+);
 $source = static function (string $file) use ($root, &$errors): string {
     $contents = file_get_contents($root . '/' . $file);
     if (!is_string($contents)) {

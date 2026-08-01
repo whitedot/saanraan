@@ -7,6 +7,27 @@ $root = dirname(__DIR__, 2);
 define('SR_ROOT', $root);
 chdir($root);
 
+$groupDeleteCacheFixtureRoot = sys_get_temp_dir() . '/saanraan-group-delete-cache-' . (string) getmypid() . '-' . bin2hex(random_bytes(4));
+$GLOBALS['sr_public_data_cache_root_override'] = $groupDeleteCacheFixtureRoot;
+register_shutdown_function(static function () use ($groupDeleteCacheFixtureRoot): void {
+    if (!is_dir($groupDeleteCacheFixtureRoot)) {
+        return;
+    }
+
+    $items = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($groupDeleteCacheFixtureRoot, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($items as $item) {
+        if ($item->isDir() && !$item->isLink()) {
+            @rmdir($item->getPathname());
+        } else {
+            @unlink($item->getPathname());
+        }
+    }
+    @rmdir($groupDeleteCacheFixtureRoot);
+});
+
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/community/helpers.php';
@@ -14,6 +35,10 @@ require_once $root . '/modules/quiz/helpers/groups.php';
 require_once $root . '/modules/survey/helpers/groups.php';
 
 $errors = [];
+
+if (sr_public_data_cache_root() !== $groupDeleteCacheFixtureRoot) {
+    $errors[] = 'Group delete cache fixture must not use the repository storage directory.';
+}
 
 $contentGroupAdminView = (string) file_get_contents($root . '/modules/content/views/admin-content-groups.php');
 if (!str_contains($contentGroupAdminView, '그룹을 만든 뒤에는 연결 주소가 바뀌지 않도록 수정할 수 없습니다.')) {
