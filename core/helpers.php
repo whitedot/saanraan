@@ -8,6 +8,7 @@ require_once SR_ROOT . '/core/helpers/public-data-cache.php';
 require_once SR_ROOT . '/core/helpers/runtime.php';
 require_once SR_ROOT . '/core/helpers/settings.php';
 require_once SR_ROOT . '/core/helpers/delivery-templates.php';
+require_once SR_ROOT . '/core/helpers/layout-extra-menus.php';
 require_once SR_ROOT . '/core/helpers/read-references.php';
 require_once SR_ROOT . '/core/helpers/output.php';
 require_once SR_ROOT . '/core/helpers/privacy-export.php';
