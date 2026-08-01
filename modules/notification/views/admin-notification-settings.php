@@ -294,7 +294,7 @@ $notificationSettingsSectionNavItems = [
             <label class="form-label" for="notification_admin_settings_slack_webhook_url">Slack 운영 수신 URL <span class="sr-required-label" data-notification-operational-required-label="slack"<?php echo $slackOperationalEnabled ? '' : ' hidden'; ?>>(필수)</span></label>
             <div class="form-field">
                 <input id="notification_admin_settings_slack_webhook_url" type="password" name="slack_webhook_url" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['slack_webhook_url'])); ?>" class="form-input form-control-full" autocomplete="new-password"<?php echo $slackOperationalEnabled && !$slackWebhookStored ? ' required' : ''; ?> data-notification-operational-secret="slack" data-notification-has-stored-secret="<?php echo $slackWebhookStored ? '1' : '0'; ?>">
-                <small class="form-help">사이트 운영 알림을 받을 HTTPS URL입니다. 비워 두면 기존 저장값을 유지합니다.</small>
+                <small class="form-help">Slack에서 발급한 hooks.slack.com 또는 hooks.slack-gov.com HTTPS webhook URL입니다. 비워 두면 기존 저장값을 유지합니다.</small>
             </div>
         </div>
         <div class="form-row">
@@ -321,7 +321,7 @@ $notificationSettingsSectionNavItems = [
             <label class="form-label" for="notification_admin_settings_discord_webhook_url">Discord 운영 수신 URL <span class="sr-required-label" data-notification-operational-required-label="discord"<?php echo $discordOperationalEnabled ? '' : ' hidden'; ?>>(필수)</span></label>
             <div class="form-field">
                 <input id="notification_admin_settings_discord_webhook_url" type="password" name="discord_webhook_url" value="" maxlength="255" placeholder="<?php echo sr_e(sr_notification_secret_display((string) $settings['discord_webhook_url'])); ?>" class="form-input form-control-full" autocomplete="new-password"<?php echo $discordOperationalEnabled && !$discordWebhookStored ? ' required' : ''; ?> data-notification-operational-secret="discord" data-notification-has-stored-secret="<?php echo $discordWebhookStored ? '1' : '0'; ?>">
-                <small class="form-help">사이트 운영 알림을 받을 HTTPS URL입니다. 비워 두면 기존 저장값을 유지합니다.</small>
+                <small class="form-help">Discord에서 발급한 discord.com 또는 discordapp.com HTTPS webhook URL입니다. 비워 두면 기존 저장값을 유지합니다.</small>
             </div>
         </div>
         <div class="form-row">

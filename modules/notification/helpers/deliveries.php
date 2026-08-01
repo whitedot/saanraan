@@ -344,20 +344,46 @@ function sr_notification_secret_display(string $value): string
     return trim($value) === '' ? '' : '********';
 }
 
-function sr_notification_webhook_url_is_allowed(string $url): bool
+function sr_notification_webhook_url_is_allowed(string $url, string $providerKey = ''): bool
 {
     $url = trim($url);
     if ($url === '' || strlen($url) > 255 || filter_var($url, FILTER_VALIDATE_URL) === false) {
         return false;
     }
 
-    $scheme = parse_url($url, PHP_URL_SCHEME);
-    $host = parse_url($url, PHP_URL_HOST);
+    $parts = parse_url($url);
+    if (!is_array($parts)
+        || strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
+        || isset($parts['user'])
+        || isset($parts['pass'])
+        || isset($parts['query'])
+        || isset($parts['fragment'])
+        || (isset($parts['port']) && (int) $parts['port'] !== 443)
+    ) {
+        return false;
+    }
 
-    return is_string($scheme)
-        && strtolower($scheme) === 'https'
-        && is_string($host)
-        && $host !== '';
+    $host = strtolower((string) ($parts['host'] ?? ''));
+    $path = (string) ($parts['path'] ?? '');
+    if ($providerKey === '') {
+        if (in_array($host, ['hooks.slack.com', 'hooks.slack-gov.com'], true)) {
+            $providerKey = 'slack_webhook';
+        } elseif (in_array($host, ['discord.com', 'discordapp.com'], true)) {
+            $providerKey = 'discord_webhook';
+        }
+    }
+
+    if ($providerKey === 'slack_webhook') {
+        return in_array($host, ['hooks.slack.com', 'hooks.slack-gov.com'], true)
+            && preg_match('#\A/services/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+\z#', $path) === 1;
+    }
+
+    if ($providerKey === 'discord_webhook') {
+        return in_array($host, ['discord.com', 'discordapp.com'], true)
+            && preg_match('#\A/api(?:/v[0-9]+)?/webhooks/[0-9]+/[A-Za-z0-9._-]{20,}\z#', $path) === 1;
+    }
+
+    return false;
 }
 
 function sr_notification_member_external_channel_labels(): array
@@ -490,7 +516,7 @@ function sr_notification_member_push_endpoint_is_allowed(string $providerKey, st
     }
 
     if (in_array($providerKey, ['slack_webhook', 'discord_webhook'], true)) {
-        return sr_notification_webhook_url_is_allowed($endpoint);
+        return sr_notification_webhook_url_is_allowed($endpoint, $providerKey);
     }
 
     return false;
@@ -1154,7 +1180,7 @@ function sr_notification_member_external_push_endpoint(string $channel, array $s
         return sr_notification_external_push_endpoint($channel, $settings);
     }
 
-    return in_array($channel, ['slack_webhook', 'discord_webhook'], true) && sr_notification_webhook_url_is_allowed($endpoint)
+    return in_array($channel, ['slack_webhook', 'discord_webhook'], true) && sr_notification_webhook_url_is_allowed($endpoint, $channel)
         ? $endpoint
         : '';
 }
@@ -1243,7 +1269,8 @@ function sr_notification_process_member_external_push_delivery(PDO $pdo, array $
     $response = sr_notification_http_json_post(
         sr_notification_member_external_push_endpoint($channel, $settings, $endpoint),
         sr_notification_member_external_push_payload($channel, $deliveryForPayload, $site, $endpoint),
-        (int) ($settings['email_timeout_seconds'] ?? 10)
+        (int) ($settings['email_timeout_seconds'] ?? 10),
+        $channel
     );
     $providerResult = sr_notification_external_push_response_result($channel, $response);
     if (!empty($providerResult['ok'])) {
@@ -1298,9 +1325,12 @@ function sr_notification_external_push_payload(string $channel, array $delivery,
     return ['text' => $text];
 }
 
-function sr_notification_http_json_post(string $url, array $payload, int $timeoutSeconds): array
+function sr_notification_http_json_post(string $url, array $payload, int $timeoutSeconds, string $providerKey): array
 {
-    if (!sr_notification_webhook_url_is_allowed($url)) {
+    $allowed = $providerKey === 'telegram_bot'
+        ? sr_notification_telegram_api_url_is_allowed($url)
+        : sr_notification_webhook_url_is_allowed($url, $providerKey);
+    if (!$allowed) {
         return ['ok' => false, 'status' => 0, 'body' => '', 'error' => 'provider_unavailable'];
     }
 
@@ -1354,6 +1384,8 @@ function sr_notification_http_json_post(string $url, array $payload, int $timeou
             'content' => $json,
             'timeout' => $timeout,
             'ignore_errors' => true,
+            'follow_location' => 0,
+            'max_redirects' => 0,
         ],
     ]);
     $body = @file_get_contents($url, false, $context);
@@ -1371,6 +1403,24 @@ function sr_notification_http_json_post(string $url, array $payload, int $timeou
         'body' => is_string($body) ? $body : '',
         'error' => is_string($body) ? '' : ($lastTransportError !== '' ? $lastTransportError : 'provider_unavailable'),
     ];
+}
+
+function sr_notification_telegram_api_url_is_allowed(string $url): bool
+{
+    $parts = parse_url(trim($url));
+    if (!is_array($parts)
+        || strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
+        || strtolower((string) ($parts['host'] ?? '')) !== 'api.telegram.org'
+        || isset($parts['user'])
+        || isset($parts['pass'])
+        || isset($parts['query'])
+        || isset($parts['fragment'])
+        || (isset($parts['port']) && (int) $parts['port'] !== 443)
+    ) {
+        return false;
+    }
+
+    return preg_match('#\A/bot[0-9]{5,16}:[A-Za-z0-9_-]{20,200}/sendMessage\z#', (string) ($parts['path'] ?? '')) === 1;
 }
 
 function sr_notification_external_push_response_result(string $channel, array $response): array
@@ -1434,7 +1484,7 @@ function sr_notification_external_provider_is_ready(string $channel, array $sett
             && sr_notification_telegram_chat_id_is_allowed((string) ($settings['telegram_chat_id'] ?? ''));
     }
 
-    return sr_notification_webhook_url_is_allowed(sr_notification_external_push_endpoint($channel, $settings));
+    return sr_notification_webhook_url_is_allowed(sr_notification_external_push_endpoint($channel, $settings), $channel);
 }
 
 function sr_notification_process_external_push_delivery(PDO $pdo, array $site, array $delivery, array $settings, string $now, int $maxAttempts): array
@@ -1459,7 +1509,8 @@ function sr_notification_process_external_push_delivery(PDO $pdo, array $site, a
     $response = sr_notification_http_json_post(
         sr_notification_external_push_endpoint($channel, $settings),
         sr_notification_external_push_payload($channel, $delivery, $site, $settings),
-        (int) ($settings['email_timeout_seconds'] ?? 10)
+        (int) ($settings['email_timeout_seconds'] ?? 10),
+        $channel
     );
     $providerResult = sr_notification_external_push_response_result($channel, $response);
     if (!empty($providerResult['ok'])) {

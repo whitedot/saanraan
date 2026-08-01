@@ -110,7 +110,7 @@ if (!function_exists('sr_module_settings')) {
             'slack_channel_label' => '운영 알림',
             'discord_webhook_enabled' => true,
             'discord_member_push_enabled' => true,
-            'discord_webhook_url' => 'https://discord.com/api/webhooks/fixture/token',
+            'discord_webhook_url' => 'https://discord.com/api/webhooks/123456789012345678/fixture_token_1234567890',
             'discord_channel_label' => '운영 Discord',
             'telegram_bot_enabled' => true,
             'telegram_member_push_enabled' => true,
@@ -218,7 +218,7 @@ function sr_notification_runtime_pdo(): PDO
             (1, 'slack_webhook_url', 'https://hooks.slack.com/services/T000/B000/fixture', 'string'),
             (1, 'discord_webhook_enabled', '1', 'bool'),
             (1, 'discord_member_push_enabled', '1', 'bool'),
-            (1, 'discord_webhook_url', 'https://discord.com/api/webhooks/fixture/token', 'string'),
+            (1, 'discord_webhook_url', 'https://discord.com/api/webhooks/123456789012345678/fixture_token_1234567890', 'string'),
             (1, 'discord_channel_label', '운영 Discord', 'string'),
             (1, 'telegram_bot_enabled', '1', 'bool'),
             (1, 'telegram_member_push_enabled', '1', 'bool'),
@@ -601,10 +601,26 @@ foreach (['discord_webhook', 'telegram_bot'] as $memberExternalChannel) {
     sr_notification_runtime_assert($memberExternalRejected, 'notification runtime fixture must reject admin external push for member notifications: ' . $memberExternalChannel);
 }
 sr_notification_runtime_assert(sr_notification_webhook_url_is_allowed('https://hooks.slack.com/services/T000/B000/fixture'), 'notification runtime fixture must allow HTTPS Slack webhook URLs.');
+sr_notification_runtime_assert(sr_notification_webhook_url_is_allowed('https://hooks.slack-gov.com/services/T000/B000/fixture', 'slack_webhook'), 'notification runtime fixture must allow HTTPS GovSlack webhook URLs.');
 sr_notification_runtime_assert(!sr_notification_webhook_url_is_allowed('http://hooks.slack.com/services/T000/B000/fixture'), 'notification runtime fixture must reject non-HTTPS webhook URLs.');
 sr_notification_runtime_assert(sr_notification_member_push_endpoint_is_allowed('slack_webhook', 'https://hooks.slack.com/services/T000/B000/member'), 'notification runtime fixture must allow member Slack webhook endpoint URLs.');
-sr_notification_runtime_assert(sr_notification_member_push_endpoint_is_allowed('discord_webhook', 'https://discord.com/api/webhooks/member/token'), 'notification runtime fixture must allow member Discord webhook endpoint URLs.');
+sr_notification_runtime_assert(sr_notification_member_push_endpoint_is_allowed('discord_webhook', 'https://discord.com/api/webhooks/123456789012345678/fixture_token_1234567890'), 'notification runtime fixture must allow member Discord webhook endpoint URLs.');
 sr_notification_runtime_assert(!sr_notification_member_push_endpoint_is_allowed('slack_webhook', 'http://hooks.slack.com/services/T000/B000/member'), 'notification runtime fixture must reject non-HTTPS member Slack webhook endpoint URLs.');
+$blockedWebhookUrls = [
+    'https://127.0.0.1/internal',
+    'https://localhost/admin',
+    'https://169.254.169.254/latest/meta-data',
+    'https://example.com/arbitrary',
+    'https://hooks.slack.com.evil.example/services/T000/B000/member',
+    'https://hooks.slack.com@127.0.0.1/services/T000/B000/member',
+    'https://hooks.slack.com:444/services/T000/B000/member',
+    'https://hooks.slack.com/services/T000/B000/member?redirect=1',
+    'https://discord.com/api/webhooks/not-a-number/fixture_token_1234567890',
+];
+foreach ($blockedWebhookUrls as $blockedWebhookUrl) {
+    sr_notification_runtime_assert(!sr_notification_webhook_url_is_allowed($blockedWebhookUrl), 'notification runtime fixture must reject non-provider or malformed webhook URL: ' . $blockedWebhookUrl);
+}
+sr_notification_runtime_assert(!sr_notification_member_push_endpoint_is_allowed('slack_webhook', 'https://discord.com/api/webhooks/123456789012345678/fixture_token_1234567890'), 'notification runtime fixture must reject a provider-mismatched member webhook URL.');
 sr_notification_runtime_assert(sr_notification_telegram_bot_token_is_allowed('123456789:ABCdef_ghi-jklmnopqrstuvwxyz123456'), 'notification runtime fixture must allow Telegram bot token format.');
 sr_notification_runtime_assert(!sr_notification_telegram_bot_token_is_allowed('telegram_fixture'), 'notification runtime fixture must reject malformed Telegram bot tokens.');
 sr_notification_runtime_assert(!sr_notification_telegram_bot_token_is_allowed('123456789:' . str_repeat('A', 206)), 'notification runtime fixture must reject Telegram bot tokens that would exceed endpoint length limits.');
@@ -657,7 +673,7 @@ $memberSlackEndpointId = sr_notification_save_member_push_endpoint($pdo, [
 $memberDiscordEndpointId = sr_notification_save_member_push_endpoint($pdo, [
     'account_id' => 7,
     'provider_key' => 'discord_webhook',
-    'endpoint' => 'https://discord.com/api/webhooks/member/token',
+    'endpoint' => 'https://discord.com/api/webhooks/123456789012345678/fixture_token_1234567890',
     'recipient_label' => '개인 Discord',
 ]);
 sr_notification_runtime_assert($memberSlackEndpointId > 0, 'notification runtime fixture must save member Slack push endpoint.');
@@ -737,7 +753,7 @@ $memberDiscordPayload = sr_notification_member_external_push_payload('discord_we
     'title' => '회원 Discord 푸시 알림',
     'body_text' => 'Discord 푸시 본문',
     'link_url' => '/account/notifications',
-], ['site_name' => '산란'], 'https://discord.com/api/webhooks/member/token');
+], ['site_name' => '산란'], 'https://discord.com/api/webhooks/123456789012345678/fixture_token_1234567890');
 sr_notification_runtime_assert(isset($memberDiscordPayload['content']) && !isset($memberDiscordPayload['text']), 'notification runtime fixture must use Discord content payload for member push.');
 sr_notification_runtime_assert(str_contains((string) ($memberDiscordPayload['content'] ?? ''), 'Discord 푸시 본문'), 'notification runtime fixture must copy member notification body into Discord member push payload.');
 $claimedMemberSlack = sr_notification_claim_delivery($pdo, 'fixture-member-slack-lock', '2026-06-11 12:03:00', 300, ['slack_webhook']);
@@ -835,7 +851,7 @@ sr_notification_runtime_assert((int) sr_notification_runtime_scalar($pdo, 'SELEC
 $memberDiscordOnlyEndpointId = sr_notification_save_member_push_endpoint($pdo, [
     'account_id' => 8,
     'provider_key' => 'discord_webhook',
-    'endpoint' => 'https://discord.com/api/webhooks/member8/token',
+    'endpoint' => 'https://discord.com/api/webhooks/223456789012345678/fixture_token_2234567890',
     'recipient_label' => '개인 Discord',
 ]);
 sr_notification_runtime_assert($memberDiscordOnlyEndpointId > 0, 'notification runtime fixture must save a second member Discord push endpoint.');

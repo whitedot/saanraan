@@ -134,6 +134,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $notificationLayoutCon
                                             <label for="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_endpoint">
                                                 <span><?php echo sr_e($pushProviderLabel); ?> 수신 URL <span class="sr-required-label">(필수)</span></span>
                                                 <input id="modules_notification_<?php echo sr_e((string) $pushProviderKey); ?>_endpoint" type="url" name="endpoint" maxlength="255" required class="form-input form-control-wide" autocomplete="off" placeholder="https://">
+                                                <small class="form-help"><?php echo sr_e($pushProviderLabel); ?>에서 직접 발급한 webhook URL만 사용할 수 있습니다.</small>
                                             </label>
                                         </p>
                                     <?php } ?>
