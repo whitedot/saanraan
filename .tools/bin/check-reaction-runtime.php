@@ -586,6 +586,17 @@ foreach ($expectedTargets as $targetKey) {
     $assert(isset($contractTargets[$targetKey]), $targetKey . ' should be provided by reaction target contracts.');
 }
 
+$contentReactionTargetContract = sr_reaction_check_read('modules/content/reaction-targets.php');
+$contentPaths = include SR_ROOT . '/modules/content/paths.php';
+$assert(
+    substr_count($contentReactionTargetContract, "'admin_url' => '/admin/content/edit?id='") === 2
+        && !str_contains($contentReactionTargetContract, '/admin/content?mode=edit')
+        && !str_contains($contentReactionTargetContract, '/admin/content/comments')
+        && is_array($contentPaths)
+        && isset($contentPaths['GET /admin/content/edit']),
+    'content reaction targets must link content and comment records to the registered content edit route.'
+);
+
 foreach (['quiz', 'survey'] as $consumerModuleKey) {
     $consumerModule = include SR_ROOT . '/modules/' . $consumerModuleKey . '/module.php';
     $consumerHelpers = sr_reaction_check_read('modules/' . $consumerModuleKey . '/helpers.php');
