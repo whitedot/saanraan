@@ -912,19 +912,177 @@ function sr_member_oauth_base64url_decode(string $value): string
     return is_string($decoded) ? $decoded : '';
 }
 
-function sr_member_oauth_jwt_payload(string $jwt): array
+function sr_member_oauth_jwt_json_segment(string $segment, string $label): array
 {
+    $decoded = sr_member_oauth_base64url_decode($segment);
+    if ($decoded === '') {
+        throw new RuntimeException('OAuth provider ID token ' . $label . ' is invalid.');
+    }
+
+    $value = json_decode($decoded, true);
+    if (!is_array($value)) {
+        throw new RuntimeException('OAuth provider ID token ' . $label . ' is invalid.');
+    }
+
+    return $value;
+}
+
+function sr_member_oauth_asn1_length(int $length): string
+{
+    if ($length < 0x80) {
+        return chr($length);
+    }
+
+    $bytes = '';
+    while ($length > 0) {
+        $bytes = chr($length & 0xff) . $bytes;
+        $length >>= 8;
+    }
+
+    return chr(0x80 | strlen($bytes)) . $bytes;
+}
+
+function sr_member_oauth_asn1_integer(string $bytes): string
+{
+    $bytes = ltrim($bytes, "\0");
+    if ($bytes === '') {
+        $bytes = "\0";
+    }
+    if ((ord($bytes[0]) & 0x80) !== 0) {
+        $bytes = "\0" . $bytes;
+    }
+
+    return "\x02" . sr_member_oauth_asn1_length(strlen($bytes)) . $bytes;
+}
+
+function sr_member_oauth_rsa_jwk_public_key(array $jwk): string
+{
+    if ((string) ($jwk['kty'] ?? '') !== 'RSA'
+        || (isset($jwk['use']) && (string) $jwk['use'] !== 'sig')
+        || (isset($jwk['alg']) && (string) $jwk['alg'] !== 'RS256')
+        || (isset($jwk['key_ops']) && (!is_array($jwk['key_ops']) || !in_array('verify', $jwk['key_ops'], true)))
+    ) {
+        throw new RuntimeException('OAuth provider ID token signing key is invalid.');
+    }
+
+    $modulus = sr_member_oauth_base64url_decode((string) ($jwk['n'] ?? ''));
+    $exponent = sr_member_oauth_base64url_decode((string) ($jwk['e'] ?? ''));
+    if ($modulus === '' || $exponent === '') {
+        throw new RuntimeException('OAuth provider ID token signing key is incomplete.');
+    }
+
+    $rsaKey = sr_member_oauth_asn1_integer($modulus) . sr_member_oauth_asn1_integer($exponent);
+    $rsaSequence = "\x30" . sr_member_oauth_asn1_length(strlen($rsaKey)) . $rsaKey;
+    $algorithmIdentifier = hex2bin('300d06092a864886f70d0101010500');
+    if (!is_string($algorithmIdentifier)) {
+        throw new RuntimeException('OAuth provider ID token signing algorithm is unavailable.');
+    }
+    $bitString = "\x03" . sr_member_oauth_asn1_length(strlen($rsaSequence) + 1) . "\0" . $rsaSequence;
+    $subjectPublicKeyInfo = $algorithmIdentifier . $bitString;
+    $der = "\x30" . sr_member_oauth_asn1_length(strlen($subjectPublicKeyInfo)) . $subjectPublicKeyInfo;
+
+    return "-----BEGIN PUBLIC KEY-----\n"
+        . chunk_split(base64_encode($der), 64, "\n")
+        . "-----END PUBLIC KEY-----\n";
+}
+
+function sr_member_oauth_validate_id_token(
+    string $jwt,
+    array $jwks,
+    string $expectedIssuer,
+    string $expectedAudience,
+    string $expectedNonce,
+    ?int $now = null
+): array {
+    if ($expectedIssuer === '' || $expectedAudience === '' || $expectedNonce === '') {
+        throw new RuntimeException('OAuth provider ID token validation settings are incomplete.');
+    }
+
     $parts = explode('.', $jwt);
-    if (count($parts) !== 3 || trim($parts[1]) === '') {
+    if (count($parts) !== 3 || $parts[0] === '' || $parts[1] === '' || $parts[2] === '') {
         throw new RuntimeException('OAuth provider ID token is invalid.');
     }
 
-    $decoded = json_decode(sr_member_oauth_base64url_decode($parts[1]), true);
-    if (!is_array($decoded)) {
-        throw new RuntimeException('OAuth provider ID token payload is invalid.');
+    $header = sr_member_oauth_jwt_json_segment($parts[0], 'header');
+    $claims = sr_member_oauth_jwt_json_segment($parts[1], 'payload');
+    $kid = trim((string) ($header['kid'] ?? ''));
+    if ((string) ($header['alg'] ?? '') !== 'RS256' || $kid === '') {
+        throw new RuntimeException('OAuth provider ID token signing algorithm is invalid.');
     }
 
-    return $decoded;
+    $matchingKeys = [];
+    foreach (($jwks['keys'] ?? []) as $jwk) {
+        if (is_array($jwk) && hash_equals($kid, (string) ($jwk['kid'] ?? ''))) {
+            $matchingKeys[] = $jwk;
+        }
+    }
+    if (count($matchingKeys) !== 1) {
+        throw new RuntimeException('OAuth provider ID token signing key was not found.');
+    }
+
+    if (!function_exists('openssl_verify')) {
+        throw new RuntimeException('OAuth provider ID token signature verification is unavailable.');
+    }
+    $publicKey = openssl_pkey_get_public(sr_member_oauth_rsa_jwk_public_key($matchingKeys[0]));
+    $signature = sr_member_oauth_base64url_decode($parts[2]);
+    if ($publicKey === false || $signature === '') {
+        throw new RuntimeException('OAuth provider ID token signature is invalid.');
+    }
+    $verified = openssl_verify($parts[0] . '.' . $parts[1], $signature, $publicKey, OPENSSL_ALGO_SHA256);
+    if ($verified !== 1) {
+        throw new RuntimeException('OAuth provider ID token signature is invalid.');
+    }
+
+    $currentTime = $now ?? time();
+    $leeway = 120;
+    $issuer = (string) ($claims['iss'] ?? '');
+    $subject = trim((string) ($claims['sub'] ?? ''));
+    $expiresAt = $claims['exp'] ?? null;
+    $issuedAt = $claims['iat'] ?? null;
+    if (!hash_equals($expectedIssuer, $issuer)
+        || $subject === ''
+        || strlen($subject) > 255
+        || (!is_int($expiresAt) && !is_float($expiresAt))
+        || (!is_int($issuedAt) && !is_float($issuedAt))
+        || (int) $expiresAt < $currentTime - $leeway
+        || (int) $issuedAt > $currentTime + $leeway
+    ) {
+        throw new RuntimeException('OAuth provider ID token claims are invalid.');
+    }
+    if (isset($claims['nbf'])
+        && (!is_int($claims['nbf']) && !is_float($claims['nbf']) || (int) $claims['nbf'] > $currentTime + $leeway)
+    ) {
+        throw new RuntimeException('OAuth provider ID token is not active.');
+    }
+
+    $audienceClaim = $claims['aud'] ?? null;
+    if (is_string($audienceClaim) && $audienceClaim !== '') {
+        $audiences = [$audienceClaim];
+    } elseif (is_array($audienceClaim) && $audienceClaim !== []) {
+        $audiences = [];
+        foreach ($audienceClaim as $audience) {
+            if (!is_string($audience) || $audience === '') {
+                throw new RuntimeException('OAuth provider ID token audience is invalid.');
+            }
+            $audiences[] = $audience;
+        }
+    } else {
+        throw new RuntimeException('OAuth provider ID token audience is invalid.');
+    }
+    if (!in_array($expectedAudience, $audiences, true)) {
+        throw new RuntimeException('OAuth provider ID token audience does not match.');
+    }
+    $authorizedParty = trim((string) ($claims['azp'] ?? ''));
+    if ((count($audiences) > 1 || $authorizedParty !== '') && !hash_equals($expectedAudience, $authorizedParty)) {
+        throw new RuntimeException('OAuth provider ID token authorized party does not match.');
+    }
+
+    $nonce = trim((string) ($claims['nonce'] ?? ''));
+    if ($nonce === '' || !hash_equals($expectedNonce, $nonce)) {
+        throw new RuntimeException('OAuth provider ID token nonce does not match.');
+    }
+
+    return $claims;
 }
 
 function sr_member_oauth_truthy(mixed $value): bool
@@ -1019,12 +1177,21 @@ function sr_member_oauth_provider_profile(array $provider, array $site, string $
         if ($idToken === '') {
             throw new RuntimeException('OAuth provider token response is missing an ID token.');
         }
-        $userinfo = sr_member_oauth_jwt_payload($idToken);
+        $issuer = sr_member_oauth_provider_value($provider, 'id_token_issuer');
+        $jwksUrl = sr_member_oauth_provider_value($provider, 'jwks_url');
         $expectedNonce = (string) ($transientSecrets['nonce'] ?? '');
-        $profileNonce = trim((string) ($userinfo['nonce'] ?? ''));
-        if ($expectedNonce !== '' && $profileNonce !== '' && !hash_equals($expectedNonce, $profileNonce)) {
-            throw new RuntimeException('OAuth provider ID token nonce does not match.');
+        if ($issuer === '' || $jwksUrl === '' || $expectedNonce === '') {
+            throw new RuntimeException('OAuth provider ID token validation settings are incomplete.');
         }
+        $jwks = sr_member_oauth_http_json($jwksUrl, [
+            'http' => [
+                'method' => 'GET',
+                'header' => "Accept: application/json\r\nUser-Agent: Saanraan OAuth\r\n",
+                'timeout' => 10,
+                'ignore_errors' => true,
+            ],
+        ]);
+        $userinfo = sr_member_oauth_validate_id_token($idToken, $jwks, $issuer, $clientId, $expectedNonce);
     } else {
         if ($bearer === '') {
             throw new RuntimeException('OAuth provider token response is missing an access token.');

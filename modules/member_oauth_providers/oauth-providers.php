@@ -66,6 +66,8 @@ return [
         'authorization_url' => 'https://appleid.apple.com/auth/authorize',
         'token_url' => 'https://appleid.apple.com/auth/token',
         'profile_source' => 'id_token',
+        'id_token_issuer' => 'https://appleid.apple.com',
+        'jwks_url' => 'https://appleid.apple.com/auth/keys',
         'scopes' => ['name', 'email'],
         'subject_claim' => 'sub',
         'email_claim' => 'email',

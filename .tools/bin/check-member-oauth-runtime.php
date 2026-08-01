@@ -63,6 +63,58 @@ function sr_member_oauth_check_base64url(string $value): string
     return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
 }
 
+function sr_member_oauth_check_signing_fixture(string $kid): array
+{
+    $privateKey = openssl_pkey_new([
+        'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        'private_key_bits' => 2048,
+    ]);
+    if ($privateKey === false) {
+        throw new RuntimeException('OAuth fixture RSA key could not be generated.');
+    }
+    $details = openssl_pkey_get_details($privateKey);
+    if (!is_array($details) || !is_array($details['rsa'] ?? null)) {
+        throw new RuntimeException('OAuth fixture RSA key details could not be read.');
+    }
+
+    return [
+        'private_key' => $privateKey,
+        'jwk' => [
+            'kty' => 'RSA',
+            'kid' => $kid,
+            'use' => 'sig',
+            'alg' => 'RS256',
+            'key_ops' => ['verify'],
+            'n' => sr_member_oauth_check_base64url((string) $details['rsa']['n']),
+            'e' => sr_member_oauth_check_base64url((string) $details['rsa']['e']),
+        ],
+    ];
+}
+
+function sr_member_oauth_check_signed_jwt(mixed $privateKey, string $kid, array $claims, string $algorithm = 'RS256'): string
+{
+    $header = sr_member_oauth_check_base64url(json_encode(['alg' => $algorithm, 'kid' => $kid], JSON_UNESCAPED_SLASHES) ?: '');
+    $payload = sr_member_oauth_check_base64url(json_encode($claims, JSON_UNESCAPED_SLASHES) ?: '');
+    $signingInput = $header . '.' . $payload;
+    $signature = '';
+    if (!openssl_sign($signingInput, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+        throw new RuntimeException('OAuth fixture ID token could not be signed.');
+    }
+
+    return $signingInput . '.' . sr_member_oauth_check_base64url($signature);
+}
+
+function sr_member_oauth_check_id_token_rejected(callable $callback, string $message): void
+{
+    $rejected = false;
+    try {
+        $callback();
+    } catch (RuntimeException) {
+        $rejected = true;
+    }
+    sr_member_oauth_check_assert($rejected, $message);
+}
+
 function sr_member_oauth_check_pdo(): PDO
 {
     $pdo = new PDO('sqlite::memory:');
@@ -210,9 +262,49 @@ function sr_member_oauth_check_runtime_helpers(): void
     sr_member_oauth_check_assert(sr_member_oauth_provider_scopes(['scope' => ['openid', 'email', 'profile'], 'scopes' => ['openid', 'email']]) === 'openid email profile', 'OAuth stored scope settings should drive authorization requests after preserving required scopes.');
     sr_member_oauth_check_assert(sr_member_oauth_truthy('true') === true, 'OAuth truthy helper should accept true strings.');
     sr_member_oauth_check_assert(sr_member_oauth_truthy('false') === false, 'OAuth truthy helper should reject false strings.');
-    $jwt = sr_member_oauth_check_base64url('{"alg":"none"}') . '.' . sr_member_oauth_check_base64url('{"sub":"apple-subject","email":"apple@example.test","email_verified":"true","nonce":"nonce-fixture"}') . '.';
-    $jwtPayload = sr_member_oauth_jwt_payload($jwt);
-    sr_member_oauth_check_assert((string) ($jwtPayload['sub'] ?? '') === 'apple-subject', 'OAuth JWT helper should read ID token payload claims.');
+    $tokenNow = 1760000000;
+    $tokenFixture = sr_member_oauth_check_signing_fixture('apple-key-fixture');
+    $tokenClaims = [
+        'iss' => 'https://appleid.apple.com',
+        'sub' => 'apple-subject',
+        'aud' => 'apple-client-fixture',
+        'exp' => $tokenNow + 600,
+        'iat' => $tokenNow - 10,
+        'nonce' => 'nonce-fixture',
+        'email' => 'apple@example.test',
+        'email_verified' => 'true',
+    ];
+    $jwt = sr_member_oauth_check_signed_jwt($tokenFixture['private_key'], 'apple-key-fixture', $tokenClaims);
+    $jwtPayload = sr_member_oauth_validate_id_token(
+        $jwt,
+        ['keys' => [$tokenFixture['jwk']]],
+        'https://appleid.apple.com',
+        'apple-client-fixture',
+        'nonce-fixture',
+        $tokenNow
+    );
+    sr_member_oauth_check_assert((string) ($jwtPayload['sub'] ?? '') === 'apple-subject', 'OAuth ID token helper should verify signature and return validated claims.');
+
+    $invalidTokenCases = [
+        'unsigned algorithm' => ['claims' => $tokenClaims, 'algorithm' => 'none', 'issuer' => 'https://appleid.apple.com', 'audience' => 'apple-client-fixture', 'nonce' => 'nonce-fixture'],
+        'wrong issuer' => ['claims' => array_merge($tokenClaims, ['iss' => 'https://evil.example']), 'algorithm' => 'RS256', 'issuer' => 'https://appleid.apple.com', 'audience' => 'apple-client-fixture', 'nonce' => 'nonce-fixture'],
+        'wrong audience' => ['claims' => array_merge($tokenClaims, ['aud' => 'other-client']), 'algorithm' => 'RS256', 'issuer' => 'https://appleid.apple.com', 'audience' => 'apple-client-fixture', 'nonce' => 'nonce-fixture'],
+        'expired token' => ['claims' => array_merge($tokenClaims, ['exp' => $tokenNow - 1000]), 'algorithm' => 'RS256', 'issuer' => 'https://appleid.apple.com', 'audience' => 'apple-client-fixture', 'nonce' => 'nonce-fixture'],
+        'future token' => ['claims' => array_merge($tokenClaims, ['iat' => $tokenNow + 1000]), 'algorithm' => 'RS256', 'issuer' => 'https://appleid.apple.com', 'audience' => 'apple-client-fixture', 'nonce' => 'nonce-fixture'],
+        'missing nonce' => ['claims' => array_diff_key($tokenClaims, ['nonce' => true]), 'algorithm' => 'RS256', 'issuer' => 'https://appleid.apple.com', 'audience' => 'apple-client-fixture', 'nonce' => 'nonce-fixture'],
+        'wrong nonce' => ['claims' => array_merge($tokenClaims, ['nonce' => 'other-nonce']), 'algorithm' => 'RS256', 'issuer' => 'https://appleid.apple.com', 'audience' => 'apple-client-fixture', 'nonce' => 'nonce-fixture'],
+    ];
+    foreach ($invalidTokenCases as $caseLabel => $case) {
+        $invalidJwt = sr_member_oauth_check_signed_jwt($tokenFixture['private_key'], 'apple-key-fixture', $case['claims'], $case['algorithm']);
+        sr_member_oauth_check_id_token_rejected(static function () use ($invalidJwt, $tokenFixture, $case, $tokenNow): void {
+            sr_member_oauth_validate_id_token($invalidJwt, ['keys' => [$tokenFixture['jwk']]], $case['issuer'], $case['audience'], $case['nonce'], $tokenNow);
+        }, 'OAuth ID token helper should reject ' . $caseLabel . '.');
+    }
+    $wrongKeyFixture = sr_member_oauth_check_signing_fixture('apple-key-fixture');
+    $wrongSignatureJwt = sr_member_oauth_check_signed_jwt($wrongKeyFixture['private_key'], 'apple-key-fixture', $tokenClaims);
+    sr_member_oauth_check_id_token_rejected(static function () use ($wrongSignatureJwt, $tokenFixture, $tokenNow): void {
+        sr_member_oauth_validate_id_token($wrongSignatureJwt, ['keys' => [$tokenFixture['jwk']]], 'https://appleid.apple.com', 'apple-client-fixture', 'nonce-fixture', $tokenNow);
+    }, 'OAuth ID token helper should reject a signature made with a different key.');
     $primaryEmail = sr_member_oauth_primary_email_from_list([
         ['email' => 'secondary@example.test', 'verified' => true, 'primary' => false],
         ['email' => 'primary@example.test', 'verified' => true, 'primary' => true],
@@ -504,7 +596,8 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     'sr_member_oauth_sync_member_profile',
     'sr_member_oauth_claim_value',
     'sr_member_oauth_secret_display',
-    'sr_member_oauth_jwt_payload',
+    'sr_member_oauth_validate_id_token',
+    'openssl_verify',
     'sr_member_oauth_primary_email_from_list',
     'sr_member_oauth_truthy',
     'sr_member_oauth_authorization_url',
@@ -535,6 +628,8 @@ sr_member_oauth_check_contains('modules/member_oauth_providers/oauth-providers.p
     "'scope_delimiter'",
     "'email_url'",
     "'profile_source' => 'id_token'",
+    "'id_token_issuer' => 'https://appleid.apple.com'",
+    "'jwks_url' => 'https://appleid.apple.com/auth/keys'",
     "'response.id'",
     "'kakao_account.profile.nickname'",
 ]);

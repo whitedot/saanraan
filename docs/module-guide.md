@@ -1506,9 +1506,9 @@ return [
 `oauth-providers.php`:
 
 - 배열을 반환한다.
-- 각 항목 key는 provider key이고, 값은 `label`, `authorization_url`, `token_url`, 사용자 식별 claim, 선택 `userinfo_url`, 선택 `scopes`, 선택 `sort_order`를 가진다.
+- 각 항목 key는 provider key이고, 값은 `label`, `authorization_url`, `token_url`, 사용자 식별 claim, 선택 `userinfo_url`, 선택 `scopes`, 선택 `sort_order`를 가진다. `profile_source=id_token`이면 고정 `id_token_issuer`와 공개 HTTPS `jwks_url`도 필수다.
 - provider별 client id/secret 저장 key와 활성 여부는 member_oauth 모듈 설정이 소유한다.
-- OAuth callback은 계약의 endpoint와 claim mapping을 사용하되 계정 연결/가입 정책은 member_oauth 모듈이 다시 검증한다.
+- OAuth callback은 계약의 endpoint와 claim mapping을 사용하되 계정 연결/가입 정책은 member_oauth 모듈이 다시 검증한다. ID Token은 claim mapping 전에 JWKS 서명, issuer, audience, authorized party, 만료·발급 시각과 요청 nonce를 검증한다.
 
 `identity-provider.php`:
 
