@@ -15,7 +15,7 @@ $errors = (array) ($flashResult['errors'] ?? []);
 $notice = (string) ($flashResult['notice'] ?? '');
 $assetOptions = sr_quiz_asset_options($pdo);
 $memberGroups = sr_quiz_member_groups_for_admin($pdo);
-$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
 $commentEditorOptions = sr_editor_options($pdo, true);
 
 if (sr_request_method() === 'POST') {
@@ -1156,7 +1156,7 @@ $quizSectionNavItems = [
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">비워두면 퀴즈 환경설정의 프리셋을 사용합니다.</p>
+                    <p class="form-help">비워두면 퀴즈 환경설정의 프리셋을 사용하고, 사용안함은 이 퀴즈에서만 리액션을 숨깁니다.</p>
                     <?php echo $quizScopeRadioHtml('reaction_preset_key', (string) ($values['source_reaction_preset_key'] ?? 'item')); ?>
                 </div>
             </div>
@@ -1168,7 +1168,7 @@ $quizSectionNavItems = [
                             <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                         <?php } ?>
                     </select>
-                    <p class="form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용합니다.</p>
+                    <p class="form-help">비워두면 퀴즈 환경설정의 댓글 프리셋을 사용하고, 사용안함은 이 퀴즈의 댓글 리액션만 숨깁니다.</p>
                     <?php echo $quizScopeRadioHtml('reaction_comment_preset_key', (string) ($values['source_reaction_comment_preset_key'] ?? 'item')); ?>
                 </div>
             </div>

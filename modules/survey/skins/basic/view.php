@@ -129,9 +129,10 @@ $surveyCanWriteComment = is_array($currentAccount)
     && sr_survey_account_has_submitted_response($pdo, (int) ($survey['id'] ?? 0), (int) ($currentAccount['id'] ?? 0));
 
 $surveyReactionCommentTargets = [];
+$surveyReactionsEnabled = !empty($settings['reaction_enabled']);
 $surveyReactionCommentSummaries = [];
 if (
-    sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets')
+    $surveyReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets')
     && !$canPreviewAsAdmin
     && is_array($surveyComments ?? null)
     && $surveyComments !== []
@@ -230,7 +231,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 설문도 확인할 수 있으며 제출은 테스트 응답으로 저장되고 보상은 지급되지 않습니다.</p>
                 </div>
             <?php endif; ?>
-            <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && ($submittedScreen || $submitResult !== null)): ?>
+            <?php if ($surveyReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && ($submittedScreen || $submitResult !== null)): ?>
                 <?php echo sr_reaction_render_widget($pdo, 'survey', 'survey_form', (string) (int) ($survey['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
             <?php endif; ?>
             <?php if ($hasSurveyInfo): ?>
@@ -469,7 +470,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_survey_public_layou
                                     <?php if ($surveyCommentCanViewBody): ?>
                                         <div class="survey-comment-body"><?php echo sr_survey_comment_body_html($pdo, $surveyComment, $settings); ?></div>
                                         <?php echo sr_comment_extra_fields_display_html((string) ($surveyComment['extra_values_json'] ?? '')); ?>
-                                        <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+                                        <?php if ($surveyReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
                                             <?php
                                             $surveyCommentReactionOptions = ['label' => '댓글 리액션'];
                                             if (isset($surveyReactionCommentTargets[(string) $surveyCommentId]) && is_array($surveyReactionCommentTargets[(string) $surveyCommentId])) {

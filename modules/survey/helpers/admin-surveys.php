@@ -444,8 +444,8 @@ function sr_survey_admin_handle_save_post(PDO $pdo, array $account, array $asset
     $commentEditorKey = sr_editor_normalize_key($rawCommentEditorKey, true);
     $commentExtraFieldsInput = sr_post_string_without_truncation('comment_extra_fields_json', 20000);
     $commentExtraFieldsInput = is_string($commentExtraFieldsInput) ? $commentExtraFieldsInput : '[]';
-    $reactionPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_preset_key', 80)) : '';
-    $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
+    $reactionPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_preset_key', 80)) : '';
+    $reactionCommentPresetKey = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_setting_preset_key_or_disabled') ? sr_reaction_setting_preset_key_or_disabled($pdo, sr_post_string('reaction_comment_preset_key', 80)) : '';
     $rewardEnabled = ($_POST['reward_enabled'] ?? '') === '1';
     $rewardProvider = sr_survey_clean_key(sr_post_string('reward_provider', 30), 30);
     $rewardModule = sr_survey_clean_key(sr_post_string('reward_module', 40), 40);

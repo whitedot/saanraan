@@ -159,9 +159,10 @@ if ($submitResult === null && $quizResultScreenRequested && is_array($currentAcc
 }
 
 $quizReactionCommentTargets = [];
+$quizReactionsEnabled = !empty($quizSettings['reaction_enabled']);
 $quizReactionCommentSummaries = [];
 if (
-    sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets')
+    $quizReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_resolve_targets')
     && !$canPreviewAsAdmin
     && is_array($quizComments ?? null)
     && $quizComments !== []
@@ -279,7 +280,7 @@ if ($quizEmbedded) {
                     <p>관리자 미리보기입니다. 초안, 중지, 기간 외 퀴즈도 확인할 수 있으며 제출은 저장되지 않습니다.</p>
                 </div>
             <?php endif; ?>
-            <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && $submitResult !== null): ?>
+            <?php if ($quizReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin && $submitResult !== null): ?>
                 <?php echo sr_reaction_render_widget($pdo, 'quiz', 'quiz_set', (string) (int) ($quiz['id'] ?? 0), is_array($currentAccount) ? $currentAccount : null); ?>
             <?php endif; ?>
             <?php if ($submitResult !== null): ?>
@@ -456,7 +457,7 @@ if ($quizEmbedded) {
                                     <?php if ($quizCommentCanViewBody): ?>
                                         <div class="quiz-comment-body"><?php echo sr_quiz_comment_body_html($pdo, $quizComment, $quizSettings); ?></div>
                                         <?php echo sr_comment_extra_fields_display_html((string) ($quizComment['extra_values_json'] ?? '')); ?>
-                                        <?php if (sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
+                                        <?php if ($quizReactionsEnabled && sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_render_widget') && !$canPreviewAsAdmin): ?>
                                             <?php
                                             $quizCommentReactionOptions = ['label' => '댓글 리액션'];
                                             if (isset($quizReactionCommentTargets[(string) $quizCommentId]) && is_array($quizReactionCommentTargets[(string) $quizCommentId])) {

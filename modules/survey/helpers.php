@@ -466,6 +466,7 @@ function sr_survey_default_settings(): array
         'identity_view_required' => false,
         'identity_view_adult_required' => false,
         'business_info_visible' => true,
+        'reaction_enabled' => true,
         'reaction_preset_key' => '',
         'reaction_comment_preset_key' => '',
         'comment_editor' => 'textarea',
@@ -776,6 +777,7 @@ function sr_survey_normalize_settings(array $settings): array
     $normalized['identity_view_required'] = !empty($normalized['identity_view_required']);
     $normalized['identity_view_adult_required'] = !empty($normalized['identity_view_adult_required']);
     $normalized['business_info_visible'] = !array_key_exists('business_info_visible', $normalized) || !empty($normalized['business_info_visible']);
+    $normalized['reaction_enabled'] = !empty($normalized['reaction_enabled']);
     $reactionModuleEnabled = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction');
     $normalized['reaction_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_preset_key'] ?? ''), 80);
     $normalized['reaction_comment_preset_key'] = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], $normalized['reaction_comment_preset_key'] ?? '') : sr_survey_clean_key((string) ($normalized['reaction_comment_preset_key'] ?? ''), 80);
@@ -835,6 +837,7 @@ function sr_survey_settings_from_post(): array
         'identity_view_required' => ($_POST['identity_view_required'] ?? '') === '1',
         'identity_view_adult_required' => ($_POST['identity_view_adult_required'] ?? '') === '1',
         'business_info_visible' => ($_POST['business_info_visible'] ?? '') === '1',
+        'reaction_enabled' => ($_POST['reaction_enabled'] ?? '') === '1',
         'reaction_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_preset_key', 80), 80),
         'reaction_comment_preset_key' => isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO && sr_module_enabled($GLOBALS['pdo'], 'reaction') && function_exists('sr_reaction_setting_preset_key') ? sr_reaction_setting_preset_key($GLOBALS['pdo'], sr_post_string('reaction_comment_preset_key', 80)) : sr_survey_clean_key(sr_post_string('reaction_comment_preset_key', 80), 80),
         'comment_editor' => sr_editor_normalize_key(sr_post_string('comment_editor', 30)),
@@ -907,8 +910,8 @@ function sr_survey_settings_validation_errors(PDO $pdo, array $settings): array
     }
     $reactionAvailable = sr_module_enabled($pdo, 'reaction')
         && is_file(SR_ROOT . '/modules/reaction/public-reaction.php');
-    if (!$reactionAvailable && ((string) ($settings['reaction_preset_key'] ?? '') !== '' || (string) ($settings['reaction_comment_preset_key'] ?? '') !== '')) {
-        $errors[] = '설문 리액션 기본값을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.';
+    if (!$reactionAvailable && !empty($settings['reaction_enabled'])) {
+        $errors[] = '설문 리액션을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.';
     }
 
     return $errors;

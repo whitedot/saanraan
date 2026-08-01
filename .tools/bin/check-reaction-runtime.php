@@ -586,6 +586,41 @@ foreach ($expectedTargets as $targetKey) {
     $assert(isset($contractTargets[$targetKey]), $targetKey . ' should be provided by reaction target contracts.');
 }
 
+foreach (['quiz', 'survey'] as $consumerModuleKey) {
+    $consumerModule = include SR_ROOT . '/modules/' . $consumerModuleKey . '/module.php';
+    $consumerHelpers = sr_reaction_check_read('modules/' . $consumerModuleKey . '/helpers.php');
+    $consumerTargetContract = sr_reaction_check_read('modules/' . $consumerModuleKey . '/reaction-targets.php');
+    $consumerSettingsView = sr_reaction_check_read('modules/' . $consumerModuleKey . '/views/admin-settings.php');
+    $consumerPublicAction = sr_reaction_check_read('modules/' . $consumerModuleKey . '/actions/view.php');
+    $consumerAdminAction = sr_reaction_check_read('modules/' . $consumerModuleKey . '/actions/admin-' . ($consumerModuleKey === 'quiz' ? 'quiz' : 'surveys') . '.php');
+    $consumerThemeView = sr_reaction_check_read('modules/' . $consumerModuleKey . '/theme/basic/view.php');
+    $consumerSkinView = sr_reaction_check_read('modules/' . $consumerModuleKey . '/skins/basic/view.php');
+    $settingsVariable = $consumerModuleKey === 'quiz' ? '$quizSettings' : '$settings';
+    $enabledVariable = $consumerModuleKey === 'quiz' ? '$quizReactionsEnabled' : '$surveyReactionsEnabled';
+
+    $assert(
+        !empty($consumerModule['settings']['reaction_enabled'])
+            && str_contains($consumerHelpers, "'reaction_enabled' => (\$_POST['reaction_enabled'] ?? '') === '1'")
+            && str_contains($consumerSettingsView, "'reaction_enabled'")
+            && str_contains($consumerPublicAction, "!empty(" . $settingsVariable . "['reaction_enabled'])"),
+        $consumerModuleKey . ' must own and save the global reaction usage decision before loading the public reaction contract.'
+    );
+    $assert(
+        str_contains($consumerAdminAction, 'sr_reaction_preset_options_with_disabled')
+            && str_contains($consumerTargetContract, 'sr_reaction_setting_preset_key_or_disabled')
+            && str_contains($consumerTargetContract, 'sr_reaction_disabled_preset_key')
+            && str_contains($consumerTargetContract, "!empty(\$settings['reaction_enabled'])"),
+        $consumerModuleKey . ' must own per-item reaction disable and enforce it in its target contract.'
+    );
+    $assert(
+        str_contains($consumerThemeView, $enabledVariable . ' = !empty(')
+            && str_contains($consumerSkinView, $enabledVariable . ' = !empty(')
+            && substr_count($consumerThemeView, $enabledVariable . ' && sr_module_enabled') >= 3
+            && substr_count($consumerSkinView, $enabledVariable . ' && sr_module_enabled') >= 3,
+        $consumerModuleKey . ' theme and fallback skin must skip reaction lookup and rendering when the consumer disables reactions.'
+    );
+}
+
 $reactionHelperSource = sr_reaction_check_read('modules/reaction/helpers.php');
 $assert(
     str_contains($reactionHelperSource, '$contractTargetModule !== $providerModuleKey'),
@@ -619,6 +654,7 @@ $reactionRuntimeFunctions = [
     "function_exists('sr_reaction_resolve_targets')",
     "function_exists('sr_reaction_record_summaries')",
     "function_exists('sr_reaction_setting_preset_key')",
+    "function_exists('sr_reaction_setting_preset_key_or_disabled')",
     "function_exists('sr_reaction_preset_option_html')",
 ];
 foreach ($reactionConsumerFiles as $file) {

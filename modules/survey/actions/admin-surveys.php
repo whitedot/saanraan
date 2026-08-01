@@ -18,7 +18,7 @@ $memberGroups = sr_member_groups($pdo);
 $surveyMemberGroupsForAdmin = array_values(array_filter($memberGroups, static function (array $memberGroup): bool {
     return (string) ($memberGroup['status'] ?? '') === 'enabled';
 }));
-$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options') ? sr_reaction_preset_options($pdo, true) : ['' => '리액션 기본값'];
+$reactionPresetOptions = sr_module_enabled($pdo, 'reaction') && function_exists('sr_reaction_preset_options_with_disabled') ? sr_reaction_preset_options_with_disabled($pdo, true) : ['' => '리액션 기본값'];
 $commentEditorOptions = sr_editor_options($pdo, true);
 $enabledMemberGroupKeys = [];
 foreach ($memberGroups as $memberGroup) {
@@ -939,7 +939,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <p class="form-help">비워두면 설문 환경설정의 프리셋을 사용합니다.</p>
+                        <p class="form-help">비워두면 설문 환경설정의 프리셋을 사용하고, 사용안함은 이 설문에서만 리액션을 숨깁니다.</p>
                         <?php echo $surveyScopeRadioHtml('reaction_preset_key', (string) ($values['source_reaction_preset_key'] ?? 'item')); ?>
                     </div>
                 </div>
@@ -951,7 +951,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
                                 <option value="<?php echo sr_e((string) $presetKey); ?>"<?php echo (string) ($values['reaction_comment_preset_key'] ?? '') === (string) $presetKey ? ' selected' : ''; ?>><?php echo sr_e((string) $presetLabel); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <p class="form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용합니다.</p>
+                        <p class="form-help">비워두면 설문 환경설정의 댓글 프리셋을 사용하고, 사용안함은 이 설문의 댓글 리액션만 숨깁니다.</p>
                         <?php echo $surveyScopeRadioHtml('reaction_comment_preset_key', (string) ($values['source_reaction_comment_preset_key'] ?? 'item')); ?>
                     </div>
                 </div>

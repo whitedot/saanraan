@@ -73,7 +73,7 @@ foreach ([
         'available' => '$quizReactionAvailable',
         'attributes' => '$quizReactionInputAttributes',
         'notice' => 'quiz-settings-reaction-unavailable',
-        'error' => '퀴즈 리액션 기본값을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.',
+        'error' => '퀴즈 리액션을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.',
     ],
     'survey' => [
         'action' => 'modules/survey/actions/admin-settings.php',
@@ -82,7 +82,7 @@ foreach ([
         'available' => '$surveyReactionAvailable',
         'attributes' => '$surveyReactionInputAttributes',
         'notice' => 'survey-settings-reaction-unavailable',
-        'error' => '설문 리액션 기본값을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.',
+        'error' => '설문 리액션을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.',
     ],
 ] as $moduleKey => $definition) {
     $mustContain($definition['action'], [

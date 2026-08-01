@@ -34,13 +34,21 @@ if (!function_exists('sr_quiz_reaction_quiz_result')) {
         } else {
             $status = 'private';
         }
-        $canView = $status === 'active' && sr_quiz_reaction_can_view($pdo, $quiz, $viewerAccountId);
-        $canWrite = $canView && sr_quiz_account_has_result($pdo, $quizId, $viewerAccountId);
+        $domainCanView = $status === 'active' && sr_quiz_reaction_can_view($pdo, $quiz, $viewerAccountId);
         $settings = sr_quiz_settings($pdo);
-        $presetKey = (string) ($quiz['reaction_preset_key'] ?? '');
+        $reactionModuleEnabled = sr_module_enabled($pdo, 'reaction');
+        $presetKey = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key_or_disabled')
+            ? sr_reaction_setting_preset_key_or_disabled($pdo, $quiz['reaction_preset_key'] ?? '')
+            : (string) ($quiz['reaction_preset_key'] ?? '');
+        $itemReactionEnabled = $presetKey !== (function_exists('sr_reaction_disabled_preset_key') ? sr_reaction_disabled_preset_key() : '__disabled');
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_preset_key'] ?? '');
         }
+        if (!$itemReactionEnabled) {
+            $presetKey = '';
+        }
+        $canView = !empty($settings['reaction_enabled']) && $itemReactionEnabled && $domainCanView;
+        $canWrite = $canView && sr_quiz_account_has_result($pdo, $quizId, $viewerAccountId);
 
         return [
             'target_id' => (string) $quizId,
@@ -48,6 +56,7 @@ if (!function_exists('sr_quiz_reaction_quiz_result')) {
             'public_url' => '/quiz/' . rawurlencode((string) ($quiz['quiz_key'] ?? '')) . '?result=1',
             'admin_url' => '/admin/quiz?mode=edit&id=' . rawurlencode((string) $quizId),
             'status' => $status,
+            'domain_can_view' => $domainCanView,
             'can_view' => $canView,
             'can_write' => $canWrite,
             'owner_account_id' => (int) ($quiz['created_by_account_id'] ?? 0),
@@ -85,14 +94,23 @@ if (!function_exists('sr_quiz_reaction_comment_result')) {
         }
         $isSecret = (int) ($row['is_secret'] ?? 0) === 1;
         $ownerAccountId = (int) ($row['author_account_id'] ?? 0);
-        $canView = $status === 'active'
-            && !empty($quizResult['can_view'])
-            && (!$isSecret || ($viewerAccountId > 0 && in_array($viewerAccountId, [$ownerAccountId, (int) ($quizResult['owner_account_id'] ?? 0)], true)));
         $settings = sr_quiz_settings($pdo);
-        $presetKey = (string) ($row['reaction_comment_preset_key'] ?? '');
+        $reactionModuleEnabled = sr_module_enabled($pdo, 'reaction');
+        $presetKey = $reactionModuleEnabled && function_exists('sr_reaction_setting_preset_key_or_disabled')
+            ? sr_reaction_setting_preset_key_or_disabled($pdo, $row['reaction_comment_preset_key'] ?? '')
+            : (string) ($row['reaction_comment_preset_key'] ?? '');
+        $itemReactionEnabled = $presetKey !== (function_exists('sr_reaction_disabled_preset_key') ? sr_reaction_disabled_preset_key() : '__disabled');
         if ($presetKey === '') {
             $presetKey = (string) ($settings['reaction_comment_preset_key'] ?? '');
         }
+        if (!$itemReactionEnabled) {
+            $presetKey = '';
+        }
+        $canView = !empty($settings['reaction_enabled'])
+            && $itemReactionEnabled
+            && $status === 'active'
+            && !empty($quizResult['domain_can_view'])
+            && (!$isSecret || ($viewerAccountId > 0 && in_array($viewerAccountId, [$ownerAccountId, (int) ($quizResult['owner_account_id'] ?? 0)], true)));
 
         return [
             'target_id' => (string) (int) ($row['id'] ?? 0),

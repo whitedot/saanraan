@@ -439,6 +439,17 @@ $surveySettingsSectionNavItems = [
                 </div>
             </div>
             <div class="form-row">
+                <span class="form-label">리액션 사용</span>
+                <div class="form-field">
+                    <?php echo sr_admin_switch_html('survey_settings_reaction_enabled', 'reaction_enabled', '1', $surveyReactionAvailable && !empty($settings['reaction_enabled']), '사용', '', $surveyReactionInputAttributes); ?>
+                    <p class="form-help">꺼져 있으면 설문과 댓글의 리액션 위젯을 표시하지 않습니다. 프리셋 선택값은 유지됩니다.</p>
+                    <?php echo sr_admin_module_reference_list_html($pdo, $surveyReactionModuleReferences); ?>
+                    <?php if (!$surveyReactionAvailable) { ?>
+                        <p id="survey-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 설정을 사용할 수 있습니다.</p>
+                    <?php } ?>
+                </div>
+            </div>
+            <div class="form-row">
                 <?php echo sr_admin_form_label_help_html('survey_settings_reaction_preset_key', '설문 리액션 프리셋', $surveySettingsHelp['reaction_preset_key']['id'], $surveySettingsHelpOpenLabel); ?>
                 <div class="form-field">
                     <select id="survey_settings_reaction_preset_key" name="reaction_preset_key" class="form-select"<?php echo $surveyReactionInputAttributes; ?>>
@@ -448,9 +459,6 @@ $surveySettingsSectionNavItems = [
                     </select>
                     <p class="form-help">개별 설문에서 값을 비워두면 이 값을 사용합니다.</p>
                     <?php echo sr_admin_module_reference_list_html($pdo, $surveyReactionModuleReferences); ?>
-                    <?php if (!$surveyReactionAvailable) { ?>
-                        <p id="survey-settings-reaction-unavailable" class="form-help form-help-warning"><a href="<?php echo sr_e(sr_url('/admin/modules')); ?>" target="_blank" rel="noopener noreferrer">리액션 모듈</a>을 설치하고 활성화하면 리액션 기본값을 사용할 수 있습니다.</p>
-                    <?php } ?>
                 </div>
             </div>
             <div class="form-row">
