@@ -168,21 +168,17 @@ if (
     $layoutPdo instanceof PDO
     && is_array($layoutCurrentAccount)
     && sr_module_enabled($layoutPdo, 'admin')
-    && is_file(SR_ROOT . '/modules/admin/helpers.php')
+    && is_file(SR_ROOT . '/modules/admin/public-account-access.php')
 ) {
-    require_once SR_ROOT . '/modules/admin/helpers.php';
+    require_once SR_ROOT . '/modules/admin/public-account-access.php';
     $layoutAccountId = (int) ($layoutCurrentAccount['id'] ?? 0);
-    $layoutAdminEnabled = sr_admin_has_admin_access($layoutPdo, $layoutAccountId);
-    $layoutAdminIsOwner = $layoutAdminEnabled && sr_admin_is_owner($layoutPdo, $layoutAccountId);
-    if ($layoutAdminIsOwner) {
-        $layoutMemberBadgeLabel = '매니저';
-        $layoutMemberBadgeClass = 'badge-soft-primary';
-    } elseif ($layoutAdminEnabled) {
-        $layoutMemberBadgeLabel = '스탭';
-        $layoutMemberBadgeClass = 'badge-soft-info';
-        $layoutFirstAdminPath = sr_admin_first_permitted_menu_path($layoutPdo, $layoutAccountId);
-        $layoutAdminUrl = sr_url($layoutFirstAdminPath !== '' ? $layoutFirstAdminPath : '/admin');
-    }
+    $layoutAdminContext = function_exists('sr_admin_public_account_access_context')
+        ? sr_admin_public_account_access_context($layoutPdo, $layoutAccountId)
+        : [];
+    $layoutAdminEnabled = !empty($layoutAdminContext['enabled']);
+    $layoutMemberBadgeLabel = (string) ($layoutAdminContext['badge_label'] ?? $layoutMemberBadgeLabel);
+    $layoutMemberBadgeClass = (string) ($layoutAdminContext['badge_class'] ?? $layoutMemberBadgeClass);
+    $layoutAdminUrl = (string) ($layoutAdminContext['admin_url'] ?? $layoutAdminUrl);
 }
 if (
     $layoutPdo instanceof PDO

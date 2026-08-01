@@ -2,7 +2,7 @@
 
 return [
     'name' => '커뮤니티',
-    'version' => '2026.07.014',
+    'version' => '2026.07.015',
     'type' => 'module',
     'description' => '게시판형 커뮤니티 모듈입니다.',
     'admin' => [
@@ -22,6 +22,7 @@ return [
         'modules' => ['member', 'admin', 'asset_ledger', 'payment_ledger'],
         'contracts' => [
             ['module' => 'member', 'file' => 'public-identity.php'],
+            ['module' => 'admin', 'file' => 'public-account-access.php'],
         ],
     ],
     'contracts' => [
@@ -57,6 +58,7 @@ return [
             'admin-notification-events.php',
             'report-targets.php',
             'public-identity.php',
+            'public-account-access.php',
             'public-banner.php',
             'public-popup-layer.php',
             'public-reaction.php',

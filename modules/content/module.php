@@ -2,7 +2,7 @@
 
 return [
     'name' => '콘텐츠',
-    'version' => '2026.07.012',
+    'version' => '2026.07.013',
     'type' => 'module',
     'description' => '콘텐츠 작성과 공개 URL을 관리하는 모듈입니다.',
     'admin' => [
@@ -22,6 +22,7 @@ return [
         'modules' => ['member', 'admin', 'payment_ledger'],
         'contracts' => [
             ['module' => 'member', 'file' => 'public-identity.php'],
+            ['module' => 'admin', 'file' => 'public-account-access.php'],
         ],
     ],
     'settings' => [
@@ -93,6 +94,7 @@ return [
             'notification-events.php',
             'admin-notification-events.php',
             'public-identity.php',
+            'public-account-access.php',
             'public-banner.php',
             'public-popup-layer.php',
             'public-reaction.php',

@@ -32,7 +32,7 @@ $requiredModules = [
     ],
     'admin' => [
         'name' => '관리자',
-        'version' => '2026.07.002',
+        'version' => '2026.07.003',
         'label' => sr_t('install.module.admin.label'),
         'description' => '관리자 대시보드, 사이트 설정, 모듈 관리, 권한 관리 화면을 제공합니다.',
     ],
@@ -212,25 +212,25 @@ $optionalModules = [
     ],
     'content' => [
         'name' => '콘텐츠',
-        'version' => '2026.07.012',
+        'version' => '2026.07.013',
         'label' => sr_t('install.module.content.label'),
         'description' => '콘텐츠 작성과 공개 URL 관리 기능을 설치합니다.',
     ],
     'community' => [
         'name' => '커뮤니티',
-        'version' => '2026.07.014',
+        'version' => '2026.07.015',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 스크랩 기능을 설치합니다.',
     ],
     'quiz' => [
         'name' => '퀴즈·테스트',
-        'version' => '2026.07.011',
+        'version' => '2026.07.012',
         'label' => '퀴즈·테스트',
         'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
     ],
     'survey' => [
         'name' => '설문·여론조사',
-        'version' => '2026.07.011',
+        'version' => '2026.07.012',
         'label' => '설문·여론조사',
         'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
     ],

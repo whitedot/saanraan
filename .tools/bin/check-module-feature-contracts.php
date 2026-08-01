@@ -243,6 +243,15 @@ foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey)
 }
 
 $publicFeatureContracts = [
+    'admin' => [
+        'file' => 'public-account-access.php',
+        'helper_file' => 'helpers/public-account-access.php',
+        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'functions' => [
+            'sr_admin_public_account_access_context',
+        ],
+        'asset_markers' => [],
+    ],
     'banner' => [
         'file' => 'public-banner.php',
         'consumers' => ['content', 'community'],
@@ -404,6 +413,7 @@ foreach ($publicFeatureRequestContracts as $requestFile => $contractFiles) {
 }
 
 $publicLayoutContracts = [
+    'public-account-access.php',
     'public-branding.php',
     'public-cookie-consent.php',
     'public-message-summary.php',
@@ -416,6 +426,21 @@ foreach (['content', 'community', 'quiz', 'survey'] as $consumerModuleKey) {
         if (!is_string($source) || !str_contains($source, '/' . $contractFile)) {
             $fail($layoutFile . ' must explicitly load ' . $contractFile . '.');
         }
+    }
+}
+
+foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey) {
+    $layoutFile = 'modules/' . $layoutProviderModuleKey . '/theme/basic/layout.php';
+    $layoutSource = file_get_contents($root . '/' . $layoutFile);
+    if (!is_string($layoutSource)
+        || !str_contains($layoutSource, '/modules/admin/public-account-access.php')
+        || !str_contains($layoutSource, 'sr_admin_public_account_access_context(')
+        || str_contains($layoutSource, '/modules/admin/helpers.php')
+        || str_contains($layoutSource, 'sr_admin_has_admin_access(')
+        || str_contains($layoutSource, 'sr_admin_is_owner(')
+        || str_contains($layoutSource, 'sr_admin_first_permitted_menu_path(')
+    ) {
+        $fail($layoutFile . ' must obtain its admin badge and entry URL through admin/public-account-access.php.');
     }
 }
 

@@ -91,6 +91,7 @@ modules/{module_key}/
 - paths.php (optional)
 - admin-menu.php (optional)
 - admin-account-role.php (optional)
+- public-account-access.php (optional)
 - output-slots.php (optional)
 - extension-points.php (optional)
 - privacy-export.php (optional)
@@ -1027,6 +1028,7 @@ return [
 
 - `admin-menu.php`: 관리자 메뉴 항목
 - `admin-account-role.php`: 계정의 소유자 역할 판별
+- `public-account-access.php`: public layout의 관리자 접근 여부, 역할 배지와 첫 진입 URL 표시 모델
 - `menu-links.php`: 사이트 메뉴 항목에 연결할 링크 자산
 - `output-slots.php`: 출력 renderer
 - `extension-points.php`: 확장 가능한 화면/기능 위치
@@ -1097,6 +1099,11 @@ return [
 - `admin` 모듈이 `is_owner_function`을 제공한다.
 - callable 형식은 `function (PDO $pdo, int $accountId): bool`이다.
 - 소비 모듈은 관리자 역할 테이블을 직접 조회하지 않고 이 계약으로 소유자 여부만 확인한다.
+
+`public-account-access.php`:
+
+- `admin` 모듈이 `context_function`을 제공하고 public layout은 현재 계정 ID만 전달한다.
+- 관리자 접근 여부, owner/staff 배지와 첫 허용 관리자 URL은 계약이 계산한다. 소비 layout은 관리자 helper나 권한 테이블을 직접 사용하지 않는다.
 
 `menu-links.php`:
 
@@ -1555,6 +1562,7 @@ return [
 | `paths.php` | `admin` 모듈 | 관리자 내비게이션 구성 | `admin-menu.php` path가 실제 GET route인지 확인 |
 | `admin-menu.php` | `admin` 모듈 | 관리자 레이아웃/내비게이션 구성 | 활성 모듈 관리자 메뉴 노출 |
 | `admin-account-role.php` | `member` 모듈 | 이메일 인증 로그인 정책과 기존 세션 재검증 | 소유자 계정 여부를 판별해 이메일 인증 로그인 예외를 제한적으로 적용 |
+| `public-account-access.php` | `content`, `community`, `quiz`, `survey` 모듈 | public layout 회원 메뉴 조립 | 관리자 접근 여부, owner/staff 배지와 첫 허용 관리자 URL 표시 모델 |
 | `menu-links.php` | `site_menu` 모듈 | 사이트 메뉴 관리자 화면 | 운영자가 메뉴 항목에 연결할 수 있는 링크 자산 |
 | `site-menu-provider.php` | `content`, `community`, `quiz`, `survey` 모듈 | 공개 사이드 메뉴 렌더링과 사이트 메뉴 선택값 검증 | 활성·호환 상태인 `site_menu` 모듈의 메뉴 선택지, published tree, 렌더러 호출 |
 | `extension-points.php` | `banner` 모듈 | 배너 관리자 대상 선택 | content slot 대상 목록 |
@@ -1618,7 +1626,7 @@ return [
 
 | 모듈 | 제공하는 계약 파일 | 읽는 계약 파일 |
 | --- | --- | --- |
-| `admin` | `paths.php`, `admin-account-role.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php`, `public-identity.php` |
+| `admin` | `paths.php`, `admin-account-role.php`, `public-account-access.php`, `privacy-export.php`, `privacy-cleanup.php` | `admin-menu.php`, `dashboard.php`, `homepage-candidates.php`, `site-setting-references.php`, `admin-notification-events.php`, `operational-status.php`, `retention-targets.php`, `public-identity.php` |
 | `member` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `dashboard.php`, `delivery-templates.php`, `member-group-references.php`, `antispam-targets.php`, `retention-targets.php`, `member-mfa-providers.php`, `public-identity.php` | `admin-account-role.php`, `notification-events.php`, `email-delivery.php`, `member-registration.php`, `member-group-rules.php`, `privacy-cleanup.php`, `member-withdrawal-assets.php`, `member-group-references.php`, `member-mfa-providers.php`, `public-antispam.php` |
 | `member_oauth` | `paths.php`, `admin-menu.php`, `privacy-export.php`, `privacy-cleanup.php` | `oauth-providers.php` |
 | `member_oauth_providers` | `oauth-providers.php` | 없음 |
@@ -1631,7 +1639,7 @@ return [
 | `payment_ledger` | `privacy-export.php`, `privacy-cleanup.php`, `operational-status.php` | `payment-ledger-targets.php` |
 | `site_menu` | `paths.php`, `admin-menu.php`, `output-slots.php`, `site-menu-provider.php` | `menu-links.php` |
 | `seo` | `paths.php`, `admin-menu.php` | `sitemap.php` |
-| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `dashboard.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `layout-options.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `public-identity.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php`, `public-antispam.php` |
+| `content` | `paths.php`, `admin-menu.php`, `extension-points.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `dashboard.php`, `homepage-candidates.php`, `member-group-rules.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `layout-options.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `payment-ledger-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `public-identity.php`, `public-account-access.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php`, `public-antispam.php` |
 | `logo_manager` | `paths.php`, `admin-menu.php`, `site-setting-references.php`, `public-branding.php` | `logo-positions.php` |
 | `banner` | `paths.php`, `admin-menu.php`, `output-slots.php`, `retention-targets.php`, `public-banner.php` | `extension-points.php`, `coupon-targets.php`, `banner-references.php` |
 | `popup_layer` | `paths.php`, `admin-menu.php`, `output-slots.php`, `public-popup-layer.php` | `extension-points.php`, `popup-layer-references.php`, `coupon-targets.php` |
@@ -1641,10 +1649,10 @@ return [
 | `reward` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `retention-targets.php`, `asset-exchange.php`, `member-assets.php`, `member-withdrawal-assets.php`, `member-action-rows.php`, `member-group-references.php`, `dashboard.php` | `notification-events.php` |
 | `asset_exchange` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-action-rows.php`, `dashboard.php` | `asset-exchange.php`, `notification-events.php` |
 | `coupon` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `retention-targets.php`, `member-withdrawal-assets.php`, `member-summary-rows.php`, `coupon-references.php`, `dashboard.php`, `url-embed-targets.php` | `coupon-references.php`, `coupon-targets.php`, `notification-events.php` |
-| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `public-report.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php`, `public-identity.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php`, `public-antispam.php` |
+| `community` | `paths.php`, `admin-menu.php`, `menu-links.php`, `extension-points.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `member-group-rules.php`, `dashboard.php`, `layout-options.php`, `coupon-targets.php`, `banner-references.php`, `popup-layer-references.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `antispam-targets.php`, `public-report.php`, `payment-ledger-targets.php`, `asset-recovery-targets.php`, `operational-status.php`, `retention-targets.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `admin-notification-events.php`, `report-targets.php`, `public-identity.php`, `public-account-access.php`, `public-banner.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php`, `public-antispam.php` |
 | `message` | `paths.php`, `admin-menu.php`, `menu-links.php`, `member-only-routes.php`, `member-registration.php`, `privacy-export.php`, `privacy-cleanup.php`, `report-targets.php`, `public-message-summary.php` | `member-assets.php`, `notification-events.php`, `public-report.php` |
-| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
-| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
+| `quiz` | `paths.php`, `admin-menu.php`, `menu-links.php`, `layout-options.php`, `privacy-export.php`, `privacy-cleanup.php`, `dashboard.php`, `extension-points.php`, `coupon-references.php`, `coupon-targets.php`, `sitemap.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-account-access.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
+| `survey` | `paths.php`, `admin-menu.php`, `menu-links.php`, `privacy-export.php`, `privacy-cleanup.php`, `sitemap.php`, `homepage-candidates.php`, `dashboard.php`, `extension-points.php`, `layout-options.php`, `coupon-references.php`, `coupon-targets.php`, `member-group-references.php`, `member-only-routes.php`, `url-embed-targets.php`, `reaction-targets.php`, `operational-status.php` | `site-menu-provider.php`, `member-assets.php`, `notification-events.php`, `public-identity.php`, `public-account-access.php`, `public-popup-layer.php`, `public-reaction.php`, `public-branding.php`, `public-cookie-consent.php`, `public-message-summary.php`, `public-notification-summary.php` |
 | `antispam` | `paths.php`, `admin-menu.php`, `public-antispam.php` | `antispam-targets.php`, `antispam-providers.php` |
 | `antispam_captcha_providers` | `antispam-providers.php` | 없음 |
 | `ckeditor` | `paths.php`, `admin-menu.php`, `editor-options.php` | 없음 |
