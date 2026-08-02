@@ -51,6 +51,11 @@ function sr_policy_documents_check_assert(bool $condition, string $message): voi
     }
 }
 
+sr_policy_documents_check_assert(
+    sr_policy_document_standard_business_info_labels() === sr_site_business_info_default_items(),
+    'policy document business labels must use the site setting source of truth.'
+);
+
 $policyDocumentViewSource = file_get_contents('modules/policy_documents/views/admin-policy-documents.php');
 $policyDocumentActionSource = file_get_contents('modules/policy_documents/actions/admin-policy-documents.php');
 $policyDocumentHelperSource = file_get_contents('modules/policy_documents/helpers.php');
