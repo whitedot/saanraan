@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
 require_once SR_ROOT . '/modules/community/helpers/asset-events.php';
+require_once SR_ROOT . '/modules/asset_ledger/asset-ledger.php';
 
 function sr_community_asset_modules(?PDO $pdo = null): array
 {
@@ -673,40 +674,17 @@ function sr_community_asset_policy_requires_confirmation(string $chargePolicy): 
 
 function sr_community_asset_transaction_retry_max_attempts(): int
 {
-    return 3;
+    return sr_asset_ledger_transaction_retry_max_attempts();
 }
 
 function sr_community_asset_is_retryable_transaction_exception(Throwable $exception): bool
 {
-    if (!$exception instanceof PDOException) {
-        return false;
-    }
-
-    $sqlState = (string) $exception->getCode();
-    $driverCode = isset($exception->errorInfo[1]) ? (int) $exception->errorInfo[1] : 0;
-
-    return $sqlState === '40001' || in_array($driverCode, [1205, 1213], true);
+    return sr_asset_ledger_is_retryable_transaction_exception($exception);
 }
 
 function sr_community_asset_retry_operation(PDO $pdo, callable $operation): array
 {
-    if ($pdo->inTransaction()) {
-        return $operation();
-    }
-
-    $maxAttempts = sr_community_asset_transaction_retry_max_attempts();
-    for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
-        try {
-            return $operation();
-        } catch (Throwable $exception) {
-            if ($attempt >= $maxAttempts || !sr_community_asset_is_retryable_transaction_exception($exception)) {
-                throw $exception;
-            }
-            usleep(50000 * $attempt);
-        }
-    }
-
-    throw new RuntimeException('커뮤니티 자산 처리 재시도 횟수를 초과했습니다.');
+    return sr_asset_ledger_retry_operation($pdo, $operation, '커뮤니티 자산 처리 재시도 횟수를 초과했습니다.');
 }
 
 function sr_community_asset_confirmation_required_message(): string
@@ -716,39 +694,27 @@ function sr_community_asset_confirmation_required_message(): string
 
 function sr_community_asset_log_status_completed(): string
 {
-    return 'completed';
+    return sr_asset_ledger_log_status_completed();
 }
 
 function sr_community_asset_log_status_pending(): string
 {
-    return 'pending';
+    return sr_asset_ledger_log_status_pending();
 }
 
 function sr_community_asset_snapshot_schema_version(): string
 {
-    return 'asset_settlement_snapshot_v1';
+    return sr_asset_ledger_snapshot_schema_version();
 }
 
 function sr_community_asset_rounding_policy_version(): string
 {
-    return 'asset_settlement_rounding_v1';
+    return sr_asset_ledger_rounding_policy_version();
 }
 
 function sr_community_asset_settlement_kind(string $direction, int $amount, int $settlementAmount, string $purchasePowerSnapshotJson): string
 {
-    if ($direction !== 'use') {
-        return 'free';
-    }
-
-    if ($settlementAmount > 0) {
-        return 'paid';
-    }
-
-    if ($amount === 0) {
-        return 'paid_settled_zero';
-    }
-
-    return $purchasePowerSnapshotJson !== '' ? 'paid' : 'legacy_unknown';
+    return sr_asset_ledger_settlement_kind($direction, $amount, $settlementAmount, $purchasePowerSnapshotJson);
 }
 
 function sr_community_asset_confirmation_session_key(string $eventKey, string $subjectType, int $accountId, int $subjectId): string

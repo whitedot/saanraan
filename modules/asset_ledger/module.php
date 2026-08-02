@@ -25,6 +25,7 @@ return [
     ],
     'contracts' => [
         'provides' => [
+            'asset-ledger.php',
             'paths.php',
             'admin-menu.php',
             'operational-status.php',

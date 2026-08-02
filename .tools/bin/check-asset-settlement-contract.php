@@ -731,14 +731,19 @@ foreach ($settlementSchemaFiles as $settlementSchemaFile) {
     ]);
 }
 
-sr_asset_settlement_check_contains('modules/content/helpers/assets.php', [
+sr_asset_settlement_check_contains('modules/asset_ledger/asset-ledger.php', [
     'if ($settlementAmount > 0) {' . "\n" . '        return \'paid\';' . "\n" . '    }' . "\n\n" . '    if ($amount === 0) {' . "\n" . '        return \'paid_settled_zero\';',
     'return $purchasePowerSnapshotJson !== \'\' ? \'paid\' : \'legacy_unknown\';',
 ]);
 
+sr_asset_settlement_check_contains('modules/content/helpers/assets.php', [
+    "require_once SR_ROOT . '/modules/asset_ledger/asset-ledger.php'",
+    "sr_asset_ledger_settlement_kind('use', \$amount, \$settlementAmount, \$purchasePowerSnapshotJson)",
+]);
+
 sr_asset_settlement_check_contains('modules/community/helpers/assets.php', [
-    'if ($settlementAmount > 0) {' . "\n" . '        return \'paid\';' . "\n" . '    }' . "\n\n" . '    if ($amount === 0) {' . "\n" . '        return \'paid_settled_zero\';',
-    'return $purchasePowerSnapshotJson !== \'\' ? \'paid\' : \'legacy_unknown\';',
+    "require_once SR_ROOT . '/modules/asset_ledger/asset-ledger.php'",
+    'sr_asset_ledger_settlement_kind($direction, $amount, $settlementAmount, $purchasePowerSnapshotJson)',
 ]);
 
 sr_asset_settlement_check_contains('modules/content/helpers/files.php', [

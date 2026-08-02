@@ -88,7 +88,7 @@ $requireContains('modules/asset_ledger/module.php', [
     'privacy-cleanup.php',
 ]);
 $requireContains('modules/community/helpers/asset-events.php', [
-    "require_once SR_ROOT . '/modules/asset_ledger/helpers.php';",
+    "require_once SR_ROOT . '/modules/asset_ledger/asset-ledger.php';",
     'sr_asset_recovery_record_failure',
     'sr_asset_recovery_record_reversal_link',
     "'recovered'",

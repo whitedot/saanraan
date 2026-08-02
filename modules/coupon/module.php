@@ -35,6 +35,7 @@ return [
             'url-embed-targets.php',
         ],
         'consumes' => [
+            'payment-ledger.php',
             'coupon-references.php',
             'coupon-targets.php',
             'notification-events.php',

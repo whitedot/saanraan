@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/core/helpers/common.php';
 require_once dirname(__DIR__, 3) . '/core/helpers/upload.php';
+require_once SR_ROOT . '/modules/payment_ledger/payment-ledger.php';
 
 function sr_content_file_extension_mime_map(): array
 {
@@ -1214,19 +1215,7 @@ function sr_content_file_download_access_revoke_sources(array $downloadLog, arra
 
 function sr_content_mark_payment_ledger_items_reversed_if_available(PDO $pdo, int $accountId, array $references, string $reason): array
 {
-    if ($references === [] || !function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
-        return ['payment_record_ids' => [], 'reversed_item_count' => 0, 'refunded_record_ids' => []];
-    }
-    if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
-        throw new RuntimeException('결제 기록 기반 모듈 helper를 찾을 수 없습니다.');
-    }
-
-    require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
-    if (!function_exists('sr_payment_ledger_mark_item_references_reversed') || !sr_payment_ledger_tables_available($pdo)) {
-        throw new RuntimeException('결제 기록 기반 테이블이 준비되지 않았습니다.');
-    }
-
-    return sr_payment_ledger_mark_item_references_reversed($pdo, $accountId, $references, $reason, false);
+    return sr_payment_ledger_mark_references_reversed_if_enabled($pdo, $accountId, $references, $reason);
 }
 
 function sr_content_refund_file_download(PDO $pdo, int $downloadLogId, int $adminAccountId, string $refundNote, string $refundExpirationPolicy = 'original'): array

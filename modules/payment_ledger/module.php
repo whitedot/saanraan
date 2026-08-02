@@ -24,6 +24,7 @@ return [
     ],
     'contracts' => [
         'provides' => [
+            'payment-ledger.php',
             'privacy-export.php',
             'privacy-cleanup.php',
             'operational-status.php',

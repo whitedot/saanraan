@@ -50,6 +50,7 @@ if ($namedHelpers !== []) {
 }
 
 $allowedLegacyUnknownFiles = [
+    'modules/asset_ledger/asset-ledger.php' => true,
     'modules/community/helpers/assets.php' => true,
     'modules/community/helpers/attachments.php' => true,
     'modules/content/helpers/assets.php' => true,

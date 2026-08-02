@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/payment_ledger/payment-ledger.php';
+
 function sr_content_asset_access_required(array $page): bool
 {
     return (int) ($page['asset_access_enabled'] ?? 0) === 1
@@ -507,43 +509,12 @@ function sr_content_asset_access_result(PDO $pdo, bool $allowed, bool $charged, 
 
 function sr_content_record_payment_ledger_if_available(PDO $pdo, array $record, array $items): int
 {
-    if (!function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
-        return 0;
-    }
-    if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
-        throw new RuntimeException('결제 기록 기반 모듈 helper를 찾을 수 없습니다.');
-    }
-
-    require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
-    if (!function_exists('sr_payment_ledger_record_payment') || !sr_payment_ledger_tables_available($pdo)) {
-        throw new RuntimeException('결제 기록 기반 테이블이 준비되지 않았습니다.');
-    }
-
-    return sr_payment_ledger_record_payment($pdo, $record, $items);
+    return sr_payment_ledger_record_if_enabled($pdo, $record, $items);
 }
 
 function sr_content_payment_coupon_item(array $couponResult, string $settlementCurrency): array
 {
-    $redemptionId = (int) ($couponResult['coupon_redemption_id'] ?? 0);
-    if ($redemptionId <= 0 || empty($couponResult['processed'])) {
-        return [];
-    }
-
-    return [
-        'item_kind' => 'coupon_redemption',
-        'owner_module' => 'coupon',
-        'reference_type' => 'coupon_redemption',
-        'reference_id' => (string) $redemptionId,
-        'amount' => -max(0, (int) ($couponResult['discount_amount'] ?? 0)),
-        'currency_code' => $settlementCurrency,
-        'reversible' => true,
-        'snapshot' => [
-            'coupon_issue_id' => (int) ($couponResult['coupon_issue_id'] ?? 0),
-            'coupon_definition_id' => (int) ($couponResult['coupon_definition_id'] ?? 0),
-            'coupon_type' => (string) ($couponResult['coupon_type'] ?? ''),
-            'dedupe_key' => (string) ($couponResult['dedupe_key'] ?? ''),
-        ],
-    ];
+    return sr_payment_ledger_coupon_redemption_item($couponResult, $settlementCurrency);
 }
 
 function sr_content_payment_access_item(string $subjectType, int $subjectId, string $accessKind, string $sourceKind, string $sourceReference = ''): array
@@ -756,19 +727,7 @@ function sr_content_view_payment_access_revoke_sources(array $paymentLog, array 
 
 function sr_content_mark_view_payment_ledger_items_reversed_if_available(PDO $pdo, int $accountId, array $references, string $reason): array
 {
-    if ($references === [] || !function_exists('sr_module_enabled') || !sr_module_enabled($pdo, 'payment_ledger')) {
-        return ['payment_record_ids' => [], 'reversed_item_count' => 0, 'refunded_record_ids' => []];
-    }
-    if (!is_file(SR_ROOT . '/modules/payment_ledger/helpers.php')) {
-        throw new RuntimeException('결제 기록 기반 모듈 helper를 찾을 수 없습니다.');
-    }
-
-    require_once SR_ROOT . '/modules/payment_ledger/helpers.php';
-    if (!function_exists('sr_payment_ledger_mark_item_references_reversed') || !sr_payment_ledger_tables_available($pdo)) {
-        throw new RuntimeException('결제 기록 기반 테이블이 준비되지 않았습니다.');
-    }
-
-    return sr_payment_ledger_mark_item_references_reversed($pdo, $accountId, $references, $reason, false);
+    return sr_payment_ledger_mark_references_reversed_if_enabled($pdo, $accountId, $references, $reason);
 }
 
 function sr_content_refund_view_payment(PDO $pdo, int $paymentLogId, int $adminAccountId, string $refundNote, string $refundExpirationPolicy = 'original'): array

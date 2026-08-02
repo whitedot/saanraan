@@ -23,6 +23,7 @@ return [
         'contracts' => [
             ['module' => 'member', 'file' => 'public-identity.php'],
             ['module' => 'admin', 'file' => 'public-account-access.php'],
+            ['module' => 'payment_ledger', 'file' => 'payment-ledger.php'],
         ],
     ],
     'settings' => [
@@ -89,6 +90,8 @@ return [
             'payment-ledger-targets.php',
         ],
         'consumes' => [
+            'asset-ledger.php',
+            'payment-ledger.php',
             'site-menu-provider.php',
             'member-assets.php',
             'notification-events.php',

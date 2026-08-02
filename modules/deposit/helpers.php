@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/core/helpers/common.php';
 
-require_once SR_ROOT . '/modules/asset_ledger/helpers.php';
+require_once SR_ROOT . '/modules/asset_ledger/asset-ledger.php';
 
 function sr_deposit_balance(PDO $pdo, int $accountId): int
 {

@@ -19,6 +19,9 @@ return [
     ],
     'requires' => [
         'modules' => ['member', 'admin', 'asset_ledger'],
+        'contracts' => [
+            ['module' => 'asset_ledger', 'file' => 'asset-ledger.php'],
+        ],
     ],
     'contracts' => [
         'provides' => [
@@ -34,6 +37,7 @@ return [
             'dashboard.php',
         ],
         'consumes' => [
+            'asset-ledger.php',
             'notification-events.php',
         ],
     ],
