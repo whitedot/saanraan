@@ -59,7 +59,7 @@ modules/{module_key}/theme/{theme_key}/assets/theme.css
 
 관리자 화면은 이 공개 theme 체계의 적용 대상이 아니다. 관리자 shell과 관리자 theme은 admin 모듈이 별도로 소유한다.
 
-콘텐츠는 v1에서 skin 대상이 아니며 `theme_key`와 `layout_key`로만 공개 화면을 바꾼다. 커뮤니티, 퀴즈, 설문의 번들 `basic` theme view는 선택된 skin view에 본문 렌더링을 위임한다. 따라서 `skin_key`는 기본 테마 안쪽의 기능 템플릿을 선택하고, 별도로 설치한 theme이 같은 화면의 전체 view를 제공하면 그 theme view가 우선한다. skin 또는 해당 view가 없으면 `basic` skin으로 fallback한다.
+콘텐츠는 v1에서 skin 대상이 아니며 `theme_key`와 `layout_key`로만 공개 화면을 바꾼다. 커뮤니티, 퀴즈, 설문의 번들 `basic` theme view는 선택된 skin view에 본문 렌더링을 위임한다. 커뮤니티 검색처럼 skin 대상이 아닌 모듈 화면은 번들 `basic` theme이 모듈 fallback view를 정본으로 include한다. 따라서 `skin_key`는 기본 테마 안쪽의 기능 템플릿을 선택하고, 별도로 설치한 theme이 같은 화면의 전체 view를 제공하면 그 theme view가 우선한다. skin 또는 해당 view가 없으면 `basic` skin으로 fallback한다.
 
 ## 레이아웃과 asset 순서
 

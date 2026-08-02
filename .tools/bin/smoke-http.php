@@ -270,6 +270,12 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
+        'label' => 'community search entry',
+        'path' => '/community/search?q=smoke',
+        'allowed_statuses' => [200, 302, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'community default board entry',
         'path' => '/community/board?key=free',
         'allowed_statuses' => [200, 302, 403, 404],

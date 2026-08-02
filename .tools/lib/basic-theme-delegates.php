@@ -29,6 +29,10 @@ function sr_check_basic_theme_delegates(): array
             'view' => 'modules/community/skins/basic/view.php',
             'marker' => 'include $communityThemeFallbackViewFile;',
         ],
+        'modules/community/theme/basic/search.php' => [
+            'view' => 'modules/community/views/search.php',
+            'marker' => 'include $communityThemeFallbackViewFile;',
+        ],
         'modules/quiz/theme/basic/home.php' => [
             'view' => 'modules/quiz/skins/basic/home.php',
             'marker' => "include sr_quiz_skin_view_file(\$quizSettings, 'home');",
