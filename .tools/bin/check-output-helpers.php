@@ -739,8 +739,14 @@ sr_output_helper_assert(
     'Compact public pagination should match the community numeric edge window and button classes.'
 );
 
-$outputHelper = file_get_contents($root . '/core/helpers/output.php');
-if (is_string($outputHelper)) {
+$outputHelper = '';
+foreach (glob($root . '/core/helpers/output-*.php') ?: [] as $outputHelperFile) {
+    $source = file_get_contents($outputHelperFile);
+    if (is_string($source)) {
+        $outputHelper .= "\n" . $source;
+    }
+}
+if ($outputHelper !== '') {
     sr_output_helper_assert(
         strpos($outputHelper, 'function sr_json_response(mixed $payload') !== false
             && strpos($outputHelper, 'JSON_INVALID_UTF8_SUBSTITUTE') !== false

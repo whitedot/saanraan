@@ -124,11 +124,17 @@ sr_performance_baseline_require_markers('modules/community/helpers/board-copy.ph
     'function sr_community_board_copy_batch_errors(array $counts): array',
 ]);
 
-sr_performance_baseline_require_markers('core/helpers/output.php', [
+sr_performance_baseline_require_markers('core/helpers/output-content.php', [
     'function sr_rich_text_purifier_cache_dir(): string',
     "SR_ROOT . '/storage/cache/htmlpurifier'",
+]);
+
+sr_performance_baseline_require_markers('core/helpers/output-assets.php', [
     'function sr_stylesheet_tag(',
     'filemtime($file)',
+]);
+
+sr_performance_baseline_require_markers('core/helpers/output-http.php', [
     'function sr_send_download_headers(string $contentType, string $filename, string $disposition = \'attachment\', ?int $contentLength = null',
     "header('Cache-Control: ' . sr_download_cache_control(\$cacheControl))",
     'function sr_download_cache_control(string $cacheControl): string',
@@ -395,7 +401,7 @@ $allowedStorageCacheFiles = [
     '.tools/bin/check-storage-helpers.php' => true,
     '.tools/bin/check-install-reset-policy.php' => true,
     'core/helpers/storage.php' => true,
-    'core/helpers/output.php' => true,
+    'core/helpers/output-content.php' => true,
     'core/helpers/public-data-cache.php' => true,
     'modules/community/helpers/boards.php' => true,
     'modules/community/helpers/feed-cache.php' => true,
@@ -432,7 +438,7 @@ $allowedCacheControlHeaders = [
     'core/helpers/runtime.php' => [
         "header('Cache-Control: no-store, no-cache, must-revalidate')",
     ],
-    'core/helpers/output.php' => [
+    'core/helpers/output-http.php' => [
         "header('Cache-Control: ' . sr_download_cache_control(\$cacheControl))",
         "header('Cache-Control: ' . sr_download_cache_control(\$cacheControl))",
     ],

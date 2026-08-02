@@ -15,7 +15,7 @@ function sr_dependency_policy_error(string $message): void
 }
 
 $policyFile = 'docs/dependency-policy.md';
-$outputHelperFile = 'core/helpers/output.php';
+$outputHelperFile = 'core/helpers/output-content.php';
 $releaseProcessFile = 'docs/release-process.md';
 $docsReadmeFile = 'docs/README.md';
 $thirdPartyNoticesFile = 'THIRD_PARTY_NOTICES.md';

@@ -72,7 +72,7 @@
 - `core/helpers/common.php`: 문자열 축약/정리, 상대시간 라벨, datetime-local 정규화, 바이트 표기, boolean-like 값 파싱, JSON 배열 decode, 이미지 MIME 확장자/허용 여부 매핑처럼 도메인 정책이 없는 순수 유틸
 - `core/helpers/runtime.php`: 요청 값, URL, HTTPS/proxy 판단, 세션, CSRF, redirect, config, DB 연결, 시간, 토큰 같은 런타임 기반
 - `core/helpers/settings.php`: 사이트 설정, 모듈 활성 상태, 모듈 메타데이터, 계약 파일 로딩, 모듈 호환성 확인
-- `core/helpers/output.php`: escape, 번역 로딩, 공개 레이아웃 껍데기, SEO fallback, output slot 호출 기반
+- `core/helpers/output.php`: 출력 helper의 명시적 로드 순서를 보여 주는 집계 파일. 실제 구현은 `output-localization.php`, `output-response.php`, `output-content.php`, `output-editor.php`, `output-assets.php`, `output-layout.php`, `output-pwa.php`, `output-member.php`, `output-slots.php`, `output-http.php`에 책임별로 둔다.
 - `core/helpers/sql.php`: 정적 SQL 파일 실행, schema version 기록, 업데이트 파일 버전 수집
 - `core/helpers/upload.php`: 업로드 제공 여부 판정, 업로드 파일명 정규화, 확장자/MIME/크기 검증, 안전한 저장 경로 primitive
 - `core/helpers/storage.php`: local/S3 저장소에 파일을 put/delete/head 하는 저장소 primitive와 key/reference 검증

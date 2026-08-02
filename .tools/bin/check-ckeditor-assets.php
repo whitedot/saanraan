@@ -559,7 +559,7 @@ sr_ckeditor_assets_require_markers('assets/editor-ck.css', [
     'font-size: inherit',
 ]);
 
-sr_ckeditor_assets_require_markers('core/helpers/output.php', [
+sr_ckeditor_assets_require_markers('core/helpers/output-content.php', [
     'function sr_body_editor_stylesheets',
     'function sr_body_text_plain_text',
     'sr_editor_normalize_key($bodyEditorKey) === \'ckeditor\'',

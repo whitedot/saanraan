@@ -148,7 +148,7 @@ sr_rich_text_policy_contains('docs/risk-register.md', [
     'R-02',
 ]);
 
-sr_rich_text_policy_contains('core/helpers/output.php', [
+sr_rich_text_policy_contains('core/helpers/output-content.php', [
     'sr_strip_rich_text_dropped_containers($html)',
     'HTML.Allowed',
     'HTML.DefinitionID',

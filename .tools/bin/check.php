@@ -1460,7 +1460,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             }
         }
 
-        $outputHelperSource = is_file('core/helpers/output.php') ? file_get_contents('core/helpers/output.php') : false;
+        $outputHelperSource = is_file('core/helpers/output-layout.php') ? file_get_contents('core/helpers/output-layout.php') : false;
         if (!is_string($outputHelperSource)
             || !str_contains($outputHelperSource, 'sr_public_layout_context_with_shell_assets')
             || !str_contains($outputHelperSource, 'sr_public_layout_insert_before_module_asset')
@@ -1809,6 +1809,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-schema-fallback-policy.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-optional-module-boundaries.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-output-helpers.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-core-output-structure.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-layout-extra-menus.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-public-call-order.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-rich-text-sanitizer.php'));

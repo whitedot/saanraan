@@ -389,7 +389,7 @@ sr_security_baseline_require_markers('assets/common-ui.js', [
     "document.addEventListener('submit'",
 ]);
 
-sr_security_baseline_require_markers('core/helpers/output.php', [
+sr_security_baseline_require_markers('core/helpers/output-http.php', [
     'function sr_redirect(string $url): void',
     'sr_is_safe_relative_url($url)',
     "header('Location: ' . sr_url(\$url), true, 302)",
@@ -405,16 +405,19 @@ sr_security_baseline_require_markers('core/helpers/output.php', [
     "sr_request_contract_mark('csrf_checked')",
     'hash_equals($expected, $actual)',
     "sr_request_contract_guard_blocked('csrf')",
-    'function sr_json_response(mixed $payload',
-    'function sr_js_json_encode(mixed $value): string',
     'function sr_send_download_headers(string $contentType, string $filename, string $disposition = \'attachment\', ?int $contentLength = null',
     'function sr_send_file_headers(string $contentType, ?int $contentLength = null, string $cacheControl = \'private, max-age=300\', array $headers = []): void',
     'function sr_download_content_disposition(string $filename, string $disposition = \'attachment\'): string',
     'function sr_download_cache_control(string $cacheControl): string',
-    'JSON_HEX_TAG',
-    'JSON_INVALID_UTF8_SUBSTITUTE',
     'function sr_post_string_without_truncation(string $key, int $maxLength): ?string',
     'function sr_get_string_without_truncation(string $key, int $maxLength): ?string',
+]);
+
+sr_security_baseline_require_markers('core/helpers/output-response.php', [
+    'function sr_json_response(mixed $payload',
+    'function sr_js_json_encode(mixed $value): string',
+    'JSON_HEX_TAG',
+    'JSON_INVALID_UTF8_SUBSTITUTE',
 ]);
 
 sr_security_baseline_require_markers('core/helpers/ops.php', [

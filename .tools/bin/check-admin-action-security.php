@@ -659,8 +659,14 @@ if (is_string($coreOpsHelper) && (
     $errors[] = 'Core ops helper must expose request contract state, guard-blocked exits, enforcement, and shutdown logging.';
 }
 
-$coreOutputHelper = file_get_contents($root . '/core/helpers/output.php');
-if (!is_string($coreOutputHelper)) {
+$coreOutputHelper = '';
+foreach (glob($root . '/core/helpers/output-*.php') ?: [] as $coreOutputHelperFile) {
+    $source = file_get_contents($coreOutputHelperFile);
+    if (is_string($source)) {
+        $coreOutputHelper .= "\n" . $source;
+    }
+}
+if ($coreOutputHelper === '') {
     $errors[] = 'Core output helper cannot be read.';
 } elseif (
     strpos($coreOutputHelper, "sr_enforce_request_contract('before_redirect')") === false

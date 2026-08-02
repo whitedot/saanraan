@@ -538,7 +538,7 @@ sr_skin_theme_check_contains('modules/admin/views/settings.php', [
     '$publicLayoutHealthWarnings',
 ], 'Public layout setting UI');
 
-sr_skin_theme_check_contains('core/helpers/output.php', [
+sr_skin_theme_check_contains('core/helpers/output-layout.php', [
     'function sr_public_layout_normalized_option(string $layoutKey, array $layoutOption, string $fallbackProviderKey = \'\'): array',
     'function sr_public_layout_support_targets(array $supports): array',
     'function sr_public_layout_domains(): array',
@@ -1069,6 +1069,7 @@ sr_skin_theme_check_not_contains([
     'index.php',
     'core/helpers.php',
     'core/helpers/output.php',
+    'core/helpers/output-layout.php',
     'modules/admin/paths.php',
     'modules/admin/helpers/navigation.php',
     'modules/admin/views/settings.php',
@@ -1110,7 +1111,7 @@ sr_skin_theme_check_not_contains([
     '관리자 ' . '스킨',
 ], 'Admin theme legacy naming');
 
-sr_skin_theme_check_contains('core/helpers/output.php', [
+sr_skin_theme_check_contains('core/helpers/output-layout.php', [
     'function sr_filter_view_options(array $options, array $requiredViewKeys, string $label): array',
     'function sr_view_option_has_required_views(array $option, array $requiredViewKeys): bool',
     '기본 공개 레이아웃 파일이 누락되었습니다.',
