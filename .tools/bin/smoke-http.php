@@ -535,6 +535,24 @@ $checks = [
         ],
     ],
     [
+        'label' => 'admin shell script',
+        'path' => '/modules/admin/assets/admin-shell.js',
+        'allowed_statuses' => [200],
+        'must_contain' => ['window.AdminShell', 'initAnchorTabsScrollSpy'],
+    ],
+    [
+        'label' => 'admin reordering script',
+        'path' => '/modules/admin/assets/admin-reordering.js',
+        'allowed_statuses' => [200],
+        'must_contain' => ['window.AdminShellReordering', '[data-admin-reorder-list]'],
+    ],
+    [
+        'label' => 'admin dashboard script',
+        'path' => '/modules/admin/assets/admin-dashboard.js',
+        'allowed_statuses' => [200],
+        'must_contain' => ['window.AdminDashboard', '[data-admin-dashboard-sections]'],
+    ],
+    [
         'label' => 'public common stylesheet',
         'path' => '/assets/common.css',
         'allowed_statuses' => [200],
