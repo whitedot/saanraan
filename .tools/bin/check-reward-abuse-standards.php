@@ -458,10 +458,14 @@ sr_reward_check_file('modules/coupon/install.sql', [
     'dedupe_key VARCHAR(160)',
     'UNIQUE KEY uq_sr_coupon_redemptions_dedupe',
 ]);
-sr_reward_check_file('modules/coupon/helpers.php', [
+sr_reward_check_file('modules/coupon/helpers/foundation.php', [
     'FOR UPDATE',
+]);
+sr_reward_check_file('modules/coupon/helpers/account-coupons.php', [
     'sr_coupon_has_redemption',
     'dedupe_key',
+]);
+sr_reward_check_file('modules/coupon/helpers/refunds.php', [
     'sr_coupon_revoke_consumer_access',
 ]);
 

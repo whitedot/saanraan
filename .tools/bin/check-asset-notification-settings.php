@@ -159,7 +159,7 @@ foreach ([
     ]);
 }
 
-sr_asset_notification_settings_require_markers('modules/coupon/helpers.php', [
+sr_asset_notification_settings_require_markers('modules/coupon/helpers/foundation.php', [
     'function sr_coupon_notification_setting_for_event(array $settings, string $eventKey): ?array',
     "'default_enabled' => true",
 ]);

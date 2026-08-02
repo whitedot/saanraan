@@ -950,7 +950,7 @@ function sr_check_service_module_default_settings(): void
         'ckeditor' => ['modules/ckeditor/helpers.php', 'sr_ckeditor_default_settings'],
         'content' => ['modules/content/helpers.php', 'sr_content_default_settings'],
         'community' => ['modules/community/helpers/levels.php', 'sr_community_default_settings'],
-        'coupon' => ['modules/coupon/helpers.php', 'sr_coupon_default_settings'],
+        'coupon' => ['modules/coupon/helpers/foundation.php', 'sr_coupon_default_settings'],
         'deposit' => ['modules/deposit/helpers.php', 'sr_deposit_default_settings'],
         'member' => ['modules/member/helpers/settings.php', 'sr_member_default_settings'],
         'notification' => ['modules/notification/helpers.php', 'sr_notification_default_settings'],
@@ -1837,6 +1837,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-asset-exchange-logs.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-asset-exchange-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-coupon-admin-validation.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-coupon-helper-structure.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-payment-ledger-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-form-validation.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-form-drafts.php'));

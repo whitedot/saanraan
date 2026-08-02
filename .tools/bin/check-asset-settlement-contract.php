@@ -1020,7 +1020,7 @@ sr_asset_settlement_check_contains('modules/community/updates/2026.06.044.sql', 
     "version = '2026.06.044'",
 ]);
 
-sr_asset_settlement_check_contains('modules/coupon/helpers.php', [
+sr_asset_settlement_check_contains('modules/coupon/helpers/redemption.php', [
     'sr_coupon_discount_application($selectedIssue, $pricing)',
     'sr_coupon_redemption_pricing_snapshot_from_result($pricing, $targetType, $targetId)',
 ]);

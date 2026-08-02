@@ -208,7 +208,8 @@ function sr_coupon_claim_runtime_schema(PDO $pdo): void
 
 function sr_coupon_claim_runtime_static_contract(): void
 {
-    $helpers = (string) file_get_contents('modules/coupon/helpers.php');
+    require_once '.tools/lib/coupon-helper-source.php';
+    $helpers = sr_tools_coupon_helper_source(getcwd());
     $adminAction = (string) file_get_contents('modules/coupon/actions/admin-coupons.php');
     $adminView = (string) file_get_contents('modules/coupon/views/admin-coupons.php');
     $moduleGuide = (string) file_get_contents('docs/module-guide.md');

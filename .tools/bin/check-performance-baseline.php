@@ -257,7 +257,7 @@ $limitedQueryFiles = [
     'modules/community/helpers/reports.php',
     'modules/community/helpers/series.php',
     'modules/community/helpers/publisher-rewards.php',
-    'modules/coupon/helpers.php',
+    'modules/coupon/helpers/admin-queries.php',
     'modules/notification/helpers.php',
     'modules/privacy/helpers/requests.php',
     'modules/quiz/helpers.php',

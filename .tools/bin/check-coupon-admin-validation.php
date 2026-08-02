@@ -5,10 +5,11 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 $errors = [];
+require_once $root . '/.tools/lib/coupon-helper-source.php';
 
-$helper = file_get_contents($root . '/modules/coupon/helpers.php');
+$helper = sr_tools_coupon_helper_source($root);
 $coreDecisions = file_get_contents($root . '/docs/core-decisions.md');
-if (!is_string($helper)) {
+if ($helper === '') {
     $errors[] = 'Coupon helper cannot be read.';
 } else {
     if (strpos($helper, 'function sr_coupon_key_is_valid') === false

@@ -671,7 +671,7 @@ function sr_read_reference_check_collect_count_guard_source(string $root): void
 
 function sr_read_reference_check_keyed_contract_row_sources(string $root): void
 {
-    $couponHelper = $root . '/modules/coupon/helpers.php';
+    $couponHelper = $root . '/modules/coupon/helpers/admin-queries.php';
     $contents = is_file($couponHelper) ? file_get_contents($couponHelper) : false;
     if (!is_string($contents)) {
         sr_read_reference_check_error('read reference coupon helper is missing: ' . $couponHelper);
@@ -897,7 +897,7 @@ foreach (sr_read_reference_check_module_dirs() as $moduleDir) {
 }
 
 foreach ([
-    'modules/coupon/helpers.php' => 'sr_coupon_target_contracts',
+    'modules/coupon/helpers/target-contracts.php' => 'sr_coupon_target_contracts',
     'modules/banner/helpers.php' => 'sr_banner_subject_target_contracts',
     'modules/popup_layer/helpers.php' => 'sr_popup_layer_subject_target_contracts',
 ] as $helperPath => $functionName) {
