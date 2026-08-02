@@ -630,24 +630,6 @@ function sr_content_asset_policy_set_first_id(array $setIds): int
     return sr_asset_ledger_policy_set_first_id($setIds);
 }
 
-function sr_content_asset_policy_set_options(array $policySets): array
-{
-    $options = [];
-    foreach ($policySets as $policySet) {
-        $setId = (int) ($policySet['id'] ?? 0);
-        if ($setId < 1) {
-            continue;
-        }
-        $label = (string) ($policySet['title'] ?? $policySet['set_key'] ?? $setId);
-        if ((string) ($policySet['status'] ?? '') !== 'enabled') {
-            $label .= ' (' . sr_admin_code_label((string) ($policySet['status'] ?? ''), 'content_status') . ')';
-        }
-        $options[(string) $setId] = $label;
-    }
-
-    return $options;
-}
-
 function sr_content_asset_policy_set_picker_options(array $policySets, string $operation = 'neutral', ?PDO $pdo = null): array
 {
     $operation = in_array($operation, ['grant', 'use', 'neutral'], true) ? $operation : 'neutral';
@@ -671,7 +653,10 @@ function sr_content_asset_policy_set_picker_options(array $policySets, string $o
         }
 
         $options[(string) $setId] = [
-            'label' => (string) (sr_content_asset_policy_set_options([$policySet])[(string) $setId] ?? $setId),
+            'label' => (string) (sr_asset_ledger_policy_set_options(
+                [$policySet],
+                static fn (string $status): string => sr_admin_code_label($status, 'content_status')
+            )[(string) $setId] ?? $setId),
             'summary' => sr_content_asset_policy_set_summary($policySet, $operation, [], $pdo),
             'summaries' => $summaries,
             'assets' => $assetModules,

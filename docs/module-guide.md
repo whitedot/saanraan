@@ -1040,7 +1040,7 @@ return [
 - `dashboard.php`: 관리자 대시보드 모듈 섹션 후보
 - `layout-options.php`: 공개 레이아웃 후보
 - `asset-exchange.php`: 자산 환전 후보와 원장 helper 계약
-- `asset-ledger.php`: 원장 primitive, 거래 재시도, settlement 공통 판정, 정책 세트 ID 직렬화와 개인정보용 정산 snapshot 요약 계약
+- `asset-ledger.php`: 원장 primitive, 거래 재시도, settlement 공통 판정, 정책 세트 ID 직렬화·옵션 조립과 개인정보용 정산 snapshot 요약 계약
 - `member-assets.php`: 콘텐츠/커뮤니티에서 쓰는 금액성 회원 자산 후보
 - `member-withdrawal-assets.php`: 회원 탈퇴 시 정리할 자산 후보와 처리 계약
 - `member-registration.php`: 회원가입 추가 입력, 검증, 저장과 선택적인 회원 계정 화면 조회·수정. 확장 입력값은 `registration_extensions[...]` POST namespace로 전달된다.

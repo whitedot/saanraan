@@ -115,6 +115,25 @@ function sr_asset_ledger_policy_set_first_id(array $setIds): int
     return (int) ($setIds[0] ?? 0);
 }
 
+function sr_asset_ledger_policy_set_options(array $policySets, callable $statusLabel): array
+{
+    $options = [];
+    foreach ($policySets as $policySet) {
+        $setId = (int) ($policySet['id'] ?? 0);
+        if ($setId < 1) {
+            continue;
+        }
+        $label = (string) ($policySet['title'] ?? $policySet['set_key'] ?? $setId);
+        $status = (string) ($policySet['status'] ?? '');
+        if ($status !== 'enabled') {
+            $label .= ' (' . (string) $statusLabel($status) . ')';
+        }
+        $options[(string) $setId] = $label;
+    }
+
+    return $options;
+}
+
 function sr_asset_ledger_privacy_settlement_summary(array $row): array
 {
     $snapshot = [];

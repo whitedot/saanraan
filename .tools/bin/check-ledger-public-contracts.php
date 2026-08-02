@@ -30,6 +30,7 @@ foreach ([
         'sr_asset_ledger_policy_set_ids_from_value',
         'sr_asset_ledger_policy_set_selection_json',
         'sr_asset_ledger_policy_set_first_id',
+        'sr_asset_ledger_policy_set_options',
         'sr_asset_ledger_privacy_settlement_summary',
     ],
     'modules/payment_ledger/payment-ledger.php' => [
@@ -111,6 +112,14 @@ sr_ledger_contract_check(
     '정책 세트 ID 직렬화가 정규화된 공개 구조를 만들지 않습니다.'
 );
 sr_ledger_contract_check(sr_asset_ledger_policy_set_first_id([3, 2]) === 3, '정책 세트 첫 ID 조회가 순서를 보존하지 않습니다.');
+$policySetOptions = sr_asset_ledger_policy_set_options([
+    ['id' => 3, 'title' => '기본 정책', 'status' => 'enabled'],
+    ['id' => 2, 'set_key' => 'legacy_set', 'status' => 'disabled'],
+], static fn (string $status): string => 'status:' . $status);
+sr_ledger_contract_check(
+    $policySetOptions === ['3' => '기본 정책', '2' => 'legacy_set (status:disabled)'],
+    '정책 세트 option 조립이 제목 fallback 또는 상태 label callback을 보존하지 않습니다.'
+);
 $settlementSummary = sr_asset_ledger_privacy_settlement_summary([
     'asset_module' => 'point',
     'amount' => 10,
