@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/core/helpers/public-data-cache.php';
+require_once SR_ROOT . '/core/helpers/output-content.php';
 
 function sr_survey_sidebar_group_menu_rows_from_cache(array $rows): ?array
 {
@@ -67,16 +68,7 @@ function sr_survey_sidebar_group_menu_rows(PDO $pdo): array
 
 function sr_survey_sidebar_excerpt(string $value, int $length = 72): string
 {
-    $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    $value = trim(preg_replace('/\s+/u', ' ', $value) ?? '');
-    if ($value === '') {
-        return '';
-    }
-    if (function_exists('mb_strlen') && function_exists('mb_substr')) {
-        return mb_strlen($value, 'UTF-8') > $length ? mb_substr($value, 0, $length, 'UTF-8') . '…' : $value;
-    }
-
-    return strlen($value) > $length ? substr($value, 0, $length) . '…' : $value;
+    return sr_plain_text_excerpt($value, $length);
 }
 
 function sr_survey_sidebar_popular_surveys(PDO $pdo, int $limit, int $excludeSurveyId = 0): array

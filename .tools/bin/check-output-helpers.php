@@ -119,6 +119,15 @@ class SrOutputHelperCheckPdo extends PDO
 $_SERVER['SCRIPT_NAME'] = '/index.php';
 
 sr_output_helper_assert(
+    sr_plain_text_excerpt('<strong>첫째</strong>   둘째 셋째', 5) === '첫째 둘째…',
+    'Plain text excerpt should strip markup, collapse whitespace, and preserve the length boundary.'
+);
+sr_output_helper_assert(
+    sr_plain_text_excerpt('내용', 0) === '',
+    'Plain text excerpt should return an empty value for a zero length.'
+);
+
+sr_output_helper_assert(
     sr_is_safe_relative_url('/account'),
     'Normal absolute relative path should be allowed.'
 );

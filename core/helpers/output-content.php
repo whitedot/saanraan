@@ -50,6 +50,21 @@ function sr_plain_text_html(string $value, bool $linkUrls = false, bool $openLin
     return nl2br(sr_e($value), false);
 }
 
+function sr_plain_text_excerpt(string $value, int $length): string
+{
+    $length = max(0, $length);
+    $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $value = trim(preg_replace('/\s+/u', ' ', $value) ?? '');
+    if ($value === '' || $length === 0) {
+        return '';
+    }
+    if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+        return mb_strlen($value, 'UTF-8') > $length ? mb_substr($value, 0, $length, 'UTF-8') . '…' : $value;
+    }
+
+    return strlen($value) > $length ? substr($value, 0, $length) . '…' : $value;
+}
+
 function sr_rich_text_allowed_html_tags(): array
 {
     return [
