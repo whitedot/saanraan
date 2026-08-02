@@ -2,32 +2,12 @@
 
 declare(strict_types=1);
 
+require_once SR_ROOT . '/modules/asset_ledger/asset-ledger.php';
+
 if (!function_exists('sr_community_privacy_asset_settlement_summary')) {
     function sr_community_privacy_asset_settlement_summary(array $row): array
     {
-        $snapshot = [];
-        $snapshotJson = (string) ($row['purchase_power_snapshot_json'] ?? '');
-        if ($snapshotJson !== '') {
-            $decoded = json_decode($snapshotJson, true);
-            $snapshot = is_array($decoded) ? $decoded : [];
-        }
-
-        return [
-            'asset_module' => (string) ($row['asset_module'] ?? ''),
-            'asset_amount' => (int) ($row['amount'] ?? 0),
-            'settlement_amount' => (int) ($row['settlement_amount'] ?? 0),
-            'settlement_currency' => (string) ($row['settlement_currency'] ?? ''),
-            'settlement_kind' => (string) ($row['settlement_kind'] ?? ''),
-            'snapshot_schema_version' => (string) ($row['snapshot_schema_version'] ?? ''),
-            'rounding_policy_version' => (string) ($row['rounding_policy_version'] ?? ''),
-            'purchase_power' => [
-                'asset_units' => (int) ($snapshot['asset_units'] ?? 0),
-                'settlement_units' => (int) ($snapshot['settlement_units'] ?? 0),
-                'settlement_currency' => (string) ($snapshot['settlement_currency'] ?? ''),
-                'currency_min_unit' => (int) ($snapshot['currency_min_unit'] ?? 0),
-                'rounding_policy_version' => (string) ($snapshot['rounding_policy_version'] ?? ($snapshot['policy_version'] ?? '')),
-            ],
-        ];
+        return sr_asset_ledger_privacy_settlement_summary($row);
     }
 }
 

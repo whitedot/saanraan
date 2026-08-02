@@ -27,6 +27,10 @@ foreach ([
     'modules/asset_ledger/asset-ledger.php' => [
         'sr_asset_ledger_retry_operation',
         'sr_asset_ledger_settlement_kind',
+        'sr_asset_ledger_policy_set_ids_from_value',
+        'sr_asset_ledger_policy_set_selection_json',
+        'sr_asset_ledger_policy_set_first_id',
+        'sr_asset_ledger_privacy_settlement_summary',
     ],
     'modules/payment_ledger/payment-ledger.php' => [
         'sr_payment_ledger_record_if_enabled',
@@ -98,6 +102,37 @@ sr_ledger_contract_check($operationCount === 1 && !empty($result['ok']), '자산
 sr_ledger_contract_check(sr_asset_ledger_settlement_kind('grant', 10, 0, '') === 'free', '지급 settlement kind가 free가 아닙니다.');
 sr_ledger_contract_check(sr_asset_ledger_settlement_kind('use', 0, 0, '') === 'paid_settled_zero', '0원 차감 settlement kind가 올바르지 않습니다.');
 sr_ledger_contract_check(sr_asset_ledger_settlement_kind('use', 10, 0, '') === 'legacy_unknown', 'legacy 차감 settlement kind가 올바르지 않습니다.');
+sr_ledger_contract_check(
+    sr_asset_ledger_policy_set_ids_from_value('{"policy_set_ids":[3,"2",3,0,"invalid"]}') === [3, 2],
+    '정책 세트 ID 정규화가 순서 보존과 중복 제거를 함께 적용하지 않습니다.'
+);
+sr_ledger_contract_check(
+    sr_asset_ledger_policy_set_selection_json([3, 2, 3]) === '{"policy_set_ids":[3,2]}',
+    '정책 세트 ID 직렬화가 정규화된 공개 구조를 만들지 않습니다.'
+);
+sr_ledger_contract_check(sr_asset_ledger_policy_set_first_id([3, 2]) === 3, '정책 세트 첫 ID 조회가 순서를 보존하지 않습니다.');
+$settlementSummary = sr_asset_ledger_privacy_settlement_summary([
+    'asset_module' => 'point',
+    'amount' => 10,
+    'settlement_amount' => 20,
+    'settlement_currency' => 'KRW',
+    'purchase_power_snapshot_json' => '{"asset_units":10,"settlement_units":20,"policy_version":"legacy-v1"}',
+]);
+sr_ledger_contract_check((int) ($settlementSummary['purchase_power']['settlement_units'] ?? 0) === 20, '정산 개인정보 요약이 구매력 snapshot을 보존하지 않습니다.');
+sr_ledger_contract_check((string) ($settlementSummary['purchase_power']['rounding_policy_version'] ?? '') === 'legacy-v1', '정산 개인정보 요약이 legacy policy_version을 해석하지 않습니다.');
+
+foreach (['content', 'community'] as $consumerModule) {
+    $privacySource = file_get_contents('modules/' . $consumerModule . '/privacy-export.php');
+    sr_ledger_contract_check(is_string($privacySource), $consumerModule . ' 개인정보 export를 읽을 수 없습니다.');
+    sr_ledger_contract_check(
+        is_string($privacySource) && str_contains($privacySource, "require_once SR_ROOT . '/modules/asset_ledger/asset-ledger.php';"),
+        $consumerModule . ' 개인정보 export가 자산 원장 공개 계약을 명시적으로 불러오지 않습니다.'
+    );
+    sr_ledger_contract_check(
+        is_string($privacySource) && str_contains($privacySource, 'sr_asset_ledger_privacy_settlement_summary($row)'),
+        $consumerModule . ' 개인정보 export가 정산 요약 계약을 사용하지 않습니다.'
+    );
+}
 
 $pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL UNIQUE, status TEXT NOT NULL)');
 $pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('payment_ledger', 'disabled')");

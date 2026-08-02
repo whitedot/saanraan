@@ -62,6 +62,86 @@ function sr_asset_ledger_rounding_policy_version(): string
     return 'asset_settlement_rounding_v1';
 }
 
+function sr_asset_ledger_policy_set_ids_from_value(mixed $value): array
+{
+    $rawValues = [];
+    if (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return [];
+        }
+        $decoded = json_decode($trimmed, true);
+        if (is_array($decoded)) {
+            if (is_array($decoded['policy_set_ids'] ?? null)) {
+                $rawValues = $decoded['policy_set_ids'];
+            } elseif ($decoded === array_values($decoded)) {
+                $rawValues = $decoded;
+            }
+        } else {
+            $rawValues = preg_split('/[\s,]+/', $trimmed) ?: [];
+        }
+    } elseif (is_array($value)) {
+        $rawValues = is_array($value['policy_set_ids'] ?? null) ? $value['policy_set_ids'] : $value;
+    }
+
+    $selected = [];
+    foreach ($rawValues as $rawValue) {
+        if (!is_scalar($rawValue)) {
+            continue;
+        }
+        $setId = (int) $rawValue;
+        if ($setId > 0) {
+            $selected[$setId] = true;
+        }
+    }
+
+    return array_keys($selected);
+}
+
+function sr_asset_ledger_policy_set_selection_json(array $setIds): string
+{
+    $setIds = sr_asset_ledger_policy_set_ids_from_value($setIds);
+    if ($setIds === []) {
+        return '';
+    }
+
+    $json = json_encode(['policy_set_ids' => $setIds], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    return is_string($json) ? $json : '';
+}
+
+function sr_asset_ledger_policy_set_first_id(array $setIds): int
+{
+    $setIds = sr_asset_ledger_policy_set_ids_from_value($setIds);
+    return (int) ($setIds[0] ?? 0);
+}
+
+function sr_asset_ledger_privacy_settlement_summary(array $row): array
+{
+    $snapshot = [];
+    $snapshotJson = (string) ($row['purchase_power_snapshot_json'] ?? '');
+    if ($snapshotJson !== '') {
+        $decoded = json_decode($snapshotJson, true);
+        $snapshot = is_array($decoded) ? $decoded : [];
+    }
+
+    return [
+        'asset_module' => (string) ($row['asset_module'] ?? ''),
+        'asset_amount' => (int) ($row['amount'] ?? 0),
+        'settlement_amount' => (int) ($row['settlement_amount'] ?? 0),
+        'settlement_currency' => (string) ($row['settlement_currency'] ?? ''),
+        'settlement_kind' => (string) ($row['settlement_kind'] ?? ''),
+        'snapshot_schema_version' => (string) ($row['snapshot_schema_version'] ?? ''),
+        'rounding_policy_version' => (string) ($row['rounding_policy_version'] ?? ''),
+        'purchase_power' => [
+            'asset_units' => (int) ($snapshot['asset_units'] ?? 0),
+            'settlement_units' => (int) ($snapshot['settlement_units'] ?? 0),
+            'settlement_currency' => (string) ($snapshot['settlement_currency'] ?? ''),
+            'currency_min_unit' => (int) ($snapshot['currency_min_unit'] ?? 0),
+            'rounding_policy_version' => (string) ($snapshot['rounding_policy_version'] ?? ($snapshot['policy_version'] ?? '')),
+        ],
+    ];
+}
+
 function sr_asset_ledger_settlement_kind(string $direction, int $amount, int $settlementAmount, string $purchasePowerSnapshotJson): string
 {
     if ($direction !== 'use') {

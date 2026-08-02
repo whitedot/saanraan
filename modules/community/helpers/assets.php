@@ -315,38 +315,7 @@ function sr_community_save_asset_policy_set(PDO $pdo, array $values, int $accoun
 
 function sr_community_asset_policy_set_ids_from_value(mixed $value): array
 {
-    $rawValues = [];
-    if (is_string($value)) {
-        $trimmed = trim($value);
-        if ($trimmed === '') {
-            return [];
-        }
-        $decoded = json_decode($trimmed, true);
-        if (is_array($decoded)) {
-            if (is_array($decoded['policy_set_ids'] ?? null)) {
-                $rawValues = $decoded['policy_set_ids'];
-            } elseif ($decoded === array_values($decoded)) {
-                $rawValues = $decoded;
-            }
-        } else {
-            $rawValues = preg_split('/[\s,]+/', $trimmed) ?: [];
-        }
-    } elseif (is_array($value)) {
-        $rawValues = is_array($value['policy_set_ids'] ?? null) ? $value['policy_set_ids'] : $value;
-    }
-
-    $selected = [];
-    foreach ($rawValues as $rawValue) {
-        if (!is_scalar($rawValue)) {
-            continue;
-        }
-        $setId = (int) $rawValue;
-        if ($setId > 0) {
-            $selected[$setId] = true;
-        }
-    }
-
-    return array_keys($selected);
+    return sr_asset_ledger_policy_set_ids_from_value($value);
 }
 
 function sr_community_asset_policy_set_ids_with_legacy(mixed $value, int $legacySetId = 0): array
@@ -361,19 +330,12 @@ function sr_community_asset_policy_set_ids_with_legacy(mixed $value, int $legacy
 
 function sr_community_asset_policy_set_selection_json_from_ids(array $setIds): string
 {
-    $setIds = sr_community_asset_policy_set_ids_from_value($setIds);
-    if ($setIds === []) {
-        return '';
-    }
-
-    $json = json_encode(['policy_set_ids' => $setIds], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    return is_string($json) ? $json : '';
+    return sr_asset_ledger_policy_set_selection_json($setIds);
 }
 
 function sr_community_asset_policy_set_first_id(array $setIds): int
 {
-    $setIds = sr_community_asset_policy_set_ids_from_value($setIds);
-    return (int) ($setIds[0] ?? 0);
+    return sr_asset_ledger_policy_set_first_id($setIds);
 }
 
 function sr_community_asset_policy_set_options(array $policySets): array
