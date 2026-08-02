@@ -324,6 +324,22 @@ function sr_log_line_value(string $value, int $maxLength = 1000): string
     return substr($normalized, 0, $maxLength);
 }
 
+function sr_log_line_preview(?string $value, int $maxLength = 120): string
+{
+    $maxLength = max(1, $maxLength);
+    $preview = sr_log_line_value((string) $value, $maxLength + 1);
+    $length = function_exists('mb_strlen') ? mb_strlen($preview) : strlen($preview);
+    if ($length <= $maxLength) {
+        return $preview;
+    }
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($preview, 0, $maxLength) . '...';
+    }
+
+    return substr($preview, 0, $maxLength) . '...';
+}
+
 function sr_log_sensitive_text_sanitize(string $value): string
 {
     $sanitized = preg_replace('/\b(Authorization)\s*([:=])\s*(?:Bearer|Basic)\s+[^&\s;,"\']+/i', '$1$2 [masked]', $value) ?? $value;

@@ -706,6 +706,7 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     $errors[] = 'Admin privacy requests helper cannot be read.';
 } elseif (
     strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_list_preview') === false
+    || strpos($adminPrivacyRequestsHelper, 'return sr_log_line_preview($value, $maxLength);') === false
     || strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_requester_display') === false
     || strpos($adminPrivacyRequestsHelper, 'function sr_admin_privacy_request_terminal_statuses') === false
     || strpos($adminPrivacyRequestsHelper, 'function sr_admin_handle_privacy_request_create_post') === false
@@ -725,7 +726,6 @@ if (!is_string($adminPrivacyRequestsHelper)) {
     || strpos($adminPrivacyRequestsHelper, '$preserveTerminalHandler = !$statusChanged && $isTerminalStatus;') === false
     || strpos($adminPrivacyRequestsHelper, "sr_admin_post_positive_int('request_id')") === false
     || strpos($adminPrivacyRequestsHelper, "return \$prefix . '***@' . \$domain;") === false
-    || strpos($adminPrivacyRequestsHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") === false
 ) {
     $errors[] = 'Admin privacy request helpers must reduce list exposure, validate request ids, protect terminal status changes, isolate member export failures, and reauthenticate exports.';
 }

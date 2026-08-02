@@ -1251,8 +1251,7 @@ if ($privacyHelper !== '') {
     );
     sr_member_auth_policy_assert(
         strpos($privacyHelper, 'function sr_member_privacy_request_list_preview') !== false
-            && strpos($privacyHelper, 'sr_log_line_value((string) $value, $maxLength + 1)') !== false
-            && strpos($privacyHelper, "return mb_substr(\$preview, 0, \$maxLength) . '...';") !== false,
+            && strpos($privacyHelper, 'return sr_log_line_preview($value, $maxLength);') !== false,
         'Privacy helper should provide a bounded privacy request list preview.'
     );
 }

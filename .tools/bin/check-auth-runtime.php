@@ -89,6 +89,7 @@ sr_auth_runtime_require('core/helpers/ops.php', "/'follow_location'\\s*=>\\s*0/"
 sr_auth_runtime_require('core/helpers/ops.php', "/'max_redirects'\\s*=>\\s*0/", 'Install exposure HTTP fetch should disable redirects');
 sr_auth_runtime_require('core/helpers/ops.php', '/function sr_public_internal_access_findings\(string \$baseUrl\): array\s*\{\s*if \(!sr_is_public_http_url\(\$baseUrl\)\)/', 'Install exposure checks should reject non-public base URLs');
 sr_auth_runtime_require('core/helpers/ops.php', '/function sr_log_line_value\(string \$value, int \$maxLength = 1000\): string/', 'Log line value sanitizer is missing');
+sr_auth_runtime_require('core/helpers/ops.php', '/function sr_log_line_preview\(\?string \$value, int \$maxLength = 120\): string/', 'Bounded log line preview helper is missing');
 sr_auth_runtime_require('core/helpers/ops.php', '/preg_replace\(\'\/\[\\\\x00-\\\\x1F\\\\x7F\]\+\/\', \' \', \$value\)/', 'Log line sanitizer should remove control characters');
 sr_auth_runtime_require('core/helpers/ops.php', '/sr_log_line_value\(\$exception->getMessage\(\), 1000\)/', 'Exception messages should be normalized before file logging');
 
