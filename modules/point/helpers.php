@@ -607,25 +607,7 @@ function sr_point_refunded_amount_for_reference_locked(PDO $pdo, int $accountId,
 
 function sr_point_normalize_expires_at(mixed $value): ?string
 {
-    if (!is_string($value)) {
-        return null;
-    }
-    $value = trim($value);
-    if ($value === '') {
-        return null;
-    }
-    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) === 1) {
-        $value .= ' 23:59:59';
-    }
-    if (preg_match('/\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/', $value) !== 1) {
-        return null;
-    }
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return null;
-    }
-
-    return date('Y-m-d H:i:s', $timestamp);
+    return sr_normalize_expiry_datetime($value);
 }
 
 function sr_point_admin_adjustment_once_limit(): int

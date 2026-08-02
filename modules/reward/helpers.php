@@ -468,25 +468,7 @@ function sr_reward_normalize_expiration_days(mixed $value): int
 
 function sr_reward_normalize_expires_at(mixed $value): ?string
 {
-    if (!is_string($value)) {
-        return null;
-    }
-    $value = trim($value);
-    if ($value === '') {
-        return null;
-    }
-    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) === 1) {
-        $value .= ' 23:59:59';
-    }
-    if (preg_match('/\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/', $value) !== 1) {
-        return null;
-    }
-    $timestamp = strtotime($value);
-    if ($timestamp === false) {
-        return null;
-    }
-
-    return date('Y-m-d H:i:s', $timestamp);
+    return sr_normalize_expiry_datetime($value);
 }
 
 function sr_reward_transaction_expires_at(PDO $pdo, array $data): ?string

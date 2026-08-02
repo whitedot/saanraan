@@ -57,6 +57,29 @@ function sr_clean_admin_datetime(string $value, bool $includeSeconds = true): ?s
     return $date->format($includeSeconds ? 'Y-m-d H:i:s' : 'Y-m-d H:i:00');
 }
 
+function sr_normalize_expiry_datetime(mixed $value): ?string
+{
+    if (!is_string($value)) {
+        return null;
+    }
+    $value = trim($value);
+    if ($value === '') {
+        return null;
+    }
+    if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value) === 1) {
+        $value .= ' 23:59:59';
+    }
+    if (preg_match('/\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/', $value) !== 1) {
+        return null;
+    }
+    $timestamp = strtotime($value);
+    if ($timestamp === false) {
+        return null;
+    }
+
+    return date('Y-m-d H:i:s', $timestamp);
+}
+
 function sr_relative_time_label(string $dateTime): string
 {
     $timestamp = strtotime($dateTime);

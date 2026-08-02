@@ -8,6 +8,7 @@ define('SR_ROOT', $root);
 
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/core/helpers/settings.php';
+require_once $root . '/core/helpers/common.php';
 
 $errors = [];
 
@@ -56,6 +57,15 @@ $proxyConfig = [
         ],
     ],
 ];
+
+sr_runtime_helper_assert(
+    sr_normalize_expiry_datetime('2026-08-02') === '2026-08-02 23:59:59',
+    'Date-only expiry normalization should use the end of the selected day.'
+);
+sr_runtime_helper_assert(
+    sr_normalize_expiry_datetime('not-a-date') === null,
+    'Invalid expiry normalization input should be rejected.'
+);
 
 sr_runtime_helper_assert(
     sr_trusted_proxy_entries($proxyConfig) === ['10.0.0.0/8', '203.0.113.10', '2001:db8::/32'],
