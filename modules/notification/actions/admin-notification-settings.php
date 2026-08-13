@@ -233,7 +233,7 @@ if (sr_request_method() === 'POST') {
         if ($settings['slack_webhook_enabled'] && (string) $settings['slack_webhook_url'] === '') {
             $errors[] = 'Slack 운영 수신 URL을 입력하세요.';
         } elseif ($settings['slack_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['slack_webhook_url'], 'slack_webhook')) {
-            $errors[] = 'Slack 운영 수신 URL은 공식 Slack HTTPS webhook URL이어야 합니다.';
+            $errors[] = 'Slack 운영 수신 URL은 공식 Slack HTTPS 수신 URL이어야 합니다.';
         }
         if ($settings['discord_webhook_enabled'] && $settings['discord_channel_label'] === '') {
             $errors[] = 'Discord 채널 표시명을 입력하세요.';
@@ -241,7 +241,7 @@ if (sr_request_method() === 'POST') {
         if ($settings['discord_webhook_enabled'] && (string) $settings['discord_webhook_url'] === '') {
             $errors[] = 'Discord 운영 수신 URL을 입력하세요.';
         } elseif ($settings['discord_webhook_enabled'] && !sr_notification_webhook_url_is_allowed((string) $settings['discord_webhook_url'], 'discord_webhook')) {
-            $errors[] = 'Discord 운영 수신 URL은 공식 Discord HTTPS webhook URL이어야 합니다.';
+            $errors[] = 'Discord 운영 수신 URL은 공식 Discord HTTPS 수신 URL이어야 합니다.';
         }
         if ($settings['telegram_bot_enabled'] && $settings['telegram_channel_label'] === '') {
             $errors[] = 'Telegram 채널 표시명을 입력하세요.';
