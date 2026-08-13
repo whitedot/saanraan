@@ -140,7 +140,7 @@ $optionalModules = [
     ],
     'member_oauth' => [
         'name' => '회원 OAuth',
-        'version' => '2026.06.002',
+        'version' => '2026.08.001',
         'label' => '회원 OAuth',
         'description' => 'OAuth/OIDC provider 로그인과 계정 연결 기반을 설치합니다.',
     ],
@@ -152,7 +152,7 @@ $optionalModules = [
     ],
     'identity_verification' => [
         'name' => '본인확인',
-        'version' => '2026.07.002',
+        'version' => '2026.08.001',
         'label' => '본인확인',
         'description' => '외부 본인확인 요청, 결과, 계정 연결과 개인정보 보관 경계를 설치합니다.',
     ],
