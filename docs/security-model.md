@@ -89,6 +89,8 @@ OAuth authorization code 흐름은 state, nonce, PKCE verifier를 요청별로 �
 
 쿠폰·이용권은 회원에게 귀속되는 권리성 자산이다. 쿠폰 종류는 쿠폰 모듈이 소유하고, 지급/사용/수동 환불/탈퇴 상태 변경 기록은 쿠폰 모듈의 개인정보 사본 제공에 포함한다. 콘텐츠와 커뮤니티는 쿠폰 테이블에 직접 접근하지 않고 helper를 통해 대상 열람권 사용 가능 여부와 사용 처리를 요청한다.
 
+OAuth 로그인 시작은 상태를 변경하지 않는 GET을 유지하지만, 로그인된 회원의 provider 계정을 연결하는 `flow=link`는 마이페이지에서 CSRF 토큰을 함께 제출한 POST로만 시작한다. GET이나 CSRF 토큰 없는 POST로 연결 state를 만들지 않는다.
+
 본인확인 시작 GET은 외부 요청이 DB attempt나 provider 호출을 만들지 못하도록 확인 화면만 표시한다. 실제 attempt 생성과 provider `prepare`는 CSRF 토큰을 확인한 POST에서만 수행하고, 계정과 IP 기준 시작 횟수를 제한한다.
 
 ## 2. 세 층의 기준선

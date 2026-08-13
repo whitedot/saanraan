@@ -637,7 +637,9 @@ sr_member_oauth_check_contains('modules/member_oauth/helpers.php', [
     "'provider_module_key' => (string) \$moduleKey",
 ]);
 sr_member_oauth_check_contains('modules/member_oauth/actions/start.php', [
-    "sr_get_string('flow', 20) === 'link'",
+    "\$flowType = \$flowInput === 'link' ? 'link' : 'login';",
+    "if (\$requestMethod !== 'POST') {",
+    'sr_require_csrf();',
     'sr_member_require_login($pdo)',
     'sr_member_oauth_create_state',
     'sr_member_oauth_store_transient_secrets',
@@ -738,8 +740,9 @@ sr_member_oauth_check_contains('modules/member/views/login.php', [
     '/oauth/start?provider=',
 ]);
 sr_member_oauth_check_contains('modules/member/views/account.php', [
-    '/oauth/start?provider=',
-    'flow=link',
+    "sr_url('/oauth/start')",
+    'sr_csrf_field()',
+    'name="flow" value="link"',
     '/account/oauth/unlink',
     '비밀번호를 설정하거나 다른 소셜 로그인을 연결한 뒤 해제할 수 있습니다.',
     '$memberAccountHasPassword',

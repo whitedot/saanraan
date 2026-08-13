@@ -472,9 +472,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                                 <?php } ?>
                                 <div class="member-skin-basic-actions">
                                     <?php foreach ($oauthProviders as $oauthProvider) { ?>
-                                        <a class="btn btn-outline-secondary" href="<?php echo sr_e(sr_url('/oauth/start?provider=' . rawurlencode((string) $oauthProvider['provider_key']) . '&flow=link&next=' . rawurlencode($memberAccountBasePath . '/account'))); ?>">
-                                            <?php echo sr_e((string) $oauthProvider['label']); ?> 연결
-                                        </a>
+                                        <form method="post" action="<?php echo sr_e(sr_url('/oauth/start')); ?>" class="member-skin-basic-form">
+                                            <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="provider" value="<?php echo sr_e((string) $oauthProvider['provider_key']); ?>">
+                                            <input type="hidden" name="flow" value="link">
+                                            <input type="hidden" name="next" value="<?php echo sr_e($memberAccountBasePath . '/account'); ?>">
+                                            <button type="submit" class="btn btn-outline-secondary"><?php echo sr_e((string) $oauthProvider['label']); ?> 연결</button>
+                                        </form>
                                     <?php } ?>
                                 </div>
                             </div>
