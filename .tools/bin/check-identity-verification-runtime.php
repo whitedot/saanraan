@@ -134,6 +134,15 @@ if (!is_string($startAction)) {
     ) {
         $errors[] = 'identity verification start action must persist popup mode on popup requests.';
     }
+    if (!str_contains($startAction, "if (\$requestMethod !== 'POST') {")
+        || !str_contains($startAction, "include SR_ROOT . '/modules/identity_verification/views/start.php';")
+        || !str_contains($startAction, 'sr_require_csrf();')
+        || !str_contains($startAction, 'sr_identity_verification_start_throttle_status($pdo, $accountId)')
+        || !str_contains($startAction, 'sr_identity_verification_record_start_throttle($pdo, $accountId)')
+        || !str_contains($startAction, 'sr_render_error(429,')
+    ) {
+        $errors[] = 'identity verification GET start must only render confirmation and POST start must enforce CSRF and throttling.';
+    }
 }
 
 $returnAction = file_get_contents($root . '/modules/identity_verification/actions/return.php');
@@ -160,8 +169,22 @@ if (!is_string($identityHelpers)) {
     || !str_contains($identityHelpers, 'sr_identity_verification_local_timestamp((string) ($attempt[\'completed_at\'] ?? \'\'))')
     || !str_contains($identityHelpers, 'function sr_identity_verification_result_for_return_token(')
     || !str_contains($identityHelpers, 'function sr_identity_verification_claim_return_token(')
+    || !str_contains($identityHelpers, 'function sr_identity_verification_start_throttle_status(PDO $pdo, int $accountId): array')
+    || !str_contains($identityHelpers, "sr_rate_limit_count(\$pdo, 'identity_verification.start.account'")
+    || !str_contains($identityHelpers, "sr_rate_limit_count(\$pdo, 'identity_verification.start.ip'")
+    || !str_contains($identityHelpers, 'function sr_identity_verification_record_start_throttle(PDO $pdo, int $accountId): void')
 ) {
     $errors[] = 'identity verification helper must expose provider response, identity snapshot, UTC expiry, and return token helpers.';
+}
+
+$startView = file_get_contents($root . '/modules/identity_verification/views/start.php');
+if (!is_string($startView)
+    || !str_contains($startView, 'method="post"')
+    || !str_contains($startView, "sr_url('/identity/verify/start')")
+    || !str_contains($startView, 'sr_csrf_field()')
+    || !str_contains($startView, 'name="purpose"')
+) {
+    $errors[] = 'identity verification GET start view must require an explicit CSRF-protected POST confirmation.';
 }
 
 if (!is_string($returnAction)) {

@@ -529,6 +529,38 @@ function sr_identity_verification_start_url(string $purpose, string $returnUrl):
     return sr_url('/identity/verify/start?' . http_build_query($query));
 }
 
+function sr_identity_verification_start_throttle_status(PDO $pdo, int $accountId): array
+{
+    $windowSeconds = 600;
+    if ($accountId > 0
+        && sr_rate_limit_count($pdo, 'identity_verification.start.account', (string) $accountId, $windowSeconds) >= 10
+    ) {
+        return ['limited' => true, 'reason' => 'account'];
+    }
+
+    $ipAddress = sr_client_ip();
+    if ($ipAddress !== ''
+        && sr_rate_limit_count($pdo, 'identity_verification.start.ip', $ipAddress, $windowSeconds) >= 20
+    ) {
+        return ['limited' => true, 'reason' => 'ip'];
+    }
+
+    return ['limited' => false, 'reason' => ''];
+}
+
+function sr_identity_verification_record_start_throttle(PDO $pdo, int $accountId): void
+{
+    $windowSeconds = 600;
+    if ($accountId > 0) {
+        sr_rate_limit_increment($pdo, 'identity_verification.start.account', (string) $accountId, $windowSeconds);
+    }
+
+    $ipAddress = sr_client_ip();
+    if ($ipAddress !== '') {
+        sr_rate_limit_increment($pdo, 'identity_verification.start.ip', $ipAddress, $windowSeconds);
+    }
+}
+
 function sr_identity_verification_requirement_policy(PDO $pdo, int $accountId, string $purpose, string $mode, string $returnUrl = '', ?int $maxAgeDays = null): array
 {
     $purpose = sr_identity_verification_purpose($purpose);

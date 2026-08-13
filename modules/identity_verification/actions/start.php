@@ -17,11 +17,12 @@ if (!empty($settings['require_https']) && !str_starts_with($baseUrl, 'https://')
     sr_render_error(503, '본인확인은 HTTPS 기준 URL에서만 시작할 수 있습니다.');
 }
 
-if (sr_request_method() === 'POST') {
+$requestMethod = sr_request_method();
+if ($requestMethod === 'POST') {
     sr_require_csrf();
 }
 
-$source = sr_request_method() === 'POST' ? $_POST : $_GET;
+$source = $requestMethod === 'POST' ? $_POST : $_GET;
 $purpose = sr_identity_verification_purpose((string) ($source['purpose'] ?? ''));
 if ($purpose === '') {
     sr_render_error(400, '본인확인 목적이 올바르지 않습니다.');
@@ -43,12 +44,25 @@ if (!is_array($account) && !$guestAllowed) {
 }
 
 $returnUrl = sr_identity_verification_safe_return_url((string) ($source['return_url'] ?? '/mypage/security'));
-$provider = sr_identity_verification_select_provider($pdo, (string) ($source['provider_key'] ?? ''), $purpose);
+$requestedProviderKey = sr_identity_verification_provider_key((string) ($source['provider_key'] ?? ''));
+$provider = sr_identity_verification_select_provider($pdo, $requestedProviderKey, $purpose);
 if ($provider === null) {
     sr_render_error(503, '사용 가능한 본인확인 제공자가 없습니다.');
 }
 
-$attempt = sr_identity_verification_create_attempt($pdo, $config, $provider, is_array($account) ? (int) $account['id'] : 0, $purpose, $returnUrl, [
+if ($requestMethod !== 'POST') {
+    include SR_ROOT . '/modules/identity_verification/views/start.php';
+    return;
+}
+
+$accountId = is_array($account) ? (int) $account['id'] : 0;
+$startThrottle = sr_identity_verification_start_throttle_status($pdo, $accountId);
+if (!empty($startThrottle['limited'])) {
+    sr_render_error(429, '본인확인 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.');
+}
+sr_identity_verification_record_start_throttle($pdo, $accountId);
+
+$attempt = sr_identity_verification_create_attempt($pdo, $config, $provider, $accountId, $purpose, $returnUrl, [
     'confirm_path' => $popupMode ? 'popup' : '',
 ]);
 
