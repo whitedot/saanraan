@@ -74,6 +74,16 @@ display_errors가 운영에서 꺼져 있는지 확인
 
 운영 설치가 끝난 뒤 `config/`에는 다른 OS 사용자의 쓰기 권한을 남기지 않는다. `storage/`와 실제 쓰기 하위 디렉터리는 웹서버 사용자 소유 또는 전용 배포 그룹 소유로 두고 `0750` 또는 필요한 경우 setgid를 포함한 `2770`을 우선한다. 소유권이나 그룹을 바꿀 수 없는 공유호스팅에서만 world-writable 디렉터리에 sticky bit를 적용한 `1777`을 제한적 fallback으로 사용할 수 있다. 평범한 `0777`은 다른 계정이 기존 파일을 교체하거나 삭제할 수 있으므로 허용하지 않는다. sticky fallback은 다른 계정의 파일 선점에 의한 서비스 거부까지 막지는 못하므로 가능한 즉시 전용 소유권 또는 그룹 권한으로 전환한다.
 
+서버에서 PHP-FPM이 `www-data:www-data`로 실행되는 경우 먼저 dry-run으로 대상과 모드를 확인한 뒤 관리 권한으로 적용한다. 이 도구는 저장소 안의 symbolic link를 발견하면 작업을 거부하고, `--apply`가 없으면 권한을 바꾸지 않는다.
+
+```bash
+php .tools/bin/harden-storage-permissions.php --owner=www-data --group=www-data --dir-mode=0750 --file-mode=0640
+sudo php .tools/bin/harden-storage-permissions.php --apply --owner=www-data --group=www-data --dir-mode=0750 --file-mode=0640
+php .tools/bin/check-deployment-config.php
+```
+
+배포 계정이 런타임 파일을 함께 관리해야 하면 `www-data`대신 전용 배포 그룹을 지정하고 `--dir-mode=2770 --file-mode=0660`을 사용한다. 이 경우 PHP-FPM 사용자와 배포 사용자가 모두 해당 그룹에 속해야 한다.
+
 ## 서버별 처리
 
 Apache 또는 Apache 호환 공유호스팅은 기본 제공 `.htaccess`를 우선 사용한다. 설치 전에 `/database/core/install.sql`, `/modules/member/install.sql`, `/.git/HEAD` 같은 내부 경로가 403 또는 404로 막히는지 확인하고, `/assets/reset.css`, `/assets/layout.css`, `/assets/module.css`, `/assets/editor-md.css`, `/assets/common.css`, `/assets/ui-kit-layout.css`, `/modules/ckeditor/vendor/ckeditor5/ckeditor5.css`, `/modules/ckeditor/assets/saanraan-ckeditor.css`, `/modules/content/theme/basic/assets/reset.css`, `/modules/content/theme/basic/assets/layout.css`, `/modules/content/theme/basic/assets/module.css`, `/modules/content/assets/layout.js`, `/modules/content/assets/module.js`, `/modules/community/theme/basic/assets/reset.css`, `/modules/community/theme/basic/assets/layout.css`, `/modules/community/theme/basic/assets/module.css`, `/modules/community/assets/layout.js`, `/modules/community/assets/module.js`, `/modules/member/skins/basic/skin.css`, `/modules/quiz/theme/basic/assets/layout.css`, `/modules/quiz/assets/layout.js`, `/modules/quiz/assets/module.js`, `/modules/survey/theme/basic/assets/layout.css`, `/modules/survey/assets/layout.js`, `/modules/survey/assets/module.js`, `/modules/admin/assets/tokens.css`, `/modules/admin/assets/ui-kit-layout.css` 같은 공개 asset과 `/assets/fonts/material-symbols-outlined.ttf` fallback 폰트가 정적 파일로 응답하는지 확인한다. 썸네일 캐시를 사용하는 환경에서는 `/storage/cache/thumbnails/community/{hash-prefix}/{hash}_{variant}_{source_version}.jpg` 같은 생성 파일만 열리고 `/storage/cache/private-thumbnails/...`, `/storage/.gitignore`, 임의 storage 파일은 계속 막히는지도 확인한다.
