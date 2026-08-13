@@ -221,6 +221,22 @@ sr_request_contract_runtime_assert($adminFinishMissingGuardsResult['exit_code'] 
 sr_request_contract_runtime_expect_contract($adminFinishMissingGuardsResult, 'exit_reason', 'violation', 'Admin finish_response without guards should set violation exit_reason.');
 sr_request_contract_runtime_expect_contract($adminFinishMissingGuardsResult, 'resolved_stage', 'before_response_end', 'Admin finish_response without guards should be blocked before response end.');
 
+$couponMemberOnlyResult = sr_request_contract_runtime_run('coupon member-only routes', <<<'PHP'
+$pdo = new PDO('sqlite::memory:');
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+$pdo->exec('CREATE TABLE sr_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, module_key TEXT NOT NULL, status TEXT NOT NULL)');
+$pdo->exec("INSERT INTO sr_modules (module_key, status) VALUES ('coupon', 'enabled')");
+
+$getDecision = sr_site_member_only_module_route_decision($pdo, 'coupon', 'GET', '/coupons', 'GET /coupons');
+$postDecision = sr_site_member_only_module_route_decision($pdo, 'coupon', 'POST', '/coupons', 'POST /coupons');
+if ($getDecision !== 'redirect' || $postDecision !== 'forbid') {
+    fwrite(STDERR, 'Coupon member-only route decisions did not fail closed: ' . $getDecision . '/' . $postDecision . "\n");
+    exit(1);
+}
+PHP);
+sr_request_contract_runtime_assert($couponMemberOnlyResult['exit_code'] === 0, 'Coupon GET/POST routes must fail closed for anonymous requests on member-only sites.');
+
 if ($errors !== []) {
     fwrite(STDERR, "request contract runtime checks failed:\n");
     foreach ($errors as $error) {

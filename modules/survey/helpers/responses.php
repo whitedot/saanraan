@@ -7,6 +7,9 @@ function sr_survey_account_can_respond(PDO $pdo, array $survey, int $accountId):
     if ((int) ($survey['login_required'] ?? 1) === 1 && $accountId < 1) {
         return ['allowed' => false, 'message' => '로그인 후 설문에 참여할 수 있습니다.'];
     }
+    if ($accountId < 1 && (int) ($survey['anonymous_allowed'] ?? 0) !== 1) {
+        return ['allowed' => false, 'message' => '익명 응답이 허용되지 않는 설문입니다. 로그인 후 참여해 주세요.'];
+    }
     $groupKeys = sr_survey_member_group_keys_from_json($survey['member_group_keys_json'] ?? '[]');
     if ($groupKeys !== []) {
         if ($accountId < 1) {

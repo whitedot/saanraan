@@ -12,6 +12,7 @@ if (!defined('SR_ROOT')) {
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/admin/helpers.php';
 require_once $root . '/modules/content/helpers.php';
+require_once $root . '/modules/community/helpers.php';
 require_once $root . '/modules/quiz/helpers.php';
 require_once $root . '/modules/survey/helpers.php';
 require_once $root . '/modules/ckeditor/helpers.php';
@@ -212,6 +213,77 @@ function sr_ckeditor_assets_check_content_body_file_access_fixture(): void
     );
 }
 
+function sr_ckeditor_assets_check_community_body_file_paid_access_fixture(): void
+{
+    $pdo = new PDO('sqlite::memory:');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec(
+        'CREATE TABLE sr_community_access_entitlements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER,
+            subject_type TEXT NOT NULL,
+            subject_id INTEGER NOT NULL,
+            event_key TEXT NOT NULL,
+            source_kind TEXT NOT NULL,
+            source_asset_module TEXT NOT NULL DEFAULT "",
+            source_charge_policy TEXT NOT NULL DEFAULT "once",
+            source_reference TEXT NOT NULL DEFAULT "",
+            granted_at TEXT NOT NULL,
+            anonymized_at TEXT,
+            created_at TEXT NOT NULL
+        )'
+    );
+
+    $_SESSION = [];
+    $post = ['id' => 41, 'board_id' => 3, 'author_account_id' => 9];
+    $member = ['id' => 7];
+    $author = ['id' => 9];
+    $settings = ['once_history_policy' => 'all_access'];
+    $freeConfig = ['enabled' => false, 'asset_module' => '', 'amount' => 0, 'charge_policy' => 'once'];
+    $paidOnceConfig = ['enabled' => true, 'asset_module' => 'point', 'amount' => 100, 'charge_policy' => 'once'];
+    $paidEveryViewConfig = $paidOnceConfig;
+    $paidEveryViewConfig['charge_policy'] = 'every_view';
+
+    sr_ckeditor_assets_assert(
+        sr_community_body_file_paid_read_access_allowed($pdo, $post, null, $freeConfig, $settings),
+        'Community body file access fixture should allow anonymous access to free post body files.'
+    );
+    sr_ckeditor_assets_assert(
+        !sr_community_body_file_paid_read_access_allowed($pdo, $post, null, $paidOnceConfig, $settings),
+        'Community body file access fixture should block anonymous access to paid post body files.'
+    );
+    sr_ckeditor_assets_assert(
+        !sr_community_body_file_paid_read_access_allowed($pdo, $post, $member, $paidOnceConfig, $settings),
+        'Community body file access fixture should block members without a paid-read entitlement.'
+    );
+    sr_ckeditor_assets_assert(
+        sr_community_body_file_paid_read_access_allowed($pdo, $post, $author, $paidOnceConfig, $settings),
+        'Community body file access fixture should exempt the post author from paid-read checks.'
+    );
+
+    sr_community_grant_access_entitlement($pdo, 7, 'community.post', 41, 'post_read', 'asset', 'point', 'once', 'point:fixture');
+    sr_ckeditor_assets_assert(
+        sr_community_body_file_paid_read_access_allowed($pdo, $post, $member, $paidOnceConfig, $settings),
+        'Community body file access fixture should allow a member with a current paid-read entitlement.'
+    );
+    $pdo->exec('DELETE FROM sr_community_access_entitlements');
+    sr_ckeditor_assets_assert(
+        !sr_community_body_file_paid_read_access_allowed($pdo, $post, $member, $paidOnceConfig, $settings),
+        'Community body file access fixture should deny access again after the paid-read entitlement is revoked.'
+    );
+
+    sr_ckeditor_assets_assert(
+        !sr_community_body_file_paid_read_access_allowed($pdo, $post, $member, $paidEveryViewConfig, $settings),
+        'Community body file access fixture should block every-view access without a recent paid-read session.'
+    );
+    sr_community_mark_paid_read_session(7, 41);
+    sr_ckeditor_assets_assert(
+        sr_community_body_file_paid_read_access_allowed($pdo, $post, $member, $paidEveryViewConfig, $settings),
+        'Community body file access fixture should allow every-view body files during the paid-read session.'
+    );
+}
+
 function sr_ckeditor_assets_editor_contract_pdo(): PDO
 {
     $pdo = new PDO('sqlite::memory:');
@@ -257,6 +329,7 @@ foreach ($ckeditorVendorHashes as $file => $expectedHash) {
 
 sr_ckeditor_assets_node_syntax_check('modules/ckeditor/assets/saanraan-ckeditor.js');
 sr_ckeditor_assets_check_content_body_file_access_fixture();
+sr_ckeditor_assets_check_community_body_file_paid_access_fixture();
 $ckeditorContractPdo = sr_ckeditor_assets_editor_contract_pdo();
 sr_ckeditor_assets_assert(
     array_keys(sr_ckeditor_toolbar_presets()) === ['standard'],
@@ -479,6 +552,18 @@ sr_ckeditor_assets_require_markers('modules/community/actions/body-file-upload.p
     "sr_post_string_without_truncation('upload_token', 32) ?? ''",
     'sr_community_upload_body_file($pdo',
     'sr_community_cleanup_expired_body_files($pdo, 5)',
+]);
+
+sr_ckeditor_assets_require_markers('modules/community/helpers/body-files.php', [
+    'function sr_community_can_access_body_file(PDO $pdo, array $post, ?array $account): bool',
+    'sr_community_account_can_view_post_body($pdo, $post, $account)',
+    'sr_community_account_can_manage_post_body($pdo, $post, $account)',
+    'sr_community_board_identity_action_required($pdo, $board, \'read\', $settings)',
+    'sr_community_identity_action_policy(',
+    'sr_community_asset_event_config($pdo, $board, $settings, \'paid_read\', \'once\')',
+    'sr_community_once_access_already_granted(',
+    'sr_community_has_paid_read_session($accountId, $postId)',
+    'sr_community_can_access_body_file($pdo, $post, is_array($account) ? $account : null)',
 ]);
 
 sr_ckeditor_assets_require_markers('modules/popup_layer/actions/admin-popup-layers.php', [

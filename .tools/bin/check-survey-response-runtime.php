@@ -303,6 +303,15 @@ sr_survey_response_runtime_schema($pdo);
 $survey = sr_survey_response_runtime_seed($pdo);
 $questions = sr_survey_questions_with_choices($pdo, 7);
 
+$anonymousDeniedSurvey = $survey;
+$anonymousDeniedSurvey['anonymous_allowed'] = 0;
+$anonymousDeniedSurvey['response_limit_policy'] = 'unlimited';
+$anonymousDeniedAccess = sr_survey_account_can_respond($pdo, $anonymousDeniedSurvey, 0);
+sr_survey_response_runtime_assert(
+    empty($anonymousDeniedAccess['allowed']) && str_contains((string) ($anonymousDeniedAccess['message'] ?? ''), '익명 응답'),
+    'Survey access must block anonymous accounts when anonymous responses are disabled, including unlimited surveys.'
+);
+
 $answers = [
     101 => [1002],
     102 => [1003, 1004],
@@ -341,7 +350,17 @@ sr_survey_response_runtime_expect_exception(
     'Anonymous duplicate responses must be blocked by user agent and IP hash.'
 );
 
-$pdo->exec("UPDATE sr_survey_forms SET response_limit_policy = 'unlimited'");
+$pdo->exec("UPDATE sr_survey_forms SET anonymous_allowed = 0, response_limit_policy = 'unlimited'");
+$surveyAnonymousDenied = $survey;
+$surveyAnonymousDenied['anonymous_allowed'] = 0;
+$surveyAnonymousDenied['response_limit_policy'] = 'unlimited';
+sr_survey_response_runtime_expect_exception(
+    static fn (): array => sr_survey_submit_response($pdo, $surveyAnonymousDenied, $questions, 0, $answers, [], true, false, $otherAnswers),
+    '익명 응답',
+    'Survey submission transaction must recheck and block disabled anonymous responses.'
+);
+
+$pdo->exec("UPDATE sr_survey_forms SET anonymous_allowed = 1, response_limit_policy = 'unlimited'");
 $surveyUnlimited = $survey;
 $surveyUnlimited['response_limit_policy'] = 'unlimited';
 $missingOtherAnswers = $answers;

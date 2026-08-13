@@ -33,6 +33,7 @@ return [
             'coupon-references.php',
             'dashboard.php',
             'url-embed-targets.php',
+            'member-only-routes.php',
         ],
         'consumes' => [
             'payment-ledger.php',

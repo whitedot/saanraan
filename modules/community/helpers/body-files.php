@@ -627,6 +627,73 @@ function sr_community_cleanup_expired_body_files(PDO $pdo, int $limit = 10): arr
     return ['deleted' => $deleted, 'failed' => $failed];
 }
 
+function sr_community_body_file_paid_read_access_allowed(PDO $pdo, array $post, ?array $account, array $paidReadConfig, array $settings): bool
+{
+    if (!sr_community_asset_event_required($paidReadConfig)) {
+        return true;
+    }
+
+    $accountId = is_array($account) ? (int) ($account['id'] ?? 0) : 0;
+    if ($accountId > 0 && $accountId === (int) ($post['author_account_id'] ?? 0)) {
+        return true;
+    }
+    if ($accountId < 1) {
+        return false;
+    }
+
+    $postId = (int) ($post['id'] ?? 0);
+    if ($postId < 1) {
+        return false;
+    }
+    if ((string) ($paidReadConfig['charge_policy'] ?? 'once') !== 'once') {
+        return sr_community_has_paid_read_session($accountId, $postId);
+    }
+
+    $couponDedupeKey = 'community.post.read:coupon:' . (string) $accountId . ':' . (string) $postId;
+    return sr_community_once_access_already_granted(
+        $pdo,
+        $paidReadConfig,
+        $accountId,
+        'post_read',
+        $postId,
+        $couponDedupeKey,
+        $settings
+    );
+}
+
+function sr_community_can_access_body_file(PDO $pdo, array $post, ?array $account): bool
+{
+    if (!sr_community_account_can_view_post_body($pdo, $post, $account)) {
+        return false;
+    }
+
+    $board = sr_community_board_by_id($pdo, (int) ($post['board_id'] ?? 0));
+    if (!is_array($board)) {
+        return false;
+    }
+    if (sr_community_account_can_manage_post_body($pdo, $post, $account)) {
+        return true;
+    }
+
+    $settings = sr_community_settings($pdo);
+    if (sr_community_board_identity_action_required($pdo, $board, 'read', $settings)) {
+        $identityPolicy = sr_community_identity_action_policy(
+            $pdo,
+            $board,
+            $account,
+            'read',
+            '/community/post?id=' . rawurlencode((string) ($post['id'] ?? 0)),
+            $settings
+        );
+        if (empty($identityPolicy['satisfied'])) {
+            return false;
+        }
+    }
+
+    $paidReadConfig = sr_community_asset_event_config($pdo, $board, $settings, 'paid_read', 'once');
+    return sr_community_body_file_paid_read_access_allowed($pdo, $post, $account, $paidReadConfig, $settings);
+}
+
 function sr_community_send_body_file(PDO $pdo, int $postId, string $fileName, string $tmpToken = '', string $driver = 'local', bool $thumbnail = false): void
 {
     $driver = sr_community_body_file_storage_driver($driver);
@@ -639,7 +706,7 @@ function sr_community_send_body_file(PDO $pdo, int $postId, string $fileName, st
     } else {
         $account = sr_member_current_account($pdo);
         $post = sr_community_post_for_read($pdo, $postId, is_array($account) ? $account : null);
-        if (!is_array($post) || !sr_community_account_can_view_post_body($pdo, $post, is_array($account) ? $account : null)) {
+        if (!is_array($post) || !sr_community_can_access_body_file($pdo, $post, is_array($account) ? $account : null)) {
             sr_render_error(404, '본문 이미지를 찾을 수 없습니다.');
         }
         $key = sr_community_body_file_post_key($postId, $fileName);

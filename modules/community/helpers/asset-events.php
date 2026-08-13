@@ -826,9 +826,9 @@ function sr_community_has_access_entitlement(PDO $pdo, array $assetModules, int 
     return is_array($stmt->fetch());
 }
 
-function sr_community_once_access_already_granted(PDO $pdo, array $config, int $accountId, string $eventKey, int $subjectId, string $couponDedupeKey = ''): bool
+function sr_community_once_access_already_granted(PDO $pdo, array $config, int $accountId, string $eventKey, int $subjectId, string $couponDedupeKey = '', ?array $settings = null): bool
 {
-    $settings = sr_community_settings($pdo);
+    $settings = is_array($settings) ? $settings : sr_community_settings($pdo);
     $policy = sr_community_once_history_policy((string) ($settings['once_history_policy'] ?? 'all_access'));
     $assetModules = sr_community_asset_module_keys_from_value($config['asset_module'] ?? '', true);
     $subjectType = $eventKey === 'attachment_download' ? 'community.attachment' : 'community.post';
