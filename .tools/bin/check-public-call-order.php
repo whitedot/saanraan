@@ -227,7 +227,7 @@ function sr_public_call_order_check_module_ui_kit_gate(): void
         return;
     }
 
-    foreach (['/content/ui-kit', '/community/ui-kit', '/quiz/ui-kit', '/survey/ui-kit'] as $path) {
+    foreach (['/content/ui-kit', '/community/ui-kit'] as $path) {
         if (!str_contains($source, "'" . $path . "'")) {
             sr_public_call_order_error('index.php module UI kit gate must include ' . $path . '.');
         }
@@ -246,7 +246,7 @@ function sr_public_call_order_check_module_ui_kit_gate(): void
     }
 
     $adminUiKitSource = sr_public_call_order_source(SR_ROOT . '/modules/admin/views/ui-kit.php');
-    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+    foreach (['content', 'community'] as $moduleKey) {
         if (!str_contains($adminUiKitSource, "sr_module_enabled(\$pdo, '" . $moduleKey . "')")) {
             sr_public_call_order_error('Admin UI kit link must require enabled module status: ' . $moduleKey);
         }

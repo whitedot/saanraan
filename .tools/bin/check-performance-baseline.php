@@ -228,11 +228,6 @@ $paginationPairs = [
     ['modules/notification/actions/admin-notifications.php', 'modules/notification/views/admin-notifications.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/notification/actions/admin-admin-notifications.php', 'modules/notification/views/admin-admin-notifications.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/privacy/actions/admin-privacy-requests.php', 'modules/privacy/views/admin-privacy-requests.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
-    ['modules/quiz/actions/admin-quiz.php', 'modules/quiz/actions/admin-quiz.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
-    ['modules/quiz/actions/admin-groups.php', 'modules/quiz/actions/admin-groups.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
-    ['modules/quiz/actions/admin-attempts.php', 'modules/quiz/actions/admin-attempts.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
-    ['modules/survey/actions/admin-groups.php', 'modules/survey/actions/admin-groups.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
-    ['modules/survey/actions/admin-responses.php', 'modules/survey/actions/admin-responses.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/banner/actions/admin-banners.php', 'modules/banner/views/admin-banners.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/popup_layer/actions/admin-popup-layers.php', 'modules/popup_layer/views/admin-popup-layers.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
     ['modules/logo_manager/actions/admin-logo-manager.php', 'modules/logo_manager/views/admin-logo-manager.php', 'sr_admin_pagination_from_total', 'sr_admin_pagination_html'],
@@ -260,9 +255,6 @@ $limitedQueryFiles = [
     'modules/coupon/helpers/admin-queries.php',
     'modules/notification/helpers.php',
     'modules/privacy/helpers/requests.php',
-    'modules/quiz/helpers.php',
-    'modules/quiz/helpers/groups.php',
-    'modules/survey/helpers/groups.php',
     'modules/admin/helpers/asset-ledgers.php',
 ];
 
@@ -347,8 +339,6 @@ foreach ($requiredIndexMarkers as $file => $markers) {
 foreach ([
     'modules/content/sitemap.php',
     'modules/community/sitemap.php',
-    'modules/quiz/sitemap.php',
-    'modules/survey/sitemap.php',
     'modules/content/menu-links.php',
 ] as $file) {
     sr_performance_baseline_require_markers($file, ['LIMIT 1000']);
@@ -373,28 +363,6 @@ foreach ([
     sr_performance_baseline_require_markers($file, ['sr_privacy_export_limit_rows']);
 }
 
-sr_performance_baseline_require_markers('modules/survey/helpers.php', [
-    'function sr_survey_admin_export_limits(): array',
-    "'raw' => 5000",
-    "'analysis' => 20000",
-    "'codebook' => 10000",
-    'function sr_survey_admin_export_raw_rows',
-    'function sr_survey_admin_export_analysis_rows',
-    'function sr_survey_admin_export_codebook_rows',
-    'function sr_survey_csv_cell',
-    'LIMIT \' . (string) max(1, min(10000, $limit))',
-    'LIMIT \' . (string) max(1, min(20000, $limit))',
-    'LIMIT \' . (string) max(1, min(5000, $limit))',
-]);
-sr_performance_baseline_require_markers('modules/survey/actions/admin-export.php', [
-    "'limit' => \$exportLimit",
-    'sr_survey_csv_row',
-    'sr_send_download_headers',
-    "fopen('php://output', 'wb')",
-    'sr_survey_admin_export_codebook_rows',
-    'sr_survey_admin_export_analysis_rows',
-    'sr_survey_admin_export_raw_rows',
-]);
 
 $allowedStorageCacheFiles = [
     '.tools/bin/dev-router.php' => true,
@@ -465,10 +433,6 @@ $allowedCacheControlHeaders = [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
     ],
-    'modules/quiz/actions/cover-image.php' => [
-        "header('Cache-Control: private, max-age=300')",
-        "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
-    ],
     'modules/content/actions/download.php' => [
         "header('Cache-Control: private, max-age=300')",
         "sr_send_download_headers(\$mimeType, (string) \$file['original_name'], 'attachment', \$recordedSize, 'private, no-store, no-cache, must-revalidate')",
@@ -491,10 +455,6 @@ $allowedCacheControlHeaders = [
     ],
     'modules/popup_layer/helpers/body-files.php' => [
         "sr_send_file_headers(\$mimeType, (int) (\$head['content_length'] ?? 0), 'private, max-age=300')",
-    ],
-    'modules/survey/actions/cover-image.php' => [
-        "header('Cache-Control: private, max-age=300')",
-        "sr_send_file_headers(\$mimeType, \$sizeBytes, 'public, max-age=31536000, immutable')",
     ],
 ];
 

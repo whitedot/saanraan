@@ -148,11 +148,7 @@ function sr_identity_verification_purpose_labels(): array
         'member.mfa.login' => '로그인 2차 인증',
         'member.registration' => '회원가입',
         'member.withdrawal' => '회원탈퇴',
-        'quiz.view' => '퀴즈 참여 본인확인',
-        'quiz.view.adult' => '퀴즈 참여 성인 확인',
         'reward.withdrawal_request' => '적립금 출금 신청',
-        'survey.view' => '설문 참여 본인확인',
-        'survey.view.adult' => '설문 참여 성인 확인',
     ];
 }
 
@@ -295,8 +291,6 @@ function sr_identity_verification_identity_provider_required_purposes(): array
         'content.author_application.adult',
         'content.view.adult',
         'member.registration',
-        'quiz.view.adult',
-        'survey.view.adult',
     ];
 }
 

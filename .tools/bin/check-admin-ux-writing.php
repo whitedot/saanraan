@@ -184,8 +184,6 @@ $managementColumnFiles = [
     'modules/member/views/admin-settings.php',
     'modules/notification/views/account-notifications.php',
     'modules/notification/views/admin-admin-notifications.php',
-    'modules/quiz/actions/admin-groups.php',
-    'modules/survey/actions/admin-groups.php',
 ];
 foreach ($managementColumnFiles as $relativePath) {
     $content = file_get_contents($root . '/' . $relativePath);

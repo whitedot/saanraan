@@ -38,18 +38,6 @@ if (sr_module_enabled($pdo, 'community') && is_file(SR_ROOT . '/modules/communit
         'path' => '/community/ui-kit',
     ];
 }
-if (sr_module_enabled($pdo, 'quiz') && is_file(SR_ROOT . '/modules/quiz/actions/ui-kit.php')) {
-    $publicUiKitLinks[] = [
-        'label' => '퀴즈·테스트 UI Kit',
-        'path' => '/quiz/ui-kit',
-    ];
-}
-if (sr_module_enabled($pdo, 'survey') && is_file(SR_ROOT . '/modules/survey/actions/ui-kit.php')) {
-    $publicUiKitLinks[] = [
-        'label' => '설문·여론조사 UI Kit',
-        'path' => '/survey/ui-kit',
-    ];
-}
 
 include SR_ROOT . '/modules/admin/views/layout-header.php';
 ?>

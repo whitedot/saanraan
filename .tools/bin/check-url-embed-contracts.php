@@ -473,8 +473,6 @@ function sr_url_embed_contract_runtime_fixture(): void
     sr_url_embed_contract_assert((int) ($GLOBALS['sr_url_embed_contract_render_count'] ?? 0) === 1, 'Multiple source URLs for one canonical cache row must render once per request.');
     unset($GLOBALS['sr_url_embed_contract_settings']);
 
-    sr_url_embed_contract_assert(sr_url_embed_target_label('quiz', 'quiz_set', '3') === '퀴즈 #3', 'Quiz embed target label must use Korean target type label.');
-    sr_url_embed_contract_assert(sr_url_embed_target_label('survey', 'survey_form', '4') === '설문 #4', 'Survey embed target label must use Korean target type label.');
 
     $privateBody = '<p><a href="/fixture/2">/fixture/2</a></p>';
     sr_url_embed_sync_body_url_cache($pdo, 'fixture', 'doc', 11, 'body', $privateBody, 7);
@@ -519,7 +517,7 @@ function sr_url_embed_contract_runtime_fixture(): void
     unset($GLOBALS['sr_url_embed_contract_module_metadata']);
 }
 
-foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+foreach (['content', 'community'] as $moduleKey) {
     $contractPath = 'modules/' . $moduleKey . '/url-embed-targets.php';
     $stylesheetPath = 'modules/' . $moduleKey . '/assets/embed.css';
     $modulePath = 'modules/' . $moduleKey . '/module.php';
@@ -540,13 +538,8 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     foreach (["'target_module' => '" . $moduleKey . "'", "'resolve_url'", "'render_embed'", "'canonical_url'", "'target_state'", "'cache_status'", "'image_snapshot_policy'", "'embed_stylesheet' => '/modules/" . $moduleKey . "/assets/embed.css'", "'fragment_cache_public' => true", "'fragment_cache_schema' => 'custom_tag_v3'", '<sr-' . $moduleKey . '-embed', 'data-' . $moduleKey . '-embed="summary"', $moduleKey . "-embed-summary-url"] as $needle) {
         sr_url_embed_contract_contains($contractPath, $needle);
     }
-    if ($moduleKey === 'survey') {
-        sr_url_embed_contract_not_contains($contractPath, 'public_listed');
-        sr_url_embed_contract_not_contains($contractPath, 'login_required');
-        sr_url_embed_contract_not_contains($contractPath, 'member_group_keys');
-    }
     sr_url_embed_contract_contains($stylesheetPath, '.' . $moduleKey . '-embed-summary-url');
-    $adminPath = $moduleKey === 'survey' ? '/admin/surveys/embed-cache' : '/admin/' . $moduleKey . '/embed-cache';
+    $adminPath = '/admin/' . $moduleKey . '/embed-cache';
     sr_url_embed_contract_contains($adminMenuPath, "'" . $adminPath . "'");
     sr_url_embed_contract_contains($pathsPath, "'GET " . $adminPath . "'");
     sr_url_embed_contract_contains($pathsPath, "'POST " . $adminPath . "'");
@@ -559,16 +552,9 @@ foreach (['content', 'community'] as $ownerModuleKey) {
     sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', '외부 서비스 자동 표시');
     sr_url_embed_contract_contains('modules/' . $ownerModuleKey . '/views/admin-settings.php', '사이트 콘텐츠 자동 표시');
 }
-foreach (['quiz', 'survey'] as $providerModuleKey) {
-    sr_url_embed_contract_contains('modules/' . $providerModuleKey . '/module.php', "'internal_embed_enabled' => true");
-    sr_url_embed_contract_not_contains('modules/' . $providerModuleKey . '/module.php', "'external_embed_enabled'");
-    sr_url_embed_contract_contains('modules/' . $providerModuleKey . '/views/admin-settings.php', '내부 모듈 간 임베드');
-}
 foreach ([
     'modules/content/updates/2026.07.001.sql',
     'modules/community/updates/2026.07.005.sql',
-    'modules/quiz/updates/2026.07.002.sql',
-    'modules/survey/updates/2026.07.002.sql',
 ] as $embedSettingUpdatePath) {
     sr_url_embed_contract_contains($embedSettingUpdatePath, "'internal_embed_enabled'");
     sr_url_embed_contract_contains($embedSettingUpdatePath, "setting_key = 'embed_enabled'");

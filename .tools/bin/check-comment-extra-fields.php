@@ -129,7 +129,7 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     sr_check_comment_extra_fields_assert($stored === sr_comment_extra_field_cleanup_json($snapshotJson), 'account cleanup must persist the policy-filtered snapshot.');
 }
 
-foreach (['community', 'content', 'quiz', 'survey'] as $moduleKey) {
+foreach (['community', 'content'] as $moduleKey) {
     $action = file_get_contents($root . '/modules/' . $moduleKey . '/actions/comment.php');
     $commentsHelper = file_get_contents($root . '/modules/' . $moduleKey . '/helpers/' . ($moduleKey === 'community' ? 'posts-comments.php' : 'comments.php'));
     sr_check_comment_extra_fields_assert(is_string($action) && str_contains($action, "['extra_values_json'] = sr_comment_extra_field_snapshot_json"), $moduleKey . ' comment action must snapshot extra values before create.');
@@ -141,13 +141,9 @@ sr_check_comment_extra_fields_assert(is_string($communityBoardHelpers) && str_co
 sr_check_comment_extra_fields_assert(is_string($communityBoardHelpers) && str_contains($communityBoardHelpers, "'comment_extra_fields_json' => '[]'"), 'community group/runtime fallback must remain empty instead of inheriting the new-board form default.');
 
 $contentDefaults = file_get_contents($root . '/modules/content/helpers.php');
-$quizAdmin = file_get_contents($root . '/modules/quiz/helpers/admin.php');
-$surveyAdminView = file_get_contents($root . '/modules/survey/actions/admin-surveys.php');
 sr_check_comment_extra_fields_assert(is_string($contentDefaults) && str_contains($contentDefaults, "sr_content_settings(\$pdo)['comment_extra_fields_json']"), 'content settings must initialize the new-content form.');
-sr_check_comment_extra_fields_assert(is_string($quizAdmin) && str_contains($quizAdmin, "'comment_extra_fields_json' => sr_comment_extra_field_definitions_json(\$settings['comment_extra_fields_json'] ?? '[]')"), 'quiz settings must initialize the new-quiz form.');
-sr_check_comment_extra_fields_assert(is_string($surveyAdminView) && str_contains($surveyAdminView, '...sr_survey_settings($pdo)'), 'survey settings must initialize the new-survey form.');
 
-foreach (['content' => 'page', 'quiz' => 'quiz', 'survey' => 'survey'] as $moduleKey => $entityVariable) {
+foreach (['content' => 'page'] as $moduleKey => $entityVariable) {
     $action = file_get_contents($root . '/modules/' . $moduleKey . '/actions/comment.php');
     $expected = "sr_comment_extra_field_definitions(\$" . $entityVariable . "['comment_extra_fields_json'] ?? '[]')";
     sr_check_comment_extra_fields_assert(is_string($action) && str_contains($action, $expected), $moduleKey . ' comment runtime must use the saved entity definition.');
@@ -157,10 +153,9 @@ foreach (['content' => 'page', 'quiz' => 'quiz', 'survey' => 'survey'] as $modul
     sr_check_comment_extra_fields_assert(is_string($installSql) && str_contains($installSql, 'comment_extra_fields_json LONGTEXT NULL'), $moduleKey . ' entity schema must store its independent definition.');
 }
 
-foreach (['content' => '2026.07.005', 'quiz' => '2026.07.004', 'survey' => '2026.07.004'] as $moduleKey => $version) {
+foreach (['content' => '2026.07.005'] as $moduleKey => $version) {
     $updateSql = file_get_contents($root . '/modules/' . $moduleKey . '/updates/' . $version . '.sql');
     sr_check_comment_extra_fields_assert(is_string($updateSql) && str_contains($updateSql, 'ADD COLUMN comment_extra_fields_json LONGTEXT NULL'), $moduleKey . ' update must add the entity definition column.');
-    sr_check_comment_extra_fields_assert(is_string($updateSql) && !preg_match('/UPDATE\s+\{\{SR_TABLE_PREFIX\}\}(?:content_items|quiz_sets|survey_forms)\s+SET\s+comment_extra_fields_json/i', $updateSql), $moduleKey . ' update must not backfill existing entities from the module default.');
 }
 
 $editorScript = file_get_contents($root . '/modules/admin/assets/comment-extra-fields.js');

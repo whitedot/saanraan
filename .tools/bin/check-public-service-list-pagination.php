@@ -8,8 +8,6 @@ if (!defined('SR_ROOT')) {
     define('SR_ROOT', $root);
 }
 require_once $root . '/core/helpers.php';
-require_once $root . '/modules/quiz/helpers.php';
-require_once $root . '/modules/survey/helpers.php';
 require_once $root . '/modules/coupon/helpers.php';
 require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
@@ -29,8 +27,6 @@ $source = static function (string $file) use ($root, &$errors): string {
 };
 
 foreach ([
-    'modules/quiz/actions/list.php' => ['sr_quiz_public_quiz_count(', '$quizListPagination', 'sr_quiz_public_quizzes($pdo, $quizListPerPage,'],
-    'modules/survey/actions/list.php' => ['sr_survey_public_form_count(', '$surveyListPagination', 'sr_survey_public_forms($pdo, $surveyListPerPage,'],
     'modules/coupon/actions/coupons.php' => ['sr_coupon_public_claim_campaign_count(', '$couponCampaignPagination', 'sr_coupon_public_claim_campaigns($pdo, $accountId, $couponCampaignPerPage,'],
 ] as $file => $markers) {
     $contents = $source($file);
@@ -39,89 +35,10 @@ foreach ([
     }
 }
 foreach ([
-    'modules/quiz/theme/basic/home.php' => 'sr_public_pagination_html($quizListPagination, $quizListUrl',
-    'modules/survey/theme/basic/home.php' => 'sr_public_pagination_html($surveyListPagination, $surveyListUrl',
     'modules/coupon/views/coupons.php' => "sr_public_pagination_html(\$couponCampaignPagination, '/coupons'",
 ] as $file => $marker) {
     $assert(str_contains($source($file), $marker), $file . ' must render public full-list navigation.');
 }
-foreach ([
-    'modules/quiz/actions/home.php' => 'sr_quiz_public_quizzes($pdo, 6, 0)',
-    'modules/survey/actions/home.php' => 'sr_survey_public_forms($pdo, 6, 0)',
-] as $file => $marker) {
-    $contents = $source($file);
-    $assert(str_contains($contents, $marker), $file . ' must load only the main-page recommendation set.');
-    $assert(!str_contains($contents, 'ListPagination'), $file . ' must not build full-list pagination.');
-}
-
-$quizPdo = new PDO('sqlite::memory:');
-$quizPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$quizPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-$quizPdo->exec(
-    'CREATE TABLE sr_quiz_sets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        quiz_key TEXT NOT NULL,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        cover_image_url TEXT NOT NULL,
-        view_count INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL,
-        starts_at TEXT NULL,
-        ends_at TEXT NULL,
-        created_at TEXT NOT NULL,
-        deleted_at TEXT NULL
-    )'
-);
-$insertQuiz = $quizPdo->prepare(
-    "INSERT INTO sr_quiz_sets
-     (quiz_key, title, description, cover_image_url, status, starts_at, ends_at, created_at, deleted_at)
-     VALUES (:quiz_key, :title, '', '', 'active', NULL, NULL, :created_at, NULL)"
-);
-for ($rowNumber = 1; $rowNumber <= 45; $rowNumber++) {
-    $insertQuiz->execute([
-        'quiz_key' => 'quiz_' . (string) $rowNumber,
-        'title' => 'Quiz ' . (string) $rowNumber,
-        'created_at' => sprintf('2026-07-14 00:%02d:00', $rowNumber),
-    ]);
-}
-$assert(sr_quiz_public_quiz_count($quizPdo) === 45, 'quiz public count must include every open quiz.');
-$quizFinalPage = sr_quiz_public_quizzes($quizPdo, 20, 40);
-$assert(count($quizFinalPage) === 5 && (int) ($quizFinalPage[0]['id'] ?? 0) === 5 && (int) ($quizFinalPage[4]['id'] ?? 0) === 1, 'quiz public list must expose the final partial page.');
-
-$surveyPdo = new PDO('sqlite::memory:');
-$surveyPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$surveyPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-$surveyPdo->exec(
-    'CREATE TABLE sr_survey_forms (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        survey_key TEXT NOT NULL,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        cover_image_url TEXT NOT NULL,
-        view_count INTEGER NOT NULL DEFAULT 0,
-        status TEXT NOT NULL,
-        public_listed INTEGER NOT NULL,
-        starts_at TEXT NULL,
-        ends_at TEXT NULL,
-        updated_at TEXT NOT NULL,
-        deleted_at TEXT NULL
-    )'
-);
-$insertSurvey = $surveyPdo->prepare(
-    "INSERT INTO sr_survey_forms
-     (survey_key, title, description, cover_image_url, status, public_listed, starts_at, ends_at, updated_at, deleted_at)
-     VALUES (:survey_key, :title, '', '', 'active', 1, NULL, NULL, :updated_at, NULL)"
-);
-for ($rowNumber = 1; $rowNumber <= 45; $rowNumber++) {
-    $insertSurvey->execute([
-        'survey_key' => 'survey_' . (string) $rowNumber,
-        'title' => 'Survey ' . (string) $rowNumber,
-        'updated_at' => sprintf('2026-07-14 00:%02d:00', $rowNumber),
-    ]);
-}
-$assert(sr_survey_public_form_count($surveyPdo) === 45, 'survey public count must include every listed open survey.');
-$surveyFinalPage = sr_survey_public_forms($surveyPdo, 20, 40);
-$assert(count($surveyFinalPage) === 5 && (int) ($surveyFinalPage[0]['id'] ?? 0) === 5 && (int) ($surveyFinalPage[4]['id'] ?? 0) === 1, 'survey public list must expose the final partial page.');
 
 $couponPdo = new PDO('sqlite::memory:');
 $couponPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

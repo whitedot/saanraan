@@ -12,12 +12,12 @@
 | 인덱스 안전선 | 자산 원장, 쿠폰 사용, 알림 queue, 개인정보 대응 기록, 콘텐츠/커뮤니티 활동 로그, board copy job처럼 증가하는 테이블은 계정/상태/시각/dedupe/reference 조회 인덱스를 설치 SQL에 유지한다. | `.tools/bin/check-performance-baseline.php` |
 | 캐시 경로 | 파일 캐시는 `storage/cache/` 아래에서만 허용하고, 현재 기본 허용 경로는 HTML Purifier 정의 캐시인 `storage/cache/htmlpurifier`, 공개 이미지 썸네일 캐시인 `storage/cache/thumbnails`, 내부 렌더 전용 URL 임베드 fragment 캐시인 `storage/cache/embeds`다. 썸네일 캐시는 module key, hash prefix, variant, source version을 포함한 생성 파일명 패턴의 이미지 파일만 직접 접근을 허용하며, 관리자 캐시 화면은 이 경로를 파일 스캔 방식으로 조회/정리한다. 임베드 fragment 캐시는 직접 공개 URL로 제공하지 않고 PHP 렌더 경로에서만 읽으며, 각 대상 모듈의 임베드 캐시 관리자 화면이 `storage/cache/embeds/{module_key}` 파일을 조회/정리한다. | `.tools/bin/check-performance-baseline.php`, `.tools/bin/check-dependency-policy.php`, `.tools/bin/check-storage-helpers.php`, HTTP smoke |
 | HTML 응답 캐시 | 관리자 HTML, 로그인 HTML, CSRF token 포함 화면, 개인정보 export 결과는 파일 캐시하지 않는다. | `docs/performance-policy.md`, `.tools/bin/check-performance-baseline.php` |
+| 관리자 CSV export 상한 | 회원 CSV export는 요청 상한을 서버에서 검증하고 제한된 배치로 조회하며, 실제 적용 상한을 감사 metadata에 남긴다. | `modules/member/actions/admin-members-export.php`, `.tools/bin/check-admin-asset-limits.php` |
 | 동적 HTML no-store | 동적 HTML 진입점은 `Cache-Control: no-store`를 보내고 HTTP smoke가 이를 확인한다. 직접 `Cache-Control` 헤더를 쓰는 파일은 이미지, 다운로드, 재계산 stream 같은 허용 응답 파일과 값으로 고정한다. | `sr_send_security_headers()`, `.tools/bin/smoke-http.php`, `.tools/bin/check-performance-baseline.php` |
 | 다운로드 응답 헤더 | 다운로드/CSV/privacy export는 공통 helper로 no-store 또는 private no-store cache-control, optional content length, 안전한 filename disposition을 적용한다. `sr_download_cache_control()`은 허용 cache-control 값을 보존하고 빈 값/제어문자/위험 문자는 no-store 기본값으로 정규화한다. | `sr_send_download_headers()`, `.tools/bin/check-output-helpers.php`, `.tools/bin/check-paid-download-delivery.php`, `.tools/bin/check-performance-baseline.php` |
 | 이미지 응답 헤더 | 공개 이미지, 관리자 아이콘, 프로필 이미지, 본문 이미지 proxy는 공통 helper로 public/private cache-control, optional content length, nosniff를 적용한다. 프로필 이미지 같은 공개 업로드 이미지는 `ETag`/`Last-Modified` 조건부 요청으로 `304 Not Modified`를 반환할 수 있다. SVG 로고는 추가 CSP도 helper allowlist를 통과한다. | `sr_send_file_headers()`, `.tools/bin/check-output-helpers.php`, `.tools/bin/check-performance-baseline.php` |
 | 정적 asset 캐시 | 이미지, CSS, JS 같은 공개 정적 asset은 version query 또는 파일 변경 시각과 함께 브라우저 캐시를 사용할 수 있다. | `sr_stylesheet_tag()`, `sr_admin_stylesheet_tag()`, HTTP smoke |
 | sitemap/export 상한 | sitemap과 개인정보 export처럼 모듈 데이터를 모으는 read-only 출력은 per-query 상한을 둔다. | `.tools/bin/check-performance-baseline.php` |
-| 관리자 CSV export 상한 | 관리자 CSV export는 타입별 행 상한을 두고, 감사 로그 metadata에 실제 적용 상한을 남긴다. 설문 응답 export는 raw 5000행, analysis 20000행, codebook 10000행 상한을 고정하고 runtime fixture로 필터와 CSV cell escaping을 확인한다. | `.tools/bin/check-performance-baseline.php`, `.tools/bin/check-survey-export-runtime.php` |
 | 고부하 작업 | 대량 복사, 재계산, 삭제 같은 관리자 작업은 부하 등급, 배치/작업 테이블형, lock/dedupe/drift 기준을 검토한다. 커뮤니티 게시판 전체 복사는 동기 복사 상한과 배치 전환/차단 규칙을 fixture로 고정한다. | `docs/admin-ui-guide.md`, `.tools/bin/check-performance-baseline.php`, `.tools/bin/check-community-board-copy-limits.php` |
 | 모듈/플러그인 관리 | `/admin/modules`는 DB 성장형 업무 로그가 아니라 배포된 모듈/플러그인 파일과 설치 행을 조율하는 관리 화면이므로 한 화면에 전체 목록 테이블을 렌더링하고 sticky anchor tab, 헤더 정렬을 제공한다. | `.tools/bin/check-performance-baseline.php` |
 
@@ -33,7 +33,6 @@
 | 커뮤니티 | `/admin/community/posts`, `/admin/community/comments`, `/admin/community/boards`, `/admin/community/board-groups`, `/admin/community/reports`, `/admin/community/series` |
 | 자산/권리 | `/admin/points`, `/admin/rewards`, `/admin/deposits`, `/admin/coupons`, `/admin/asset-exchange/logs` |
 | 알림/개인정보 | `/admin/notifications`, `/admin/notification-deliveries`, `/admin/admin-notifications`, `/admin/privacy-requests` |
-| 참여 | `/admin/quiz`, `/admin/quiz/attempts`, `/admin/surveys/responses`, `/admin/surveys/reward-logs` |
 | 사이트 운영 | `/admin/banners`, `/admin/popup-layers`, `/admin/logo-manager` |
 
 이 표는 모든 화면이 같은 쿼리 비용이라는 뜻이 아니다. 다만 행 수가 늘어날 수 있는 목록은 무제한 출력으로 회귀하지 않게 최소 기준을 둔다. `/admin/modules`는 모듈/플러그인 수가 배포 파일과 설치 행에 묶이는 관리 화면이라 이 페이지네이션 유지 표에서 제외하고, 전체 표시, sticky anchor tab, 테이블 헤더 정렬 marker를 별도로 확인한다.

@@ -37,8 +37,6 @@ function sr_coupon_reference_display(string $moduleKey, string $referenceType, s
     $moduleLabels = [
         'content' => '콘텐츠',
         'community' => '커뮤니티',
-        'quiz' => '퀴즈',
-        'survey' => '설문',
     ];
     $referenceLabels = [
         'content.view' => '콘텐츠 열람',
@@ -46,8 +44,6 @@ function sr_coupon_reference_display(string $moduleKey, string $referenceType, s
         'content.action' => '콘텐츠 완료 처리',
         'community.post' => '커뮤니티 게시글',
         'community.comment' => '커뮤니티 댓글',
-        'quiz.attempt' => '퀴즈 응시',
-        'survey.response' => '설문 응답',
     ];
 
     $parts = [];

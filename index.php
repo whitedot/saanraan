@@ -198,7 +198,7 @@ if ($method === 'GET' && $path === '/ui-kit') {
     exit;
 }
 
-if ($method === 'GET' && in_array($path, ['/content/ui-kit', '/community/ui-kit', '/quiz/ui-kit', '/survey/ui-kit'], true)) {
+if ($method === 'GET' && in_array($path, ['/content/ui-kit', '/community/ui-kit'], true)) {
     $uiKitPathParts = explode('/', trim($path, '/'));
     $uiKitModuleKey = (string) ($uiKitPathParts[0] ?? '');
     if (!sr_module_enabled($pdo, $uiKitModuleKey)) {

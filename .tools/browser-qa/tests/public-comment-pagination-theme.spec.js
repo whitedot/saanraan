@@ -5,8 +5,6 @@ const root = path.resolve(__dirname, '../../..');
 const fixtures = [
   ['community basic', 'community-comments-pagination', 'modules/community/theme/basic/assets/common.css', 'modules/community/theme/basic/assets/module.css'],
   ['content basic', 'content-comments-pagination', 'modules/content/theme/basic/assets/common.css', 'modules/content/theme/basic/assets/module.css'],
-  ['quiz basic', 'quiz-comments-pagination', 'modules/quiz/theme/basic/assets/common.css', 'modules/quiz/theme/basic/assets/module.css'],
-  ['survey basic', 'survey-comments-pagination', 'modules/survey/theme/basic/assets/common.css', 'modules/survey/theme/basic/assets/module.css'],
 ];
 
 for (const [name, className, commonStylesheet, stylesheet] of fixtures) {
@@ -373,40 +371,6 @@ const panelFixtures = [
     form: 'content-comment-form',
     empty: 'content-comments-empty',
     unavailable: 'content-comment-unavailable',
-  },
-  {
-    name: 'quiz basic',
-    commonStylesheet: 'modules/quiz/theme/basic/assets/common.css',
-    stylesheet: 'modules/quiz/theme/basic/assets/module.css',
-    wrapperOpen: '<main class="sr-quiz-page"><div class="quiz-page-main">',
-    wrapperClose: '</div></main>',
-    panel: 'quiz-comments-panel',
-    header: 'quiz-comments-panel-header',
-    count: 'quiz-comments-count',
-    list: 'quiz-comment-list',
-    item: 'quiz-comment-item',
-    author: 'quiz-comment-author',
-    avatar: 'quiz-comment-author-avatar',
-    form: 'quiz-comment-form',
-    empty: 'quiz-comments-empty',
-    unavailable: 'quiz-comment-unavailable',
-  },
-  {
-    name: 'survey basic',
-    commonStylesheet: 'modules/survey/theme/basic/assets/common.css',
-    stylesheet: 'modules/survey/theme/basic/assets/module.css',
-    wrapperOpen: '<main class="sr-survey-page"><div class="survey-page-main">',
-    wrapperClose: '</div></main>',
-    panel: 'survey-comments-panel',
-    header: 'survey-comments-panel-header',
-    count: 'survey-comments-count',
-    list: 'survey-comment-list',
-    item: 'survey-comment-item',
-    author: 'survey-comment-author',
-    avatar: 'survey-comment-author-avatar',
-    form: 'survey-comment-form',
-    empty: 'survey-comments-empty',
-    unavailable: 'survey-comment-unavailable',
   },
 ];
 

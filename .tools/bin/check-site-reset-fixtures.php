@@ -80,16 +80,9 @@ sr_site_reset_check_contains('.tools/bin/seed-dummy-http.php', [
     "'message_receive_enabled' => '1'",
     'seed_content_download_fixtures',
     'seed_community_download_fixtures',
-    'seed_quiz_fixtures',
-    'seed_survey_fixtures',
     'content_download_fixtures',
     'community_download_fixtures',
-    'quiz_fixtures',
-    'survey_fixtures',
     'rich_fixtures',
-    'sr_quiz_save_admin_quiz',
-    'sr_survey_replace_questions',
-    'sr_survey_replace_reward_policy',
 ]);
 
 sr_site_reset_check_command(
@@ -143,8 +136,6 @@ sr_site_reset_check_contains('docs/site-reset-and-fixtures.md', [
     'SR_SEED_SKIP_RICH_FIXTURES=1',
     '콘텐츠 파일 다운로드',
     '커뮤니티 첨부 다운로드',
-    '퀴즈의 무료/포인트 보상/적립금 보상',
-    '설문의 공개 무보상/회원 포인트 보상/회원 적립금 보상',
     'seed-dummy-http.php',
     'seed-community-feed-fixture.php',
     'SR_COMMUNITY_FEED_FIXTURE_ALLOW_MUTATION=1',
@@ -158,7 +149,6 @@ sr_site_reset_check_contains('docs/smoke-test.md', [
     'SR_SEED_ALLOW_MUTATION=1',
     'SR_SEED_SKIP_RICH_FIXTURES=1',
     '다운로드는 무료/포인트 차감/적립금 차감',
-    '퀴즈와 설문은 보상 없음/포인트 보상/적립금 보상',
 ]);
 
 if ($errors !== []) {

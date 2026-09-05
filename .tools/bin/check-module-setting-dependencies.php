@@ -65,42 +65,6 @@ foreach ([
     ], $moduleKey . ' reaction settings view dependency state');
 }
 
-foreach ([
-    'quiz' => [
-        'action' => 'modules/quiz/actions/admin-settings.php',
-        'helper' => 'modules/quiz/helpers.php',
-        'view' => 'modules/quiz/views/admin-settings.php',
-        'available' => '$quizReactionAvailable',
-        'attributes' => '$quizReactionInputAttributes',
-        'notice' => 'quiz-settings-reaction-unavailable',
-        'error' => '퀴즈 리액션을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.',
-    ],
-    'survey' => [
-        'action' => 'modules/survey/actions/admin-settings.php',
-        'helper' => 'modules/survey/helpers.php',
-        'view' => 'modules/survey/views/admin-settings.php',
-        'available' => '$surveyReactionAvailable',
-        'attributes' => '$surveyReactionInputAttributes',
-        'notice' => 'survey-settings-reaction-unavailable',
-        'error' => '설문 리액션을 사용하려면 리액션 모듈을 먼저 설치하고 활성화하세요.',
-    ],
-] as $moduleKey => $definition) {
-    $mustContain($definition['action'], [
-        $definition['available'],
-        '$reactionPresetOptions = ' . $definition['available'],
-    ], $moduleKey . ' reaction preset action dependency guard');
-    $mustContain($definition['helper'], [
-        "sr_module_enabled(\$pdo, 'reaction')",
-        $definition['error'],
-    ], $moduleKey . ' reaction preset helper dependency validation');
-    $mustContain($definition['view'], [
-        $definition['available'],
-        $definition['attributes'],
-        $definition['notice'],
-        'form-help-warning',
-        'disabled aria-describedby=',
-    ], $moduleKey . ' reaction preset view dependency state');
-}
 
 foreach ([
     'community' => [
@@ -166,7 +130,7 @@ foreach ([
         $definition['variable'],
         "sr_module_enabled(\$pdo, 'asset_exchange')",
         "sr_module_enabled(\$pdo, 'coupon')",
-        "['content', 'community', 'quiz', 'survey']",
+        "['content', 'community']",
     ], $moduleKey . ' usage guidance module availability');
     $mustNotContain($definition['path'], [
         '보상·환전·유료 쿠폰 등',
@@ -182,14 +146,6 @@ foreach ([
     'community' => [
         'path' => 'modules/community/views/admin-settings.php',
         'markers' => ["sr_admin_module_availability_help_html(\$pdo, 'ckeditor'"],
-    ],
-    'quiz' => [
-        'path' => 'modules/quiz/views/admin-settings.php',
-        'markers' => ["isset(\$quizEditorModuleReferences['ckeditor'])"],
-    ],
-    'survey' => [
-        'path' => 'modules/survey/views/admin-settings.php',
-        'markers' => ["isset(\$surveyEditorModuleReferences['ckeditor'])"],
     ],
     'popup_layer' => [
         'path' => 'modules/popup_layer/views/admin-popup-layer-settings.php',

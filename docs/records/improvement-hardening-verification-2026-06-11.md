@@ -1,5 +1,7 @@
 # 개선 보강 검증 기록 - 2026-06-11
 
+이 문서는 당시 검증 기록이다. 퀴즈·설문과 관련 전용 도구는 2026-09-05 제거되었으며, 현재 범위는 [모듈 제거 안내](../module-removal-quiz-survey.md)를 따른다.
+
 프로젝트 평가에서 나온 운영 신뢰성, sanitizer, 자산 정합성, 공유호스팅 운영 한계, 경쟁 대비 포지셔닝 보완 작업을 한 묶음으로 점검한 기록이다. 이 기록은 릴리스 후보 판정이 아니라 현재 개선 묶음의 정적 검증과 미실행 항목을 분리하기 위한 기준이다.
 
 ## 대상
@@ -67,12 +69,12 @@
 | `php .tools/bin/check-content-file-cleanup-runtime.php` | 통과 | SQLite fixture로 콘텐츠 삭제 시 파일 row redaction, 링크 숨김, 다운로드 로그 snapshot redaction, 링크 참조 제거, 시리즈 회차 제거, 임베드 참조 removed 전환, 저장소 cleanup 실패 미발생 확인. 저장소 쓰기 가능 환경에서는 고유 fixture 파일과 본문 이미지 실삭제까지 확인 |
 | `php .tools/bin/check-content-copy-runtime.php` | 통과 | SQLite fixture로 콘텐츠 복사 시 HTML 본문 임베드 ref key 재작성, 새 owner ref 생성, 원본 ref 유지, 명시적/legacy 첨부 링크 복사, 시리즈 사본과 회차 메타데이터 복사 확인 |
 | `php .tools/bin/check-community-attachment-runtime.php` | 통과 | SQLite fixture로 커뮤니티 첨부 다운로드 자산 로그 placeholder dedupe, 0원 완료 로그 settlement metadata, 첨부 다운로드 접근권 중복 방지, anonymized entitlement 무시 확인 |
-| `php .tools/bin/check-quiz-reward-runtime.php` | 통과 | SQLite fixture로 퀴즈 보상 grant dedupe, 같은 시도 재호출 중복 거래 방지, 같은 퀴즈의 다른 시도 duplicate 판정, 실패 grant 재시도와 실패 상태 정리, grant 기준 원장 거래 lookup, 회수 가능액 계산, 회수 실행 확인 |
-| `php .tools/bin/check-quiz-delete-runtime.php` | 통과 | SQLite fixture로 퀴즈 삭제 시 문항/선택지/결과/댓글 redaction, 응시 source snapshot과 return URL 정리, 응답/채점/결과 snapshot 정리, 보상 grant snapshot과 운영 메모 정리 확인 |
-| `php .tools/bin/check-survey-response-runtime.php` | 통과 | SQLite fixture로 설문 응답 제출의 동의/연구 메타데이터/답변 snapshot, 기타 답변, 복수 선택 min/max, 무응답 선택지 배타성, 숫자 범위, 익명 중복 제한 확인 |
-| `php .tools/bin/check-survey-reward-runtime.php` | 통과 | SQLite fixture로 설문 보상 grant dedupe, 같은 응답 재호출 중복 거래 방지, 같은 설문의 다른 응답 duplicate 판정, 실패 grant 재시도와 실패 상태 정리 확인 |
-| `php .tools/bin/check-survey-statistics-runtime.php` | 통과 | SQLite fixture로 설문 통계의 테스트 응답 제외, 선택형 응답 단위 중복 제거, 제외 응답 배제, 숫자형 평균/최소/최대 계산 확인 |
-| `php .tools/bin/check-survey-export-runtime.php` | 통과 | SQLite fixture로 설문 CSV export 타입별 상한, formula-like cell escaping, raw/analysis/codebook 필터, 테스트 응답 포함 옵션, 제외 응답 배제 확인 |
+| `php check-quiz-reward-runtime.php` | 통과 | SQLite fixture로 퀴즈 보상 grant dedupe, 같은 시도 재호출 중복 거래 방지, 같은 퀴즈의 다른 시도 duplicate 판정, 실패 grant 재시도와 실패 상태 정리, grant 기준 원장 거래 lookup, 회수 가능액 계산, 회수 실행 확인 |
+| `php check-quiz-delete-runtime.php` | 통과 | SQLite fixture로 퀴즈 삭제 시 문항/선택지/결과/댓글 redaction, 응시 source snapshot과 return URL 정리, 응답/채점/결과 snapshot 정리, 보상 grant snapshot과 운영 메모 정리 확인 |
+| `php check-survey-response-runtime.php` | 통과 | SQLite fixture로 설문 응답 제출의 동의/연구 메타데이터/답변 snapshot, 기타 답변, 복수 선택 min/max, 무응답 선택지 배타성, 숫자 범위, 익명 중복 제한 확인 |
+| `php check-survey-reward-runtime.php` | 통과 | SQLite fixture로 설문 보상 grant dedupe, 같은 응답 재호출 중복 거래 방지, 같은 설문의 다른 응답 duplicate 판정, 실패 grant 재시도와 실패 상태 정리 확인 |
+| `php check-survey-statistics-runtime.php` | 통과 | SQLite fixture로 설문 통계의 테스트 응답 제외, 선택형 응답 단위 중복 제거, 제외 응답 배제, 숫자형 평균/최소/최대 계산 확인 |
+| `php check-survey-export-runtime.php` | 통과 | SQLite fixture로 설문 CSV export 타입별 상한, formula-like cell escaping, raw/analysis/codebook 필터, 테스트 응답 포함 옵션, 제외 응답 배제 확인 |
 | `php .tools/bin/check-asset-exchange-logs.php` | 통과 | 환전 로그 저장값과 보정 update 기준 점검. SQLite fixture로 수수료가 있는 완료 환전 묶음 정정의 원장 반전, 정정 로그, 중복 정정 차단 확인. 관리자 로그 화면의 CSRF/edit 권한 기반 정정 action과 감사 로그 marker 확인. 통합 게이트 포함 |
 | `php .tools/bin/check-asset-exchange-runtime.php` | 통과 | SQLite fixture로 실제 reward/deposit 자산 계약을 통한 환전 성공 실행의 출금/입금/수수료 원장과 완료 로그 연결, 입금 원장 저장 실패 시 출금 원장/로그 rollback 확인 |
 | `php .tools/bin/check-coupon-admin-validation.php` | 통과 | 쿠폰 관리자 key/숫자/중복 검증 기준 점검, 통합 게이트 포함 |
@@ -189,7 +191,6 @@ SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8082 php .tools/bin/release-installed-ga
 | /admin/operations | 미실행 | 설치 DB + 관리자 계정 없음 | HTTP smoke에서 진입점 200만 확인 |
 | 기본 HTTP smoke | 통과 | 미설치 로컬 HTTP base URL | HTTP Smoke 섹션의 `smoke-http.php` install-mode 실행으로 route, 보안 헤더, 보호 경로 확인 |
 | 인증 smoke | 안전 거부 확인 | 설치 DB + 테스트 계정 없음 | `smoke-community-auth.php`는 `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 커뮤니티 데이터 생성은 미실행 |
-| 퀴즈 E2E smoke | 안전 거부 확인 | 설치 DB + 관리자 계정 없음 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 퀴즈 생성/응시는 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB + 더미 데이터 없음 | SQLite fixture만 확인 |
 | 개인정보 export/cleanup smoke | 미실행 | 설치 DB + 더미 계정 없음 | SQLite fixture와 계약 매트릭스만 확인 |
 | CKEditor asset/fallback browser smoke | 통과 | 설치 DB 없는 로컬 브라우저 환경 | 2026-06-12 재검증에서 `SR_BROWSER_QA_BASE_URL=http://127.0.0.1:8081 npm --prefix .tools/browser-qa run test:ckeditor`로 4 tests passed. self-hosted asset 로딩, `body_format=html` marker, textarea fallback, upload adapter request contract 확인 |
@@ -231,7 +232,7 @@ saanraan HTTP smoke checks completed.
 | 점검 | 결과 | 메모 |
 | --- | --- | --- |
 | `php .tools/bin/smoke-community-auth.php` | 안전 거부 확인 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 설치 DB와 테스트 계정이 없어 실제 커뮤니티 데이터 생성은 미실행 |
-| `php .tools/bin/smoke-quiz-e2e.php` | 안전 거부 확인 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 설치 DB와 더미 데이터가 없어 실제 퀴즈 생성/응시는 미실행 |
+| `php smoke-quiz-e2e.php` | 안전 거부 확인 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 설치 DB와 더미 데이터가 없어 실제 퀴즈 생성/응시는 미실행 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 미실행 | 설치 DB와 더미 데이터 필요 |
 
 ## 브라우저/수동 점검
@@ -318,3 +319,11 @@ saanraan HTTP smoke checks completed.
 - 로컬/staging 더미 유료 대상에서 `smoke-asset-idempotency-http.php` 병렬 mutation smoke와 dedupe row count를 기록한다.
 - 설치 DB에서 CKEditor 업로드 adapter, 저장 HTML sanitizer, 권한별 본문 이미지 접근 smoke를 날짜별 기록으로 남긴다.
 - 설치 DB 대표 데이터로 느린 관리자 목록, sitemap, 개인정보 export의 실행 시간과 실행 계획/인덱스 상태를 기록한다.
+
+## 제거된 기능의 과거 검증
+
+퀴즈·설문은 2026-09-05 번들에서 제거되었다. 아래는 당시 실행 기록이며 현재 필수 게이트가 아니다. [제거 안내](../module-removal-quiz-survey.md)를 따른다.
+
+| 과거 게이트 | 결과 | 환경 | 메모 |
+| --- | --- | --- | --- |
+| 퀴즈 E2E smoke | 안전 거부 확인 | 설치 DB + 관리자 계정 없음 | `SR_SMOKE_ALLOW_MUTATION=1` 없이 실행하면 exit 2. 실제 퀴즈 생성/응시는 미실행 |

@@ -43,8 +43,6 @@ require_once $root . '/modules/member/helpers/profile.php';
 require_once $root . '/modules/member/helpers/follows.php';
 require_once $root . '/modules/member/helpers/public-identity.php';
 require_once $root . '/modules/content/helpers/comments.php';
-require_once $root . '/modules/quiz/helpers/comments.php';
-require_once $root . '/modules/survey/helpers/comments.php';
 require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $errors = [];
@@ -154,8 +152,6 @@ $assert(
 );
 foreach ([
     'content' => ['table' => 'sr_content_comments', 'foreign_key' => 'content_id'],
-    'quiz' => ['table' => 'sr_quiz_comments', 'foreign_key' => 'quiz_id'],
-    'survey' => ['table' => 'sr_survey_comments', 'foreign_key' => 'survey_id'],
 ] as $moduleKey => $definition) {
     $pdo->exec(
         'CREATE TABLE ' . $definition['table'] . ' (
@@ -188,7 +184,7 @@ foreach ([
     }
 }
 
-foreach (['content', 'quiz', 'survey'] as $moduleKey) {
+foreach (['content'] as $moduleKey) {
     $pageFunction = 'sr_' . $moduleKey . '_comment_page';
     $positionFunction = 'sr_' . $moduleKey . '_comment_page_for_comment';
     $page = $pageFunction($pdo, 1, 3, 20);
@@ -213,24 +209,8 @@ $sourceChecks = [
     'modules/content/theme/basic/content.php#comment-avatar' => 'content-comment-author-avatar',
     'modules/content/views/content.php#post-avatar' => 'content-post-author-avatar',
     'modules/content/views/content.php#comment-avatar' => 'content-comment-author-avatar',
-    'modules/quiz/theme/basic/view.php' => 'sr_quiz_comment_page(',
-    'modules/quiz/theme/basic/view.php#post-avatar' => 'sr-quiz-post-author-avatar',
-    'modules/quiz/theme/basic/view.php#comment-avatar' => 'quiz-comment-author-avatar',
-    'modules/quiz/skins/basic/view.php' => 'sr_quiz_comment_page(',
-    'modules/quiz/skins/basic/view.php#post-avatar' => 'sr-quiz-post-author-avatar',
-    'modules/quiz/skins/basic/view.php#comment-avatar' => 'quiz-comment-author-avatar',
-    'modules/survey/theme/basic/view.php' => 'sr_survey_comment_page(',
-    'modules/survey/theme/basic/view.php#post-avatar' => 'sr-survey-post-author-avatar',
-    'modules/survey/theme/basic/view.php#comment-avatar' => 'survey-comment-author-avatar',
-    'modules/survey/skins/basic/view.php' => 'sr_survey_comment_page(',
-    'modules/survey/skins/basic/view.php#post-avatar' => 'sr-survey-post-author-avatar',
-    'modules/survey/skins/basic/view.php#comment-avatar' => 'survey-comment-author-avatar',
     'modules/content/theme/basic/content.php#pagination' => 'sr_public_pagination_html($contentCommentPage',
     'modules/content/views/content.php#pagination' => 'sr_public_pagination_html($contentCommentPage',
-    'modules/quiz/theme/basic/view.php#pagination' => 'sr_public_pagination_html($quizCommentPage',
-    'modules/quiz/skins/basic/view.php#pagination' => 'sr_public_pagination_html($quizCommentPage',
-    'modules/survey/theme/basic/view.php#pagination' => 'sr_public_pagination_html($surveyCommentPage',
-    'modules/survey/skins/basic/view.php#pagination' => 'sr_public_pagination_html($surveyCommentPage',
 ];
 foreach ($sourceChecks as $sourceKey => $marker) {
     $file = explode('#', $sourceKey, 2)[0];
@@ -256,10 +236,6 @@ foreach ([
     'modules/community/skins/basic/view.php' => ['$communityPostAvatarSizePixels', '$communityCommentAvatarSizePixels'],
     'modules/content/theme/basic/content.php' => ['$contentPostAvatarSizePixels', '$contentCommentAvatarSizePixels'],
     'modules/content/views/content.php' => ['$contentPostAvatarSizePixels', '$contentCommentAvatarSizePixels'],
-    'modules/quiz/theme/basic/view.php' => ['$quizPostAvatarSizePixels', '$quizCommentAvatarSizePixels'],
-    'modules/quiz/skins/basic/view.php' => ['$quizPostAvatarSizePixels', '$quizCommentAvatarSizePixels'],
-    'modules/survey/theme/basic/view.php' => ['$surveyPostAvatarSizePixels', '$surveyCommentAvatarSizePixels'],
-    'modules/survey/skins/basic/view.php' => ['$surveyPostAvatarSizePixels', '$surveyCommentAvatarSizePixels'],
 ] as $avatarViewPath => $_avatarSizeMarkers) {
     $contents = $readViewSource($avatarViewPath);
     $assert(
@@ -281,10 +257,6 @@ foreach ([
     'modules/community/skins/basic/view.php' => ['$communityPostAuthorLabel', '$communityCommentAuthorLabel'],
     'modules/content/theme/basic/content.php' => ['$contentPublisherName', '$contentCommentAuthorLabel'],
     'modules/content/views/content.php' => ['$contentPublisherName', '$contentCommentAuthorLabel'],
-    'modules/quiz/theme/basic/view.php' => ['$quizOwnerPublicName', '$quizCommentAuthorLabel'],
-    'modules/quiz/skins/basic/view.php' => ['$quizOwnerPublicName', '$quizCommentAuthorLabel'],
-    'modules/survey/theme/basic/view.php' => ['$surveyOwnerPublicName', '$surveyCommentAuthorLabel'],
-    'modules/survey/skins/basic/view.php' => ['$surveyOwnerPublicName', '$surveyCommentAuthorLabel'],
 ] as $fallbackProfileImageViewPath => $fallbackLabelMarkers) {
     $contents = $readViewSource($fallbackProfileImageViewPath);
     $assert(
@@ -299,10 +271,6 @@ foreach ([
 foreach ([
     'modules/content/theme/basic/content.php',
     'modules/content/views/content.php',
-    'modules/quiz/theme/basic/view.php',
-    'modules/quiz/skins/basic/view.php',
-    'modules/survey/theme/basic/view.php',
-    'modules/survey/skins/basic/view.php',
 ] as $commentViewPath) {
     $contents = $readViewSource($commentViewPath);
     $assert(
@@ -317,10 +285,6 @@ foreach ([
 foreach ([
     'modules/content/theme/basic/content.php' => ['content-comments-panel', 'content-comment-list', 'content-comment-meta-item', 'content-comment-unavailable', '$contentReactionCommentSummaries'],
     'modules/content/views/content.php' => ['content-comments-panel', 'content-comment-list', 'content-comment-meta-item', 'content-comment-unavailable', '$contentReactionCommentSummaries'],
-    'modules/quiz/theme/basic/view.php' => ['quiz-comments-panel', 'quiz-comment-list', 'quiz-comment-meta-item', 'quiz-comment-unavailable', '$quizReactionCommentSummaries'],
-    'modules/quiz/skins/basic/view.php' => ['quiz-comments-panel', 'quiz-comment-list', 'quiz-comment-meta-item', 'quiz-comment-unavailable', '$quizReactionCommentSummaries'],
-    'modules/survey/theme/basic/view.php' => ['survey-comments-panel', 'survey-comment-list', 'survey-comment-meta-item', 'survey-comment-unavailable', '$surveyReactionCommentSummaries'],
-    'modules/survey/skins/basic/view.php' => ['survey-comments-panel', 'survey-comment-list', 'survey-comment-meta-item', 'survey-comment-unavailable', '$surveyReactionCommentSummaries'],
 ] as $commentViewPath => $commentStructureMarkers) {
     $contents = $readViewSource($commentViewPath);
     foreach ($commentStructureMarkers as $marker) {
@@ -406,58 +370,6 @@ $commentViewStateChecks = [
         ],
         'forbidden' => ['로그인 후 댓글 작성'],
     ],
-    'modules/quiz/theme/basic/view.php' => [
-        'required' => [
-            '$quizCommentsEnabled && $submitResult !== null',
-            '$quizComments === []',
-            'quiz-comments-empty',
-            '$canPreviewAsAdmin',
-            '관리자 미리보기에서는 댓글을 작성할 수 없습니다.',
-            'elseif (is_array($currentAccount))',
-            'quiz-comment-form',
-            '로그인하면 댓글을 작성할 수 있습니다.',
-        ],
-        'forbidden' => ['로그인 후 댓글 작성'],
-    ],
-    'modules/quiz/skins/basic/view.php' => [
-        'required' => [
-            '$quizCommentsEnabled && $submitResult !== null',
-            '$quizComments === []',
-            'quiz-comments-empty',
-            '$canPreviewAsAdmin',
-            '관리자 미리보기에서는 댓글을 작성할 수 없습니다.',
-            'elseif (is_array($currentAccount))',
-            'quiz-comment-form',
-            '로그인하면 댓글을 작성할 수 있습니다.',
-        ],
-        'forbidden' => ['로그인 후 댓글 작성'],
-    ],
-    'modules/survey/theme/basic/view.php' => [
-        'required' => [
-            '$surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)',
-            '$surveyComments === []',
-            'survey-comments-empty',
-            '$canPreviewAsAdmin',
-            '$surveyCanWriteComment',
-            '설문 참여 완료 후 댓글을 작성할 수 있습니다.',
-            'survey-comment-form',
-            '로그인하면 댓글을 작성할 수 있습니다.',
-        ],
-        'forbidden' => ['로그인 후 댓글 작성'],
-    ],
-    'modules/survey/skins/basic/view.php' => [
-        'required' => [
-            '$surveyCommentsEnabled && ($submittedScreen || $submitResult !== null)',
-            '$surveyComments === []',
-            'survey-comments-empty',
-            '$canPreviewAsAdmin',
-            '$surveyCanWriteComment',
-            '설문 참여 완료 후 댓글을 작성할 수 있습니다.',
-            'survey-comment-form',
-            '로그인하면 댓글을 작성할 수 있습니다.',
-        ],
-        'forbidden' => ['로그인 후 댓글 작성'],
-    ],
 ];
 
 foreach (['modules/community/theme/basic/post.php', 'modules/community/skins/basic/view.php'] as $communityCommentFormViewPath) {
@@ -526,24 +438,6 @@ foreach ([
         '.content-comment-author-avatar',
         'border-bottom: 1px solid var(--content-divider',
     ],
-    'modules/quiz/theme/basic/assets/module.css' => [
-        '.quiz-comments-pagination',
-        '.sr-quiz-author-meta',
-        '.quiz-comment-author-avatar',
-        '.quiz-comment-unavailable',
-        '.sr-quiz-page .quiz-page-main .quiz-comments-panel-header h2',
-        '.sr-quiz-page .quiz-page-main .quiz-comment-form > p',
-        'border-bottom: 1px solid var(--quiz-comment-divider',
-    ],
-    'modules/survey/theme/basic/assets/module.css' => [
-        '.survey-comments-pagination',
-        '.sr-survey-author-meta',
-        '.survey-comment-author-avatar',
-        '.survey-comment-unavailable',
-        '.sr-survey-page .survey-page-main .survey-comments-panel-header h2',
-        '.sr-survey-page .survey-page-main .survey-comment-form > p',
-        'border-bottom: 1px solid var(--survey-comment-divider',
-    ],
 ] as $commentStylesheetPath => $markers) {
     $contents = file_get_contents($root . '/' . $commentStylesheetPath);
     foreach ($markers as $marker) {
@@ -552,10 +446,6 @@ foreach ([
             $commentStylesheetPath . ' must keep the community comment surface marker: ' . $marker
         );
     }
-    $assert(
-        is_string($contents) && preg_match('/\.(?:community|content|quiz|survey)-comments-pagination\s*\{[^}]*gap:\s*8px;[^}]*justify-content:\s*center;/s', $contents) === 1,
-        $commentStylesheetPath . ' must keep community-style centered comment pagination spacing.'
-    );
 }
 
 $memberIdentityStylesheet = file_get_contents($root . '/modules/member/assets/public-identity.css');
@@ -582,7 +472,7 @@ $assert(
     'Member fallback avatars must keep equal contract-owned dimensions even when a later UI kit member-default-avatar rule is loaded.'
 );
 
-foreach (['content', 'quiz', 'survey'] as $moduleKey) {
+foreach (['content'] as $moduleKey) {
     $action = file_get_contents($root . '/modules/' . $moduleKey . '/actions/comment.php');
     $assert(
         is_string($action)

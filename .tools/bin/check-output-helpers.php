@@ -549,8 +549,6 @@ foreach ([
     '/modules/content/theme/basic/assets/common.css',
     '/modules/content/theme/basic/assets/module.css',
     '/modules/community/theme/basic/assets/common.css',
-    '/modules/quiz/theme/basic/assets/common.css',
-    '/modules/survey/theme/basic/assets/common.css',
 ] as $timeTooltipStylesheetPath) {
     $timeTooltipStylesheet = file_get_contents($root . $timeTooltipStylesheetPath);
     sr_output_helper_assert(

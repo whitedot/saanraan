@@ -205,7 +205,7 @@ function sr_comment_extra_field_snapshot_values(string $json): array
 
 function sr_comment_extra_field_cleanup_account_snapshots(PDO $pdo, string $tableName, int $accountId): int
 {
-    $allowedTables = ['sr_community_comments', 'sr_content_comments', 'sr_quiz_comments', 'sr_survey_comments'];
+    $allowedTables = ['sr_community_comments', 'sr_content_comments'];
     if ($accountId < 1 || !in_array($tableName, $allowedTables, true)) {
         return 0;
     }

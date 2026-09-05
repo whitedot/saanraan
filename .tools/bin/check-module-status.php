@@ -110,8 +110,6 @@ $expectedEvidenceMarkers = [
     'seo' => ['check-seo-runtime.php', 'sitemap/robots runtime fixture'],
     'content' => ['check-paid-download-delivery.php', 'check-content-file-cleanup-runtime.php', 'check-content-copy-runtime.php', 'check-asset-idempotency.php', '파일/시리즈/임베드 삭제 정리 runtime fixture', '복사 runtime fixture', 'sanitizer fixture'],
     'community' => ['check-community-release.php', 'check-community-board-copy-job-lock.php', 'check-community-attachment-runtime.php', 'check-asset-idempotency.php', '유료 첨부 접근권 runtime fixture'],
-    'quiz' => ['check-quiz-consistency.php', 'check-quiz-reward-runtime.php', 'check-quiz-delete-runtime.php', 'privacy runtime fixture', '보상 지급/원장 lookup/회수 가능액/회수 실행 runtime fixture', '관리자 보상 회수 화면/POST 계약', '삭제/source snapshot 정리 runtime fixture'],
-    'survey' => ['check-survey-consistency.php', 'check-survey-response-runtime.php', 'check-survey-reward-runtime.php', 'check-survey-statistics-runtime.php', 'check-survey-export-runtime.php', '응답 제출 runtime fixture', 'CSV export runtime fixture', 'privacy runtime fixture', '보상 지급 runtime fixture', '통계 runtime fixture'],
     'ckeditor' => ['check-rich-text-sanitizer.php', 'check-htmlpurifier-runtime.php', 'check-ckeditor-assets.php', 'check-browser-qa.php', 'ckeditor-browser-smoke.spec.js', 'HTML Purifier', '캐시 경로', '브라우저 asset 로딩/fallback smoke'],
     'privacy' => ['check-privacy-contract-matrix.php', 'check-privacy-export-runtime.php', 'check-privacy-cleanup-runtime.php'],
     'notification' => ['check-mention-ux.php', 'check-notification-runtime.php', '이벤트 템플릿 runtime fixture', 'delivery queue fixture'],
@@ -135,7 +133,6 @@ $expectedRemainingMarkers = [
     'point' => ['release-installed-gate-status.php --run-readonly', '설치 DB 만료 dry-run'],
     'coupon' => ['release-installed-gate-status.php', '자산/쿠폰/유료 접근권 mutation smoke'],
     'community' => ['release-installed-gate-status.php', '인증 smoke', '자산/쿠폰/유료 접근권 mutation smoke'],
-    'quiz' => ['release-installed-gate-status.php', '퀴즈 E2E smoke'],
     'privacy' => ['release-installed-gate-status.php', '개인정보 export/cleanup 설치 DB smoke'],
     'ckeditor' => ['release-installed-gate-status.php', 'CKEditor upload/save browser smoke'],
 ];

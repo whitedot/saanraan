@@ -10,8 +10,6 @@ chdir($root);
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/community/helpers.php';
 require_once $root . '/modules/content/helpers.php';
-require_once $root . '/modules/quiz/helpers.php';
-require_once $root . '/modules/survey/helpers.php';
 
 $errors = [];
 
@@ -86,8 +84,6 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 sr_view_count_runtime_check_session_dedupe('sr_community_viewed_posts', 'sr_community_should_count_post_view');
 sr_view_count_runtime_check_session_dedupe('sr_content_viewed_items', 'sr_content_should_count_view');
-sr_view_count_runtime_check_session_dedupe('sr_quiz_viewed_sets', 'sr_quiz_should_count_view');
-sr_view_count_runtime_check_session_dedupe('sr_survey_viewed_forms', 'sr_survey_should_count_view');
 
 sr_view_count_runtime_file_contains('modules/community/helpers/posts.php', [
     "'view_count' => ['columns' => ['p.view_count', 'p.id']]",
@@ -106,25 +102,6 @@ sr_view_count_runtime_file_contains('modules/content/views/admin-contents.php', 
     "sr_content_admin_sort_header_html('조회수', 'view_count'",
     "number_format((int) (\$page['view_count'] ?? 0))",
 ], 'Content admin view count column');
-sr_view_count_runtime_file_contains('modules/quiz/helpers.php', [
-    "'view_count' => ['columns' => ['q.view_count', 'q.id']]",
-    'q.member_group_keys_json, q.view_count, q.reward_enabled, q.updated_at',
-], 'Quiz admin list');
-sr_view_count_runtime_file_contains('modules/quiz/actions/admin-quiz.php', [
-    "sr_admin_sort_header_html('조회수', 'view_count'",
-    "number_format((int) (\$quiz['view_count'] ?? 0))",
-], 'Quiz admin view count column');
-sr_view_count_runtime_file_contains('modules/survey/helpers.php', [
-    "'view_count' => ['columns' => ['s.view_count', 's.id']]",
-], 'Survey admin list sort');
-sr_view_count_runtime_file_contains('modules/survey/helpers/admin-surveys.php', [
-    's.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at',
-    'GROUP BY s.id, s.survey_key, s.title, s.status, s.starts_at, s.ends_at, s.qa_status, s.member_group_keys_json, s.view_count, s.reward_enabled, s.updated_at',
-], 'Survey admin view count query');
-sr_view_count_runtime_file_contains('modules/survey/actions/admin-surveys.php', [
-    "sr_admin_sort_header_html('조회수', 'view_count'",
-    "number_format((int) (\$survey['view_count'] ?? 0))",
-], 'Survey admin view count column');
 
 if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     sr_view_count_runtime_error('SQLite PDO driver is required for view count runtime fixture.');
@@ -135,8 +112,6 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
 
     sr_view_count_runtime_check_increment($pdo, 'sr_community_posts', 'sr_community_increment_post_view_count');
     sr_view_count_runtime_check_increment($pdo, 'sr_content_items', 'sr_content_increment_view_count');
-    sr_view_count_runtime_check_increment($pdo, 'sr_quiz_sets', 'sr_quiz_increment_view_count');
-    sr_view_count_runtime_check_increment($pdo, 'sr_survey_forms', 'sr_survey_increment_view_count');
 }
 
 if ($errors !== []) {

@@ -362,8 +362,6 @@ function sr_banner_target_admin_label(array $target): string
         'site.layout' => '전체',
         'content.layout' => '콘텐츠 레이아웃',
         'community.layout' => '커뮤니티 레이아웃',
-        'quiz.layout' => '퀴즈·테스트 레이아웃',
-        'survey.layout' => '설문·여론조사 레이아웃',
         'content.view' => '콘텐츠 상세',
         'community.sidebar.summary' => '커뮤니티 사이드바',
         'community.board.list' => '게시판 목록',
@@ -410,8 +408,6 @@ function sr_banner_target_service_label(string $serviceKey): string
         'core' => '전체',
         'content' => '콘텐츠',
         'community' => '커뮤니티',
-        'quiz' => '퀴즈·테스트',
-        'survey' => '설문·여론조사',
         'member' => '회원',
     ];
     if (isset($labels[$serviceKey])) {

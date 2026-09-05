@@ -117,8 +117,6 @@ $contentInternalEmbedModuleReferences = [];
 $contentInternalEmbedAdminPaths = [
     'community' => '/admin/community/boards',
     'coupon' => '/admin/coupons/campaigns',
-    'quiz' => '/admin/quiz',
-    'survey' => '/admin/surveys',
 ];
 foreach (array_keys(sr_enabled_module_contract_files($pdo, 'url-embed-targets.php', ['content'])) as $embedModuleKey) {
     $embedAdminPath = (string) ($contentInternalEmbedAdminPaths[(string) $embedModuleKey] ?? '');

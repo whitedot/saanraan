@@ -409,50 +409,6 @@ sr_reward_check_file('docs/plans/reward-abuse-common-standards.md', [
     'Provider 재검증 기준',
 ]);
 
-sr_reward_check_file('modules/quiz/install.sql', [
-    'CREATE TABLE IF NOT EXISTS sr_quiz_reward_grants',
-    'reward_provider VARCHAR(30)',
-    'reward_module VARCHAR(40)',
-    'reward_code VARCHAR(120)',
-    'dedupe_scope VARCHAR(20)',
-    'dedupe_key VARCHAR(190)',
-    'UNIQUE KEY uq_sr_quiz_reward_grants_dedupe',
-]);
-sr_reward_check_file('modules/quiz/helpers/rewards.php', [
-    '$insertVerb = \'INSERT IGNORE\';',
-    '$insertVerb = \'INSERT OR IGNORE\';',
-    '$insertVerb . \' INTO sr_quiz_reward_grants',
-    '$lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === \'sqlite\' ? \'\' : \' FOR UPDATE\';',
-    'SELECT * FROM sr_quiz_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1',
-    'sr_quiz_refresh_reward_grant_for_retry',
-    'sr_quiz_issue_coupon_reward_grant',
-    'sr_quiz_reward_coupon_definition_is_available',
-    'status = \\\'granted\\\'',
-    'status = \\\'failed\\\'',
-]);
-
-sr_reward_check_file('modules/survey/install.sql', [
-    'CREATE TABLE IF NOT EXISTS sr_survey_reward_grants',
-    'reward_provider VARCHAR(30)',
-    'reward_module VARCHAR(40)',
-    'reward_code VARCHAR(120)',
-    'dedupe_scope VARCHAR(20)',
-    'dedupe_key VARCHAR(190)',
-    'UNIQUE KEY uq_sr_survey_reward_grants_dedupe',
-]);
-sr_reward_check_file('modules/survey/helpers/responses.php', [
-    '$insertVerb = \'INSERT IGNORE\';',
-    '$insertVerb = \'INSERT OR IGNORE\';',
-    '$insertVerb . \' INTO sr_survey_reward_grants',
-    '$lockClause = (string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === \'sqlite\' ? \'\' : \' FOR UPDATE\';',
-    'SELECT * FROM sr_survey_reward_grants WHERE dedupe_key = :dedupe_key LIMIT 1',
-    'sr_survey_refresh_reward_grant_for_retry',
-    'sr_survey_issue_coupon_reward_grant',
-    'sr_survey_coupon_definition_is_available',
-    'status = \\\'granted\\\'',
-    'status = \\\'failed\\\'',
-]);
-
 sr_reward_check_file('modules/coupon/install.sql', [
     'CREATE TABLE IF NOT EXISTS sr_coupon_redemptions',
     'dedupe_key VARCHAR(160)',

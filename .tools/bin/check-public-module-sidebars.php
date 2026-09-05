@@ -9,8 +9,6 @@ if (!defined('SR_ROOT')) {
 }
 require_once $root . '/core/helpers/runtime.php';
 require_once $root . '/modules/content/helpers.php';
-require_once $root . '/modules/quiz/helpers.php';
-require_once $root . '/modules/survey/helpers.php';
 require_once $root . '/.tools/lib/basic-theme-delegates.php';
 
 $publicDataCacheFixtureRoot = sys_get_temp_dir() . '/saanraan-public-sidebar-cache-' . (string) getmypid() . '-' . bin2hex(random_bytes(4));
@@ -169,160 +167,6 @@ $contains('modules/content/helpers.php', ["'content.form'", 'sidebar_enabled', '
 $excerpt = sr_content_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
 $assert($excerpt === '태그 제거', 'content sidebar excerpt must remove HTML tags.');
 
-$contains('modules/quiz/module.php', [
-    "'sidebar_enabled' => true",
-    "'sidebar_menu_type' => 'groups'",
-    "'sidebar_popular_limit' => 5",
-    "'sidebar_comments_limit' => 5",
-]);
-$contains('modules/quiz/actions/admin-settings.php', [
-    "sr_post_string('sidebar_menu_type'",
-    "sr_admin_post_int_in_range('sidebar_popular_limit', 1, 10)",
-    "sr_admin_post_int_in_range('sidebar_comments_limit', 1, 10)",
-]);
-$contains('modules/quiz/views/admin-settings.php', [
-    '퀴즈 메인을 제외한 전체 목록과 퀴즈 풀이·결과 화면',
-    'data-quiz-settings-sidebar-menu-type',
-    'sidebarSiteMenu.required = active',
-]);
-$contains('modules/quiz/helpers/sidebar.php', [
-    'function sr_quiz_sidebar_context(',
-    'function sr_quiz_sidebar_group_menu_rows(',
-    "'site-menu-provider.php'",
-    "'tree_function'",
-    "'render_function'",
-    "sr_public_data_cache_generation('public-side-menu', 'quiz.groups'",
-    "q.status = 'active'",
-    'q.comments_enabled = 1',
-    'c.is_secret = 0',
-    'viewer_attempt.submitted_at IS NOT NULL',
-    'sr_quiz_comment_body_plain_text(',
-]);
-$contains('modules/quiz/views/sidebar.php', [
-    '<aside class="quiz-sidebar"',
-    '인기 퀴즈',
-    '최신댓글',
-    'quiz-sidebar-summary-section',
-    'quiz-sidebar-summary-meta',
-    'quiz-sidebar-comment-excerpt',
-    'quiz-sidebar-comment-byline',
-    'quiz-sidebar-comment-content',
-    "['quiz_title']",
-    "'point_key' => 'quiz.sidebar.summary'",
-]);
-foreach ([
-    'modules/quiz/theme/basic/home.php',
-    'modules/quiz/skins/basic/home.php',
-    'modules/quiz/theme/basic/view.php',
-    'modules/quiz/skins/basic/view.php',
-] as $screenFile) {
-    $contains($screenFile, ['quiz-screen-frame', 'views/sidebar.php']);
-}
-$contains('modules/quiz/theme/basic/home.php', ['if ($quizScreenIsList)', "'quiz.sidebar.summary'"]);
-$contains('modules/quiz/skins/basic/home.php', ['if ($quizScreenIsList)', "'quiz.sidebar.summary'"]);
-$contains('modules/quiz/theme/basic/view.php', ['if (!$quizEmbedded)', "'quiz.sidebar.summary'"]);
-$contains('modules/quiz/theme/basic/assets/module.css', [
-    '.quiz-screen-frame',
-    '.quiz-sidebar',
-    '.quiz-sidebar-summary-section',
-    '.quiz-sidebar-summary-meta',
-    '.quiz-sidebar-comment-excerpt',
-    '.quiz-sidebar-comment-byline',
-    '.quiz-sidebar-comment-content',
-    'var(--sr-text',
-    'var(--sr-muted',
-    '@media (max-width: 1024px)',
-]);
-$quizModuleCss = $source('modules/quiz/theme/basic/assets/module.css');
-$assert(
-    preg_match('/\.quiz-sidebar-list\s+li\s*\{[^}]*gap:\s*3px/s', $quizModuleCss) === 1,
-    'quiz sidebar summary items must follow the community three-pixel title/meta gap.'
-);
-$contains('modules/quiz/actions/list.php', [
-    "sr_get_string('group', 64)",
-    'sr_quiz_group_by_key(',
-    'sr_quiz_public_quiz_count($pdo, $quizListGroupId)',
-]);
-$quizExcerpt = sr_quiz_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
-$assert($quizExcerpt === '태그 제거', 'quiz sidebar excerpt must remove HTML tags.');
-
-$contains('modules/survey/module.php', [
-    "'sidebar_enabled' => true",
-    "'sidebar_menu_type' => 'groups'",
-    "'sidebar_popular_limit' => 5",
-    "'sidebar_comments_limit' => 5",
-]);
-$contains('modules/survey/actions/admin-settings.php', [
-    "sr_post_string('sidebar_menu_type'",
-    "sr_admin_post_int_in_range('sidebar_popular_limit', 1, 10)",
-    "sr_admin_post_int_in_range('sidebar_comments_limit', 1, 10)",
-]);
-$contains('modules/survey/views/admin-settings.php', [
-    '설문 메인을 제외한 전체 목록과 설문 참여·완료 화면',
-    'data-survey-settings-sidebar-menu-type',
-    'siteMenu.required = active',
-]);
-$contains('modules/survey/helpers/sidebar.php', [
-    'function sr_survey_sidebar_context(',
-    'function sr_survey_sidebar_group_menu_rows(',
-    "'site-menu-provider.php'",
-    "'tree_function'",
-    "'render_function'",
-    "sr_public_data_cache_generation('public-side-menu', 'survey.groups'",
-    "s.status = 'active'",
-    's.public_listed = 1',
-    's.comments_enabled = 1',
-    'c.is_secret = 0',
-    'viewer_response.submitted_at IS NOT NULL',
-    'sr_survey_comment_body_plain_text(',
-]);
-$contains('modules/survey/views/sidebar.php', [
-    '<aside class="survey-sidebar"',
-    '인기 설문',
-    '최신댓글',
-    'survey-sidebar-summary-section',
-    'survey-sidebar-summary-meta',
-    'survey-sidebar-comment-excerpt',
-    'survey-sidebar-comment-byline',
-    'survey-sidebar-comment-content',
-    "['survey_title']",
-    "'point_key' => 'survey.sidebar.summary'",
-]);
-foreach ([
-    'modules/survey/theme/basic/home.php',
-    'modules/survey/skins/basic/home.php',
-    'modules/survey/theme/basic/view.php',
-    'modules/survey/skins/basic/view.php',
-] as $screenFile) {
-    $contains($screenFile, ['survey-screen-frame', 'views/sidebar.php']);
-}
-$contains('modules/survey/theme/basic/home.php', ['if ($surveyScreenIsList)', "'survey.sidebar.summary'"]);
-$contains('modules/survey/skins/basic/home.php', ['if ($surveyScreenIsList)', "'survey.sidebar.summary'"]);
-$contains('modules/survey/theme/basic/assets/module.css', [
-    '.survey-screen-frame',
-    '.survey-sidebar',
-    '.survey-sidebar-summary-section',
-    '.survey-sidebar-summary-meta',
-    '.survey-sidebar-comment-excerpt',
-    '.survey-sidebar-comment-byline',
-    '.survey-sidebar-comment-content',
-    'var(--sr-text',
-    'var(--sr-muted',
-    '@media (max-width: 1024px)',
-]);
-$surveyModuleCss = $source('modules/survey/theme/basic/assets/module.css');
-$assert(
-    preg_match('/\.survey-sidebar-list\s+li\s*\{[^}]*gap:\s*3px/s', $surveyModuleCss) === 1,
-    'survey sidebar summary items must follow the community three-pixel title/meta gap.'
-);
-$contains('modules/survey/actions/list.php', [
-    "sr_get_string('group', 64)",
-    'sr_survey_group_by_key(',
-    'sr_survey_public_form_count($pdo, $surveyListGroupId)',
-]);
-$surveyExcerpt = sr_survey_sidebar_excerpt('<p>태그 <strong>제거</strong></p>', 72);
-$assert($surveyExcerpt === '태그 제거', 'survey sidebar excerpt must remove HTML tags.');
-
 $contains('modules/community/helpers/boards.php', [
     "'site-menu-provider.php'",
     "'options_function'",
@@ -335,12 +179,6 @@ foreach ([
     'modules/community/actions/admin-boards.php',
     'modules/community/actions/admin-settings.php',
     'modules/community/helpers/boards.php',
-    'modules/quiz/actions/admin-settings.php',
-    'modules/quiz/helpers.php',
-    'modules/quiz/helpers/sidebar.php',
-    'modules/survey/actions/admin-settings.php',
-    'modules/survey/helpers.php',
-    'modules/survey/helpers/sidebar.php',
 ] as $siteMenuConsumerFile) {
     $assert(
         !str_contains($source($siteMenuConsumerFile), 'modules/site_menu/helpers.php'),
@@ -352,25 +190,14 @@ $sidebarPdo = new PDO('sqlite::memory:');
 $sidebarPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $sidebarPdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 $sidebarPdo->exec("CREATE TABLE sr_content_groups (id INTEGER PRIMARY KEY, group_key TEXT, title TEXT, description TEXT, status TEXT, sort_order INTEGER, created_at TEXT, updated_at TEXT)");
-$sidebarPdo->exec("CREATE TABLE sr_quiz_groups (id INTEGER PRIMARY KEY, group_key TEXT, title TEXT, description TEXT, status TEXT, sort_order INTEGER, created_at TEXT, updated_at TEXT)");
-$sidebarPdo->exec("CREATE TABLE sr_quiz_sets (id INTEGER PRIMARY KEY, quiz_group_id INTEGER, deleted_at TEXT)");
-$sidebarPdo->exec("CREATE TABLE sr_survey_groups (id INTEGER PRIMARY KEY, group_key TEXT, title TEXT, description TEXT, status TEXT, sort_order INTEGER, created_at TEXT, updated_at TEXT)");
-$sidebarPdo->exec("CREATE TABLE sr_survey_forms (id INTEGER PRIMARY KEY, survey_group_id INTEGER, deleted_at TEXT)");
 $sidebarPdo->exec("INSERT INTO sr_content_groups VALUES (1, 'news', '뉴스', '', 'enabled', 10, '2026-07-19 00:00:00', '2026-07-19 00:00:00')");
-$sidebarPdo->exec("INSERT INTO sr_quiz_groups VALUES (1, 'knowledge', '상식', '', 'enabled', 10, '2026-07-19 00:00:00', '2026-07-19 00:00:00')");
-$sidebarPdo->exec("INSERT INTO sr_survey_groups VALUES (1, 'opinion', '의견', '', 'enabled', 10, '2026-07-19 00:00:00', '2026-07-19 00:00:00')");
 sr_public_data_cache_clear_namespace('public-side-menu');
 $contentMenuRows = sr_content_sidebar_group_menu_rows($sidebarPdo);
-$quizMenuRows = sr_quiz_sidebar_group_menu_rows($sidebarPdo);
-$surveyMenuRows = sr_survey_sidebar_group_menu_rows($sidebarPdo);
 $assert(($contentMenuRows[0]['title'] ?? '') === '뉴스', 'content sidebar group menu cache must store enabled group rows.');
-$assert(($quizMenuRows[0]['title'] ?? '') === '상식', 'quiz sidebar group menu cache must store enabled group rows.');
-$assert(($surveyMenuRows[0]['title'] ?? '') === '의견', 'survey sidebar group menu cache must store enabled group rows.');
 $sidebarPdo->exec("UPDATE sr_content_groups SET title = 'DB만 변경' WHERE id = 1");
 unset($GLOBALS['sr_public_data_cache_memory']);
 $assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '뉴스', 'content sidebar group menu must reuse its file cache across request memory resets.');
 $staleContentGeneration = sr_public_data_cache_generation('public-side-menu', 'content.groups', 'content_sidebar_groups_v1');
-$quizGenerationBeforeContentUpdate = sr_public_data_cache_generation('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1');
 sr_content_update_group($sidebarPdo, 1, ['title' => '변경된 뉴스', 'description' => '', 'status' => 'enabled', 'sort_order' => 10]);
 $assert(
     !sr_public_data_cache_write(
@@ -382,26 +209,18 @@ $assert(
     ),
     'content sidebar cache must reject a stale writer after group invalidation.'
 );
-$assert(
-    hash_equals($quizGenerationBeforeContentUpdate, sr_public_data_cache_generation('public-side-menu', 'quiz.groups', 'quiz_sidebar_groups_v1')),
-    'content sidebar cache invalidation must not rotate the quiz cache entry generation.'
-);
-sr_quiz_save_group($sidebarPdo, ['title' => '변경된 상식', 'description' => '', 'status' => 'enabled', 'sort_order' => 10], 1);
-sr_survey_save_group($sidebarPdo, ['title' => '변경된 의견', 'description' => '', 'status' => 'enabled', 'sort_order' => 10], 1);
 $assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 뉴스', 'content group update must invalidate the sidebar menu cache.');
-$assert((sr_quiz_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 상식', 'quiz group update must invalidate the sidebar menu cache.');
-$assert((sr_survey_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 의견', 'survey group update must invalidate the sidebar menu cache.');
 sr_public_data_cache_write('public-side-menu', 'content.groups', 'content_sidebar_groups_v1', [['group_key' => '../invalid', 'title' => '손상값']]);
 $assert((sr_content_sidebar_group_menu_rows($sidebarPdo)[0]['title'] ?? '') === '변경된 뉴스', 'content sidebar must reject an invalid cached group row and reload the database value.');
-$staleSurveyGeneration = sr_public_data_cache_generation('public-side-menu', 'survey.groups', 'survey_sidebar_groups_v1');
+$staleContentGeneration = sr_public_data_cache_generation('public-side-menu', 'content.groups', 'content_sidebar_groups_v1');
 sr_public_data_cache_clear_namespace('public-side-menu');
 $assert(
     !sr_public_data_cache_write(
         'public-side-menu',
-        'survey.groups',
-        'survey_sidebar_groups_v1',
-        [['group_key' => 'opinion', 'title' => '무효화 전 값']],
-        $staleSurveyGeneration
+        'content.groups',
+        'content_sidebar_groups_v1',
+        [['group_key' => 'news', 'title' => '무효화 전 값']],
+        $staleContentGeneration
     ),
     'namespace invalidation must reject writers holding an earlier namespace generation.'
 );

@@ -184,8 +184,6 @@ test.describe('CKEditor browser smoke', () => {
     const cases = [
       { theme: 'content.basic', expected: 'rgb(170, 17, 34)' },
       { theme: 'community.basic', expected: 'rgb(17, 136, 51)' },
-      { theme: 'quiz.basic', expected: 'rgb(23, 32, 51)' },
-      { theme: 'survey.basic', expected: 'rgb(23, 32, 51)' },
     ];
 
     for (const bodyTheme of cases) {

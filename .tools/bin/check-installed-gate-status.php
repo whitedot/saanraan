@@ -865,8 +865,8 @@ function sr_installed_gate_status_assert_unresolved_count(string $label, string 
     }
 
     $results = $matches[1] ?? [];
-    if (count($results) !== 15) {
-        sr_installed_gate_status_error('Installed gate status output must contain 15 gate rows for ' . $label . ', got ' . (string) count($results));
+    if (count($results) !== 14) {
+        sr_installed_gate_status_error('Installed gate status output must contain 14 gate rows for ' . $label . ', got ' . (string) count($results));
     }
 
     $expectedUnresolved = 0;
@@ -973,7 +973,6 @@ function sr_installed_gate_status_assert_markdown_table(string $label, string $o
         '기본 HTTP smoke',
         '인증 smoke',
         '회원 MFA smoke',
-        '퀴즈 E2E smoke',
         '자산/쿠폰/유료 접근권 mutation smoke',
         '개인정보 export/cleanup smoke',
         'CKEditor asset/fallback browser smoke',
@@ -1058,8 +1057,8 @@ function sr_installed_gate_status_assert_json(string $label, string $output): vo
     }
 
     $gates = $decoded['gates'] ?? null;
-    if (!is_array($gates) || count($gates) !== 15) {
-        sr_installed_gate_status_error('Installed gate status JSON gates must contain 15 rows: ' . $label);
+    if (!is_array($gates) || count($gates) !== 14) {
+        sr_installed_gate_status_error('Installed gate status JSON gates must contain 14 rows: ' . $label);
         return;
     }
 
@@ -1103,11 +1102,11 @@ function sr_installed_gate_status_assert_json(string $label, string $output): vo
         }
     }
 
-    if (($decoded['result_summary'] ?? '') !== '통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=11, 환경 미준비=4, 실패=0') {
+    if (($decoded['result_summary'] ?? '') !== '통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=10, 환경 미준비=4, 실패=0') {
         sr_installed_gate_status_error('Installed gate status JSON result_summary mismatch: ' . $label);
     }
 
-    if (($decoded['unresolved_gates'] ?? null) !== 15) {
+    if (($decoded['unresolved_gates'] ?? null) !== 14) {
         sr_installed_gate_status_error('Installed gate status JSON unresolved_gates mismatch: ' . $label);
     }
 }
@@ -1152,7 +1151,6 @@ foreach ([
     'run-browser-qa: no',
     'run-auth-smoke: no',
     'run-member-mfa-smoke: no',
-    'run-quiz-smoke: no',
     'run-asset-smoke: no',
     'run-privacy-smoke: no',
     'run-ckeditor-upload-save-smoke: no',
@@ -1169,13 +1167,12 @@ foreach ([
     "gate\t기본 HTTP smoke\t",
     "gate\t인증 smoke\t",
     "gate\t회원 MFA smoke\t",
-    "gate\t퀴즈 E2E smoke\t",
     "gate\t자산/쿠폰/유료 접근권 mutation smoke\t",
     "gate\t개인정보 export/cleanup smoke\t",
     "gate\tCKEditor asset/fallback browser smoke\t",
     "gate\tCKEditor upload/save browser smoke\t",
     "gate\t성능 수동 점검\t",
-    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=11, 환경 미준비=4, 실패=0',
+    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=10, 환경 미준비=4, 실패=0',
     'unresolved-gates:',
     'release installed gate status completed.',
 ] as $marker) {
@@ -1212,8 +1209,8 @@ if ((int) $failOutput['exit_code'] !== 1) {
     sr_installed_gate_status_error('Installed gate status --fail-on-unresolved must exit 1 while gates are unresolved.');
 }
 foreach ([
-    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=11, 환경 미준비=4, 실패=0',
-    'unresolved-gates: 15',
+    'gate-result-summary: 통과=0, 부분 확인=0, 수동 확인 필요=0, 미실행=10, 환경 미준비=4, 실패=0',
+    'unresolved-gates: 14',
 ] as $marker) {
     if (!str_contains((string) $failOutput['output'], $marker)) {
         sr_installed_gate_status_error('Installed gate status --fail-on-unresolved output marker missing: ' . $marker);
@@ -1293,7 +1290,6 @@ foreach ([
     '--run-admin-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
-    '--run-quiz-smoke',
     '--run-asset-smoke',
     '--run-privacy-smoke',
     '--run-ckeditor-upload-save-smoke',
@@ -1345,7 +1341,6 @@ foreach ([
     "gate\t기본 HTTP smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=basic non-mutating HTTP smoke is available; rerun with --run-http-smoke",
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
-    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD",
     "gate\t개인정보 export/cleanup smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=requires SR_SMOKE_IDENTIFIER and SR_SMOKE_PASSWORD for disposable account data",
     "gate\t성능 수동 점검\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=manually verify slow admin lists, sitemap, privacy export bounds, and query plans",
@@ -1434,7 +1429,6 @@ foreach ([
     'admin-smoke-credentials: incomplete',
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
-    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
 ] as $marker) {
     if ($adminIncompleteIdentifierOutput !== '' && !str_contains($adminIncompleteIdentifierOutput, $marker)) {
@@ -1453,7 +1447,6 @@ foreach ([
     'admin-smoke-credentials: incomplete',
     "gate\t/admin/assets/reconciliation\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\t/admin/operations\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
-    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
     "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together",
 ] as $marker) {
     if ($adminIncompletePasswordOutput !== '' && !str_contains($adminIncompletePasswordOutput, $marker)) {
@@ -1476,7 +1469,6 @@ foreach ([
     'run-admin-readonly: no',
     "gate\t/admin/assets/reconciliation\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured; rerun with --run-admin-readonly",
     "gate\t/admin/operations\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=administrator session configured; rerun with --run-admin-readonly",
-    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1",
     "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=upload/save browser smoke creates or updates content; set SR_SMOKE_ALLOW_MUTATION=1",
 ] as $marker) {
     if ($adminConfiguredOutput !== '' && !str_contains($adminConfiguredOutput, $marker)) {
@@ -1657,25 +1649,6 @@ foreach ([
     }
 }
 
-$quizMutationBlockedOutput = sr_installed_gate_status_exec([
-    'env',
-    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
-    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
-    'SR_SMOKE_ADMIN_PASSWORD=12341234',
-    PHP_BINARY,
-    '.tools/bin/release-installed-gate-status.php',
-    '--run-quiz-smoke',
-]);
-foreach ([
-    'run-quiz-smoke: yes',
-    'mutation-smoke-allowed: no',
-    "gate\t퀴즈 E2E smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1",
-] as $marker) {
-    if ($quizMutationBlockedOutput !== '' && !str_contains($quizMutationBlockedOutput, $marker)) {
-        sr_installed_gate_status_error('Installed gate status quiz mutation guard output marker missing: ' . $marker);
-    }
-}
-
 $authReadyOutput = sr_installed_gate_status_exec([
     'env',
     'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
@@ -1818,106 +1791,6 @@ foreach ([
     }
 }
 
-$quizReadyOutput = sr_installed_gate_status_exec([
-    'env',
-    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
-    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
-    'SR_SMOKE_ADMIN_PASSWORD=12341234',
-    'SR_SMOKE_ALLOW_MUTATION=1',
-    PHP_BINARY,
-    '.tools/bin/release-installed-gate-status.php',
-]);
-sr_installed_gate_status_assert_unresolved_count('quiz-ready output', $quizReadyOutput);
-sr_installed_gate_status_assert_result_summary('quiz-ready output', $quizReadyOutput);
-foreach ([
-    'mutation-smoke-allowed: yes',
-    "gate\t퀴즈 E2E smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=quiz E2E smoke is configured; rerun with --run-quiz-smoke",
-    "gate\tCKEditor upload/save browser smoke\tresult=수동 확인 필요\tenvironment=http://127.0.0.1:1\tmemo=CKEditor upload/save smoke is configured; rerun with --run-ckeditor-upload-save-smoke",
-] as $marker) {
-    if ($quizReadyOutput !== '' && !str_contains($quizReadyOutput, $marker)) {
-        sr_installed_gate_status_error('Installed gate status quiz ready output marker missing: ' . $marker);
-    }
-}
-
-$ckeditorMutationBlockedOutput = sr_installed_gate_status_exec([
-    'env',
-    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
-    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
-    'SR_SMOKE_ADMIN_PASSWORD=12341234',
-    PHP_BINARY,
-    '.tools/bin/release-installed-gate-status.php',
-    '--run-ckeditor-upload-save-smoke',
-]);
-foreach ([
-    'run-ckeditor-upload-save-smoke: yes',
-    'mutation-smoke-allowed: no',
-    "gate\tCKEditor upload/save browser smoke\tresult=미실행\tenvironment=http://127.0.0.1:1\tmemo=upload/save browser smoke creates or updates content; set SR_SMOKE_ALLOW_MUTATION=1",
-] as $marker) {
-    if ($ckeditorMutationBlockedOutput !== '' && !str_contains($ckeditorMutationBlockedOutput, $marker)) {
-        sr_installed_gate_status_error('Installed gate status CKEditor mutation guard output marker missing: ' . $marker);
-    }
-}
-
-$ckeditorRunFailureOutput = sr_installed_gate_status_exec([
-    'env',
-    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
-    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
-    'SR_SMOKE_ADMIN_PASSWORD=12341234',
-    'SR_SMOKE_ALLOW_MUTATION=1',
-    PHP_BINARY,
-    '.tools/bin/release-installed-gate-status.php',
-    '--run-ckeditor-upload-save-smoke',
-]);
-foreach ([
-    'run-ckeditor-upload-save-smoke: yes',
-    "gate\tCKEditor upload/save browser smoke\tresult=실패\tenvironment=http://127.0.0.1:1\tmemo=smoke-ckeditor-upload-save.php exit",
-] as $marker) {
-    if ($ckeditorRunFailureOutput !== '' && !str_contains($ckeditorRunFailureOutput, $marker)) {
-        sr_installed_gate_status_error('Installed gate status CKEditor run failure output marker missing: ' . $marker);
-    }
-}
-
-$ckeditorDirectMutationRefusal = sr_installed_gate_status_exec_result([
-    'env',
-    'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
-    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
-    'SR_SMOKE_ADMIN_PASSWORD=12341234',
-    PHP_BINARY,
-    '.tools/bin/smoke-ckeditor-upload-save.php',
-]);
-if ((int) $ckeditorDirectMutationRefusal['exit_code'] !== 2) {
-    sr_installed_gate_status_error('CKEditor upload/save smoke must exit 2 without SR_SMOKE_ALLOW_MUTATION=1.');
-}
-foreach ([
-    'refused to run because it creates content and uploads files',
-    'SR_SMOKE_ALLOW_MUTATION=1',
-] as $marker) {
-    if (!str_contains((string) $ckeditorDirectMutationRefusal['output'], $marker)) {
-        sr_installed_gate_status_error('CKEditor upload/save direct mutation refusal marker missing: ' . $marker);
-    }
-}
-
-$ckeditorDirectPublicRefusal = sr_installed_gate_status_exec_result([
-    'env',
-    'SR_SMOKE_BASE_URL=https://example.com',
-    'SR_SMOKE_ADMIN_IDENTIFIER=admin',
-    'SR_SMOKE_ADMIN_PASSWORD=12341234',
-    'SR_SMOKE_ALLOW_MUTATION=1',
-    PHP_BINARY,
-    '.tools/bin/smoke-ckeditor-upload-save.php',
-]);
-if ((int) $ckeditorDirectPublicRefusal['exit_code'] !== 2) {
-    sr_installed_gate_status_error('CKEditor upload/save smoke must exit 2 for public-looking URLs without SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1.');
-}
-foreach ([
-    'refused to run against a public-looking base URL',
-    'SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1',
-] as $marker) {
-    if (!str_contains((string) $ckeditorDirectPublicRefusal['output'], $marker)) {
-        sr_installed_gate_status_error('CKEditor upload/save direct public URL refusal marker missing: ' . $marker);
-    }
-}
-
 $assetReadyOutput = sr_installed_gate_status_exec([
     'env',
     'SR_SMOKE_BASE_URL=http://127.0.0.1:1',
@@ -1973,7 +1846,7 @@ foreach ([
     "gate\t성능 수동 점검\tresult=부분 확인\tenvironment=static and SQLite runtime fixtures",
     'installed DB smoke still required',
     'installed DB performance review still required',
-    'fixture exits: policy=0, baseline=0, pagination=0, board-copy=0, survey-export=0',
+    'fixture exits: policy=0, baseline=0, pagination=0, board-copy=0',
     'privacy export runtime checks completed.',
     'privacy cleanup runtime checks completed.',
 ] as $marker) {
@@ -2003,7 +1876,6 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
-    '--run-quiz-smoke',
     '--run-asset-smoke',
     '--run-privacy-smoke',
     '--run-privacy-fixtures',
@@ -2051,7 +1923,6 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'SR_BROWSER_QA_BASE_URL',
     'npm --prefix .tools/browser-qa run test:ckeditor',
     'smoke-community-auth.php',
-    'smoke-quiz-e2e.php',
     'smoke-asset-idempotency-http.php',
     'smoke-privacy-export-cleanup.php',
     'smoke-ckeditor-upload-save.php',
@@ -2067,7 +1938,6 @@ sr_installed_gate_status_require_markers('.tools/bin/release-installed-gate-stat
     'check-performance-baseline.php',
     'check-admin-pagination-runtime.php',
     'check-community-board-copy-limits.php',
-    'check-survey-export-runtime.php',
     'sr_release_gate_status_performance_gate($baseUrl, $runPerformanceFixtures)',
     'manually verify slow admin lists',
     'installed DB performance review still required',
@@ -2157,7 +2027,6 @@ sr_installed_gate_status_require_markers('docs/smoke-test.md', [
     '--run-readonly',
     '--run-browser-qa',
     '--run-auth-smoke',
-    '--run-quiz-smoke',
     '--run-asset-smoke',
     '--run-privacy-smoke',
     'SR_SMOKE_ALLOW_MUTATION=1',

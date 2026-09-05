@@ -4,7 +4,7 @@ return [
     'name' => '리액션',
     'version' => '2026.06.002',
     'type' => 'module',
-    'description' => '콘텐츠, 커뮤니티, 퀴즈, 설문이 함께 사용하는 공통 리액션 정의와 원장 모듈입니다.',
+    'description' => '콘텐츠와 커뮤니티가 함께 사용하는 공통 리액션 정의와 원장 모듈입니다.',
     'admin' => [
         'category' => 'operation',
         'category_label' => '운영',

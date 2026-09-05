@@ -33,38 +33,6 @@ function sr_check_basic_theme_delegates(): array
             'view' => 'modules/community/views/search.php',
             'marker' => 'include $communityThemeFallbackViewFile;',
         ],
-        'modules/quiz/theme/basic/home.php' => [
-            'view' => 'modules/quiz/skins/basic/home.php',
-            'marker' => "include sr_quiz_skin_view_file(\$quizSettings, 'home');",
-        ],
-        'modules/quiz/theme/basic/list.php' => [
-            'view' => 'modules/quiz/skins/basic/list.php',
-            'marker' => "include sr_quiz_skin_view_file(\$quizSettings, 'list');",
-        ],
-        'modules/quiz/theme/basic/result.php' => [
-            'view' => 'modules/quiz/skins/basic/result.php',
-            'marker' => "include sr_quiz_skin_view_file(\$quizSettings, 'result');",
-        ],
-        'modules/quiz/theme/basic/view.php' => [
-            'view' => 'modules/quiz/skins/basic/view.php',
-            'marker' => "include sr_quiz_skin_view_file(\$quizSettings, 'view');",
-        ],
-        'modules/survey/theme/basic/complete.php' => [
-            'view' => 'modules/survey/skins/basic/complete.php',
-            'marker' => "include sr_survey_skin_view_file(\$settings, 'complete');",
-        ],
-        'modules/survey/theme/basic/home.php' => [
-            'view' => 'modules/survey/skins/basic/home.php',
-            'marker' => "include sr_survey_skin_view_file(\$settings, 'home');",
-        ],
-        'modules/survey/theme/basic/list.php' => [
-            'view' => 'modules/survey/skins/basic/list.php',
-            'marker' => "include sr_survey_skin_view_file(\$settings, 'list');",
-        ],
-        'modules/survey/theme/basic/view.php' => [
-            'view' => 'modules/survey/skins/basic/view.php',
-            'marker' => "include sr_survey_skin_view_file(\$settings, 'view');",
-        ],
     ];
 }
 

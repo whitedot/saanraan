@@ -85,24 +85,6 @@ $checks = [
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
     [
-        'label' => 'quiz theme UI kit route',
-        'path' => '/quiz/ui-kit',
-        'allowed_statuses' => [200],
-        'must_contain_by_status' => [
-            200 => ['data-theme-ui-kit-view="quiz.'],
-        ],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
-        'label' => 'survey theme UI kit route',
-        'path' => '/survey/ui-kit',
-        'allowed_statuses' => [200],
-        'must_contain_by_status' => [
-            200 => ['data-theme-ui-kit-view="survey.'],
-        ],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
         'label' => 'favicon fallback endpoint',
         'path' => '/favicon.ico',
         'allowed_statuses' => [302, 404],
@@ -216,18 +198,6 @@ $checks = [
     [
         'label' => 'admin community notification templates entry',
         'path' => '/admin/community/notification-templates',
-        'allowed_statuses' => [200, 302, 403, 404],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
-        'label' => 'admin quiz notification templates entry',
-        'path' => '/admin/quiz/notification-templates',
-        'allowed_statuses' => [200, 302, 403, 404],
-        'must_not_contain' => ['Fatal error', 'Stack trace'],
-    ],
-    [
-        'label' => 'admin survey notification templates entry',
-        'path' => '/admin/surveys/notification-templates',
         'allowed_statuses' => [200, 302, 403, 404],
         'must_not_contain' => ['Fatal error', 'Stack trace'],
     ],
@@ -626,26 +596,6 @@ $checks = [
         ],
     ],
     [
-        'label' => 'quiz theme layout stylesheet',
-        'path' => '/modules/quiz/theme/basic/assets/layout.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.quiz-layout-header',
-            '.quiz-layout-main',
-            '.quiz-layout-footer',
-        ],
-    ],
-    [
-        'label' => 'survey theme layout stylesheet',
-        'path' => '/modules/survey/theme/basic/assets/layout.css',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '.survey-layout-header',
-            '.survey-layout-main',
-            '.survey-layout-footer',
-        ],
-    ],
-    [
         'label' => 'content layout script',
         'path' => '/modules/content/assets/layout.js',
         'allowed_statuses' => [200],
@@ -658,40 +608,6 @@ $checks = [
     [
         'label' => 'content module script',
         'path' => '/modules/content/assets/module.js',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            "'use strict'",
-        ],
-    ],
-    [
-        'label' => 'quiz layout script',
-        'path' => '/modules/quiz/assets/layout.js',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '[data-quiz-scroll-header]',
-            'is-quiz-layout-header-hidden',
-        ],
-    ],
-    [
-        'label' => 'quiz module script',
-        'path' => '/modules/quiz/assets/module.js',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            "'use strict'",
-        ],
-    ],
-    [
-        'label' => 'survey layout script',
-        'path' => '/modules/survey/assets/layout.js',
-        'allowed_statuses' => [200],
-        'must_contain' => [
-            '[data-survey-scroll-header]',
-            'is-survey-layout-header-hidden',
-        ],
-    ],
-    [
-        'label' => 'survey module script',
-        'path' => '/modules/survey/assets/module.js',
         'allowed_statuses' => [200],
         'must_contain' => [
             "'use strict'",

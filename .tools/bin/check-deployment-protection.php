@@ -161,12 +161,6 @@ foreach ([
     '/modules/community/assets/layout.js',
     '/modules/community/assets/module.js',
     '/modules/member/skins/basic/skin.css',
-    '/modules/quiz/theme/basic/assets/layout.css',
-    '/modules/quiz/assets/layout.js',
-    '/modules/quiz/assets/module.js',
-    '/modules/survey/theme/basic/assets/layout.css',
-    '/modules/survey/assets/layout.js',
-    '/modules/survey/assets/module.js',
     '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
 ] as $path) {
     if ($doc !== '' && !str_contains($doc, $path)) {

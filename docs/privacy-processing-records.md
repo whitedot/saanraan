@@ -61,12 +61,10 @@
 | `policy_documents` | 약관/방침 버전, 동의 문서, 변경 안내메일 delivery | 정책 문서 version snapshot과 안내메일 delivery의 export/cleanup, 수신자 보존 기준을 기록한다. |
 | `popup_layer` | 팝업 설정과 닫기 쿠키 | 회원 귀속 DB 데이터는 없지만 브라우저 기능 쿠키 inventory에 포함한다. |
 | `privacy` | 개인정보 요청 기록, requester, admin note, handler, export 조정 | 관리자 메모 최소화, 민감정보 redaction, 처리 상태와 실제 조치의 정합성을 기록한다. |
-| `quiz` | 퀴즈, 시도, 답안 snapshot, 결과, 댓글과 추가 입력 snapshot, 보상 grant, IP/UA hash | 답안/결과 snapshot과 접속 hash, 보상 grant, 댓글 작성자와 추가 입력값 cleanup을 표면별로 기록한다. |
 | `reaction` | 계정별 target reaction 원장과 알림 연결 | 리액션 원장 삭제 cleanup, target owner 알림 no-op 조건, target resolver 접근 정책을 기록한다. |
 | `reward` | 적립금 잔액/원장, 만료 소비 매핑, 출금 신청 | 금액성 증빙으로 원장과 출금 금액/상태/처리자 연결을 보존한다. 탈퇴/익명화 cleanup은 출금 은행명, 계좌번호, 예금주, 요청자/관리자 note를 빈 값으로 정리한다. |
 | `seo` | sitemap/robots/default meta 설정 | 현재 회원 귀속 개인정보 없음. 콘텐츠별 SEO 개인정보는 소유 모듈 책임이다. |
 | `site_menu` | 메뉴 구조와 링크 자산 | 현재 회원 귀속 개인정보 없음. 연결 대상 개인정보는 소유 모듈 책임이다. |
-| `survey` | 설문, 응답, 답변/metadata/consent snapshot, 댓글과 추가 입력 snapshot, 보상 grant, IP/UA hash | 응답 동의, 익명 허용, 답변 snapshot, 댓글 추가 입력값, 민감정보 입력 가능성, 보상 grant cleanup을 표면별로 기록한다. |
 
 ## 외부 처리자와 국외이전 후보
 
@@ -81,7 +79,7 @@
 
 ## 특별범주·연령·고유식별자성 데이터 기준
 
-기본 번들 모듈은 특별범주 개인정보, 주민등록번호 같은 고유식별자 원문, CI/DI 원문, 성인 인증 원문 결과를 저장하지 않는다. 회원 선택 프로필의 `birth_date`와 `is_adult`는 연령성 개인정보로 분류하고 사본 제공에 포함한다. 기본값은 본인확인 결과의 생년월일을 회원 프로필로 사용하지 않는 것이며, 운영자가 본인확인 환경설정에서 생년월일 사용을 켠 경우에만 회원가입 본인확인 결과가 `birth_date`와 `is_adult` 입력을 채우고 잠근다. 회원 추가 프로필 항목은 export 정책과 cleanup 정책을 갖는 운영자 정의 입력 표면이므로 민감정보 수집을 권장하지 않는다. 퀴즈와 설문은 운영자가 민감한 답변을 수집할 수 있는 자유 입력 표면을 제공하므로, 기본 정책은 운영자 안내와 export/cleanup 계약으로 관리하고 원문 민감정보 수집을 권장하지 않는다.
+기본 번들 모듈은 특별범주 개인정보, 주민등록번호 같은 고유식별자 원문, CI/DI 원문, 성인 인증 원문 결과를 저장하지 않는다. 회원 선택 프로필의 `birth_date`와 `is_adult`는 연령성 개인정보로 분류하고 사본 제공에 포함한다. 기본값은 본인확인 결과의 생년월일을 회원 프로필로 사용하지 않는 것이며, 운영자가 본인확인 환경설정에서 생년월일 사용을 켠 경우에만 회원가입 본인확인 결과가 `birth_date`와 `is_adult` 입력을 채우고 잠근다. 회원 추가 프로필 항목은 export 정책과 cleanup 정책을 갖는 운영자 정의 입력 표면이므로 민감정보 수집을 권장하지 않는다.
 
 | 표면 | 기본 기준 | 후속 구현 기준 |
 | --- | --- | --- |
@@ -89,7 +87,6 @@
 | 본인확인/성인 인증 | `identity_verification`은 provider 원문 응답, 주민등록번호, CI/DI 원문, 이름/휴대폰 원문을 저장하지 않고 attempt/result/link 요약과 HMAC hash만 저장한다. 계정 연결은 `sr_member_accounts` 확장이 아니라 `sr_identity_verification_links`가 소유한다. | KCP/KG이니시스 provider 실인증 smoke는 테스트/운영 상점 정보와 provider 암복호화 라이브러리가 있는 로컬 또는 staging에서 별도로 기록한다. |
 | OAuth/OIDC profile | `member_oauth`는 provider subject 원문이 아니라 HMAC hash와 최소 email snapshot만 보관한다. 화면·export용 subject 표시값도 원문 `sub`가 아니라 HMAC hash prefix로 저장한다. OAuth 로그인/연결 때 verified email과 이름은 회원 기본 필드에 갱신할 수 있고, 추가 claim은 운영자가 매핑한 회원 선택 프로필 항목에만 저장한다. 빈 값, 배열 값, 선택지 밖 값, 현재 정의되지 않은 선택 프로필 항목은 기존 저장값을 삭제하지 않고 건너뛴다. | scope를 추가하거나 claim 매핑을 추가하면 profile 원문 저장 금지, export 포함 범위, cleanup 기준을 먼저 갱신한다. |
 | CAPTCHA 검증 | `antispam`은 기본 DB 개인정보를 저장하지 않는다. | remote IP 전달을 켜거나 외부 provider script를 로딩하면 processor/국외이전 후보와 쿠키 동의 inventory에 포함한다. |
-| 퀴즈/설문 답변 | 답안/응답 snapshot은 사본 제공과 cleanup 대상이다. | 건강, 정치, 종교, 아동/연령, 고유식별자성 질문을 운영자가 추가하는 경우 별도 동의 문구와 보존/삭제 기준을 문서화해야 한다. |
 | 관리자 메모/감사 metadata | 제3자 개인정보와 민감정보 입력을 금지하고 redaction 기준을 적용한다. | #157에서 입력 가이드, 목록/상세/export 노출 범위, audit metadata 중복 노출을 점검한다. |
 
 선택 플러그인이나 후속 모듈이 특별범주·연령·고유식별자성 데이터를 다뤄야 하면 `special_category_policy`를 `not_collected`로 둘 수 없다. 해당 모듈은 수집 목적, 원문 저장 금지 여부, 최소 snapshot, export 제외 근거, cleanup 또는 보존기간, 관리자 원문 노출 금지, 설치 DB smoke 기준을 함께 제공해야 한다.
@@ -101,13 +98,13 @@
 | 표면 | 저장 위치 | 목적 | 동의/차단 기준 | 검증 |
 | --- | --- | --- | --- | --- |
 | PHP session cookie | browser cookie | 로그인, CSRF, 관리자/회원 세션 유지 | 필수 보안 저장소로 분류하고 `/privacy/cookie-settings`의 필수 및 화면 설정 저장소 그룹에 항상 사용 항목으로 표시한다. `HttpOnly`, `SameSite=Lax`, HTTPS 설정 시 `Secure`를 사용한다. | `core/helpers/runtime.php`, `.tools/bin/check-security-baseline.php`, `modules/privacy/views/cookie-settings.php` |
-| 쿠키 설정 상태 | browser cookie `sr_cookie_consent` | 기능성 저장소 항목별 허용 여부를 저장한다. | 기본/콘텐츠/커뮤니티/퀴즈 공개 layout의 `privacy` 쿠키 설정 배너에서 `관리`, `거절`, `동의` 중 하나를 선택한다. `관리`는 `/privacy/cookie-settings` 설정 페이지로 이동해 항목을 선택하고 저장한다. 로그인한 회원은 `/account/privacy-requests`의 쿠키 동의 관리에서 같은 설정 페이지로 다시 이동할 수 있다. 거절은 기능성 저장소 동의 철회로 처리한다. 이 쿠키 자체는 같은 선택을 반복해서 묻지 않기 위한 필수 설정 저장소로 분류하고 `/privacy/cookie-settings`의 필수 및 화면 설정 저장소 그룹에 표시한다. 현재 항목형 값은 `items:popup_dismissal`이며, 기존 `functional` 값은 호환을 위해 모든 기능성 항목 허용으로 읽는다. | `modules/privacy/helpers.php`, `modules/privacy/actions/cookie-consent.php`, `modules/privacy/actions/cookie-settings.php`, `modules/privacy/views/cookie-settings.php`, `modules/privacy/views/account-privacy-requests.php` |
+| 쿠키 설정 상태 | browser cookie `sr_cookie_consent` | 기능성 저장소 항목별 허용 여부를 저장한다. | 기본/콘텐츠/커뮤니티 공개 layout의 `privacy` 쿠키 설정 배너에서 `관리`, `거절`, `동의` 중 하나를 선택한다. `관리`는 `/privacy/cookie-settings` 설정 페이지로 이동해 항목을 선택하고 저장한다. 로그인한 회원은 `/account/privacy-requests`의 쿠키 동의 관리에서 같은 설정 페이지로 다시 이동할 수 있다. 거절은 기능성 저장소 동의 철회로 처리한다. 이 쿠키 자체는 같은 선택을 반복해서 묻지 않기 위한 필수 설정 저장소로 분류하고 `/privacy/cookie-settings`의 필수 및 화면 설정 저장소 그룹에 표시한다. 현재 항목형 값은 `items:popup_dismissal`이며, 기존 `functional` 값은 호환을 위해 모든 기능성 항목 허용으로 읽는다. | `modules/privacy/helpers.php`, `modules/privacy/actions/cookie-consent.php`, `modules/privacy/actions/cookie-settings.php`, `modules/privacy/views/cookie-settings.php`, `modules/privacy/views/account-privacy-requests.php` |
 | 공개 화면 색상 모드 | browser localStorage `sr_public_color_scheme` | 방문자가 직접 선택한 라이트/다크/시스템 설정을 같은 브라우저에서 유지한다. | 행태 추적이나 광고 목적이 아니라 사용자가 요청한 표시 설정 저장소로 분류하고 `/privacy/cookie-settings`의 필수 및 화면 설정 저장소 그룹에 표시한다. 값을 지우면 다음 방문에서 기본 색상 모드로 돌아가며, 기능성 쿠키 거절 상태에서도 저장될 수 있다. | `assets/common-ui.js`, 공개 layout의 초기 색상 모드 script, `modules/privacy/helpers.php`, `modules/privacy/views/cookie-settings.php` |
 | 팝업 닫기 쿠키 | browser cookie `sr_popup_layer_{id}_dismissed` | 방문자가 선택한 기간 동안 같은 팝업을 다시 보지 않게 한다. | 기능성 선택 저장소다. `sr_cookie_consent`가 `popup_dismissal` 항목을 허용할 때만 저장하고, 보관 기간은 팝업별 `dismiss_cookie_days`이며 0이면 쿠키를 만들지 않는다. 쿠키 path는 루트 배포에서는 `/`, 하위 경로 배포에서는 `sr_base_path()`를 따른다. | `modules/popup_layer/assets/saanraan-popup-layer.js`, `modules/popup_layer/helpers.php` |
 | CAPTCHA provider script | 외부 script와 provider cookie 가능성 | 공개 제출/회원가입 자동등록방지 | 보안 목적 provider 표면이다. Turnstile, hCaptcha, reCAPTCHA를 활성화하면 외부 처리자와 국외이전 후보에 포함한다. 마케팅/분석 목적 script와 함께 쓰면 사전 동의 gate를 추가해야 한다. | `modules/antispam/helpers.php`, `modules/antispam_captcha_providers/antispam-providers.php` |
 | CAPTCHA remote IP | provider 검증 POST payload | provider의 위험도 판단 보조 | 기본값은 `verify_remote_ip_enabled = false`다. 켜면 개인정보 처리활동 기록과 개인정보 안내문에 remote IP 전달을 반영한다. | `modules/antispam/module.php`, `modules/antispam/views/admin-settings.php` |
 | 커뮤니티 제출 동의 | DB row, POST checkbox | 게시글/댓글/첨부 업로드 시 개인정보 수집 동의 증적 | 브라우저 저장소에 유지하지 않고 제출 시 `community_privacy_consent_accepted`를 서버에서 검증한다. | `modules/community/helpers/privacy-consents.php`, export/cleanup runtime |
-| 댓글 추가 입력 snapshot | 댓글 DB row의 `extra_values_json` | 커뮤니티·콘텐츠·퀴즈·설문 댓글 작성 시 운영자가 정한 추가 정보 수집 | 수집·이용 목적은 필드별 공개 표시 설정이 켜진 경우에만 입력란 아래에 표시한다. 목적 원문과 표시 여부는 제출 snapshot에 함께 보존한다. 개인정보 사본에는 필드별 포함 설정이 켜진 값만 제공하고, 탈퇴/익명화 시 보관 설정이 아닌 값은 비운다. 댓글 삭제 시 snapshot을 비우며 브라우저 저장소에는 유지하지 않는다. | `core/helpers/comment-extra-fields.php`, 각 모듈 `privacy-export.php`, `privacy-cleanup.php`, `.tools/bin/check-comment-extra-fields.php` |
+| 댓글 추가 입력 snapshot | 댓글 DB row의 `extra_values_json` | 커뮤니티·콘텐츠 댓글 작성 시 운영자가 정한 추가 정보 수집 | 수집·이용 목적은 필드별 공개 표시 설정이 켜진 경우에만 입력란 아래에 표시한다. 목적 원문과 표시 여부는 제출 snapshot에 함께 보존한다. 개인정보 사본에는 필드별 포함 설정이 켜진 값만 제공하고, 탈퇴/익명화 시 보관 설정이 아닌 값은 비운다. 댓글 삭제 시 snapshot을 비우며 브라우저 저장소에는 유지하지 않는다. | `core/helpers/comment-extra-fields.php`, 각 모듈 `privacy-export.php`, `privacy-cleanup.php`, `.tools/bin/check-comment-extra-fields.php` |
 | 커뮤니티 첨부 다운로드 이력 | DB row | 첨부파일 무료/유료 다운로드 성공 이력, 유료 다운로드 차감 로그 대조, 쿠폰 사용 및 환불 정책 증빙 | 브라우저 저장소에 유지하지 않는다. 로그인 회원 다운로드는 `account_id`로 연결하고 탈퇴/익명화 시 이 연결을 제거한다. 쿠폰 redemption 링크와 환불 계약 version은 결제/환불 증빙으로 보존한다. | `modules/community/actions/attachment.php`, `modules/community/privacy-export.php`, `modules/community/privacy-cleanup.php` |
 | 커뮤니티 신고 자동 임시 조치 | DB row | 신고 임계치 도달로 게시글/댓글을 임시 숨김 처리한 운영 증빙 | 브라우저 저장소에 유지하지 않는다. `sr_community_report_auto_actions`는 대상 타입/ID, source report, 임계치와 집계 snapshot, 숨김 전후 상태, 검토자 계정 연결을 저장하며 신고자 목록을 중복 저장하지 않는다. 활성 row는 `active_target_uid` unique 기준으로 대상당 하나만 유지하고, 확정/해제/실패/건너뜀 같은 terminal 상태로 전이하면 활성 UID를 비운다. | `modules/community/helpers/reports.php`, `.tools/bin/check-community-report-auto-actions.php` |
 | 커뮤니티 계정 guard | DB row | 커뮤니티 전용 작성 보류/cooldown 같은 가역적 계정 guard의 운영 증빙과 현재 상태 | 브라우저 저장소에 유지하지 않는다. `sr_community_account_guard_events`와 `sr_community_account_guards`는 guard 대상 account, guard type/status, 만료 시각, reviewer, trigger fingerprint, snapshot을 저장한다. active current row는 `active_guard_uid` unique 기준으로 같은 계정/guard type당 하나만 유지하고 terminal 전이 시 UID를 비운다. reporter 목록, IP, UA 원문은 중복 저장하지 않는다. | `modules/community/helpers/account-guards.php`, `.tools/bin/check-community-account-guards.php` |
@@ -120,13 +117,13 @@
 
 | 요청 유형 | 기본 처리 기준 | 모듈별 전파 기준 |
 | --- | --- | --- |
-| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `identity_verification`, `policy_documents`, `notification`, `message`, `community`, `content`, `quiz`, `survey`, `reaction`, 금액성 모듈 export를 포함한다. 제공 시각, 전달 방식, 본인 확인 근거를 요청 메모에 남긴다. |
+| `access` 열람 | `privacy-export.php` 계약과 보존형 export를 수집해 사본을 제공한다. | `member`, `member_oauth`, `identity_verification`, `policy_documents`, `notification`, `message`, `community`, `content`, `reaction`, 금액성 모듈 export를 포함한다. 제공 시각, 전달 방식, 본인 확인 근거를 요청 메모에 남긴다. |
 | `rectification` 정정 | 계정 원천 데이터는 `member` 관리자/회원 화면에서 정정하고, 원문 신원정보는 재검증을 유도한다. | 게시글/댓글/응답/원장은 과거 작성 시점 snapshot을 임의 수정하지 않는다. 표시명 snapshot 정정은 운영자가 공개 오표시와 증빙 보존을 비교해 판단한다. 정정 전후 원문 전체를 메모에 붙이지 않고 처리 위치와 결과만 남긴다. |
 | `erasure` 삭제 | 회원 탈퇴/익명화 cleanup 계약을 우선 사용한다. | 운영 증빙, 금액성 원장, 정책문서 delivery, 감사 로그처럼 보존 사유가 있는 row는 account 연결 제거, tombstone, 마스킹, 보존기간 만료 후 정리 중 하나로 처리한다. 삭제하지 못한 범위와 보존 사유를 메모한다. |
-| `restriction` 처리 제한 | 계정 상태, 공개 노출, 알림 발송, 신규 처리 중단이 필요한지 분리한다. | `member` 계정 정지/보류, `notification` 발송 중단, `community`/`content`/`quiz`/`survey` 공개 노출 제한, `reaction` 신규 write 제한은 별도 모듈 정책으로 처리한다. 금액성 원장은 정산/환불 가능성을 해치지 않는다. 제한 기간과 해제 조건을 메모한다. |
+| `restriction` 처리 제한 | 계정 상태, 공개 노출, 알림 발송, 신규 처리 중단이 필요한지 분리한다. | `member` 계정 정지/보류, `notification` 발송 중단, `community`/`content` 공개 노출 제한, `reaction` 신규 write 제한은 별도 모듈 정책으로 처리한다. 금액성 원장은 정산/환불 가능성을 해치지 않는다. 제한 기간과 해제 조건을 메모한다. |
 | `portability` 이동권 | 산란이 보관하는 구조화 가능한 사본만 제공한다. | provider 원문, CI/DI 원문, 외부 처리자 내부 로그는 제공하지 않는다. export JSON은 다른 계정 row가 섞이지 않아야 한다. 별도 포맷 변환은 기본 범위에 넣지 않고 제공 파일명, 시각, 전달 경로를 메모한다. |
 | `objection` 처리 반대 | 정당한 이익이나 운영 목적 처리에 대한 중단 가능성을 검토한다. | 마케팅/분석/비필수 알림, 리액션/추천/통계 반영은 중단 후보로 두되, 보안/정산/법적 의무 기록은 보존 사유를 메모한다. 거부 가능한 항목은 소유 모듈에서 중단하고, 거부 불가 항목은 근거를 남긴다. |
-| `withdrawal` 동의 철회 | 회원 마케팅 수신 동의와 쿠키/추적 동의, 커뮤니티/설문 제출 동의를 분리한다. | `member`의 `marketing` 동의 철회 기록, #151 쿠키 consent 설정, `/account/privacy-requests`의 기능성 쿠키 철회, `community` 제출 동의의 신규 제출 차단, `survey` 응답 철회 정책을 각각 처리한다. 과거 필수 동의의 증적은 보존할 수 있다. 철회 후에도 남는 제출/거래/감사 기록이 있으면 보존 사유를 메모한다. |
+| `withdrawal` 동의 철회 | 회원 마케팅 수신 동의와 쿠키/추적 동의, 커뮤니티 제출 동의를 분리한다. | `member`의 `marketing` 동의 철회 기록, #151 쿠키 consent 설정, `/account/privacy-requests`의 기능성 쿠키 철회, `community` 제출 동의의 신규 제출 차단 응답 철회 정책을 각각 처리한다. 과거 필수 동의의 증적은 보존할 수 있다. 철회 후에도 남는 제출/거래/감사 기록이 있으면 보존 사유를 메모한다. |
 
 권리 요청 전파는 자동 일괄 변경보다 모듈 소유 정책을 우선한다. 여러 모듈에 반복되는 동작이 확인되면 먼저 좁은 helper 또는 계약을 추가하고, 코어로 올리는 것은 도메인 정책이 사라진 뒤에만 검토한다.
 
@@ -172,7 +169,7 @@
 
 ## 자산 로그 account_id 보존 기준
 
-금액성 자산 로그는 포인트, 적립금, 예치금, 쿠폰, 환전, 콘텐츠/커뮤니티 과금, 퀴즈/설문 보상처럼 권리·정산·환불·정정 근거가 되는 `export_retained` 데이터다. 탈퇴/익명화 cleanup은 공개 표시와 서비스 접근 상태를 정리하되, 원장성 row의 account 연결과 실행 snapshot을 자동 삭제하지 않는다. 단, 콘텐츠/커뮤니티 자산 처리 중 생성된 `log_status = 'pending'` placeholder는 아직 권리·정산 증빙 row가 아니므로 세션 보관 기준에 맞춰 관리자 보관 정책에서 정리할 수 있다.
+금액성 자산 로그는 포인트, 적립금, 예치금, 쿠폰, 환전, 콘텐츠/커뮤니티 과금처럼 권리·정산·환불·정정 근거가 되는 `export_retained` 데이터다. 탈퇴/익명화 cleanup은 공개 표시와 서비스 접근 상태를 정리하되, 원장성 row의 account 연결과 실행 snapshot을 자동 삭제하지 않는다. 단, 콘텐츠/커뮤니티 자산 처리 중 생성된 `log_status = 'pending'` placeholder는 아직 권리·정산 증빙 row가 아니므로 세션 보관 기준에 맞춰 관리자 보관 정책에서 정리할 수 있다.
 
 | 표면 | 보존 기준 | cleanup 기준 |
 | --- | --- | --- |
@@ -180,7 +177,6 @@
 | `coupon`, `asset_exchange` 로그 | 지급/사용/환불/환전 묶음과 실패 사유는 권리성 증빙으로 유지한다. | 상태 정정은 반대 거래나 정정 row로 남긴다. 탈퇴/익명화 계정의 법정 보관기간이 만료된 쿠폰 발급/사용 dedupe 원문은 고유 tombstone으로 바꾸고, 환전 실패 사유는 비운다. |
 | `content` 자산 로그 | `sr_content_asset_access_logs`, `sr_content_asset_action_logs`, `sr_content_author_reward_logs`의 completed 원장성 row는 법정 보관기간 동안 account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 파일 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`, 쿠폰 redemption 링크, 환불 계약 version을 함께 제공한다. | `sr_content_access_entitlements`와 `sr_content_file_download_logs`는 접근 상태/다운로드 이력 최소화를 위해 탈퇴/익명화 cleanup에서 account 연결과 쿠폰 dedupe 원문을 제거한다. 법정 5년 만료 후 completed 자산/보상/결제 보조 로그는 retention target에서 account/actor 연결, dedupe 원문, 환불 자유기입 note를 제거한다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
 | `community` 자산 로그 | `sr_community_asset_logs`, `sr_community_publisher_reward_logs`의 completed 원장성 row는 법정 보관기간 동안 downloader/publisher account id와 settlement snapshot을 유지한다. 개인정보 export는 raw snapshot과 함께 `settlement_summary`를 제공하고, 유료 첨부 다운로드 이력에는 연결 차감 로그의 `settlement_summaries`를 함께 제공한다. | `sr_community_access_entitlements`는 접근권 상태이므로 탈퇴/익명화 cleanup에서 account 연결과 source reference를 제거한다. 첨부 다운로드/게시글 열람 결제 보조 로그도 cleanup에서 account 연결과 쿠폰 dedupe 원문을 제거한다. 법정 5년 만료 후 completed 자산/보상/결제 보조 로그는 retention target에서 account 연결, dedupe 원문, 환불/실패 자유기입 note를 제거한다. 오래된 pending placeholder는 보관 정책의 미완료 로그 정리 대상이다. |
-| `quiz`, `survey` 보상 grant | 보상 지급 dedupe와 provider reference는 중복 지급 방지와 권리 확인에 필요하다. | 현재 cleanup은 grant를 익명화하되 dedupe key를 `anonymized:*` 형태로 바꿔 재연결을 끊는다. 금액성 원장 자체는 자산 모듈 보존 기준을 따른다. |
 | verification | export runtime은 대상 계정의 금액성 row만 제공하는지 확인하고, cleanup runtime은 콘텐츠/커뮤니티 자산 로그 account id가 법정 보관기간까지 유지되고 접근/다운로드 보조 로그의 account 연결과 쿠폰 dedupe 원문은 정리되는지 확인한다. | 설치 DB smoke에서는 탈퇴 후 공개 UI 노출 제거와 원장 조회 가능성, 법정 보관기간 만료 retention target을 별도로 확인한다. |
 
 ## 관리자 메모 redaction 기준
@@ -209,7 +205,7 @@
 | 점검 | 역할 |
 | --- | --- |
 | `check-retention-targets.php` | 감사 로그, 알림, 배너 클릭 hash 같은 보존/정리 대상과 삭제 SQL 안전 경계를 확인한다. |
-| `check-privacy-contract-matrix.php` | 32개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
+| `check-privacy-contract-matrix.php` | 30개 번들 모듈 분류, 계약 선언, 설치/update SQL 계정·식별자 컬럼, ROPA 문서 marker, 쿠키/브라우저 저장소 inventory, 통합 게이트 연결을 확인한다. |
 | `check-privacy-export-runtime.php` | SQLite fixture로 활동 데이터, 결제 기록, 보존형 원장이 대상 계정 기준으로 export되고 다른 계정 row가 섞이지 않는지 확인한다. |
 | `check-privacy-export-status.php` | 테스트용 모듈 export 실패와 section row 초과를 시뮬레이션해 `partial_export`, `module_export_status`, `overflow_sections`, `evidence_id`가 JSON에 남고 raw exception/secret이 노출되지 않는지 확인한다. |
 | `check-privacy-cleanup-runtime.php` | SQLite fixture로 탈퇴/익명화 cleanup이 공개 노출 데이터와 secret을 줄이고, 결제 record account 연결과 item account 참조를 익명화하며, 보존 원장은 유지하는지 확인한다. |

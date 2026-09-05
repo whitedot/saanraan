@@ -22,7 +22,7 @@
 | 공개 업로드 이미지 응답 캐시 | 회원 프로필 이미지처럼 공개 경로로 제공되는 업로드 이미지는 권한/개인정보별 HTML과 분리하고, 파일명 또는 query version으로 갱신되게 한다. 로컬 파일 응답은 `Cache-Control`, `ETag`, `Last-Modified`를 보내고 조건부 요청이 맞으면 `304 Not Modified`로 끝낼 수 있다. |
 | 공개 이미지 썸네일 캐시 | 원본이 공개로 노출 가능한 이미지일 때만 `storage/cache/thumbnails` 아래에 생성한다. 새 캐시는 `{module_key}/{hash-prefix}/{hash}_{variant}_{source_version}.{ext}` 형식을 사용하며, 배포 규칙은 생성 파일명 패턴의 JPEG/PNG/GIF/WebP만 직접 열 수 있게 제한해야 한다. 원본 교체 감지는 모듈 제공 `source_version`/checksum, S3 `VersionId`/ETag/LastModified, 로컬 mtime/size 순으로 산출한 source version이 담당한다. 호출자가 checksum/source version과 MIME을 제공하면 helper는 원본 파일 또는 S3 원본을 열기 전에 기존 cache file을 먼저 확인하고, cache hit이면 원본 검증/다운로드 없이 캐시 URL을 반환해야 한다. |
 | 내부 URL 임베드 fragment 캐시 | URL 임베드 helper가 `storage/cache/embeds` 아래에 sanitized HTML fragment를 저장해 같은 공개 baseline 내부 URL 임베드를 다시 렌더링할 때 대상 계약 실행을 건너뛸 수 있다. 직접 공개 URL로 제공하지 않으며, 대상 모듈이 `fragment_cache_public`을 명시하고 익명 공개/비유료/비권한 조건과 target cache version을 제공할 때만 생성한다. |
-| 공개 메뉴 메타데이터 캐시 | 사이트 메뉴의 published tree와 콘텐츠·퀴즈·설문 사이드 그룹 메뉴처럼 계정별 권한이 없는 좁은 공개 메타데이터만 `storage/cache/public-data` 아래에 저장한다. 최종 HTML, 현재 항목, 로그인 이동 경로, 계정별 권한은 캐시하지 않는다. |
+| 공개 메뉴 메타데이터 캐시 | 사이트 메뉴의 published tree와 콘텐츠 사이드 그룹 메뉴처럼 계정별 권한이 없는 좁은 공개 메타데이터만 `storage/cache/public-data` 아래에 저장한다. 최종 HTML, 현재 항목, 로그인 이동 경로, 계정별 권한은 캐시하지 않는다. |
 | read-only 상태 점검 결과 기록 | `ops-status.php` 출력처럼 사람이 기록하는 운영 기록은 캐시가 아니라 점검 증거로 다룬다. |
 
 ## 금지하거나 보류하는 캐시
@@ -49,7 +49,7 @@ S3 원본 이미지는 cache miss 또는 checksum/source version이 없어 선�
 
 관리자 화면의 메뉴 저장, 항목 저장, 정렬, 삭제는 초안 테이블만 변경하므로 공개 렌더링 cache를 무효화하지 않는다. `공개 반영`이 초안을 공개 메뉴 테이블로 교체하거나 신규 설치 seed가 공개 항목을 만들면 `sr_site_menu_clear_cache()`가 요청 메모리와 cache key generation을 함께 무효화한다. generation marker가 손상됐거나 읽을 수 없으면 해당 캐시는 marker가 정상적으로 회전될 때까지 읽기·쓰기를 모두 우회한다. 이 상태에서 개별 cache key 무효화를 요청하면 namespace 전체 무효화로 승격해 손상된 namespace marker를 복구한다. marker 기록에 실패하면 공개 반영 결과는 유지하되 관리자 토스트와 오류 로그로 저장소 쓰기 권한 점검을 요구하고, 요청 메모리와 확인 가능한 기존 payload는 최선 범위에서 정리한다. 이전 payload 파일 삭제가 실패해도 새 generation에서는 읽히지 않으며 삭제 실패는 오류 로그에 남긴다.
 
-콘텐츠·퀴즈·설문 공개 사이드바의 사용 상태 그룹 메뉴 원본은 같은 `storage/cache/public-data/public-side-menu` 저장소를 사용한다. 캐시에는 그룹 key와 표시명만 두고 현재 항목 표시는 요청마다 적용한다. 그룹 생성·수정·삭제 시 각 모듈 helper가 자기 cache key generation만 무효화하며, 콘텐츠 그룹 상태 일괄 변경처럼 helper 밖에서 상태를 바꾸는 action도 commit 직후 같은 무효화를 호출한다. 한 모듈의 key 무효화는 같은 namespace의 다른 모듈 key generation을 바꾸지 않는다. 커뮤니티 사이드 게시판 메뉴는 기존 `community-board` 활성 게시판 파일 캐시를 재사용하고 읽기 권한과 현재 게시판 판정은 요청별로 유지한다.
+콘텐츠 공개 사이드바의 사용 상태 그룹 메뉴 원본은 같은 `storage/cache/public-data/public-side-menu` 저장소를 사용한다. 캐시에는 그룹 key와 표시명만 두고 현재 항목 표시는 요청마다 적용한다. 그룹 생성·수정·삭제 시 각 모듈 helper가 자기 cache key generation만 무효화하며, 콘텐츠 그룹 상태 일괄 변경처럼 helper 밖에서 상태를 바꾸는 action도 commit 직후 같은 무효화를 호출한다. 한 모듈의 key 무효화는 같은 namespace의 다른 모듈 key generation을 바꾸지 않는다. 커뮤니티 사이드 게시판 메뉴는 기존 `community-board` 활성 게시판 파일 캐시를 재사용하고 읽기 권한과 현재 게시판 판정은 요청별로 유지한다.
 
 ## 반복 렌더링 계약 캐시
 
@@ -80,7 +80,7 @@ S3 원본 이미지는 cache miss 또는 checksum/source version이 없어 선�
 
 커뮤니티 댓글의 `thread_root_id`는 최상위 댓글도 자기 `id`를 저장하며 공개 정렬은 `(post_id, status, thread_root_id, depth, id)` 인덱스 순서를 사용한다. 댓글 생성과 게시판 복사 경로는 최상위 댓글 저장 직후 이 값을 확정해야 한다. `2026.07.009` 업데이트는 기존 NULL 답글을 부모 스레드에 연결하고 남은 NULL 행을 독립 최상위 댓글로 정규화한 뒤 인덱스를 교체한다. 대형 댓글 테이블에서는 UPDATE와 인덱스 재구성이 잠금과 추가 디스크를 사용할 수 있으므로 DB 백업과 유지보수 시간 확보 후 적용한다.
 
-콘텐츠, 퀴즈, 설문 공개 상세의 댓글도 `status = published`와 스레드 표시 순서를 유지한 숫자 페이지로 조회하며 페이지당 20개를 표시한다. 이 세 모듈은 동기식 `comment_page` URL을 사용하고, 페이지 범위를 벗어난 요청은 마지막 페이지로 보정한다. 댓글 작성·수정·삭제·숨김 후에는 처리 대상 댓글이 속한 페이지 또는 보정된 현재 페이지로 이동해 20개 이후 댓글도 계속 접근할 수 있게 한다. 댓글 총수는 현재 페이지 row 수가 아니라 전체 게시 댓글 수를 표시한다.
+콘텐츠 공개 상세의 댓글도 `status = published`와 스레드 표시 순서를 유지한 숫자 페이지로 조회하며 페이지당 20개를 표시한다. 이 세 모듈은 동기식 `comment_page` URL을 사용하고, 페이지 범위를 벗어난 요청은 마지막 페이지로 보정한다. 댓글 작성·수정·삭제·숨김 후에는 처리 대상 댓글이 속한 페이지 또는 보정된 현재 페이지로 이동해 20개 이후 댓글도 계속 접근할 수 있게 한다. 댓글 총수는 현재 페이지 row 수가 아니라 전체 게시 댓글 수를 표시한다.
 
 콘텐츠 전체검색, 커뮤니티 전체검색, 커뮤니티 내 글·댓글 목록은 20개 단위 `page` offset을 사용하되 서비스 정책상의 최대 페이지를 두지 않는다. 입력값은 정수 연산이 넘치지 않는 범위에서만 기술적으로 보정하며, 50페이지 이후 결과도 같은 이전·다음 흐름으로 접근할 수 있어야 한다.
 
@@ -92,7 +92,7 @@ S3 원본 이미지는 cache miss 또는 checksum/source version이 없어 선�
 
 커뮤니티 활성 게시판 메타 캐시는 `storage/cache/community-board/enabled-boards.json`에 게시판 row와 effective 게시판 설정만 저장한다. 이 값은 계정별 권한 결과나 HTML이 아니라 게시판 공개/읽기 정책, 그룹/전역 설정 상속 결과, 피드 노출 설정처럼 관리자 변경으로만 바뀌는 메타데이터다. 공개 홈은 이 파일로 활성 게시판 목록 재구성과 설정 N+1 조회를 건너뛰고, 이후 계정별 읽기 권한은 요청 시점에 별도로 계산한다. 게시판 생성/수정/삭제, 게시판 설정 변경, 게시판 그룹 설정 변경, 그룹 삭제는 파일을 삭제해 다음 요청에서 재생성하게 해야 한다.
 
-본문 URL 임베드 fragment 캐시는 최신글 공개 baseline과 같은 원칙을 따른다. 콘텐츠 유료 열람, 커뮤니티 paid read/비밀글/비공개 게시판, 퀴즈 회원 그룹 제한, 설문 로그인/회원 그룹 제한처럼 viewer별 계약이 필요한 대상은 fragment cache value에 넣지 않는다. 대상 모듈은 공개 상태나 target cache version이 바뀌는 저장/삭제/상태 변경 후 URL 캐시 row를 갱신 필요 상태로 표시해 이전 fragment가 재사용되지 않게 해야 한다.
+본문 URL 임베드 fragment 캐시는 최신글 공개 baseline과 같은 원칙을 따른다. 대상 모듈은 공개 상태나 target cache version이 바뀌는 저장/삭제/상태 변경 후 URL 캐시 row를 갱신 필요 상태로 표시해 이전 fragment가 재사용되지 않게 해야 한다.
 
 ## 캐시별 운영 경계
 
@@ -104,7 +104,7 @@ S3 원본 이미지는 cache miss 또는 checksum/source version이 없어 선�
 | 커뮤니티 피드 캐시 | `community` 모듈 | `summary_feed_candidate`가 켜진 게시글의 공개 baseline 최신글/인기글 후보 조회, 최신댓글 조회, snapshot 구성 비용 | 게시글, 댓글, 게시판 공개/권한/유료 열람 조건 또는 커뮤니티 피드 노출 설정 변경 후 게시글 후보값을 동기화하고 feed cache를 갱신 필요 상태로 표시한다. 조회수 기반 인기글처럼 자연 변동이 있는 피드는 코드에 고정한 feed key 정책으로 주기 재계산할 수 있다. |
 | 커뮤니티 활성 게시판 메타 캐시 | `community` 모듈 | 커뮤니티 홈의 활성 게시판/effective 설정 조회와 설정 N+1 계산 비용 | 게시판 생성/수정/삭제, 게시판 설정 변경, 게시판 그룹 설정 변경, 그룹 삭제 후 파일을 삭제하고 다음 요청에서 재생성한다. |
 | 사이트 메뉴 트리 캐시 | `site_menu` 모듈과 공통 public data cache helper | 공개 header/footer·서비스 레이아웃·사이드바의 published 메뉴명과 enabled item tree 조회 비용 | 사이트 메뉴 공개 반영과 신규 설치 seed 후 해당 namespace를 비우고 다음 요청에서 재생성한다. 손상되거나 계약과 다른 payload는 렌더 전에 거부한다. |
-| 공개 사이드 그룹 메뉴 캐시 | `content`, `quiz`, `survey` 모듈과 공통 public data cache helper | 공개 사이드바의 사용 상태 그룹 key·표시명 조회 비용 | 그룹 생성·수정·삭제와 콘텐츠 그룹 상태 일괄 변경 후 모듈별 key를 비운다. 손상된 그룹 row는 거부하고 DB에서 다시 조회한다. |
+| 공개 사이드 그룹 메뉴 캐시 | `content` 모듈과 공통 public data cache helper | 공개 사이드바의 사용 상태 그룹 key·표시명 조회 비용 | 그룹 생성·수정·삭제와 콘텐츠 그룹 상태 일괄 변경 후 모듈별 key를 비운다. 손상된 그룹 row는 거부하고 DB에서 다시 조회한다. |
 | 본문 URL 임베드 저장값 | URL 임베드 helper와 대상 모듈의 URL 계약 | 본문 URL 해석, 대상 조회, 공개 카드 렌더링 비용 | 본문 저장 시 URL cache row를 파생하고, 대상 제목/요약/이미지/공개 상태/version이 바뀌면 대상 모듈이 갱신 필요 상태로 표시한다. |
 
 위 캐시는 모두 cache hit에서 사용자 요청 부담을 줄인다. cache miss, 갱신 필요, 코드 정책상 재계산 대상 상태에서는 공유호스팅 제약상 같은 사용자 요청 안에서 재계산이나 파일 생성이 일어날 수 있으므로, 느린 화면을 판단할 때는 hit 경로와 miss 경로를 나누어 측정한다.

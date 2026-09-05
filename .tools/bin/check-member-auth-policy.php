@@ -1159,8 +1159,6 @@ foreach ([
     'layouts/public/basic/layout.php',
     'modules/content/theme/basic/layout.php',
     'modules/community/theme/basic/layout.php',
-    'modules/quiz/theme/basic/layout.php',
-    'modules/survey/theme/basic/layout.php',
 ] as $publicLayoutPath) {
     $publicLayout = sr_member_auth_policy_read($publicLayoutPath);
     sr_member_auth_policy_assert(

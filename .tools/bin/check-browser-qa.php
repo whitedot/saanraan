@@ -136,8 +136,6 @@ sr_browser_qa_require_markers('.tools/browser-qa/tests/public-module-sidebar-the
 sr_browser_qa_require_markers('.tools/browser-qa/tests/public-comment-pagination-theme.spec.js', [
     'community-comments-pagination',
     'content-comments-pagination',
-    'quiz-comments-pagination',
-    'survey-comments-pagination',
     'comment panel keeps complete divider metrics',
     'headerDivider',
     'formDivider',

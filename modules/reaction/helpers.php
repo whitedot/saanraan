@@ -12,10 +12,6 @@ function sr_reaction_allowed_target_map(): array
         'content/comment' => true,
         'community/post' => true,
         'community/comment' => true,
-        'quiz/quiz_set' => true,
-        'quiz/comment' => true,
-        'survey/survey_form' => true,
-        'survey/comment' => true,
     ];
 }
 

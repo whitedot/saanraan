@@ -98,7 +98,7 @@ foreach ($moduleMetadata as $moduleKey => $metadata) {
     }
 }
 
-$publicIdentityConsumers = ['admin', 'content', 'community', 'quiz', 'survey'];
+$publicIdentityConsumers = ['admin', 'content', 'community'];
 $memberMetadata = $moduleMetadata['member'] ?? [];
 if (!in_array('public-identity.php', (array) ($memberMetadata['contracts']['provides'] ?? []), true)) {
     $fail('member must declare public-identity.php in contracts.provides.');
@@ -132,8 +132,6 @@ $requestFiles = [
     'modules/content/actions/view.php',
     'modules/community/actions/list.php',
     'modules/community/actions/view.php',
-    'modules/quiz/actions/view.php',
-    'modules/survey/actions/view.php',
 ];
 foreach ($requestFiles as $requestFile) {
     $source = file_get_contents($root . '/' . $requestFile);
@@ -149,8 +147,6 @@ $consumerViewFiles = [
     'modules/content/views/content.php',
     'modules/community/skins/basic/list.php',
     'modules/community/skins/basic/view.php',
-    'modules/quiz/skins/basic/view.php',
-    'modules/survey/skins/basic/view.php',
 ];
 foreach ($consumerViewFiles as $consumerViewFile) {
     $source = file_get_contents($root . '/' . $consumerViewFile);
@@ -230,7 +226,7 @@ if (!is_string($contractSource)
     $fail('member public identity contract must load explicit narrow helper dependencies instead of the aggregate member helper.');
 }
 
-foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey) {
+foreach (['content', 'community'] as $layoutProviderModuleKey) {
     $layoutFile = 'modules/' . $layoutProviderModuleKey . '/theme/basic/layout.php';
     $layoutSource = file_get_contents($root . '/' . $layoutFile);
     if (!is_string($layoutSource)
@@ -248,7 +244,7 @@ $publicFeatureContracts = [
     'admin' => [
         'file' => 'public-account-access.php',
         'helper_file' => 'helpers/public-account-access.php',
-        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'consumers' => ['content', 'community'],
         'functions' => [
             'sr_admin_public_account_access_context',
         ],
@@ -266,7 +262,7 @@ $publicFeatureContracts = [
     ],
     'popup_layer' => [
         'file' => 'public-popup-layer.php',
-        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'consumers' => ['content', 'community'],
         'functions' => [
             'sr_popup_layer_public_assets',
             'sr_popup_layer_public_layers',
@@ -276,7 +272,7 @@ $publicFeatureContracts = [
     ],
     'reaction' => [
         'file' => 'public-reaction.php',
-        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'consumers' => ['content', 'community'],
         'functions' => [
             'sr_reaction_delete_target_records',
             'sr_reaction_disabled_preset_key',
@@ -321,7 +317,7 @@ $publicFeatureContracts = [
     'logo_manager' => [
         'file' => 'public-branding.php',
         'helper_file' => 'helpers/public-branding.php',
-        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'consumers' => ['content', 'community'],
         'functions' => [
             'sr_logo_manager_render_logo',
             'sr_logo_manager_render_public_symbol_logo',
@@ -332,7 +328,7 @@ $publicFeatureContracts = [
     'privacy' => [
         'file' => 'public-cookie-consent.php',
         'helper_file' => 'helpers/public-cookie-consent.php',
-        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'consumers' => ['content', 'community'],
         'functions' => [
             'sr_privacy_cookie_consent_public_html',
             'sr_privacy_cookie_consent_public_assets',
@@ -342,7 +338,7 @@ $publicFeatureContracts = [
     'message' => [
         'file' => 'public-message-summary.php',
         'helper_file' => 'helpers/public-summary.php',
-        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'consumers' => ['content', 'community'],
         'functions' => [
             'sr_message_public_summary_context',
             'sr_message_enabled',
@@ -353,7 +349,7 @@ $publicFeatureContracts = [
     'notification' => [
         'file' => 'public-notification-summary.php',
         'helper_file' => 'helpers/public-summary.php',
-        'consumers' => ['content', 'community', 'quiz', 'survey'],
+        'consumers' => ['content', 'community'],
         'functions' => [
             'sr_notification_public_header_summary',
             'sr_notification_item_link_attributes',
@@ -406,8 +402,6 @@ $publicFeatureRequestContracts = [
     'modules/community/actions/write.php' => ['public-banner.php', 'public-popup-layer.php', 'public-antispam.php'],
     'modules/community/actions/comment.php' => ['public-antispam.php'],
     'modules/community/actions/edit.php' => ['public-banner.php', 'public-popup-layer.php'],
-    'modules/quiz/actions/view.php' => ['public-reaction.php'],
-    'modules/survey/actions/view.php' => ['public-reaction.php'],
     'modules/message/actions/message-view.php' => ['public-report.php'],
 ];
 foreach ($publicFeatureRequestContracts as $requestFile => $contractFiles) {
@@ -426,7 +420,7 @@ $publicLayoutContracts = [
     'public-message-summary.php',
     'public-notification-summary.php',
 ];
-foreach (['content', 'community', 'quiz', 'survey'] as $consumerModuleKey) {
+foreach (['content', 'community'] as $consumerModuleKey) {
     $layoutFile = 'modules/' . $consumerModuleKey . '/theme/basic/layout.php';
     $source = file_get_contents($root . '/' . $layoutFile);
     foreach ($publicLayoutContracts as $contractFile) {
@@ -436,7 +430,7 @@ foreach (['content', 'community', 'quiz', 'survey'] as $consumerModuleKey) {
     }
 }
 
-foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey) {
+foreach (['content', 'community'] as $layoutProviderModuleKey) {
     $layoutFile = 'modules/' . $layoutProviderModuleKey . '/theme/basic/layout.php';
     $layoutSource = file_get_contents($root . '/' . $layoutFile);
     if (!is_string($layoutSource)
@@ -458,7 +452,7 @@ if (!is_string($messagePublicSummaryContractSource)
 ) {
     $fail('message public summary contract must load its narrow read-only helper instead of the aggregate message helper.');
 }
-foreach (['content', 'community', 'quiz', 'survey'] as $layoutProviderModuleKey) {
+foreach (['content', 'community'] as $layoutProviderModuleKey) {
     $layoutFile = 'modules/' . $layoutProviderModuleKey . '/theme/basic/layout.php';
     $layoutSource = file_get_contents($root . '/' . $layoutFile);
     if (!is_string($layoutSource)
@@ -557,7 +551,7 @@ $forbiddenPublicFeaturePaths = [
     '/modules/message/helpers.php',
     '/modules/notification/helpers.php',
 ];
-foreach (['content', 'community', 'quiz', 'survey'] as $consumerModuleKey) {
+foreach (['content', 'community'] as $consumerModuleKey) {
     $moduleDirectory = $root . '/modules/' . $consumerModuleKey;
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($moduleDirectory, FilesystemIterator::SKIP_DOTS));
     foreach ($files as $file) {

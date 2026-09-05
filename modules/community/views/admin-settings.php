@@ -10,14 +10,10 @@ $communityBoardSidebarSiteMenuAvailable = isset($communityBoardSidebarSiteMenuAv
 $communitySettingsModuleAdminPaths = [
     'site_menu' => '/admin/site-menus',
     'content_layout' => '/admin/content/settings',
-    'quiz_layout' => '/admin/quiz/settings',
-    'survey_layout' => '/admin/surveys/settings',
     'ckeditor' => '/admin/ckeditor/settings',
     'markdown_editor' => '/admin/markdown-editor/settings',
     'content_embed' => '/admin/content',
     'coupon_embed' => '/admin/coupons/campaigns',
-    'quiz_embed' => '/admin/quiz',
-    'survey_embed' => '/admin/surveys',
 ];
 $communityLayoutModuleReferences = [];
 foreach ($communityLayoutOptions as $communityLayoutOption) {

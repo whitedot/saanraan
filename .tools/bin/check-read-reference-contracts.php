@@ -207,7 +207,6 @@ function sr_read_reference_check_forbidden_owner_writes(string $root): void
 {
     $rules = [
         'coupon' => [
-            'sr_quiz_',
             'sr_content_',
             'sr_community_',
             'sr_commerce_',
@@ -702,22 +701,6 @@ function sr_read_reference_check_keyed_contract_row_sources(string $root): void
 function sr_read_reference_check_coupon_reward_reference_sources(string $root): void
 {
     $checks = [
-        [
-            'path' => $root . '/modules/quiz/helpers/rewards.php',
-            'raw_status' => "'status' => (string) (\$row['quiz_status'] ?? '')",
-            'policy_status' => "'policy_status' => (string) (\$row['quiz_status'] ?? '')",
-            'health_message' => '퀴즈 또는 보상 정책이 사용 상태가 아닙니다.',
-            'table_guard' => "sr_quiz_reward_table_available(\$pdo, 'sr_quiz_reward_policies')",
-            'label' => 'quiz',
-        ],
-        [
-            'path' => $root . '/modules/survey/helpers.php',
-            'raw_status' => "'status' => (string) (\$row['survey_status'] ?? '')",
-            'policy_status' => "'policy_status' => (string) (\$row['survey_status'] ?? '')",
-            'health_message' => '설문 또는 보상 정책이 사용 상태가 아닙니다.',
-            'table_guard' => "sr_survey_reward_table_available(\$pdo, 'sr_survey_reward_policies')",
-            'label' => 'survey',
-        ],
     ];
 
     foreach ($checks as $check) {

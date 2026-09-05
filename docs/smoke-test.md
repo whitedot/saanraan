@@ -2,7 +2,7 @@
 
 이 문서는 설치 직후, 배포 전, 운영 수정 후 최소한으로 확인할 HTTP 검증 범위를 정리한다. 목표는 모든 기능을 자동 테스트하는 것이 아니라, 핵심 요청 흐름이 깨졌거나 내부 파일이 노출되는 문제를 빠르게 발견하는 것이다.
 
-신규 설치 스모크를 수행할 때 `site_menu`와 콘텐츠/커뮤니티/퀴즈·테스트/설문·여론조사 중 일부를 선택했다면 설치 직후 `Header Menu`에 `Home`과 선택한 서비스 모듈의 `service_domain.main_page` 링크만 생성되고, `Contents`, `Community`, `Quiz`, `Survey` 순서와 영문 표시명으로 나타나며, 로그인/회원가입이 자동 삽입되지 않는지 DB와 공개 헤더에서 확인한다. 모듈명과 설치/관리자 초기화면 후보의 한국어 표시명은 유지되어야 한다. `site_menu`를 선택하지 않은 설치에서는 이 seed가 실행되지 않아야 한다.
+신규 설치 스모크를 수행할 때 `site_menu`와 콘텐츠/커뮤니티 중 일부를 선택했다면 설치 직후 `Header Menu`에 `Home`과 선택한 서비스 모듈의 `service_domain.main_page` 링크만 생성되고, `Contents`, `Community` 순서와 영문 표시명으로 나타나며, 로그인/회원가입이 자동 삽입되지 않는지 DB와 공개 헤더에서 확인한다. 모듈명과 설치/관리자 초기화면 후보의 한국어 표시명은 유지되어야 한다. `site_menu`를 선택하지 않은 설치에서는 이 seed가 실행되지 않아야 한다.
 
 SEO 설정 화면 스모크에서는 사이트맵 확인 링크와 URL 복사 버튼이 설정 저장 submit을 발생시키지 않는지, 사이트맵 확인 링크와 robots 파일 확인 버튼이 새 탭으로 열리는지, 복사 성공/실패 피드백이 버튼 텍스트로 돌아오는지, robots 파일 확인 버튼이 카드 헤더 오른쪽에 표시되고 미리보기 텍스트가 좁은 화면에서도 넘치지 않는지 확인한다.
 
@@ -40,23 +40,18 @@ SQL 파일 비어 있음 여부
 전체 PHP 문법
 rich text sanitizer payload 회귀 점검
 문서 링크와 .tools/bin 명령 참조 존재 여부
-보상/설문 정합성 회귀 점검
-댓글 추가 입력 정의·신규 등록 폼 초기값 경계·항목별 독립 저장·콘텐츠/퀴즈/설문의 단독·그룹·전체 복사 범위·수집 목적 표시 선택·필수값 검증·snapshot 저장·개인정보 사본/정리 점검
+댓글 추가 입력 정의·신규 등록 폼 초기값 경계·항목별 독립 저장·콘텐츠의 단독·그룹·전체 복사 범위·수집 목적 표시 선택·필수값 검증·snapshot 저장·개인정보 사본/정리 점검
 ```
 
-관리자 수동 임시저장을 확인할 때는 `/admin/content/settings`, `/admin/community/settings`, `/admin/member-settings`, `/admin/quiz/settings`, `/admin/surveys/settings`와 게시판·콘텐츠·퀴즈·설문 생성/수정 폼에서 필수값 일부를 비운 상태로 `임시저장`을 누른다. 실제 모듈 설정이나 도메인 레코드는 바뀌지 않고 GET 화면에서 같은 관리자에게만 저장 시각, 복원 입력, 삭제 버튼이 표시되어야 한다. 반복 추가 메뉴의 이름만 입력한 미완성 행, 체크 해제, 추가 입력 항목, 콘텐츠 연결 파일, 게시판 자산별 금액·정책 세트, 퀴즈 문제·결과 규칙, 설문 문항·선택지도 유지되어야 한다. 생성 임시저장본은 수정 화면에 나타나지 않고 서로 다른 수정 대상과 설문 복사 원본의 임시저장본도 섞이지 않아야 하며, 파일 input은 복원되지 않는다는 안내가 표시되어야 한다. 임시저장 뒤 다른 세션에서 원본 설정이나 수정 대상을 바꾸면 원본 변경 경고가 표시되어야 한다. Enter 기본 제출은 임시저장이나 삭제가 아니라 최종 저장을 실행하고 기존 서버 검증을 거쳐야 하며, 최종 저장 성공 또는 임시저장 삭제 뒤에는 같은 임시저장본이 다시 나타나지 않아야 한다. 관리자 계정 개인정보 사본에는 해당 임시저장 payload가 포함되고 계정 정리 뒤에는 삭제되어야 한다.
+관리자 수동 임시저장을 확인할 때는 `/admin/content/settings`, `/admin/community/settings`, `/admin/member-settings`와 게시판·콘텐츠 생성/수정 폼에서 필수값 일부를 비운 상태로 `임시저장`을 누른다. 실제 모듈 설정이나 도메인 레코드는 바뀌지 않고 GET 화면에서 같은 관리자에게만 저장 시각, 복원 입력, 삭제 버튼이 표시되어야 한다. 임시저장 뒤 다른 세션에서 원본 설정이나 수정 대상을 바꾸면 원본 변경 경고가 표시되어야 한다. Enter 기본 제출은 임시저장이나 삭제가 아니라 최종 저장을 실행하고 기존 서버 검증을 거쳐야 하며, 최종 저장 성공 또는 임시저장 삭제 뒤에는 같은 임시저장본이 다시 나타나지 않아야 한다. 관리자 계정 개인정보 사본에는 해당 임시저장 payload가 포함되고 계정 정리 뒤에는 삭제되어야 한다.
 
-현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 보상 중복 방지 기준은 `.tools/bin/check-reward-abuse-standards.php`, 설문 통계/개인정보/완료 화면 회귀 기준은 `.tools/bin/check-survey-consistency.php`, URL 임베드 계약 구조·모듈별 외부/내부 gate·Markdown wrapper 밖 임베드 경계는 `.tools/bin/check-url-embed-contracts.php`가 확인하며 모두 `.tools/bin/check.php`에 포함된다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
+현재 통합 점검은 코드 상태뿐 아니라 진행 중인 정책 TODO도 함께 검사한다. 이후 실패가 발생하면 실패 항목이 현재 변경의 회귀인지, 새 정책 점검 추가로 드러난 기존 보완 항목인지 먼저 분리한다. `.tools/bin/check.php`의 PHP 문법 검사는 저장소 코드와 도구 파일을 대상으로 하며, 환경별 비밀 설정과 런타임 파일이 들어가는 `config/`, `storage/` 디렉터리는 제외한다.
 
-공개 레이아웃/테마/스킨 설정을 바꾼 경우 사이트 설정의 공개 화면 테마는 `core/views/theme/{theme_key}/home.php`를 가진 내부 초기화면 테마만 저장할 수 있어야 하며, 공개 레이아웃 선택지는 레이아웃만 저장해야 한다. 콘텐츠/커뮤니티/퀴즈/설문 환경설정의 공개 테마 선택지는 각 모듈의 `theme/{theme_key}` 필수 view 세트가 있는 키만 저장할 수 있어야 한다. 배포판에는 `basic` 테마와 `basic` 스킨만 포함하며, 콘텐츠는 `modules/content/theme/basic`의 view를, 커뮤니티/퀴즈/설문은 `modules/{module}/theme/basic`의 위임 view와 선택된 skin 본문을 사용해야 한다. 저장된 테마 또는 스킨 디렉터리와 필수 view가 없으면 `basic`으로 fallback하고 존재하지 않는 key의 asset URL을 출력하지 않아야 한다. 별도로 설치한 유효한 테마를 선택한 경우 콘텐츠 `/content`, `/content/group?key=...`, `/content/{slug}`, 커뮤니티 `/community`, `/community/group?key=...`, `/community/board?key=...`, `/community/post?id=...`, `/community/write?key=...`, `/community/search`, 퀴즈 `/quiz`, `/quiz/{quiz_key}`, 설문 `/survey`, `/survey/{survey_key}` 공개 화면이 선택한 theme view와 asset을 사용해야 한다. 모듈 UI-KIT 미리보기 `/content/ui-kit`, `/community/ui-kit`, `/quiz/ui-kit`, `/survey/ui-kit`은 선택 theme의 `ui-kit.php`에서 렌더링되어 `data-theme-ui-kit-view` marker와 선택 theme의 `assets/common.css`, `assets/ui-kit-layout.css`를 가져야 한다. 각 모듈 관리자 화면은 공개 테마 선택으로 바뀌지 않아야 한다. 별도 theme이 전체 view를 제공하면 해당 theme이 선택 스킨보다 우선하고, 번들 `basic` theme에서는 선택 스킨이 본문을 렌더링해야 한다. 현재 화면 target을 지원하지 않는 레이아웃은 공개 렌더링에서 `common.basic`으로 fallback해야 하며, 모듈 환경설정의 레이아웃 선택지는 해당 모듈 필수 target 전체를 지원하는 option만 저장할 수 있어야 한다.
+공개 레이아웃/테마/스킨 설정을 바꾼 경우 사이트 설정의 공개 화면 테마는 `core/views/theme/{theme_key}/home.php`를 가진 내부 초기화면 테마만 저장할 수 있어야 하며, 공개 레이아웃 선택지는 레이아웃만 저장해야 한다. 콘텐츠/커뮤니티 환경설정의 공개 테마 선택지는 각 모듈의 `theme/{theme_key}` 필수 view 세트가 있는 키만 저장할 수 있어야 한다. 배포판에는 `basic` 테마와 `basic` 스킨만 포함하며, 콘텐츠는 `modules/content/theme/basic`의 view를, 커뮤니티은 `modules/{module}/theme/basic`의 위임 view와 선택된 skin 본문을 사용해야 한다. 저장된 테마 또는 스킨 디렉터리와 필수 view가 없으면 `basic`으로 fallback하고 존재하지 않는 key의 asset URL을 출력하지 않아야 한다. 모듈 UI-KIT 미리보기 `/content/ui-kit`, `/community/ui-kit`은 선택 theme의 `ui-kit.php`에서 렌더링되어 `data-theme-ui-kit-view` marker와 선택 theme의 `assets/common.css`, `assets/ui-kit-layout.css`를 가져야 한다. 각 모듈 관리자 화면은 공개 테마 선택으로 바뀌지 않아야 한다. 별도 theme이 전체 view를 제공하면 해당 theme이 선택 스킨보다 우선하고, 번들 `basic` theme에서는 선택 스킨이 본문을 렌더링해야 한다. 현재 화면 target을 지원하지 않는 레이아웃은 공개 렌더링에서 `common.basic`으로 fallback해야 하며, 모듈 환경설정의 레이아웃 선택지는 해당 모듈 필수 target 전체를 지원하는 option만 저장할 수 있어야 한다.
 
-퀴즈/설문 공개 스킨 설정을 바꾼 경우 `/admin/quiz/settings`, `/admin/surveys/settings`의 기본값과 개별 퀴즈/설문 수정 화면의 `skin_key`가 허용 목록 값으로만 저장되는지 확인한다. 개별 값이 비어 있으면 환경설정 기본값을 상속하고, 값이 있으면 상세/응시/응답/완료 화면에서 개별값이 우선해야 한다. `/quiz`, `/quiz/{quiz_key}`, `/survey`, `/survey/{survey_key}`는 선택 스킨의 `home`/`view` 본문을 공개 레이아웃 안에서 렌더링해야 하며, 결과/완료 화면의 보상 지급 안내가 유지되어야 한다. 잘못된 legacy `skin_key`나 누락된 스킨 view는 `basic`으로 fallback하고 운영 로그에 module, skin key, view, fallback file이 남는지 확인한다.
+본문 임베드 변경을 확인할 때는 콘텐츠/커뮤니티 본문에 YouTube, X, Instagram, 내부 콘텐츠·커뮤니티 URL을 한 줄에 단독으로 붙여 넣고 저장한다. 공개 콘텐츠/게시글 화면에서는 저장 HTML에 전용 marker나 script/iframe을 남기지 않은 채 서버 렌더링 시점에 URL이 카드 또는 외부 임베드로 해석되어야 한다. 내부 URL 임베드는 호출처의 `module.css`가 아니라 대상 모듈의 전용 `assets/embed.css`가 로드되어야 하고, 카드 안에 제목 링크와 별도 전체 canonical URL 텍스트 링크가 보여야 한다. 외부 URL 임베드는 `/assets/url-embed.css`만 로드되어야 한다. 렌더링된 내부 임베드가 대상별 custom tag를 사용하고 기존 fragment cache의 옛 HTML을 재사용하지 않는지도 확인한다. 각 대상 모듈의 관리자 임베드 캐시 화면에서 해당 모듈의 fragment cache 파일 수, 용량, 미리보기 목록이 보이고, 확인 문구와 권한이 있는 경우 조건별 정리가 bounded batch로 실행되는지도 확인한다. 가능하면 브라우저 QA로 실제 붙여넣기와 공개 렌더링까지 확인하고, 불가능하면 로컬 수동 smoke 결과와 미실행 사유를 기록한다.
 
-설문 모듈을 확인할 때는 기타 선택지를 고른 공개 응답이 기타 텍스트를 요구하고, 분석 CSV와 개인정보 사본의 `other_text`에 저장되는지 함께 본다.
-
-본문 임베드 변경을 확인할 때는 콘텐츠/커뮤니티 본문에 YouTube, X, Instagram, 내부 콘텐츠·커뮤니티·퀴즈·설문 URL을 한 줄에 단독으로 붙여 넣고 저장한다. 공개 콘텐츠/게시글 화면에서는 저장 HTML에 전용 marker나 script/iframe을 남기지 않은 채 서버 렌더링 시점에 URL이 카드 또는 외부 임베드로 해석되어야 한다. 내부 URL 임베드는 호출처의 `module.css`가 아니라 대상 모듈의 전용 `assets/embed.css`가 로드되어야 하고, 카드 안에 제목 링크와 별도 전체 canonical URL 텍스트 링크가 보여야 한다. 외부 URL 임베드는 `/assets/url-embed.css`만 로드되어야 한다. 렌더링된 내부 임베드가 대상별 custom tag를 사용하고 기존 fragment cache의 옛 HTML을 재사용하지 않는지도 확인한다. 각 대상 모듈의 관리자 임베드 캐시 화면에서 해당 모듈의 fragment cache 파일 수, 용량, 미리보기 목록이 보이고, 확인 문구와 권한이 있는 경우 조건별 정리가 bounded batch로 실행되는지도 확인한다. 퀴즈·설문 완료 후 내부 URL 임베드의 `return_to` 링크로 원래 화면에 돌아갈 수 있어야 한다. 가능하면 브라우저 QA로 실제 붙여넣기와 공개 렌더링까지 확인하고, 불가능하면 로컬 수동 smoke 결과와 미실행 사유를 기록한다.
-
-비밀글/비밀댓글 변경을 확인할 때는 커뮤니티 전역과 게시판 설정, 콘텐츠 환경설정, 퀴즈/설문 항목 설정의 허용 스위치를 각각 껐다 켠다. 허용이 꺼진 상태에서 `is_secret=1`을 직접 POST해도 새 게시글/댓글은 공개로 저장되어야 하며, 기존 비밀 댓글은 수정 요청 후에도 비밀 상태가 유지되어야 한다. 허용이 켜진 상태에서는 사용자 작성/수정 화면에 비밀 선택지가 표시되고, 커뮤니티 비밀 게시글 본문·첨부·퀴즈 연결·댓글·SEO/OG 설명·URL 임베드 결과는 작성자 또는 관리자/운영 권한자 외에는 노출되지 않아야 한다. 비밀 댓글 본문은 댓글 작성자, 대상 글/콘텐츠 작성자, 댓글 관리자 권한자만 볼 수 있고 멘션 알림을 만들지 않아야 한다.
+비밀글/비밀댓글 변경을 확인할 때는 커뮤니티 전역과 게시판 설정, 콘텐츠 환경설정의 허용 스위치를 각각 껐다 켠다. 허용이 꺼진 상태에서 `is_secret=1`을 직접 POST해도 새 게시글/댓글은 공개로 저장되어야 하며, 기존 비밀 댓글은 수정 요청 후에도 비밀 상태가 유지되어야 한다. 비밀 댓글 본문은 댓글 작성자, 대상 글/콘텐츠 작성자, 댓글 관리자 권한자만 볼 수 있고 멘션 알림을 만들지 않아야 한다.
 
 커뮤니티 일반 게시글 작성/수정 화면에서는 SEO/OG 메타 필드가 보이지 않아야 한다. 직접 POST로 `seo_title`, `seo_description`, `og_title`, `og_description`을 보내도 신규 게시글에는 저장되지 않고, 기존 SEO/OG 값이 있는 게시글을 작성자가 수정해도 해당 값이 빈 값이나 조작된 POST 값으로 덮어써지지 않아야 한다. 공개 상세 화면의 title, description, OG 메타 fallback은 제목과 공개 가능한 본문 기준으로 계속 동작해야 한다. 공지사항 권한이 없는 사용자가 `is_notice=1` 또는 `/community/notice`를 직접 POST하면 저장이 거부되어야 하고, `write_notice` 게시판 운영권한을 가진 로그인 회원은 일반 쓰기 정책을 통과하지 못해도 공지사항으로 작성하거나 게시글 상세에서 공지 지정/해제를 할 수 있어야 한다. 게시판 목록에서는 선택한 정렬 기준 안에서 공지사항이 일반글보다 먼저 표시되어야 한다.
 
@@ -70,7 +65,7 @@ rich text sanitizer payload 회귀 점검
 php .tools/bin/release-installed-gate-status.php
 ```
 
-필요한 옵션과 환경 변수는 `php .tools/bin/release-installed-gate-status.php --help`로 먼저 확인한다. 상태표 도구는 알 수 없는 옵션을 exit 2로 거부하므로 릴리스 자동화의 오타를 조용히 무시하지 않는다. `--markdown-table`과 `--json`은 서로 배타적인 출력 형식이므로 함께 지정하면 exit 2로 실패해야 한다. 기록 표에 붙일 Markdown 표가 필요하면 `php .tools/bin/release-installed-gate-status.php --markdown-table`을 실행하고, 자동화/보관용 구조화 증거가 필요하면 `php .tools/bin/release-installed-gate-status.php --json`을 실행한다. 상태표 도구는 `SR_SMOKE_BASE_URL`과 `SR_BROWSER_QA_BASE_URL`의 URL userinfo를 metadata, gate 환경값, 실행 출력 요약에 남기기 전에 마스킹해야 한다. 실행 출력 요약은 한국어, 체크마크 등 멀티바이트 문자가 포함되거나 길이 제한으로 잘릴 때도 UTF-8 안전한 단일 라인 문자열이어야 하며, `--json` 출력은 `json_decode()` 가능한 구조화 증거로 남아야 한다. CI나 릴리스 스크립트에서 미해결 게이트를 실패로 다루려면 `--fail-on-unresolved`를 함께 지정한다. 설치 DB를 읽을 수 있는 로컬/staging 실행 사용자라면 `--run-readonly`로 `reconcile-assets.php`, `ops-status.php`, `expire-points.php --dry-run`까지 함께 기록한다. 현재 CLI 사용자가 `config/config.php`를 읽지 못하면 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 `php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved`를 다시 실행한다. 로컬/staging HTTP와 관리자 계정이 준비된 경우에는 `SR_SMOKE_BASE_URL`, `SR_SMOKE_ADMIN_IDENTIFIER`, `SR_SMOKE_ADMIN_PASSWORD`를 지정한 뒤 `php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved`로 구조화 증거를 남긴다. 관리자 read-only 화면도 같은 자격 증명으로 `--run-admin-readonly`를 추가하면 `/admin/assets/reconciliation`과 `/admin/operations`를 로그인 세션으로 GET하고 기대 화면 문구를 확인할 수 있다. base URL이 준비된 환경에서는 `--run-http-smoke`로 기본 route, 보안 헤더, 보호 경로 HTTP smoke를 상태표 안에서 실행하고, `--run-browser-qa`로 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke를 실행할 수 있다. 기존 설치본 업데이트 흐름은 로컬/staging disposable DB에서 `SR_SMOKE_ALLOW_MUTATION=1`, 관리자 계정, `--run-update-smoke`를 함께 지정해 `smoke-update-apply.php`로 확인한다. 이 smoke는 기본적으로 `coupon 2026.05.003`의 `sr_schema_versions` 행을 지워 pending 상태를 만들고 `/admin/updates` POST, 적용 이력 복원, 감사 로그, 모듈 버전 동기화를 확인한다. 인증, 퀴즈 E2E, 자산/쿠폰/유료 접근권, 개인정보 export/cleanup, CKEditor upload/save mutation smoke는 각각 `--run-auth-smoke`, `--run-quiz-smoke`, `--run-asset-smoke`, `--run-privacy-smoke`, `--run-ckeditor-upload-save-smoke`를 쓰되, 로컬/staging disposable 데이터와 `SR_SMOKE_ALLOW_MUTATION=1`, 필요한 계정/관리자 계정, 자산 smoke의 `SR_SMOKE_FORM_PATH`와 `SR_SMOKE_EXPECT_DEDUPE_TABLE`/`SR_SMOKE_EXPECT_DEDUPE_KEY`가 모두 준비된 경우에만 실행한다. 개인정보 smoke는 대상 계정을 탈퇴/익명화하고, CKEditor upload/save smoke는 disposable 콘텐츠와 본문 이미지를 만든다. public-looking base URL에서 mutation smoke를 실행해야 하는 staging 환경은 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 함께 지정해야 한다. `--run-privacy-fixtures`와 `--run-performance-fixtures`는 SQLite/static fixture를 `부분 확인`으로 남길 뿐 설치 DB 개인정보 smoke나 대표 데이터 성능 수동 점검을 대체하지 않는다.
+필요한 옵션과 환경 변수는 `php .tools/bin/release-installed-gate-status.php --help`로 먼저 확인한다. 상태표 도구는 알 수 없는 옵션을 exit 2로 거부하므로 릴리스 자동화의 오타를 조용히 무시하지 않는다. `--markdown-table`과 `--json`은 서로 배타적인 출력 형식이므로 함께 지정하면 exit 2로 실패해야 한다. 기록 표에 붙일 Markdown 표가 필요하면 `php .tools/bin/release-installed-gate-status.php --markdown-table`을 실행하고, 자동화/보관용 구조화 증거가 필요하면 `php .tools/bin/release-installed-gate-status.php --json`을 실행한다. 상태표 도구는 `SR_SMOKE_BASE_URL`과 `SR_BROWSER_QA_BASE_URL`의 URL userinfo를 metadata, gate 환경값, 실행 출력 요약에 남기기 전에 마스킹해야 한다. 실행 출력 요약은 한국어, 체크마크 등 멀티바이트 문자가 포함되거나 길이 제한으로 잘릴 때도 UTF-8 안전한 단일 라인 문자열이어야 하며, `--json` 출력은 `json_decode()` 가능한 구조화 증거로 남아야 한다. CI나 릴리스 스크립트에서 미해결 게이트를 실패로 다루려면 `--fail-on-unresolved`를 함께 지정한다. 설치 DB를 읽을 수 있는 로컬/staging 실행 사용자라면 `--run-readonly`로 `reconcile-assets.php`, `ops-status.php`, `expire-points.php --dry-run`까지 함께 기록한다. 현재 CLI 사용자가 `config/config.php`를 읽지 못하면 권한을 넓히지 말고 웹 서버 사용자 또는 로컬/staging 전용 실행 사용자로 `php .tools/bin/release-installed-gate-status.php --run-readonly --fail-on-unresolved`를 다시 실행한다. 로컬/staging HTTP와 관리자 계정이 준비된 경우에는 `SR_SMOKE_BASE_URL`, `SR_SMOKE_ADMIN_IDENTIFIER`, `SR_SMOKE_ADMIN_PASSWORD`를 지정한 뒤 `php .tools/bin/release-installed-gate-status.php --json --fail-on-unresolved`로 구조화 증거를 남긴다. 관리자 read-only 화면도 같은 자격 증명으로 `--run-admin-readonly`를 추가하면 `/admin/assets/reconciliation`과 `/admin/operations`를 로그인 세션으로 GET하고 기대 화면 문구를 확인할 수 있다. base URL이 준비된 환경에서는 `--run-http-smoke`로 기본 route, 보안 헤더, 보호 경로 HTTP smoke를 상태표 안에서 실행하고, `--run-browser-qa`로 설치 DB가 필요 없는 CKEditor asset/fallback browser smoke를 실행할 수 있다. 기존 설치본 업데이트 흐름은 로컬/staging disposable DB에서 `SR_SMOKE_ALLOW_MUTATION=1`, 관리자 계정, `--run-update-smoke`를 함께 지정해 `smoke-update-apply.php`로 확인한다. 이 smoke는 기본적으로 `coupon 2026.05.003`의 `sr_schema_versions` 행을 지워 pending 상태를 만들고 `/admin/updates` POST, 적용 이력 복원, 감사 로그, 모듈 버전 동기화를 확인한다. 개인정보 smoke는 대상 계정을 탈퇴/익명화하고, CKEditor upload/save smoke는 disposable 콘텐츠와 본문 이미지를 만든다. public-looking base URL에서 mutation smoke를 실행해야 하는 staging 환경은 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 함께 지정해야 한다. `--run-privacy-fixtures`와 `--run-performance-fixtures`는 SQLite/static fixture를 `부분 확인`으로 남길 뿐 설치 DB 개인정보 smoke나 대표 데이터 성능 수동 점검을 대체하지 않는다.
 
 ```sh
 SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
@@ -104,7 +99,7 @@ SR_SMOKE_BASE_URL=http://127.0.0.1:8080 php .tools/bin/smoke-http.php
 
 PWA 1차 지원을 확인할 때는 설치된 로컬 또는 staging에서 `/manifest.webmanifest`가 `application/manifest+json`으로 응답하고, `/service-worker.js`가 `application/javascript`와 `Service-Worker-Allowed` 헤더를 반환하는지 확인한다. 서비스 워커는 공개 정적 asset만 cache 대상으로 삼고 관리자, 계정 개인정보, 저장소 경로, navigation fallback은 cache하지 않아야 한다.
 
-사이트 메뉴를 2·3단계로 구성한 환경에서는 기본 공개, 콘텐츠, 커뮤니티, 퀴즈 헤더에서 2단계 dropdown과 3단계 flyout이 표시되는지 확인한다. 데스크톱에서는 hover와 Tab focus로 열리고 Escape와 바깥 클릭으로 닫혀야 하며, 모바일 폭에서는 하위 메뉴가 있는 링크가 첫 탭에서 펼쳐지고 열린 상태의 재탭은 링크 이동으로 이어져야 한다. 같은 메뉴 안에 동일 URL 항목을 다른 라벨이나 상위 항목으로 여러 개 저장할 수 있어야 한다. footer 메뉴와 관리자 메뉴는 헤더 dropdown 스타일의 영향을 받지 않아야 한다.
+데스크톱에서는 hover와 Tab focus로 열리고 Escape와 바깥 클릭으로 닫혀야 하며, 모바일 폭에서는 하위 메뉴가 있는 링크가 첫 탭에서 펼쳐지고 열린 상태의 재탭은 링크 이동으로 이어져야 한다. 같은 메뉴 안에 동일 URL 항목을 다른 라벨이나 상위 항목으로 여러 개 저장할 수 있어야 한다. footer 메뉴와 관리자 메뉴는 헤더 dropdown 스타일의 영향을 받지 않아야 한다.
 
 알림 delivery runner는 로컬 또는 staging에서 `/admin/notification-deliveries`의 수동 실행 버튼 또는 다음 CLI로 확인한다. 운영 DB에서 테스트 발송을 만들거나 provider 설정을 바꾸지 않는다.
 
@@ -157,7 +152,7 @@ router 없이 프로젝트 루트를 문서 루트로 내장 서버를 실행하
 /login/mfa 응답이 500 없이 로그인 또는 2차 인증 challenge 흐름으로 이어지는지 확인
 회원 환경설정에서 로그인 2차 인증 정책을 `사용안함`으로 바꾸면 활성 TOTP factor가 있는 계정도 `/login/mfa`로 이동하지 않고 로그인되며, `선택`으로 바꾸고 TOTP provider를 허용하면 회원이 등록한 factor 기준으로 challenge가 복구되는지 확인
 회원 환경설정에서 로그인 2차 인증 정책을 `필수`로 바꾸면 활성 TOTP factor가 있는 계정은 challenge를 거치고, factor가 없는 로그인 회원은 `/mypage/security`로 이동하며, `/mypage/security`의 2차 인증 해제 action이 거부되는지 확인
-회원 환경설정에서 프로필 이미지 사용 여부가 직접 보이고 선택 프로필 항목의 프로필 이미지 상태와 동기화되는지 확인한다. 회원이 이미지 파일 하나만 등록할 수 있고 저장소에도 파일 하나만 생기는지 확인한다. 소·중·대 크기를 서로 다른 값으로 저장한 뒤 업로드 프로필 이미지가 있는 계정과 없는 계정으로 콘텐츠·커뮤니티·퀴즈·설문의 목록, 읽기/댓글 화면과 내 프로필 화면을 확인한다. 댓글과 목록은 소, 본문 작성자는 중, 내 프로필 미리보기는 대 크기로 표시되고 동일한 업로드 파일과 공개 표시명 첫 글자 문자 fallback에 같은 단계 값이 적용되어야 한다. 프로필 이미지 공개를 끄면 서비스 화면의 실제 이미지가 같은 크기의 공개 표시명 첫 글자 fallback으로 전환되고 글자형 layout 계정 아이콘은 바뀌지 않아야 한다. 각 서비스 화면이 회원 모듈 `public-identity.php` 계약의 stylesheet/script 목록을 명시적으로 layout context에 병합해 프로필 메뉴의 바깥 클릭과 `Escape` 닫힘이 유지되는지도 확인한다.
+회원 환경설정에서 프로필 이미지 사용 여부가 직접 보이고 선택 프로필 항목의 프로필 이미지 상태와 동기화되는지 확인한다. 회원이 이미지 파일 하나만 등록할 수 있고 저장소에도 파일 하나만 생기는지 확인한다. 소·중·대 크기를 서로 다른 값으로 저장한 뒤 업로드 프로필 이미지가 있는 계정과 없는 계정으로 콘텐츠·커뮤니티의 목록, 읽기/댓글 화면과 내 프로필 화면을 확인한다. 댓글과 목록은 소, 본문 작성자는 중, 내 프로필 미리보기는 대 크기로 표시되고 동일한 업로드 파일과 공개 표시명 첫 글자 문자 fallback에 같은 단계 값이 적용되어야 한다. 프로필 이미지 공개를 끄면 서비스 화면의 실제 이미지가 같은 크기의 공개 표시명 첫 글자 fallback으로 전환되고 글자형 layout 계정 아이콘은 바뀌지 않아야 한다. 각 서비스 화면이 회원 모듈 `public-identity.php` 계약의 stylesheet/script 목록을 명시적으로 layout context에 병합해 프로필 메뉴의 바깥 클릭과 `Escape` 닫힘이 유지되는지도 확인한다.
 로그인한 계정의 `/mypage/security`에서 TOTP 준비가 현재 비밀번호 재확인 뒤 pending factor를 만들고, 등록용 QR 이미지, 수동 secret/otpauth URI, 첫 code 활성화 form을 보여주는지 확인
 TOTP 활성화 직후 백업 코드가 한 번 표시되고, `/login/mfa`에서 미사용 백업 코드 1개로 로그인한 뒤 같은 백업 코드 재사용이 거부되는지 확인
 로그인한 계정의 `/mypage/security`에서 백업 코드 재발급과 2차 인증 해제가 재인증, CSRF, PRG 흐름으로 처리되는지 확인
@@ -192,17 +187,13 @@ CKEditor 공개 본문에 좌우 padding이 없고 font-size·line-height와 첫
 
 /admin/content/submissions, /admin/content/author-applications, /admin/content/authors, /admin/community/board-copy-jobs, /account/content/author-application의 처리 POST는 성공 후 GET 화면으로 돌아와야 한다. 검수/신청/작성자 승인/복사 작업 실행 결과는 한 번만 표시되고 새로고침으로 상태 변경, 알림 생성, 복사 묶음 실행이 반복되지 않아야 한다. `/admin/content/authors`의 작성자 승인 추가/수정은 목록 위 상시 폼이 아니라 승인 목록의 추가/수정 모달에서 처리되는지 확인한다. 작성자 승인 추가 모달의 회원 선택은 직접 숫자 ID 입력만 요구하지 않고 회원 검색 모달에서 선택한 회원 식별자를 저장할 수 있어야 한다.
 /admin/privacy-requests의 대응 기록 추가는 목록 위 상시 폼이 아니라 `대응 기록 추가` 모달에서 처리되는지 확인한다. 생성 모달은 계정 ID 또는 요청자 중 하나, 요청 유형, 요청 내용을 서버에서 검증해야 하며, 실패 후 GET 화면으로 돌아왔을 때 직전 입력값과 오류 요약을 유지한 채 모달을 다시 열어야 한다. JavaScript 비활성 환경에서는 noscript 대체 폼으로 같은 `intent=create_request` POST 흐름을 사용할 수 있어야 한다.
-퀴즈·설문 댓글을 각각 21건 이상 만든 로컬 fixture에서는 `/admin/quiz/comments`와 `/admin/surveys/comments`가 전체 건수와 현재 표시 범위를 보여주고 다음 페이지를 제공해야 한다. 검색어·상태·비밀 댓글 필터를 적용한 count와 행 결과가 일치하고, 두 번째 페이지에서 상태를 변경한 뒤 같은 필터와 페이지로 돌아오는지 확인한다.
-
-설문과 리액션 사용 기록을 각각 21건 이상 만든 로컬 fixture에서는 `/admin/surveys`와 `/admin/reactions/records`가 전체 건수와 현재 표시 범위를 보여주고 마지막 부분 페이지까지 이동할 수 있어야 한다. 설문 상태·응답 가능·검색 필터와 리액션 회원·대상·리액션 키 필터의 count가 행 결과와 일치해야 하며, 설문 두 번째 페이지에서 삭제 또는 영구 삭제한 뒤 같은 필터와 페이지로 돌아오는지 확인한다.
+검색어·상태·비밀 댓글 필터를 적용한 count와 행 결과가 일치하고, 두 번째 페이지에서 상태를 변경한 뒤 같은 필터와 페이지로 돌아오는지 확인한다.
 
 쿠폰 발급 캠페인과 발급 로그를 각각 21건 이상 만든 로컬 fixture에서는 `/admin/coupons/campaigns`와 `/admin/coupons/campaigns/logs`가 전체 건수와 현재 표시 범위를 보여주고 마지막 부분 페이지까지 이동할 수 있어야 한다. 캠페인 상태·발급 유형·공개 여부·검색 필터와 로그 회원·상태·발급 표면·캠페인/쿠폰 검색 필터의 count가 행 결과와 일치해야 한다. 쿠폰 정의가 300건을 넘는 환경에서 오래된 정의를 연결한 캠페인을 수정해도 현재 연결 쿠폰이 선택기에 남아야 한다.
 
-설문이 300건을 넘는 환경에서는 오래된 설문을 선택한 `/admin/surveys/responses`, `/admin/surveys/statistics`, `/admin/surveys/reward-logs`를 열어도 현재 설문이 선택기에 남아야 한다. 활성 쿠폰 정의가 200건을 넘는 환경에서는 오래된 쿠폰을 보상으로 저장한 퀴즈·설문과 퀴즈 기본 설정을 수정할 때 현재 쿠폰이 선택기에 남아야 한다.
-
-공개 중인 퀴즈·설문·쿠폰 발급 캠페인이 각각 페이지당 표시 수보다 많은 로컬 fixture에서는 `/quiz/list`, `/survey/list`, `/coupons`의 다음 페이지와 마지막 부분 페이지까지 이동할 수 있어야 한다. `/quiz`, `/survey` 메인은 소수 추천 항목과 전체 목록 이동 링크만 표시하고 페이지네이션을 출력하지 않아야 한다. 기간 종료·비공개·삭제 항목은 전체 count와 각 페이지 행에서 모두 빠져야 하며, `/coupons?campaign={campaign_key}` 단건 화면은 목록 페이지네이션 없이 기존 상세 캠페인만 표시해야 한다.
-퀴즈 사이드바를 켠 환경에서는 `/quiz` 메인과 embed 화면에는 사이드바가 없고 `/quiz/list`, 풀이, 결과 화면에만 표시되는지 확인한다. 퀴즈 그룹 메뉴는 사용 상태 그룹만 표시하고 선택 시 count·페이지 행·canonical·페이지네이션이 같은 그룹 필터를 유지해야 한다. 인기 퀴즈는 기간 외·비공개·삭제·현재 퀴즈를 제외하고, 최신 댓글은 로그인 회원이 제출한 퀴즈의 공개·비밀 아님 댓글만 태그 없는 요약으로 보여야 한다. 전역 본인확인 보호 환경에서는 최신 댓글 요약을 표시하지 않아야 하며, 라이트·다크 모드와 1024px 이하 한 열 배치를 함께 확인한다.
-설문 사이드바를 켠 환경에서는 `/survey` 메인에는 사이드바가 없고 `/survey/list`, 참여, 완료 화면에만 표시되는지 확인한다. 설문 그룹 메뉴는 사용 상태 그룹만 표시하고 선택 시 count·페이지 행·canonical·페이지네이션이 같은 그룹 필터를 유지해야 한다. 인기 설문은 기간 외·비공개·목록 미노출·삭제·현재 설문을 제외하고, 최신 댓글은 로그인 회원이 제출한 공개 목록 설문의 공개·비밀 아님 댓글만 태그 없는 요약으로 보여야 한다. 전역 본인확인 보호 환경에서는 최신 댓글 요약을 표시하지 않아야 하며, 라이트·다크 모드와 1024px 이하 한 열 배치를 함께 확인한다.
+기간 종료·비공개·삭제 항목은 전체 count와 각 페이지 행에서 모두 빠져야 하며, `/coupons?campaign={campaign_key}` 단건 화면은 목록 페이지네이션 없이 기존 상세 캠페인만 표시해야 한다.
+전역 본인확인 보호 환경에서는 최신 댓글 요약을 표시하지 않아야 하며, 라이트·다크 모드와 1024px 이하 한 열 배치를 함께 확인한다.
+전역 본인확인 보호 환경에서는 최신 댓글 요약을 표시하지 않아야 하며, 라이트·다크 모드와 1024px 이하 한 열 배치를 함께 확인한다.
 
 정책 문서 안내메일 작업이 관리자 페이지당 표시 수보다 많으면 `/admin/policy-documents`의 `mail_page`로 다음 페이지와 마지막 부분 페이지까지 이동할 수 있어야 한다. 현재 페이지에서 배치 발송, 실패 재대기, 남은 발송 취소를 실행한 뒤에는 같은 `mail_page`로 돌아와야 한다.
 
@@ -212,8 +203,7 @@ CKEditor 공개 본문에 좌우 padding이 없고 font-size·line-height와 첫
 
 인증 로그나 로그인 세션이 100건을 넘는 회원의 개인정보 사본은 최신 100건만 포함하되 해당 섹션의 `has_more`와 모듈별 `partial` 상태를 기록해야 한다. 100건 이하인 섹션은 완전 제공으로 표시되어야 하며, 초과 사실 없이 조용히 잘린 사본을 완료 상태로 제공하면 안 된다.
 
-/admin/community/posts, /admin/community/comments, /admin/quiz/comments, /admin/surveys/comments, /admin/admin-notifications, /admin/notification-deliveries, /admin/surveys/responses, /admin/community/series, /admin/content/series, /admin/privacy-requests 목록의 행 단위 상태 변경은 필터용·생성/편집용 셀렉트를 제외하고 상태 변경 셀렉트를 사용하지 않아야 한다. 현재 상태를 제외한 다음 상태 버튼만 보이고, 삭제·거절·취소·실패·분석 제외 계열은 확인 후 제출되어야 하며, 직접 POST한 허용되지 않은 상태 값은 서버에서 거부되어야 한다. 처리 후에는 기존 필터·검색·정렬·페이지 쿼리로 돌아와야 한다. `/admin/community/posts`의 상태 필터와 행 버튼은 대기->공개->숨김->삭제 순서로 표시하고, `/admin/community/comments`는 현재 댓글 상태 계약에 대기 상태가 없으므로 공개->숨김->삭제 순서로 표시해야 한다. 상태 배지는 삭제됨처럼 상태명을 표시해도 행 작업 버튼은 삭제처럼 실행명을 표시해야 한다.
-`/admin/surveys/statistics`의 설문 선택 필터는 상세검색·초기화 버튼 없이 설문 선택과 검색만 표시되어야 한다. 검색 버튼은 좌측에서 설문 셀렉트 바로 다음에 위치하고, CSV 보조 액션은 문항별 통계 섹션 헤더에 표시되어야 한다. 필터와 선택된 설문 요약 섹션 사이에는 공통 카드 간격이 있어야 하며, 문항별 통계는 다른 관리자 목록과 같은 목록 카드/테이블 스타일로 표시되어야 한다.
+현재 상태를 제외한 다음 상태 버튼만 보이고, 삭제·거절·취소·실패·분석 제외 계열은 확인 후 제출되어야 하며, 직접 POST한 허용되지 않은 상태 값은 서버에서 거부되어야 한다. 처리 후에는 기존 필터·검색·정렬·페이지 쿼리로 돌아와야 한다. `/admin/community/posts`의 상태 필터와 행 버튼은 대기->공개->숨김->삭제 순서로 표시하고, `/admin/community/comments`는 현재 댓글 상태 계약에 대기 상태가 없으므로 공개->숨김->삭제 순서로 표시해야 한다. 상태 배지는 삭제됨처럼 상태명을 표시해도 행 작업 버튼은 삭제처럼 실행명을 표시해야 한다.
 /admin/banners 목록에서 현재 페이지 배너 선택 체크박스, 전체 선택, 선택 수 표시, 상태 일괄 변경이 동작하는지 확인한다. 서버는 `intent=batch_status`, `operation_key=banner.set_status`, `selected_banner_ids[]`, `target_status`를 다시 검증해야 하며, 다른 모듈에서 참조 중인 enabled 배너는 일괄 비활성화가 차단되어야 한다. `/admin/popup-layers` 목록도 같은 기준으로 `operation_key=popup_layer.set_status`, `selected_popup_ids[]`를 검증하고 참조 중인 enabled 팝업레이어 일괄 비활성화를 차단해야 한다. `/admin/logo-manager` 로고 배치 목록은 `operation_key=logo_manager.set_status`, `selected_logo_ids[]`, `target_status=active|disabled`를 검증하고 선택 없음, 100건 초과, 존재하지 않는 ID를 거부해야 한다. `/admin/community/posts` 게시글 목록은 `intent=batch_post_status`, `operation_key=community.post_set_status`, `selected_post_ids[]`, `target_status=hidden|published`를 검증하고 공개->숨김, 숨김->공개 전이만 일괄 허용해야 한다. 보상 회수 설정이 켜진 환경에서는 회수 실패 시 전체 일괄 변경이 롤백되어야 하며, 첨부파일 상태 복구와 회원 레벨/그룹 재평가가 함께 실행되어야 한다. `/admin/community/comments` 댓글 목록은 `intent=batch_comment_status`, `operation_key=community.comment_set_status`, `selected_comment_ids[]`, `target_status=hidden|published`를 검증하고 공개->숨김, 숨김->공개 전이만 일괄 허용해야 한다. 댓글 보상 회수 실패 시 전체 변경이 롤백되고 회원 레벨/그룹 재평가와 감사 로그 metadata가 남아야 한다. `/admin/notifications` 알림 목록은 `operation_key=notification.set_status`, `selected_notification_ids[]`, `target_status=active|deleted`를 검증하고 조건부 상태 전이, 선택 없음, 100건 초과, 존재하지 않는 ID, 감사 로그 metadata를 확인한다.
 `/admin/community/reports` 신고 목록은 대상 칸에 게시글/댓글 게시물 새 탭 바로가기 아이콘만 표시하고 아이콘 `title`에 게시물 제목이 들어가는지 확인한다. 처리된 신고의 상태 셀에는 감사 로그 권한이 있는 관리자에게 대상 조치 로그 링크가 표시되고, 해당 링크가 `metadata`의 `"report_id":ID` 검색으로 이동하는지 확인한다. `operation_key=community.report_set_status`, `selected_report_ids[]`, `target_status`, `target_action`, `reporter_action`을 검증하고 현재 페이지 선택, 전체 선택, 공통 검토 메모 적용, 조건부 상태 전이, 선택 없음, 100건 초과, 존재하지 않는 ID, 동시 상태 변경 충돌, 감사 로그 metadata를 확인한다. 단건과 일괄 대상 조치는 신고 상태를 `resolved`로 저장할 때만 허용되고, `open`, `reviewing`, `dismissed`와 대상 조치가 함께 제출되면 서버에서 거부되어야 한다. 일괄 숨김/삭제는 게시글·댓글 신고에만 적용되며 쪽지 신고가 섞이면 서버에서 거부해야 한다. 삭제+게시자 정지와 숨김+게시자 정지는 대상 상태 변경과 회원 정지가 같은 트랜잭션에서 처리되어야 한다. 허위신고자 조치는 신고 상태를 `dismissed`로 저장할 때만 허용되고, 다른 상태와 함께 제출되면 서버에서 거부되어야 한다. 일괄 처리 성공 시 대상 조치와 신고자 조치 적용 건수 및 결과 metadata가 남아야 한다. `dismissed` 상태는 이미 적용된 대상 조치를 되돌리지 않는다.
 `/admin/admin-notifications` 운영 알림 목록은 권한이 있는 알림만 표시하고, 헤더 드롭다운의 열린 알림 수와 최근 항목이 같은 권한 기준을 따르는지 확인한다. 읽음, 안 읽음, 확인, 처리됨, 보관, 다시 열기 POST는 CSRF와 현재 관리자 권한을 다시 검증해야 하며, action URL은 `/admin/...` 내부 상대 경로만 이동 링크로 노출되어야 한다. 헤더 드롭다운 항목 본문 클릭은 읽음 처리 후 바로가기로 이동하고, 항목의 읽음 버튼은 이동 없이 해당 알림만 읽음 처리하면서 드롭다운에서 즉시 제거해야 한다. 운영 알림 바로가기는 가능한 경우 대상 건만 보이도록 `/admin/community/reports?report_id=ID`, `/admin/privacy-requests?request_id=ID`, `/admin/content/author-applications?application_id=ID`, `/admin/notification-deliveries?delivery_id=ID` 단건 필터로 이동해야 한다. 같은 dedupe key 이벤트가 다시 발생하면 occurrence count와 최근 발생 시각이 갱신되고, 처리됨/보관 상태였던 알림은 열린 상태로 돌아와야 한다. 보존 정리는 열린 운영 알림을 삭제하지 않고 처리됨/보관됨 운영 알림과 확인 기록만 알림 보관일 기준으로 정리해야 한다. 알림 모듈이 비활성화되었거나 운영 알림 테이블 업데이트 전이면 신고, 신청, 개인정보 요청 같은 원래 업무 저장은 실패하지 않아야 한다.
@@ -240,17 +230,17 @@ settlement 기반 복합 차감을 도입한 환경에서는 확인 token 재시
 커뮤니티 자산 기능을 활성화한 환경에서는 글/댓글 적립, 글/댓글 작성 차감, 게시글 유료 열람, 첨부 다운로드 차감이 비로그인/잔액 부족/중복 처리 정책에 맞게 동작하는지 확인. 게시글 유료 열람과 첨부 다운로드의 최초 1회와 반복 과금은 GET 접근만으로 차감되지 않고 확인 POST 후 처리되어야 하며, 이미 접근권이 있는 once 대상은 재확인 없이 열려야 한다. 회원 그룹별 적용을 저장하고 전역/게시판에서 여러 적용을 선택한 경우 최종 금액과 `group_policy_snapshot_json`이 로그에 남고, `/admin/community/attachment-downloads`의 유료 다운로드 내역은 연결 차감 로그의 자산 단위 차감량, 기준 settlement 금액/통화, `settlement_kind`, `snapshot_schema_version`, `rounding_policy_version`을 사람이 읽을 수 있는 요약으로 보여야 한다. 최종 금액 0이면 원장 거래 없이 유료 열람/첨부 다운로드 접근권 또는 처리 로그가 `completed` 상태로 남는지 확인. 회원 그룹별 적용 선택지는 선택한 자산에 맞는 정책만 보여야 하며, 선택 자산을 바꾸면 맞지 않는 적용 뱃지가 제거되어야 한다. 같은 회원 그룹에 최소 레벨별 정책을 저장하면 레벨 충족 여부에 따라 다른 정책이 적용되고, 같은 우선순위에서는 충족한 정책 중 최소 레벨이 높은 행이 먼저 적용되며, 스냅샷에 매칭 최소 레벨과 현재 레벨이 남는지 확인. 유료 첨부는 S3 서명 URL 생성 또는 로컬 파일 경로 확인이 실패하면 자산 차감 없이 오류로 끝나야 하며, 전달 준비가 끝난 뒤에만 열람/다운로드 차감과 접근권 처리를 진행해야 한다. 최초 설치 후 커뮤니티 환경설정과 새 게시판의 자산 설정은 사용하지 않음이며 포인트 등 특정 자산이 미리 선택되어 있지 않아야 한다. 복합 자산 차감 설정은 선택 자산별 금액이 각각 차감되는지 확인. `/admin/community/settings`에서 복합 자산 결제를 끄면 전역/게시판의 유료 게시글 열람/첨부 다운로드 저장에서 여러 포인트/금액 항목 선택이 서버 검증으로 거부되고, 일부 할인 쿠폰 후 남은 금액이 두 항목 이상으로 배분되는 public 결제는 쿠폰 사용과 자산 차감, payment-unit row를 남기지 않고 실패해야 한다. 첨부 URL 직접 접근도 게시글 유료 열람 정책을 우회하지 않는지 함께 확인
 커뮤니티 업데이트 후 기존 `/admin/community/settings` 권한 보유 운영자에게 `/admin/community/asset-policy-sets`의 같은 액션 권한이 승계되는지 확인. 커뮤니티 회원 그룹별 설정 목록에서 이름, Key, 상태, 수정일 헤더 정렬이 허용 목록 기반으로 동작하는지 확인
 `/admin/community/boards/new`과 `/admin/community/boards/edit?id={board_id}`에서 기본 설정, 카테고리, 운영 스탭이 한 메인 form의 섹션으로 표시되는지 확인한다. 운영 스탭 목록에서 회원 검색 모달로 회원과 권한을 추가·수정·삭제하고 신규 화면의 `저장` 또는 수정 화면의 `수정`을 누르기 전에는 DB에 반영되지 않으며, 저장 후 권한 차이가 함께 반영되어야 한다. 서버는 `view_manage`, `write_notice`, `hide_post`, `delete_post`, `hide_comment`, `delete_comment`, `remove_post_og_image` 외 권한 key와 빈 권한 제출을 거부해야 한다. 이 권한은 관리자 모드 권한이 아니라 공개 사용자 모드에서 해당 게시판을 운영하는 권한이다. `write_notice` 권한 보유자는 해당 게시판에서 공지사항을 작성할 수 있고 권한 회수 후 `is_notice=1` 저장이 거부되어야 한다. `hide_post`/`delete_post` 권한 보유자는 해당 게시판의 게시글만 숨김/삭제할 수 있고 다른 게시판 게시글은 처리할 수 없어야 하며, `hide_comment`/`delete_comment` 권한 보유자는 해당 게시판 댓글만 숨김/삭제할 수 있어야 한다. 게시판 운영권한만으로 관리자 게시글 목록이나 게시글 본문 수정 화면/POST가 허용되지 않아야 한다. `remove_post_og_image` 권한 보유자는 해당 게시판 게시글의 지정 OG 이미지를 제거할 수 있고, 회수 후 즉시 숨김/삭제와 OG 이미지 제거가 거부되어야 한다. 권한 부여/회수, 게시판 운영권한으로 수행한 게시글·댓글 숨김/삭제, 게시판 운영권한 OG 이미지 제거는 감사 로그에 남아야 한다. 카테고리 사용·필수 정책과 카테고리 목록은 같은 메인 form에 표시하고, 목록의 추가·수정·삭제는 신규 화면의 `저장` 또는 수정 화면의 `수정`을 누를 때 함께 반영되어야 한다. 게시글에서 참조 중인 카테고리 삭제와 기존 카테고리 Key 변경은 서버가 저장 전에 거부해야 한다.
-회원그룹을 삭제하거나 key를 변경하려 할 때 해당 그룹을 참여 대상으로 둔 설문이 최근 설문 500건보다 오래되었어도 참조 현황에 표시되고 변경이 차단되어야 한다. 유사한 다른 그룹 key는 참조로 오인하면 안 된다.
+유사한 다른 그룹 key는 참조로 오인하면 안 된다.
 `/admin/community/board-groups`와 `/admin/community/boards`에서 게시글 수정/삭제 잠금 댓글 수, 게시글/댓글 본문 최소·최대 길이, 목록 본문 요약 사용/길이, 목록 페이지당 글 수, 목록 기본 정렬을 저장하고 게시판의 그룹/전체 적용 범위가 의도한 대상에만 반영되는지 확인한다. 조작된 POST로 최소 길이가 최대 길이보다 큰 값, 허용되지 않은 정렬 key, 범위를 벗어난 페이지당 글 수를 제출하면 서버가 저장하지 않아야 한다. 공개 글 작성/수정과 댓글 작성/수정은 본문 길이 제한을 서버에서 거부해야 하며, 댓글 수가 잠금 기준 이상인 게시글은 작성자 수정/삭제 POST와 비회원 비밀번호 수정/삭제 흐름 모두 차단되어야 한다. 기본 스킨 목록은 게시판 설정의 페이지당 글 수, `latest`/`oldest`/`views`/`comments` 정렬, 본문 요약 표시 여부와 길이를 따라야 한다.
 커뮤니티 환경설정과 `/admin/community/boards`에서 게시판 사이드 메뉴를 선택 안 함, 전체 게시판, 같은 그룹 게시판, 사이트 메뉴의 특정값으로 각각 저장해 목록·읽기·쓰기 화면에 반영되는지 확인한다. 선택 안 함이면 사용자 화면의 게시판 메뉴 카드가 없어야 하고, 나머지는 인기글 위에 표시되어야 한다. 사용자 화면 제목은 전체 게시판이면 `커뮤니티`, 같은 그룹이면 실제 그룹명, 사이트 메뉴이면 해당 메뉴명이어야 한다. 전체/같은 그룹 메뉴에는 현재 방문자가 읽을 수 없는 게시판이 노출되지 않아야 하며, 그룹이 없는 게시판의 같은 그룹 메뉴는 현재 게시판만 보여야 한다. 사이트 메뉴 유형은 유효한 메뉴 선택을 서버에서 강제하고, 읽기 화면의 지연 인기글 로딩 뒤에도 게시판 메뉴가 유지되어야 한다. 사이트 메뉴 모듈을 비활성화하면 두 관리자 화면에서 사이트 메뉴 유형과 메뉴 선택 입력이 모두 사라지고, 기존 사이트 메뉴 설정의 사용자 화면 카드도 출력되지 않아야 한다.
 
 게시판 설명에 div/span, `h1`~`h6`, 문단, 강조, 목록, 표, 링크, 이미지, class/id/data/aria 속성과 inline style을 저장해 게시판 목록과 그룹 카드에 그대로 표시되는지 확인한다. `display`, `position`, `transform`, CSS custom property 같은 관리자 style도 보존되어야 한다. 같은 입력에 스크립트, iframe, 이벤트 속성, `javascript:` 링크, CSS `expression()` 또는 escape로 감춘 실행형 CSS 값을 섞으면 저장·출력 결과에서 제거되어야 한다. 기존 DB 값도 공개 출력에서 다시 정화되어야 한다.
-로고 매니저에서 용도별 상시 로고를 등록하면 사용자화면 PC/모바일 로고, 관리자 사이드바, 파비콘 용도에 반영되는지 확인. 공개 레이아웃 로고는 사용처의 `전체` 상단/하단과 개별 레이아웃 제공 모듈 상단/하단을 저장할 수 있어야 하며, 같은 슬롯에서 개별 모듈 지정이 `전체` 지정보다 우선하고 같은 우선순위에서는 전체 기간이 더 짧은 로고가 우선인지 확인한다. 사용자화면 PC 로고만 등록하면 모바일 헤더도 PC 로고를 사용하고, 모바일 로고만 등록하면 PC 헤더도 모바일 로고를 사용해야 한다. PC/모바일 로고가 모두 있으면 모바일 폭에서 모바일 로고가 우선 적용되어야 한다. 관리자 사이드바 로고를 등록하면 사이트명 텍스트 없이 로고만 표시되고, 접힌 상태에서는 앱아이콘이 있으면 앱아이콘을 먼저 표시하고, 앱아이콘이 없으면 같은 사이드바 로고가 검정 박스 없이 원본 비율로 표시되어야 한다. 같은 용도에 상시 로고와 현재 기간 로고가 함께 있으면 기간 로고가 우선이고, 현재 기간 로고가 여러 개이면 전체 기간이 더 짧은 로고가 우선인지 확인. 기간이 끝난 뒤에는 상시 로고로 되돌아가는지 확인. 활성 모듈이 `logo-positions.php`를 제공하는 경우 해당 모듈 후보가 로고 배치 추가 화면의 로고 용도 선택지에 표시되는지 확인. 기존 로고 배치를 수정할 때 파일을 선택하지 않으면 기존 이미지가 유지되고, 새 파일을 선택하면 파일 참조가 교체되며 감사 로그에 `logo_manager.logo.updated`와 이미지 교체 여부가 남는지 확인. 관리 버튼은 파비콘 용도에서 아이콘 세트가 맨 앞에 표시되고, 삭제 버튼은 로고 배치와 생성된 아이콘 세트 행 및 저장소 파일 정리를 실행하며 `logo_manager.logo.deleted` 감사 로그를 남기는지 확인한다. `public.app_icon` 용도에서는 사용자 화면 심볼 스위치가 활성화되고 저장값이 심볼 helper에서 반환되는지, 사용자화면 PC/모바일 로고가 모두 없을 때 기본 공개/콘텐츠/커뮤니티/퀴즈 레이아웃의 브랜드 영역에 앱아이콘과 사이트명이 함께 표시되는지, 다른 용도에서는 스위치가 꺼지고 조작된 POST 값도 저장되지 않는지 확인. 심볼 스위치는 파비콘 head link 조건과 별도이므로 심볼을 켠 앱아이콘은 favicon head link로 출력되지 않고, 심볼을 끈 활성 파비콘도 head link로 출력되어야 한다. 파비콘 등록 시 `앱아이콘으로도 사용`, 앱아이콘 등록 시 `파비콘으로도 사용` 스위치를 켜면 별도 저장본의 다른 용도 로고가 함께 생성되어야 한다. 활성 파비콘 1개를 중지하면 관리자/공개/콘텐츠/커뮤니티/퀴즈 head에서 해당 URL의 `icon`/`apple-touch-icon` 링크가 제거되고, 다른 활성 후보가 없으면 `icon`과 `apple-touch-icon` link가 모두 출력되지 않아야 하며 `/favicon.ico`는 no-store 404로 응답해야 한다. 완전 삭제 POST는 `Clear-Site-Data: "cache"`로 이전 투명 아이콘 캐시 정리를 요청해야 한다. 같은 용도의 다른 활성 후보가 있으면 정렬 기준대로 그 후보가 적용될 수 있다. 로고 배치 목록은 `현재 적용`과 현재 시각에 적용 가능한 `적용 후보`를 구분해 보여야 하며, 기간이 지났거나 아직 시작 전인 사용 상태 로고에는 적용 후보 배지를 붙이지 않아야 한다. 탭 아이콘은 브라우저 캐시나 루트 `/favicon.ico` fallback으로 늦게 바뀔 수 있으므로 smoke 판정은 HTML head 출력과 `/favicon.ico` 응답 기준으로 한다. 로컬 PNG/JPEG/WebP 파비콘 원본에서는 아이콘 세트 모달의 생성 크기 스위치가 줄바꿈 목록으로 표시되고 전체 선택 스위치가 개별 크기 스위치를 모두 활성화/비활성화하는지 확인한다. 16/32/48/180/192/512 PNG variant를 생성하며, 생성 후 즉시 사용을 선택하면 공개 head에 사이즈별 `icon`/`apple-touch-icon` 링크가 출력되는지 확인. SVG 또는 S3 원본은 생성 불가 안내가 표시되고 기존 단일 favicon fallback이 유지되어야 한다
+로고 매니저에서 용도별 상시 로고를 등록하면 사용자화면 PC/모바일 로고, 관리자 사이드바, 파비콘 용도에 반영되는지 확인. 공개 레이아웃 로고는 사용처의 `전체` 상단/하단과 개별 레이아웃 제공 모듈 상단/하단을 저장할 수 있어야 하며, 같은 슬롯에서 개별 모듈 지정이 `전체` 지정보다 우선하고 같은 우선순위에서는 전체 기간이 더 짧은 로고가 우선인지 확인한다. 사용자화면 PC 로고만 등록하면 모바일 헤더도 PC 로고를 사용하고, 모바일 로고만 등록하면 PC 헤더도 모바일 로고를 사용해야 한다. PC/모바일 로고가 모두 있으면 모바일 폭에서 모바일 로고가 우선 적용되어야 한다. 관리자 사이드바 로고를 등록하면 사이트명 텍스트 없이 로고만 표시되고, 접힌 상태에서는 앱아이콘이 있으면 앱아이콘을 먼저 표시하고, 앱아이콘이 없으면 같은 사이드바 로고가 검정 박스 없이 원본 비율로 표시되어야 한다. 같은 용도에 상시 로고와 현재 기간 로고가 함께 있으면 기간 로고가 우선이고, 현재 기간 로고가 여러 개이면 전체 기간이 더 짧은 로고가 우선인지 확인. 기간이 끝난 뒤에는 상시 로고로 되돌아가는지 확인. 활성 모듈이 `logo-positions.php`를 제공하는 경우 해당 모듈 후보가 로고 배치 추가 화면의 로고 용도 선택지에 표시되는지 확인. 기존 로고 배치를 수정할 때 파일을 선택하지 않으면 기존 이미지가 유지되고, 새 파일을 선택하면 파일 참조가 교체되며 감사 로그에 `logo_manager.logo.updated`와 이미지 교체 여부가 남는지 확인. 관리 버튼은 파비콘 용도에서 아이콘 세트가 맨 앞에 표시되고, 삭제 버튼은 로고 배치와 생성된 아이콘 세트 행 및 저장소 파일 정리를 실행하며 `logo_manager.logo.deleted` 감사 로그를 남기는지 확인한다. `public.app_icon` 용도에서는 사용자 화면 심볼 스위치가 활성화되고 저장값이 심볼 helper에서 반환되는지, 사용자화면 PC/모바일 로고가 모두 없을 때 기본 공개/콘텐츠/커뮤니티 레이아웃의 브랜드 영역에 앱아이콘과 사이트명이 함께 표시되는지, 다른 용도에서는 스위치가 꺼지고 조작된 POST 값도 저장되지 않는지 확인. 심볼 스위치는 파비콘 head link 조건과 별도이므로 심볼을 켠 앱아이콘은 favicon head link로 출력되지 않고, 심볼을 끈 활성 파비콘도 head link로 출력되어야 한다. 파비콘 등록 시 `앱아이콘으로도 사용`, 앱아이콘 등록 시 `파비콘으로도 사용` 스위치를 켜면 별도 저장본의 다른 용도 로고가 함께 생성되어야 한다. 활성 파비콘 1개를 중지하면 관리자/공개/콘텐츠/커뮤니티 head에서 해당 URL의 `icon`/`apple-touch-icon` 링크가 제거되고, 다른 활성 후보가 없으면 `icon`과 `apple-touch-icon` link가 모두 출력되지 않아야 하며 `/favicon.ico`는 no-store 404로 응답해야 한다. 완전 삭제 POST는 `Clear-Site-Data: "cache"`로 이전 투명 아이콘 캐시 정리를 요청해야 한다. 같은 용도의 다른 활성 후보가 있으면 정렬 기준대로 그 후보가 적용될 수 있다. 로고 배치 목록은 `현재 적용`과 현재 시각에 적용 가능한 `적용 후보`를 구분해 보여야 하며, 기간이 지났거나 아직 시작 전인 사용 상태 로고에는 적용 후보 배지를 붙이지 않아야 한다. 탭 아이콘은 브라우저 캐시나 루트 `/favicon.ico` fallback으로 늦게 바뀔 수 있으므로 smoke 판정은 HTML head 출력과 `/favicon.ico` 응답 기준으로 한다. 로컬 PNG/JPEG/WebP 파비콘 원본에서는 아이콘 세트 모달의 생성 크기 스위치가 줄바꿈 목록으로 표시되고 전체 선택 스위치가 개별 크기 스위치를 모두 활성화/비활성화하는지 확인한다. 16/32/48/180/192/512 PNG variant를 생성하며, 생성 후 즉시 사용을 선택하면 공개 head에 사이즈별 `icon`/`apple-touch-icon` 링크가 출력되는지 확인. SVG 또는 S3 원본은 생성 불가 안내가 표시되고 기존 단일 favicon fallback이 유지되어야 한다
 커뮤니티 게시글 또는 게시판 대상 쿠폰이 있으면 게시글 유료 열람과 첨부 직접 접근에서 금액성 자산 차감보다 쿠폰 사용이 먼저 적용되는지 확인. `once` 정책에서는 같은 세션/대상 중복 차감과 중복 쿠폰 사용이 없어야 한다
 커뮤니티 환경설정 저장은 레벨 사용, 자동 재계산, 최대 레벨, 레벨 점수, 커뮤니티 공개 레이아웃, 커뮤니티 공개 테마, 시리즈 기능 사용, 게시글 에디터, 본문 URL 자동 링크, 개인정보 수집 및 이용동의 기본값, 복합 자산 차감 선택과 금액을 함께 바꿔 `sr_module_settings` 값이 갱신되는지 확인한다. 시리즈 기능을 끄면 커뮤니티 시리즈 생성/연결/관리/스크랩/공개 내비게이션을 사용할 수 없고, 커뮤니티 메인 화면에서도 시리즈 섹션이 보이지 않아야 한다. 레벨 점수 입력은 자동 재계산을 사용할 때만 보이는지 확인한다. 개인정보 동의 사용 시 제목, 본문, 버전, 적용 대상 하나 이상이 서버에서 필수로 검증되어야 하며, 동의 후 제출한 게시글/댓글은 관리자 목록에서 동의 증적 수와 최근 동의 시각이 표시되어야 한다. 최대 레벨을 늘릴 때는 1차 안내 모달과 2차 확인 문구 입력을 거친 뒤 부족한 레벨 행이 기본 최소 점수로 자동 추가되는지 확인한다. `/admin/community/levels`는 레벨 미사용 상태에서 환경설정 링크가 있는 안내를 표시해야 하며, 재계산 모달은 부하 안내 확인 단계와 확인 문구 입력 단계를 거친 뒤 배치 재계산 진행상태가 표시되는지 확인한다. 복합 자산 차감에서 포인트/적립금/예치금을 모두 해제하고 저장하면 다시 체크되지 않아야 한다. 저장 실패가 발생하면 화면 검증 메시지 또는 `storage/logs/error.log`에 원인이 남아야 한다
 
 같은 커뮤니티 환경설정에서 게시글·댓글 자동등록방지 모드를 각각 저장하고, 게시판 개별 설정의 `상위 설정 사용`과 개별 모드가 공개 글·댓글 폼과 서버 검증에 일치하는지 확인한다. 게시판의 그룹·전체 적용 범위를 선택하면 현재 모드가 의도한 게시판에만 한 번 복사되어야 하며, `guest`는 비회원에게만, `always`는 회원과 비회원 모두에게 적용되어야 한다.
-같은 환경설정에서 댓글 에디터를 textarea, HTML, CKEditor, Markdown 중 활성 선택지로 바꿔 `comment_editor`가 저장되는지 확인한다. 콘텐츠·퀴즈·설문 개별 항목에서 `상위 설정 사용`을 선택하면 환경설정을 따르고, 별도 댓글 입력 방식을 선택하면 `comment_editor_key`가 댓글·답글 작성, 댓글 수정, 기존 댓글 출력에 우선하는지 확인한다. 그룹·전체 적용을 선택한 경우 대상 항목에 같은 값이 한 번 복사되는지도 확인한다. 게시판 관리에서 별도 댓글 에디터를 선택하면 댓글·답글 작성과 기존 댓글 출력에 게시판 값이 우선하고, HTML은 허용된 마크업만 남으며 Markdown은 활성 renderer와 출력 stylesheet를 사용하는지 확인한다. 비회원 댓글 폼은 기본 textarea를 유지해야 한다.
+같은 환경설정에서 댓글 에디터를 textarea, HTML, CKEditor, Markdown 중 활성 선택지로 바꿔 `comment_editor`가 저장되는지 확인한다. 콘텐츠 개별 항목에서 `상위 설정 사용`을 선택하면 환경설정을 따르고, 별도 댓글 입력 방식을 선택하면 `comment_editor_key`가 댓글·답글 작성, 댓글 수정, 기존 댓글 출력에 우선하는지 확인한다. 그룹·전체 적용을 선택한 경우 대상 항목에 같은 값이 한 번 복사되는지도 확인한다. 게시판 관리에서 별도 댓글 에디터를 선택하면 댓글·답글 작성과 기존 댓글 출력에 게시판 값이 우선하고, HTML은 허용된 마크업만 남으며 Markdown은 활성 renderer와 출력 stylesheet를 사용하는지 확인한다. 비회원 댓글 폼은 기본 textarea를 유지해야 한다.
 쪽지 환경설정 저장은 `/admin/message/settings`에서 쪽지 사용 여부, 발신 정책, 수신 정책, 발신/수신 회원 그룹, 회원별 수신 설정 사용 여부와 기본 수신 허용값, 발송 제한 시간/건수를 저장하는지 확인한다. 일반 회원은 본인 계정이 현재 수신 가능한 상태여야 쪽지를 발신할 수 있어야 하며, 회원별 수신 설정을 끄거나 수신 그룹 정책에서 제외되면 쪽지 쓰기가 거부되어야 한다.
 커뮤니티 자산 관리자 설정을 바꾼 환경에서는 커뮤니티 전역과 게시판 수정 화면의 `자산 변경 이력` 링크에서 대상별 변경 로그가 보이는지 확인. 게시판 그룹에서 새 게시판을 추가해도 게시판 그룹 설정이 입력폼에 복사되지 않고, 게시판 그룹 관리 화면은 기본 정보만 제공하는지 확인. 게시판 수정 화면에서 `그룹`/`전체` 적용을 선택하면 현재 편집값이 대상 게시판에 한 번 복사된다. 게시판을 다른 그룹으로 옮기더라도 저장된 게시판 자산 설정은 현재 게시판 값으로 유지되어야 한다
 CKEditor 플러그인을 활성화한 환경에서는 콘텐츠 본문, 커뮤니티 게시글, 팝업레이어 본문, 관리자 본문 textarea가 설정에 따라 에디터로 강화되는지 확인한다. 콘텐츠와 팝업레이어처럼 본문 형식을 저장하는 모듈은 CKEditor 선택만으로 `body_format=html` 저장 경로를 타야 하며, 프론트 hidden field만 신뢰하지 않아야 한다. 커뮤니티 게시글은 `sr_community_posts.body_format`을 저장하지 않고 커뮤니티 환경설정 또는 게시판 자체 에디터 설정으로 출력 형식을 결정해야 하며, 게시판 그룹 에디터 설정은 참조하지 않아야 한다. 콘텐츠 생성/수정 화면은 기본 `textarea`와 콘텐츠별 명시 에디터 선택을 저장하고, 라디오 변경 시 textarea, 직접 HTML, CKEditor, Markdown 입력 모드와 도움말이 즉시 전환되는지 확인한다. 다시 열었을 때는 해당 콘텐츠의 선택값으로 본문 textarea가 강화되어야 한다. 직접 HTML 입력 모드를 선택한 경우에는 플러그인 없이도 HTML 저장/출력 과정에서 허용 태그와 속성만 남아야 하며 CKEditor 전용 본문 reset stylesheet를 호출하지 않아야 한다. Markdown 입력 모드는 공개 출력에서 제한된 Markdown 렌더러를 거쳐 HTML로 표시되는지 확인한다. 직접 호스팅 모드는 `modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js`와 `ckeditor5.css`를 로드해야 한다. CKEditor 설정 화면의 기본 툴바 구성은 명시 preset이 없는 CKEditor textarea의 fallback으로 적용되고, 콘텐츠 환경설정의 툴바 구성은 콘텐츠 본문 입력 화면에, 커뮤니티 환경설정의 툴바 구성은 커뮤니티 게시글 작성/수정 화면에 적용되는지 확인한다. CKEditor asset 로딩을 실패시킨 경우에는 일반 textarea 제출이 유지되어야 한다. 악성 HTML은 저장/출력 과정에서 허용 태그와 속성만 남아야 한다. 콘텐츠/커뮤니티/팝업레이어 복사 경로도 기존 HTML을 그대로 신뢰하지 않고 새 레코드 저장 전과 본문 이미지/임베드 참조 재작성 후 최종 본문을 다시 정화해야 한다. HTML Purifier가 배치된 환경에서는 Purifier 경로와 내부 fallback canonicalizer가 함께 payload fixture를 통과해야 하며, Purifier가 없는 환경에서는 내부 fallback sanitizer fixture가 통과해야 한다. 콘텐츠/커뮤니티/팝업레이어 본문 이미지 업로드는 권한, CSRF, upload token을 요구하고, upload token은 허용 길이를 넘으면 잘라서 검증하지 않고 거부해야 한다. 저장 전 temporary 이미지는 업로드 권한이 있는 현재 사용자에게 보이며, 저장 후 정화된 HTML에 남은 프록시 URL만 소유 모듈의 로컬 경로로 이동되어야 한다. 각 업로드 action은 만료된 임시 본문 이미지를 소량 opportunistic cleanup으로 정리해야 한다. 유료/비공개 콘텐츠와 권한 제한 게시글의 본문 이미지 프록시는 소유 모듈 접근 정책을 우회하지 않아야 하며, 본문에서 제거되거나 레코드가 삭제된 이미지는 소유 모듈 저장 경로 기준으로 정리되어야 한다. 관리자 설정형 rich textarea에는 소유 모듈이 subject key와 삭제 정책을 명시한 경우에만 upload endpoint가 붙는지 확인한다.
@@ -281,8 +271,8 @@ SR_SMOKE_ADMIN_IDENTIFIER=admin \
 SR_SMOKE_ADMIN_PASSWORD=12341234 \
 php .tools/bin/smoke-ckeditor-upload-save.php
 ```
-리액션 모듈이 활성화된 설치 DB에서는 `/admin/reactions`의 `리액션 정의`, `Preset 관리`, `레코드 점검` 하위 화면이 분리되어 열리는지 확인한다. 정의 화면에서는 새 리액션을 이모지, Material icon key, JPG/PNG/WebP 이미지 업로드 방식으로 각각 저장하고 공개 위젯에서 같은 아이콘이 표시되는지 확인한다. 이미지 아이콘은 512px 이하, 1MB 이하 파일만 허용되어야 하며, 허용되지 않는 파일이나 중복 key처럼 정의 저장 검증이 실패하는 요청 뒤에는 새 업로드 파일이 남지 않아야 한다. Preset 관리에서는 공개 노출 key 수가 기본 6개와 hard safety cap 12개 기준을 따르는지, 콘텐츠 환경설정/콘텐츠 그룹/개별 콘텐츠, 커뮤니티 환경설정/게시판 그룹/게시판, 퀴즈·설문 환경설정/개별 설정에서 선택한 preset 상속 순서가 실제 공개 버튼에 반영되는지 확인한다. 레코드 점검에서는 회원/대상/key 필터가 목록에 반영되고, 사용 중지 key의 기존 레코드를 보관, 삭제, 병합할 때 영향 수 확인과 감사 로그 metadata가 남는지 확인한다. 자기 글/댓글/콘텐츠/퀴즈/설문에는 신규 리액션 write가 차단되고, 알림도 생성되지 않아야 한다.
-퀴즈와 설문 관리자 생성/수정 화면에서는 대표/OG 이미지 URL 입력과 JPG/PNG/WebP 업로드를 저장할 수 있고, 공개 목록과 상세 화면 상단에 이미지가 표시되며 상세 화면의 공유 이미지 metadata에도 반영되는지 확인한다. 이미지 URL은 안전한 내부 경로 또는 HTTP(S) URL만 저장되어야 하며, 값이 비어 있으면 공유 metadata는 사이트 기본 OG 이미지를 사용해야 한다. 업로드 이미지는 각 모듈의 `/quiz/cover-image`, `/survey/cover-image` 프록시로 열려야 한다.
+리액션 모듈이 활성화된 설치 DB에서는 `/admin/reactions`의 `리액션 정의`, `Preset 관리`, `레코드 점검` 하위 화면이 분리되어 열리는지 확인한다. 정의 화면에서는 새 리액션을 이모지, Material icon key, JPG/PNG/WebP 이미지 업로드 방식으로 각각 저장하고 공개 위젯에서 같은 아이콘이 표시되는지 확인한다. 이미지 아이콘은 512px 이하, 1MB 이하 파일만 허용되어야 하며, 허용되지 않는 파일이나 중복 key처럼 정의 저장 검증이 실패하는 요청 뒤에는 새 업로드 파일이 남지 않아야 한다. Preset 관리에서는 공개 노출 key 수가 기본 6개와 hard safety cap 12개 기준을 따르는지, 콘텐츠 환경설정/콘텐츠 그룹/개별 콘텐츠, 커뮤니티 환경설정/게시판 그룹/게시판에서 선택한 preset 상속 순서가 실제 공개 버튼에 반영되는지 확인한다. 레코드 점검에서는 회원/대상/key 필터가 목록에 반영되고, 사용 중지 key의 기존 레코드를 보관, 삭제, 병합할 때 영향 수 확인과 감사 로그 metadata가 남는지 확인한다. 자기 글/댓글/콘텐츠에는 신규 리액션 write가 차단되고, 알림도 생성되지 않아야 한다.
+이미지 URL은 안전한 내부 경로 또는 HTTP(S) URL만 저장되어야 하며, 값이 비어 있으면 공유 metadata는 사이트 기본 OG 이미지를 사용해야 한다.
 보유 쿠폰이 21건 이상인 로컬 더미 계정에서는 `/account/coupons`의 다음 페이지와 마지막 부분 페이지까지 이동할 수 있고, 미래 시작 활성 쿠폰도 보유 목록에는 남아야 한다. 더 최신인 무관 쿠폰을 300건 이상 가진 계정에서도 특정 콘텐츠·커뮤니티 대상에 맞는 오래된 쿠폰이 결제 후보에서 누락되지 않는지 확인한다.
 
 알림 모듈이 활성화된 환경에서는 포인트/적립금/예치금 거래와 쿠폰 지급/사용/상태 변경/사용 환불/발급 환불 후 회원 대상 알림이 생성되는지 확인. 회원 보안 이벤트는 `/admin/member-notification-templates`의 템플릿과 채널 설정을 따라야 하며, 이메일 인증 완료, 비밀번호 변경/재설정 완료, 2차 인증 설정/복구코드 재발급/해제, OAuth 연결/해제 성공 뒤 `member.security.*` 알림이 생성되는지 확인한다. 같은 화면에서는 `member.email_verification`, `member.password_reset`, `member.login_mfa_email_code` 메일 템플릿이 함께 보이고 사용자 수정 저장과 기본값 복원이 동작해야 한다. `/admin/delivery-templates`에서는 회원 메일 계약과 `policy_documents.version_notice` 계약이 보이고 사용자 수정 저장과 기본값 복원이 동작해야 한다. 쿠폰 알림은 `/admin/coupons/notification-templates`의 케이스별 사용 여부와 채널 설정을 따라야 하며, 켜진 케이스에서 이메일 채널을 선택하면 회원 이메일로 delivery가 queue되어야 한다. 쿠폰 알림/메일 관리 화면은 이메일 채널이 쿠폰 지급이나 사용 중지 처리에서 대량 발송될 수 있음을 페이지 안내로 알려야 하고, 쿠폰 지급·사용 중지·지급 취소·발급 환불·사용 환불 실행 위치도 해당 이메일 채널이 켜져 있으면 운영자에게 주의를 보여야 한다. 사용 중지 회수 안내는 알림 이벤트 템플릿 `coupon/issue.definition_disabled`를 사용한다. 외부 푸시는 알림 모듈 provider와 회원별 수신처가 준비된 경우에만 queue되어야 한다. 알림 모듈을 비활성화하거나 설치하지 않은 환경에서는 각 모듈의 알림/메일 관리 메뉴가 관리자 메뉴에서 숨겨지고, 해당 URL 직접 접근은 관리 화면을 렌더링하지 않아야 하며, 쿠폰 사용 중지와 같은 원 업무는 알림 실패 없이 성공해야 한다. 포인트 환경설정에서 유효기간을 1일 이상으로 저장한 뒤 `grant` 지급 거래를 만들면 거래 목록과 회원 화면에 유효기간이 표시되고, 유효기간 입력 옆에 `일` 단위가 표시되는지 확인한다. 사용/차감 거래가 가장 먼저 만료되는 지급분의 만료 가능 잔여량을 줄이고 `sr_point_expiration_consumptions`에 소비 매핑을 남기는지도 확인한다. 적립금 환경설정에서 유효기간을 1일 이상으로 저장한 뒤 `grant` 지급 거래를 만들면 거래 목록과 회원 화면에 유효기간이 표시되고, 사용/차감 거래가 `sr_reward_expiration_consumptions`에 소비 매핑을 남기는지도 확인한다. 포인트 환불 모달의 환불 유효기간 기본값은 `환불 참조 원거래의 유효기간`이어야 하며, 환불 건마다 `환불 시점부터 유효기간 계산`으로 바꿀 수 있어야 한다. 사용/차감 거래를 환불할 때 기본값은 소비 매핑의 원 지급 유효기간을 따라야 하고, 여러 유효기간 지급분이 복원되면 환불 거래가 유효기간별로 나뉘어야 하며, 이미 환불한 수량과 합쳐 원거래 수량을 넘으면 서버에서 거부되어야 한다. 포인트/적립금/예치금 조정 모달에는 환불 거래 유형이 일반 선택지로 보이지 않아야 하고, 참조 없는 환불 POST, 양수 원거래 환불 POST, 원거래 잔여 환불 가능액을 넘는 환불 POST는 서버에서 거부되어야 한다. 콘텐츠 파일 다운로드 수동 환불 모달도 포인트 환불 유효기간 기준을 환불 건마다 선택할 수 있어야 한다. 포인트의 기한이 지난 지급분은 `/admin/points/settings`의 `수동 만료 실행` 버튼, `php .tools/bin/expire-points.php` 실행, 또는 다음 포인트 거래 전에 `expire` 거래로 차감되어야 하며, 적립금의 기한이 지난 지급분은 다음 적립금 거래 전 또는 회원 적립금 화면 조회 시 `expire` 거래로 차감되어야 하며, 기존 업데이트 전 거래처럼 `expires_at`이 없는 거래는 자동 만료되지 않아야 한다. 적립금 관리자 조정에서 지급 원거래에는 환불 버튼이 보이지 않고 회수 버튼만 제공되어야 한다. 예치금 지급/예치 원거래에는 환불 버튼이 보이지 않아야 하며, 회원에게 예치금을 내보내는 처리는 출금 또는 예치금 환불 신청 완료 흐름으로 처리되어야 한다. 공개 상단 회원 드롭다운은 쿠폰·이용권 보유 수와 쿠폰함 진입 링크를 표시하고, 적립금 출금 신청, 예치금 환불 신청, 환전 신청이 실제로 가능한 조건에서만 해당 진입 링크를 표시하며, 클릭 시 각 회원 영역으로 이동해야 한다. `회수` 유형은 음수 금액만 허용하고, 회수 대상 원거래를 참조해야 하며, 같은 대상의 누적 회수액이 원거래 금액을 넘으면 서버에서 거부되어야 한다. 회수 성공 후 회원 알림 제목이 적립금 회수로 생성되어야 한다. 알림 모듈을 비활성화한 환경에서는 같은 자산 처리가 알림 실패 없이 성공해야 한다. 포인트/적립금/예치금 관리자 잔액 조정 모달에는 별도 대액 조정 승인자/승인 사유 입력과 연결 기록 유형/ID 입력이 보이지 않아야 하며, 입력 사유가 감사 로그 metadata의 `approval_note`에 저장되는지 확인한다. 1,000,000 초과 조정은 대상 회원과 입력 사유를 감사 로그 metadata에 남겨야 한다. 10,000,000 초과 1회 조정 또는 관리자별 일일 10,000,000 초과 조정은 서버에서 거부되는지 확인한다.
@@ -318,7 +308,7 @@ php .tools/bin/smoke-asset-idempotency-http.php
 /community/comment/delete 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
 /community/report 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
 /content/comment 비로그인 POST 접근이 로그인 흐름으로 막히는지 확인
-알림 모듈이 활성화된 환경에서 커뮤니티/콘텐츠/퀴즈/설문 댓글 textarea에 `@`를 입력하면 로그인 회원용 `/member/mention-search` 후보가 공개 이름과 hash prefix만 반환하고, 이메일/내부 계정 ID/가입일을 노출하지 않는지 확인한다. 후보 선택으로 삽입된 `@공개이름#prefix`는 현재 공개 이름과 public account hash prefix가 함께 단일 활성 회원에 일치할 때만 `module_key=community/content/quiz/survey, event_key=comment.mention` 템플릿 기반 사이트 알림을 생성해야 한다. 동명이인에게 `@공개이름`만 입력한 모호한 멘션은 단일 대상 알림을 만들지 않아야 하며, 자기 자신과 글/콘텐츠 작성자는 멘션 대상에서 제외되어야 한다. 비밀 댓글은 멘션 알림을 만들지 않아야 한다. 알림 모듈이 비활성화되었거나 템플릿이 누락된 환경에서는 댓글 저장이 실패하지 않아야 한다. `/admin/audit-logs`에서는 댓글 작성 감사 로그에 작성자 알림 생성 여부가 남고, 댓글 작성/수정 감사 로그에는 멘션 후보 수, 실제 멘션 알림 생성 수, 멘션 대상 공개 해시가 남는지 확인한다. `php .tools/bin/check-mention-ux.php`, `php .tools/bin/check-quiz-consistency.php`, `php .tools/bin/check-survey-consistency.php`로 prefix 파서, 후보 API 연결, 비밀 댓글 UI 제어 정합성을 확인한다.
+알림 모듈이 활성화된 환경에서 커뮤니티/콘텐츠 댓글 textarea에 `@`를 입력하면 로그인 회원용 `/member/mention-search` 후보가 공개 이름과 hash prefix만 반환하고, 이메일/내부 계정 ID/가입일을 노출하지 않는지 확인한다. 동명이인에게 `@공개이름`만 입력한 모호한 멘션은 단일 대상 알림을 만들지 않아야 하며, 자기 자신과 글/콘텐츠 작성자는 멘션 대상에서 제외되어야 한다. 비밀 댓글은 멘션 알림을 만들지 않아야 한다. 알림 모듈이 비활성화되었거나 템플릿이 누락된 환경에서는 댓글 저장이 실패하지 않아야 한다. `/admin/audit-logs`에서는 댓글 작성 감사 로그에 작성자 알림 생성 여부가 남고, 댓글 작성/수정 감사 로그에는 멘션 후보 수, 실제 멘션 알림 생성 수, 멘션 대상 공개 해시가 남는지 확인한다.
 /community/scraps 비로그인 접근이 로그인 흐름으로 막히는지 확인
 POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지 확인. `target_type=series` 시리즈 스크랩 POST도 같은 로그인/CSRF 흐름을 따라야 한다.
 /messages 비로그인 접근이 로그인 흐름으로 막히는지 확인
@@ -351,12 +341,6 @@ POST /community/scrap 비로그인 접근이 로그인 흐름으로 막히는지
 /modules/community/assets/layout.js 정적 파일 응답과 커뮤니티 layout 스크롤 header 동작 기준 확인
 /modules/community/assets/module.js 정적 파일 응답과 커뮤니티 화면 전용 JavaScript 분리 기준 확인
 /modules/member/skins/basic/skin.css 정적 파일 응답과 회원 basic skin CSS 공개 경로 확인
-/modules/quiz/theme/basic/assets/layout.css 정적 파일 응답과 퀴즈 공개 layout shell 확인
-/modules/quiz/assets/layout.js 정적 파일 응답과 퀴즈 layout 스크롤 header 동작 기준 확인
-/modules/quiz/assets/module.js 정적 파일 응답과 퀴즈 화면 전용 JavaScript 분리 기준 확인
-/modules/survey/theme/basic/assets/layout.css 정적 파일 응답과 설문 공개 layout shell 확인
-/modules/survey/assets/layout.js 정적 파일 응답과 설문 layout 스크롤 header 동작 기준 확인
-/modules/survey/assets/module.js 정적 파일 응답과 설문 화면 전용 JavaScript 분리 기준 확인
 /database/core/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/member/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
 /modules/community/install.sql 직접 접근에서 SQL 내용이 노출되지 않는지 확인
@@ -413,64 +397,11 @@ php .tools/bin/smoke-privacy-export-cleanup.php
 마일스톤 13 읽기 참조 계약을 검증할 때는 다음 흐름을 확인한다.
 
 - 발급/사용 이력이 있는 쿠폰 정의도 운영자가 `지급 중지` 또는 `사용 중지`로 전환할 수 있고, 참조 현황은 차단 대신 확인 정보로 남는다.
-- 퀴즈 쿠폰 보상 정책이 쿠폰 정의를 참조하고 있으면 서버가 최신 `coupon-references.php` 결과로 비활성화 영향을 표시한다.
-- 설문 쿠폰 보상 정책이 쿠폰 정의를 참조하고 있으면 서버가 최신 `coupon-references.php` 결과로 비활성화 영향을 표시한다.
 - 콘텐츠나 커뮤니티 설정에서 직접 선택한 배너/팝업레이어가 있으면 해당 배너/팝업레이어 삭제 POST가 차단된다.
 - 적립금/예치금/콘텐츠/커뮤니티/회원 자동 규칙에서 쓰는 enabled 회원 그룹은 비활성 또는 보관 상태로 바꾸는 POST가 차단된다.
 - 제목 접미사나 기본 설명이 기존 사이트명 그대로인 상태에서 사이트명을 바꾸면 같은 저장 요청에서 새 사이트명으로 함께 보정된다. 로고 alt text처럼 다른 모듈 설정에 기존 사이트명이 직접 들어 있어도 사이트명 변경 POST는 저장되고, 리다이렉트 후 토스트와 이전 사이트명 기준 참조 현황으로 후속 확인을 안내한다. malformed 계약 파일, 누락 callable, 잘못된 row 같은 사이트명 참조 계약 오류는 저장을 차단한다.
 - `php .tools/bin/check-read-reference-contracts.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
 - 보상/접근권 중복 방지 기준은 `php .tools/bin/check-reward-abuse-standards.php`가 통과하고, `php .tools/bin/check.php` 통합 점검에도 포함된다.
-
-## 퀴즈 보상 전용 E2E
-
-퀴즈 마일스톤을 검증할 때는 로컬 또는 스테이징에서 관리자 테스트 계정을 사용해 다음 명령을 실행한다. 이 검사는 퀴즈를 생성하고 제출 기록과 보상 지급을 만든 뒤 가능한 경우 생성 퀴즈를 소프트삭제하므로 운영 DB에서 실행하지 않는다.
-
-```sh
-SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
-SR_SMOKE_ALLOW_MUTATION=1 \
-SR_SMOKE_ADMIN_IDENTIFIER=admin \
-SR_SMOKE_ADMIN_PASSWORD='12341234' \
-php .tools/bin/smoke-quiz-e2e.php
-```
-
-활성 자산 보상 후보를 명시해야 하면 `SR_SMOKE_QUIZ_REWARD_MODULE=point`처럼 지정한다. 스크립트는 mutation 안전장치로 기본 실행을 거부하고 `SR_SMOKE_ALLOW_MUTATION=1`을 요구한다. public-looking base URL에서는 staging disposable 데이터임을 다시 확인하기 위해 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 요구한다. 관리자 퀴즈 생성, 복수/단일 선택 제출, 통과 결과, 보상 지급, 회원당 1회 재응시 차단을 확인한다.
-
-적립금 보상 회수는 `/admin/quiz/attempts`에서 grant별 회수 가능액과 회수 버튼이 보이는지 확인한다. 회수 모달은 `intent=reclaim_reward`, `grant_id`, `amount`, `reason`, `return_to`를 보내며, 서버가 CSRF와 편집 권한을 확인하고 grant 기준 원장 거래, 회수 가능액, 적립금 `reclaim` 참조를 트랜잭션 안에서 다시 검증해야 한다.
-
-전체 커뮤니티 흐름은 선택 계정을 함께 지정해 확인한다.
-
-```sh
-SR_SMOKE_BASE_URL=http://127.0.0.1:8080 \
-SR_SMOKE_IDENTIFIER=writer@example.com \
-SR_SMOKE_PASSWORD='password' \
-SR_SMOKE_RECIPIENT_IDENTIFIER=recipient@example.com \
-SR_SMOKE_RECIPIENT_PASSWORD='password' \
-SR_SMOKE_REPORTER_IDENTIFIER=reporter@example.com \
-SR_SMOKE_REPORTER_PASSWORD='password' \
-SR_SMOKE_ADMIN_IDENTIFIER=admin@example.com \
-SR_SMOKE_ADMIN_PASSWORD='password' \
-php .tools/bin/smoke-community-auth.php
-```
-
-확인 항목:
-
-```text
-작성자 로그인 후 /messages 접근
-자유 게시판 게시글 작성과 상세 화면 제목 확인
-작성자 게시글 수정과 상세 화면 수정 제목/본문 확인
-댓글 작성과 상세 화면 댓글 본문 확인
-게시글 스크랩 추가와 스크랩 목록 노출, 해제 후 목록 미노출 확인. 시리즈 스크랩은 게시글 스크랩과 별도 목록으로 표시되고 해제 후 목록에서 빠지는지 확인
-게시글·시리즈 스크랩을 각각 21건 이상 만든 로컬 더미 계정에서 두 목록의 두 번째 페이지를 독립적으로 이동하고, 한 목록의 페이지 이동이 다른 목록 페이지를 보존하며 해제 후 가능한 현재 스크랩 페이지로 돌아오는지 확인
-수신자 닉네임을 타이핑해 자동완성 회원을 선택하고, 여러 수신자를 추가했을 때 각 수신자에게 쪽지가 생성되는지 확인
-수신자 계정 지정 시 쪽지 발송과 보낸 쪽지 본문 확인
-수신자 비밀번호 지정 시 수신자 로그인 후 받은 쪽지 본문 확인
-보낸 쪽지 삭제 후 보낸 쪽지함 미노출과 발신자 404 응답 확인
-받은 쪽지와 보낸 쪽지를 각각 21건 이상 만든 로컬 더미 계정에서 두 번째 페이지와 마지막 부분 페이지까지 이동하고, 두 번째 페이지의 쪽지를 삭제한 뒤 같은 편지함과 가능한 현재 페이지로 돌아오는지 확인
-신고자 계정 지정 시 작성된 게시글 신고 확인
-관리자 계정 지정 시 신고 처리, 댓글 숨김과 댓글 미노출, 게시글 숨김, 숨김 게시글 404 응답 확인
-```
-
-`SR_SMOKE_RECIPIENT_PASSWORD`는 `SR_SMOKE_RECIPIENT_IDENTIFIER`가 있을 때만 사용할 수 있다. 신고자와 관리자 계정은 identifier/password를 함께 지정해야 한다. 게시판 키를 바꿔야 하면 `SR_SMOKE_BOARD_KEY`를 사용하고, 기존 게시글 ID를 보조값으로 넘겨야 하면 `SR_SMOKE_POST_ID`를 사용한다.
 
 ## 수동 확인 시나리오
 
@@ -495,7 +426,7 @@ php .tools/bin/smoke-community-auth.php
 ```text
 선택 모듈 체크 후 설치 완료
 서비스 도메인 모듈 카드에서 초기화면으로 설정 체크를 선택한 경우 site.home_path가 저장되고 / 접속 시 해당 경로로 이동
-/admin/settings 화면 섹션에서 기본 홈페이지 / 접속, 콘텐츠/커뮤니티/퀴즈/설문 초기화면 선택과 fallback 확인
+/admin/settings 화면 섹션에서 기본 홈페이지 / 접속, 콘텐츠/커뮤니티 초기화면 선택과 fallback 확인
 선택 모듈 관리자 메뉴 노출
 선택 모듈의 GET 관리자 path가 500 없이 열림
 ```
@@ -538,7 +469,7 @@ SR_SEED_ADMIN_PASSWORD='password' \
 php .tools/bin/seed-dummy-http.php
 ```
 
-기본 실행은 회원, 콘텐츠, 커뮤니티 게시글, 배너, 팝업레이어, 쿠폰, 알림에 더해 테스트용 콘텐츠 다운로드 파일, 커뮤니티 첨부 다운로드, 퀴즈, 설문을 만든다. 기초 레코드는 HTTP 등록 경로로 만들고, 회원은 `/register` 생성이 목표 수량에 못 미치면 관리자 세션의 `/admin/members/save`로 나머지를 보충한다. 다운로드 파일과 퀴즈/설문 조합은 제한된 DB/storage fixture로 얹는다. 다운로드는 무료/포인트 차감/적립금 차감, 퀴즈와 설문은 보상 없음/포인트 보상/적립금 보상 대표 변형이 섞이도록 구성한다. 이 풍부한 변형을 제외하려면 `SR_SEED_SKIP_RICH_FIXTURES=1`을 함께 지정한다.
+기본 실행은 회원, 콘텐츠, 커뮤니티 게시글, 배너, 팝업레이어, 쿠폰, 알림에 더해 테스트용 콘텐츠 다운로드 파일, 커뮤니티 첨부 다운로드을 만든다. 기초 레코드는 HTTP 등록 경로로 만들고, 회원은 `/register` 생성이 목표 수량에 못 미치면 관리자 세션의 `/admin/members/save`로 나머지를 보충한다. 이 풍부한 변형을 제외하려면 `SR_SEED_SKIP_RICH_FIXTURES=1`을 함께 지정한다.
 
 시더는 각 POST 응답의 관리자 오류, 공개 피드백 오류, 회원가입 오류 목록을 발견하면 즉시 실패로 보고해야 한다. 도메인별 생성 전/후 카운트가 기대 증가량보다 작으면 성공 redirect처럼 보인 응답도 실패로 본다.
 
@@ -582,13 +513,12 @@ HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.
 - 재회수 전액 성공은 기존 open row를 `recovered`로 닫고, 부분 성공은 recovered/unrecovered 금액을 갱신한 뒤 open 상태를 유지하는지 확인
 - 수동 `manually_resolved`/`cancelled`는 확인 문구와 관리자 사유를 서버에서 검증하고 원장 거래를 만들지 않는지 확인
 
-## 콘텐츠·퀴즈·설문 삭제 상태와 영구 삭제 스모크
+## 콘텐츠 삭제 상태와 영구 삭제 스모크
 
 #404 기준의 자동 검사 또는 설치 DB smoke는 일반 삭제와 영구 물리 삭제를 구분해 확인한다. 일반 삭제는 원문 redaction과 소유 저장소 파일 삭제 시도, cleanup failure 기록을 확인하고, 영구 삭제는 삭제됨 전용 보기에서만 본체와 삭제 배정 하위 row를 제거하는지 확인한다.
 
 - 콘텐츠 deleted 상태에서 edit GET, save POST, copy POST, batch status POST가 모두 fail-closed 되는지 확인
-- 퀴즈 `status = archived`이지만 `deleted_at IS NULL`인 정상 보관 항목이 영구 삭제 후보에 포함되지 않는지 확인
-- 콘텐츠·퀴즈·설문 삭제됨 보기에서 삭제 판정값, 보존 로그 카운트, cleanup failure/pending 카운트가 보이는지 확인
+- 콘텐츠 삭제됨 보기에서 삭제 판정값, 보존 로그 카운트, cleanup failure/pending 카운트가 보이는지 확인
 - 영구 삭제 후 본체 row와 삭제 배정 하위 row가 사라지고, 보존 배정 로그가 snapshot 기준으로 조회되는지 확인
 - 일반 삭제 저장소 삭제 실패를 주입해 cleanup failure/pending row가 본체 JOIN 없이 재시도 가능한지 확인
 - `sr_content_files.content_id = 0` 미연결 파일 row가 영구 삭제 고아 검사에서 오탐되지 않는지 확인
@@ -596,3 +526,11 @@ HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.
 ## 게시판 등록·수정 하위 설정
 
 `/admin/community/boards/new`과 `/admin/community/boards/edit?id={board_id}`에서 카테고리와 운영 스탭을 목록·추가/수정 모달로 편집한 뒤 신규 화면의 `저장` 또는 수정 화면의 `수정` 한 번으로 함께 반영되는지 확인한다. 카테고리 추가 모달에는 Key 입력란이 없어야 하며 새 Key는 서버가 자동 발급하고, 조작된 JSON으로 새 카테고리 Key를 지정해도 사용하지 않아야 한다. 활성 카테고리가 없을 때 카테고리 필수 선택이 비활성화되고, 기존 카테고리의 중복/예약 Key와 Key 변경, 잘못된 상태·정렬값, 참조 중인 카테고리 삭제, 존재하지 않는 회원, 빈 권한·허용되지 않은 권한은 서버에서 거부되어야 한다.
+
+## 현재 설치 DB 게이트 실행
+
+기본 HTTP 검증은 `--run-http-smoke`, 관리자 읽기 전용 검증은 `--run-admin-readonly`, 설치 DB CLI 검증은 `--run-readonly`로 실행한다. 실제 브라우저 검증은 `--run-browser-qa`로 실행한다. 로컬/staging disposable 계정과 `SR_SMOKE_ALLOW_MUTATION=1`을 준비한 경우 인증은 `--run-auth-smoke`, 자산 병렬 제출은 `--run-asset-smoke`, 개인정보 처리는 `--run-privacy-smoke`, CKEditor 저장은 `--run-ckeditor-upload-save-smoke`로 실행한다. 모든 옵션은 `release-installed-gate-status.php --help`를 기준으로 한다.
+
+제거된 퀴즈·설문은 [모듈 제거 안내](module-removal-quiz-survey.md)에 따라 기존 설치 참조를 정리한 후, 설치된 환경에서 이전 요청 경로가 더 이상 제공되지 않는지 확인한다. `check-service-module-removal.php`는 소스·설치 후보·레이아웃과 잔존 설치 기록의 계약 조회를 검사한다.
+
+콘텐츠 파일 및 커뮤니티 첨부 다운로드는 무료/포인트 차감/적립금 차감 시나리오를 로컬/staging 더미 데이터에서 확인한다.

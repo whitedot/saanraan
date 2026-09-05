@@ -1,5 +1,7 @@
 # 리스크 처리 기록 - 2026-06-12
 
+이 문서는 당시 검증 기록이다. 퀴즈·설문과 관련 전용 도구는 2026-09-05 제거되었으며, 현재 범위는 [모듈 제거 안내](../module-removal-quiz-survey.md)를 따른다.
+
 이 기록은 릴리스 후보 판정이 아니라 현재 작업 환경에서 처리 가능한 리스크를 줄인 작업 메모다. 설치 DB와 테스트 계정이 필요한 게이트는 그대로 남기고, 미설치 로컬 환경에서 확인 가능한 HTTP 보호 경로, CKEditor asset/fallback 브라우저 smoke, 개인정보/성능 fixture, 상태표 JSON 구조화 증거 경로를 확인했다.
 
 ## 처리한 리스크
@@ -40,7 +42,7 @@
   - 같은 실행에서 별도 draft 콘텐츠도 저장해 관리자 미리보기 이미지 접근과 비로그인 draft 페이지/이미지 차단을 확인하도록 보강했다.
   - 설치 DB를 읽을 수 있는 local/staging 실행에서는 콘텐츠 에디터 설정을 CKEditor로 준비하고, 유료 공개 콘텐츠 본문 이미지가 접근권 부여 전에는 비로그인/로그인 세션 모두 차단되며 테스트 접근권 부여 뒤에는 열리는지 확인하도록 보강했다.
   - 콘텐츠와 업로드 파일을 만들기 때문에 `SR_SMOKE_ALLOW_MUTATION=1`을 필수로 요구하고, public-looking base URL에서는 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`도 추가로 요구한다.
-- `.tools/bin/smoke-asset-idempotency-http.php`, `.tools/bin/smoke-community-auth.php`, `.tools/bin/smoke-quiz-e2e.php`
+- `.tools/bin/smoke-asset-idempotency-http.php`, `.tools/bin/smoke-community-auth.php`, `smoke-quiz-e2e.php`
   - localhost/private/test 도메인이 아닌 base URL에서는 `SR_SMOKE_ALLOW_MUTATION=1`만으로 실행하지 않고 `SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1`을 추가로 요구하도록 했다.
 - `.tools/bin/check-installed-gate-status.php`
   - invalid UTF-8 환경값을 넣은 실제 `--json` 실행, public URL mutation guard, JSON payload 안전화, UTF-8 정리, 문자 단위 자르기, 실패 진단 marker를 통합 점검에 추가했다.
@@ -57,7 +59,7 @@
 - `.tools/bin/check-ckeditor-assets.php`
   - 콘텐츠 본문 이미지 프록시가 임시 이미지는 편집 관리자 세션으로 제한하고, 저장 이미지는 공개/자산 접근 정책을 따르는지 정적 marker로 확인하도록 보강했다.
   - SQLite fixture로 공개 무료 콘텐츠 본문 이미지 접근, 유료 콘텐츠 비로그인 차단, 비공개 콘텐츠 비관리자 차단, 관리자 접근 허용 분기를 확인하도록 보강했다.
-- `.tools/bin/check-asset-idempotency.php`, `.tools/bin/check-community-release.php`, `.tools/bin/check-quiz-consistency.php`
+- `.tools/bin/check-asset-idempotency.php`, `.tools/bin/check-community-release.php`, `check-quiz-consistency.php`
   - 자산 중복 POST, 커뮤니티 인증 smoke, 퀴즈 E2E smoke가 public-looking base URL에서 추가 확인 없이 실행되지 않는지 직접 실행 검증을 추가했다.
 - `core/actions/install.php`, `core/views/install.php`
   - 새 설치에서 `point`, `reward`, `deposit`이 의존하고 관리자 reconciliation 화면을 제공하는 숨김 기반 모듈 `asset_ledger`가 등록되지 않던 문제를 수정했다.

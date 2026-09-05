@@ -239,12 +239,10 @@ $expected = [
     'policy_documents' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'popup_layer' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'privacy' => ['status' => 'coordinator_direct', 'export' => false, 'cleanup' => false, 'consumes_export' => true],
-    'quiz' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'reaction' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'reward' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
     'seo' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
     'site_menu' => ['status' => 'no_member_personal_data', 'export' => false, 'cleanup' => false],
-    'survey' => ['status' => 'export_cleanup', 'export' => true, 'cleanup' => true],
 ];
 
 $bundledModuleCount = sr_privacy_matrix_bundled_module_count();
@@ -388,9 +386,7 @@ foreach ([
     'antispam_captcha_providers',
     'member_oauth',
     'policy_documents',
-    'quiz',
     'reaction',
-    'survey',
     '쿠키와 브라우저 저장소',
     '계정 원천과 인증',
     '정책 문서와 동의',
@@ -504,7 +500,6 @@ foreach ([
     '`sr_member_profile_field_values`',
     'OAuth/OIDC profile',
     'member`의 `birth_date`',
-    '퀴즈/설문 답변',
     '관리자 메모/감사 metadata',
     'special_category_policy',
     '관리자 원문 노출 금지',
@@ -530,7 +525,7 @@ foreach ([
     '`withdrawal` 동의 철회',
     '회원 마케팅 수신 동의와 쿠키/추적 동의',
     '/account/privacy-requests`의 기능성 쿠키 철회',
-    '커뮤니티/설문 제출 동의',
+    '커뮤니티 제출 동의',
     '자동 일괄 변경보다 모듈 소유 정책',
     '배너 클릭 hash 보관일',
     '## 감사 로그 개인정보 기준',
@@ -668,22 +663,12 @@ foreach ([
         '/modules/privacy/assets/cookie-consent.css',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
     ],
-    'modules/quiz/theme/basic/layout.php' => [
-        '/modules/privacy/public-cookie-consent.php',
-        'sr_privacy_cookie_consent_public_html($layoutPdo)',
-        'sr_privacy_cookie_consent_public_assets()',
-    ],
     'modules/content/theme/basic/layout.php' => [
         '/modules/privacy/public-cookie-consent.php',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
         'sr_privacy_cookie_consent_public_assets()',
     ],
     'modules/community/theme/basic/layout.php' => [
-        '/modules/privacy/public-cookie-consent.php',
-        'sr_privacy_cookie_consent_public_html($layoutPdo)',
-        'sr_privacy_cookie_consent_public_assets()',
-    ],
-    'modules/survey/theme/basic/layout.php' => [
         '/modules/privacy/public-cookie-consent.php',
         'sr_privacy_cookie_consent_public_html($layoutPdo)',
         'sr_privacy_cookie_consent_public_assets()',

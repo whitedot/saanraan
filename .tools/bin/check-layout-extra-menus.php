@@ -11,8 +11,6 @@ if (!defined('SR_ROOT')) {
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/community/helpers.php';
-require_once $root . '/modules/quiz/helpers.php';
-require_once $root . '/modules/survey/helpers.php';
 
 $errors = [];
 $assert = static function (bool $condition, string $message) use (&$errors): void {
@@ -30,8 +28,6 @@ $fixtureValue = [
 $moduleContracts = [
     'content' => 'sr_content',
     'community' => 'sr_community',
-    'quiz' => 'sr_quiz',
-    'survey' => 'sr_survey',
 ];
 foreach ($moduleContracts as $ownerKey => $functionPrefix) {
     $itemsFunction = $functionPrefix . '_layout_extra_menu_items_from_value';
@@ -89,26 +85,6 @@ foreach ([
     'sr_community_layout_extra_menu_items_from_settings',
     'sr_community_layout_extra_menu_keys_from_settings',
     'sr_community_layout_extra_menu_keys_json',
-    'sr_quiz_clean_layout_menu_key',
-    'sr_quiz_clean_layout_extra_menu_area_key',
-    'sr_quiz_layout_extra_menu_label',
-    'sr_quiz_layout_extra_menu_hash_key',
-    'sr_quiz_layout_extra_menu_items_from_value',
-    'sr_quiz_layout_extra_menu_items_from_pair_values',
-    'sr_quiz_layout_extra_menu_keys_from_value',
-    'sr_quiz_layout_extra_menu_items_from_settings',
-    'sr_quiz_layout_extra_menu_keys_from_settings',
-    'sr_quiz_layout_extra_menu_keys_json',
-    'sr_survey_clean_layout_menu_key',
-    'sr_survey_clean_layout_extra_menu_area_key',
-    'sr_survey_layout_extra_menu_label',
-    'sr_survey_layout_extra_menu_hash_key',
-    'sr_survey_layout_extra_menu_items_from_value',
-    'sr_survey_layout_extra_menu_items_from_pair_values',
-    'sr_survey_layout_extra_menu_keys_from_value',
-    'sr_survey_layout_extra_menu_items_from_settings',
-    'sr_survey_layout_extra_menu_keys_from_settings',
-    'sr_survey_layout_extra_menu_keys_json',
 ] as $adapterFunction) {
     $reflection = new ReflectionFunction($adapterFunction);
     $lineCount = $reflection->getEndLine() - $reflection->getStartLine() + 1;

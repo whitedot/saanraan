@@ -75,8 +75,6 @@ foreach ([
     '/layouts/public/basic/layout.php',
     '/modules/content/theme/basic/layout.php',
     '/modules/community/theme/basic/layout.php',
-    '/modules/quiz/theme/basic/layout.php',
-    '/modules/survey/theme/basic/layout.php',
 ] as $layoutPath) {
     $layout = file_get_contents($root . $layoutPath);
     sr_mention_check_assert(is_string($layout) && !str_contains($layout, '/assets/mention-input.js'), 'public layout should not load mention input on every screen: ' . $layoutPath);
@@ -113,22 +111,6 @@ foreach ([
     sr_mention_check_assert(is_string($view) && str_contains($view, "is_array(\$account ?? null) && !empty(\$pageAccess['allowed']) ? ['/assets/mention-input.js'] : []"), 'content view should request mention input only when a signed-in account can view the content: ' . $viewPath);
 }
 
-foreach ([
-    '/modules/quiz/skins/basic/view.php',
-    '/modules/quiz/theme/basic/view.php',
-] as $viewPath) {
-    $view = sr_check_source_with_basic_theme_delegate($root, $viewPath);
-    sr_mention_check_assert(is_string($view) && str_contains($view, "\$quizCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'quiz view should request mention input only when a signed-in account can use comments: ' . $viewPath);
-}
-
-foreach ([
-    '/modules/survey/skins/basic/view.php',
-    '/modules/survey/theme/basic/view.php',
-] as $viewPath) {
-    $view = sr_check_source_with_basic_theme_delegate($root, $viewPath);
-    sr_mention_check_assert(is_string($view) && str_contains($view, "\$surveyCommentsEnabled && is_array(\$currentAccount) ? ['/assets/mention-input.js'] : []"), 'survey view should request mention input only when a signed-in account can use comments: ' . $viewPath);
-}
-
 $messageWriteView = file_get_contents($root . '/modules/message/views/message-write.php');
 sr_mention_check_assert(
     is_string($messageWriteView) && str_contains($messageWriteView, "'scripts' => ['/assets/member-recipient-picker.js']"),
@@ -138,8 +120,6 @@ sr_mention_check_assert(
 foreach ([
     '/modules/community/skins/basic/view.php',
     '/modules/content/views/content.php',
-    '/modules/quiz/skins/basic/view.php',
-    '/modules/survey/skins/basic/view.php',
 ] as $viewPath) {
     $view = file_get_contents($root . $viewPath);
     sr_mention_check_assert(is_string($view) && str_contains($view, 'data-sr-mention-input'), 'comment view should enable mention input: ' . $viewPath);
@@ -147,22 +127,16 @@ foreach ([
     $mentionRenderer = match (true) {
         str_starts_with($viewPath, '/modules/community/') => 'sr_community_comment_body_html',
         str_starts_with($viewPath, '/modules/content/') => 'sr_content_comment_body_html',
-        str_starts_with($viewPath, '/modules/quiz/') => 'sr_quiz_comment_body_html',
-        str_starts_with($viewPath, '/modules/survey/') => 'sr_survey_comment_body_html',
         default => 'sr_member_mention_plain_text_html',
     };
     sr_mention_check_assert(is_string($view) && str_contains($view, $mentionRenderer), 'comment view should render mention tokens through the format-aware renderer: ' . $viewPath);
 }
 
 $notificationInstallSql = file_get_contents($root . '/modules/notification/install.sql');
-sr_mention_check_assert(is_string($notificationInstallSql) && str_contains($notificationInstallSql, "('quiz', 'comment.mention'"), 'notification install SQL should seed quiz comment mention template.');
-sr_mention_check_assert(is_string($notificationInstallSql) && str_contains($notificationInstallSql, "('survey', 'comment.mention'"), 'notification install SQL should seed survey comment mention template.');
 
 $notificationUpdateSql = file_get_contents($root . '/modules/notification/updates/2026.06.004.sql');
-sr_mention_check_assert(is_string($notificationUpdateSql) && str_contains($notificationUpdateSql, "('quiz', 'comment.mention'"), 'notification update SQL should seed quiz comment mention template.');
-sr_mention_check_assert(is_string($notificationUpdateSql) && str_contains($notificationUpdateSql, "('survey', 'comment.mention'"), 'notification update SQL should seed survey comment mention template.');
 
-foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+foreach (['content', 'community'] as $moduleKey) {
     $moduleCss = file_get_contents($root . '/modules/' . $moduleKey . '/theme/basic/assets/module.css');
     sr_mention_check_assert(is_string($moduleCss) && str_contains($moduleCss, '.sr-mention'), 'module CSS should define rendered mention styles: ' . $moduleKey);
 }

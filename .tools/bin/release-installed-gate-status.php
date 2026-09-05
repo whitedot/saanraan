@@ -24,7 +24,6 @@ $allowedArgs = [
     '--run-browser-qa',
     '--run-auth-smoke',
     '--run-member-mfa-smoke',
-    '--run-quiz-smoke',
     '--run-asset-smoke',
     '--run-privacy-smoke',
     '--run-ckeditor-upload-save-smoke',
@@ -40,7 +39,6 @@ $runAdminReadonly = in_array('--run-admin-readonly', $args, true);
 $runBrowserQa = in_array('--run-browser-qa', $args, true);
 $runAuthSmoke = in_array('--run-auth-smoke', $args, true);
 $runMemberMfaSmoke = in_array('--run-member-mfa-smoke', $args, true);
-$runQuizSmoke = in_array('--run-quiz-smoke', $args, true);
 $runAssetSmoke = in_array('--run-asset-smoke', $args, true);
 $runPrivacySmoke = in_array('--run-privacy-smoke', $args, true);
 $runCkeditorUploadSaveSmoke = in_array('--run-ckeditor-upload-save-smoke', $args, true);
@@ -112,7 +110,6 @@ Options:
   --run-browser-qa            Execute CKEditor asset/fallback browser smoke.
   --run-auth-smoke            Execute authenticated community smoke.
   --run-member-mfa-smoke      Execute member-only login MFA HTTP smoke.
-  --run-quiz-smoke            Execute quiz E2E smoke.
   --run-asset-smoke           Execute asset idempotency HTTP smoke.
   --run-privacy-smoke         Execute privacy export/cleanup HTTP smoke.
   --run-ckeditor-upload-save-smoke
@@ -999,69 +996,6 @@ function sr_release_gate_status_member_mfa_smoke_gate(string $baseUrl, string $m
     ];
 }
 
-function sr_release_gate_status_quiz_smoke_gate(string $baseUrl, string $adminSmokeCredentialStatus, bool $runQuizSmoke, bool $allowMutationSmoke, bool $allowPublicMutationUrl): array
-{
-    $displayBaseUrl = sr_release_gate_status_mask_url_userinfo($baseUrl);
-
-    if ($baseUrl === '') {
-        return [
-            'gate' => '퀴즈 E2E smoke',
-            'result' => '미실행',
-            'environment' => 'base URL missing',
-            'memo' => 'set SR_SMOKE_BASE_URL for local/staging quiz E2E smoke; do not run against production',
-        ];
-    }
-
-    if ($adminSmokeCredentialStatus !== 'configured') {
-        $credentialMemo = $adminSmokeCredentialStatus === 'incomplete'
-            ? 'SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD must be provided together for quiz E2E administrator session'
-            : 'requires SR_SMOKE_ADMIN_IDENTIFIER and SR_SMOKE_ADMIN_PASSWORD for quiz E2E administrator session';
-
-        return [
-            'gate' => '퀴즈 E2E smoke',
-            'result' => '미실행',
-            'environment' => $displayBaseUrl,
-            'memo' => $credentialMemo,
-        ];
-    }
-
-    if (!$allowMutationSmoke) {
-        return [
-            'gate' => '퀴즈 E2E smoke',
-            'result' => '미실행',
-            'environment' => $displayBaseUrl,
-            'memo' => 'quiz E2E smoke creates quiz and attempt data; set SR_SMOKE_ALLOW_MUTATION=1 only for local/staging disposable data',
-        ];
-    }
-
-    if (sr_release_gate_status_base_url_requires_public_mutation_override($baseUrl) && !$allowPublicMutationUrl) {
-        return [
-            'gate' => '퀴즈 E2E smoke',
-            'result' => '미실행',
-            'environment' => $displayBaseUrl,
-            'memo' => 'public-looking base URL requires SR_SMOKE_ALLOW_PUBLIC_MUTATION_URL=1 in addition to SR_SMOKE_ALLOW_MUTATION=1; use only local/staging disposable data',
-        ];
-    }
-
-    if (!$runQuizSmoke) {
-        return [
-            'gate' => '퀴즈 E2E smoke',
-            'result' => '수동 확인 필요',
-            'environment' => $displayBaseUrl,
-            'memo' => 'quiz E2E smoke is configured; rerun with --run-quiz-smoke to execute smoke-quiz-e2e.php',
-        ];
-    }
-
-    $result = sr_release_gate_status_command([PHP_BINARY, '.tools/bin/smoke-quiz-e2e.php']);
-    $exitCode = (int) $result['exit_code'];
-
-    return [
-        'gate' => '퀴즈 E2E smoke',
-        'result' => $exitCode === 0 ? '통과' : '실패',
-        'environment' => $displayBaseUrl,
-        'memo' => 'smoke-quiz-e2e.php exit ' . (string) $exitCode . '; ' . sr_release_gate_status_single_line((string) $result['output']),
-    ];
-}
 
 function sr_release_gate_status_asset_smoke_gate(string $baseUrl, string $accountSmokeCredentialStatus, string $assetDedupeExpectationStatus, bool $runAssetSmoke, bool $allowMutationSmoke, bool $allowPublicMutationUrl): array
 {
@@ -1345,7 +1279,6 @@ function sr_release_gate_status_performance_gate(string $baseUrl, bool $runPerfo
         'baseline' => '.tools/bin/check-performance-baseline.php',
         'pagination' => '.tools/bin/check-admin-pagination-runtime.php',
         'board-copy' => '.tools/bin/check-community-board-copy-limits.php',
-        'survey-export' => '.tools/bin/check-survey-export-runtime.php',
     ];
     $exitCodes = [];
     $outputs = [];
@@ -1429,7 +1362,6 @@ $gates[] = sr_release_gate_status_admin_readonly_gate(
 $gates[] = sr_release_gate_status_http_smoke_gate($baseUrl, $runHttpSmoke);
 $gates[] = sr_release_gate_status_auth_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $runAuthSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
 $gates[] = sr_release_gate_status_member_mfa_smoke_gate($baseUrl, $memberMfaSmokeStatus, $runMemberMfaSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
-$gates[] = sr_release_gate_status_quiz_smoke_gate($baseUrl, $adminSmokeCredentialStatus, $runQuizSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
 $gates[] = sr_release_gate_status_asset_smoke_gate($baseUrl, $accountSmokeCredentialStatus, $assetDedupeExpectationStatus, $runAssetSmoke, $allowMutationSmoke, $allowPublicMutationUrl);
 $gates[] = sr_release_gate_status_privacy_gate($baseUrl, $accountSmokeCredentialStatus, $allowMutationSmoke, $allowPublicMutationUrl, $runPrivacySmoke, $runPrivacyFixtures);
 $gates[] = sr_release_gate_status_browser_qa_gate($browserQaBaseUrl, $runBrowserQa);
@@ -1465,7 +1397,6 @@ $metadata = [
     'run_browser_qa' => $runBrowserQa ? 'yes' : 'no',
     'run_auth_smoke' => $runAuthSmoke ? 'yes' : 'no',
     'run_member_mfa_smoke' => $runMemberMfaSmoke ? 'yes' : 'no',
-    'run_quiz_smoke' => $runQuizSmoke ? 'yes' : 'no',
     'run_asset_smoke' => $runAssetSmoke ? 'yes' : 'no',
     'run_privacy_smoke' => $runPrivacySmoke ? 'yes' : 'no',
     'run_ckeditor_upload_save_smoke' => $runCkeditorUploadSaveSmoke ? 'yes' : 'no',
@@ -1496,7 +1427,6 @@ $metadataOutputKeys = [
     'run_browser_qa' => 'run-browser-qa',
     'run_auth_smoke' => 'run-auth-smoke',
     'run_member_mfa_smoke' => 'run-member-mfa-smoke',
-    'run_quiz_smoke' => 'run-quiz-smoke',
     'run_asset_smoke' => 'run-asset-smoke',
     'run_privacy_smoke' => 'run-privacy-smoke',
     'run_ckeditor_upload_save_smoke' => 'run-ckeditor-upload-save-smoke',

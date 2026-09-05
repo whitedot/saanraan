@@ -290,8 +290,6 @@ sr_admin_navigation_runtime_assert(
 
 $publicSettingsReferenceViews = [
     'content' => 'modules/content/views/admin-settings.php',
-    'quiz' => 'modules/quiz/views/admin-settings.php',
-    'survey' => 'modules/survey/views/admin-settings.php',
 ];
 foreach ($publicSettingsReferenceViews as $moduleKey => $viewPath) {
     $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
@@ -308,8 +306,6 @@ foreach ($publicSettingsReferenceViews as $moduleKey => $viewPath) {
 $identityReferenceViews = [
     'modules/content/views/admin-settings.php' => ['$contentIdentityModuleReferences', 4],
     'modules/community/views/admin-settings.php' => ['$communityIdentityModuleReferences', 1],
-    'modules/quiz/views/admin-settings.php' => ['$quizIdentityModuleReferences', 2],
-    'modules/survey/views/admin-settings.php' => ['$surveyIdentityModuleReferences', 2],
     'modules/member/views/admin-settings.php' => ['$memberIdentityModuleReferences', 3],
     'modules/reward/views/admin-settings.php' => ['$rewardIdentityModuleReferences', 1],
     'modules/deposit/views/admin-settings.php' => ['$depositIdentityModuleReferences', 1],
@@ -328,8 +324,6 @@ foreach ($identityReferenceViews as $viewPath => [$variableName, $minimumCallCou
 $reactionReferenceViews = [
     'modules/content/views/admin-settings.php' => ['$contentReactionModuleReferences', 3],
     'modules/community/views/admin-settings.php' => ['$communityReactionModuleReferences', 3],
-    'modules/quiz/views/admin-settings.php' => ['$quizReactionModuleReferences', 2],
-    'modules/survey/views/admin-settings.php' => ['$surveyReactionModuleReferences', 2],
 ];
 foreach ($reactionReferenceViews as $viewPath => [$variableName, $minimumCallCount]) {
     $viewSource = is_file($viewPath) ? file_get_contents($viewPath) : false;
@@ -383,7 +377,6 @@ sr_admin_navigation_runtime_assert(
 $assetReferenceViews = [
     'modules/content/views/admin-settings.php' => ['$contentAssetModuleReferences', 1],
     'modules/community/views/admin-settings.php' => ['$communityAssetModuleReferences', 1],
-    'modules/quiz/views/admin-settings.php' => ['$quizAssetModuleReferences', 1],
     'modules/asset_exchange/views/admin-asset-exchange.php' => ['$assetExchangeAssetModuleReferences', 1],
 ];
 foreach ($assetReferenceViews as $viewPath => [$variableName, $minimumCallCount]) {
@@ -395,16 +388,6 @@ foreach ($assetReferenceViews as $viewPath => [$variableName, $minimumCallCount]
         $viewPath . ' should render asset provider module reference links'
     );
 }
-$quizSettingsSource = is_file('modules/quiz/views/admin-settings.php')
-    ? file_get_contents('modules/quiz/views/admin-settings.php')
-    : false;
-sr_admin_navigation_runtime_assert(
-    is_string($quizSettingsSource)
-        && str_contains($quizSettingsSource, "['module_key' => 'coupon', 'path' => '/admin/coupons']")
-        && str_contains($quizSettingsSource, 'sr_admin_module_reference_list_html($pdo, $quizCouponModuleReferences)'),
-    'Quiz coupon reward setting should render the coupon management module reference link.'
-);
-
 $providerReferenceViews = [
     'modules/member/views/admin-settings.php' => [
         "'provider_module_key'",

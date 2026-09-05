@@ -4,7 +4,7 @@ $adminPageTitle = sr_t('point::ui.settings.title');
 $adminPageSubtitle = '';
 $settings = isset($settings) && is_array($settings) ? $settings : ['usage_enabled' => true, 'display_name' => '포인트', 'unit_label' => 'P', 'default_expiration_days' => '0'];
 $pointUsageFeatureLabels = [];
-foreach (['content', 'community', 'quiz', 'survey'] as $pointRewardConsumerModuleKey) {
+foreach (['content', 'community'] as $pointRewardConsumerModuleKey) {
     if (sr_module_enabled($pdo, $pointRewardConsumerModuleKey)) {
         $pointUsageFeatureLabels[] = '보상';
         break;

@@ -51,16 +51,12 @@ php .tools/bin/ops-status.php --help
 | `community.board_copy.failed` | 게시판 복사 실패 또는 취소 기록 | 즉시 | `/admin/community/board-copy-jobs` 실패 단계, 실패 항목, 부분 생성물 정리 |
 | `community.level_recalculate.running` | 커뮤니티 레벨 재계산 작업이 실행 중 | 15분 | `/admin/community/levels` 재계산 진행 상태와 재실행 필요 여부 |
 | `community.level_recalculate.failed` | 커뮤니티 레벨 재계산 작업 실패 | 즉시 | `/admin/community/levels` 실패 사유, 재실행 가능 여부 |
-| `quiz.reward_grants.pending` | 퀴즈 보상 지급 대기 | 15분 | `/admin/quiz/attempts` 보상 로그에서 보상 정책, 자산/쿠폰 지급 상태 확인 |
-| `quiz.reward_grants.failed` | 퀴즈 보상 지급 실패 | 즉시 | `/admin/quiz/attempts` 보상 로그에서 관리자 복구 또는 수동 완료 판단 |
-| `survey.reward_grants.pending` | 설문 보상 지급 대기 | 15분 | `/admin/surveys/reward-logs` 보상 로그에서 보상 정책, 자산/쿠폰 지급 상태 확인 |
-| `survey.reward_grants.failed` | 설문 보상 지급 실패 | 즉시 | `/admin/surveys/reward-logs` 보상 로그에서 관리자 복구 또는 수동 완료 판단 |
 | `payment_ledger.pending_reversal` | 결제 기록 항목의 되돌림 상태가 대기 중 | 즉시 | 결제 기록을 소유한 도메인 모듈의 취소/환불 흐름 |
 | `point.expiration.due` | 만료 시각이 지난 포인트 잔여분 | 24시간 | `php .tools/bin/expire-points.php` 또는 다음 포인트 거래, `/admin/points/transactions` 대상 거래 확인 |
 
 미설치 환경에서는 명령이 `saanraan is not installed.`를 출력하고 종료한다. 모듈이 비활성화되어 있으면 해당 항목은 `skipped`로 표시한다.
 
-관리자 화면에서는 `/admin/operations`의 `운영 지연/실패 점검` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 최근 대상, 후속 확인 위치를 보여준다. 대상은 알림 제목, 게시판명, 퀴즈/설문명처럼 운영자가 문제 범위를 식별하는 데 필요한 대표값을 최대 5개까지 줄바꿈 목록으로 표시하고, 내부 key는 가능한 경우 한국어 라벨로 바꾼다. 상태가 `정상`이 아닌 행은 소유 모듈 계약의 안전한 내부 `action_url`이 있으면 sticky 관리 열에 바로가기 버튼을 표시한다.
+관리자 화면에서는 `/admin/operations`의 `운영 지연/실패 점검` 화면에서 같은 read-only 기준을 확인한다. 이 화면은 CLI와 같은 `sr_admin_operational_status_rows()` 기준을 사용하며, 대기/실패 count, 허용 지연, 가장 오래된 시각, 최근 대상, 후속 확인 위치를 보여준다. 상태가 `정상`이 아닌 행은 소유 모듈 계약의 안전한 내부 `action_url`이 있으면 sticky 관리 열에 바로가기 버튼을 표시한다.
 
 화면의 `확인됨으로 표시`는 원본 작업 row를 해결하거나 숨기지 않고, `sr_site_settings`의 `admin.operational_status.acknowledged`에 현재 신호의 `label`, 상태, 건수, 가장 오래된 시각으로 만든 확인 지문을 저장한다. 같은 지문이 유지되는 동안 관리자 화면에서는 해당 행을 `확인됨`으로 낮춰 보여준다. `정상으로 취급`은 `확인됨` 상태인 행에만 표시하며, 같은 지문이 유지되는 동안 해당 행을 `정상 취급`으로 보여 운영 경보 수에서 제외한다. 새 실패가 생기거나 건수, 가장 오래된 시각, 상태가 바뀌면 지문이 달라져 다시 `확인 필요` 또는 `지연 초과`로 표시된다. CLI의 `php .tools/bin/ops-status.php`는 이 확인 표시를 적용하지 않고 원본 read-only 신호를 그대로 출력한다. 재시도나 정정은 여전히 각 소유 모듈의 관리자 action에서 처리한다.
 
@@ -126,7 +122,7 @@ DB에서 balance row, 거래 row, `balance_after`를 직접 UPDATE하는 응급 
 | 저장소 파일 정리 | 중간, 24시간 | 실패 항목이 계속 남으면 파일 유실/권한 문제 확인 |
 | 게시판 복사 | 낮음, 15분 | `running` 작업 잠금이 오래 유지되면 이어받기 또는 실패 처리 기준 확인 |
 | 커뮤니티 레벨 재계산 | 낮음, 15분 | `running` 작업이 오래 남거나 `failed`가 생기면 재계산 재실행 필요 여부 확인 |
-| 콘텐츠/커뮤니티/퀴즈/설문 보상 지급 | 낮음, 15분 | `pending`/`failed`가 남으면 중복 지급 없이 복구해야 함 |
+| 콘텐츠/커뮤니티 보상 지급 | 낮음, 15분 | `pending`/`failed`가 남으면 중복 지급 없이 복구해야 함 |
 
 ## Cron 후보
 
@@ -172,4 +168,3 @@ php .tools/bin/run-notification-deliveries.php --help
 ## 1.0 전 보강 대상
 
 - 게시판 복사 작업 잠금 만료 이어받기와 늦은 쓰기 거부를 설치 DB 또는 staging에서 smoke 기록으로 남긴다.
-- 퀴즈/설문 보상 실패 복구 절차를 자산 reconciliation과 연결해 기록한다.

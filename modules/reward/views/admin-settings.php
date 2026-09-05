@@ -5,7 +5,7 @@ $allowedGroupKeys = isset($settings['withdrawal_allowed_group_keys']) && is_arra
     : [];
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 $rewardUsageFeatureLabels = [];
-foreach (['content', 'community', 'quiz', 'survey'] as $rewardConsumerModuleKey) {
+foreach (['content', 'community'] as $rewardConsumerModuleKey) {
     if (sr_module_enabled($pdo, $rewardConsumerModuleKey)) {
         $rewardUsageFeatureLabels[] = '보상';
         break;

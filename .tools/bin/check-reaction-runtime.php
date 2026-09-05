@@ -509,13 +509,13 @@ $pdo->exec(
         (21, 'content', 'content', '9001', 'like', '$now', '$now'),
         (22, 'content', 'comment', '9002', 'like', '$now', '$now'),
         (23, 'content', 'comment', '9003', 'like', '$now', '$now'),
-        (24, 'quiz', 'quiz_set', '9001', 'like', '$now', '$now');"
+        (24, 'community', 'post', '9001', 'like', '$now', '$now');"
 );
 $deletedContentReactions = sr_reaction_delete_target_records($pdo, 'content', 'content', [9001]);
 $deletedCommentReactions = sr_reaction_delete_target_records($pdo, 'content', 'comment', [9002, '9002', 'bad', 0]);
 $assert($deletedContentReactions === 1 && $deletedCommentReactions === 1, 'target reaction delete helper should delete valid unique target ids.');
+$assert((int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE target_module = 'community' AND target_type = 'post' AND target_id = '9001'")->fetchColumn() === 1, 'target reaction delete helper should keep other module targets.');
 $assert((int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE target_module = 'content' AND target_type = 'comment' AND target_id = '9003'")->fetchColumn() === 1, 'target reaction delete helper should keep unrelated comment targets.');
-$assert((int) $pdo->query("SELECT COUNT(*) FROM sr_reaction_records WHERE target_module = 'quiz' AND target_type = 'quiz_set' AND target_id = '9001'")->fetchColumn() === 1, 'target reaction delete helper should keep other module targets.');
 
 $module = include SR_ROOT . '/modules/reaction/module.php';
 $paths = include SR_ROOT . '/modules/reaction/paths.php';
@@ -556,18 +556,12 @@ if (is_string($adminReactionView)) {
 $targetContractFiles = [
     'content' => SR_ROOT . '/modules/content/reaction-targets.php',
     'community' => SR_ROOT . '/modules/community/reaction-targets.php',
-    'quiz' => SR_ROOT . '/modules/quiz/reaction-targets.php',
-    'survey' => SR_ROOT . '/modules/survey/reaction-targets.php',
 ];
 $expectedTargets = [
     'content/content',
     'content/comment',
     'community/post',
     'community/comment',
-    'quiz/quiz_set',
-    'quiz/comment',
-    'survey/survey_form',
-    'survey/comment',
 ];
 $contractTargets = [];
 foreach ($targetContractFiles as $moduleKey => $file) {
@@ -598,40 +592,6 @@ $assert(
     'content reaction targets must link content and comment records to the registered content edit route.'
 );
 
-foreach (['quiz', 'survey'] as $consumerModuleKey) {
-    $consumerModule = include SR_ROOT . '/modules/' . $consumerModuleKey . '/module.php';
-    $consumerHelpers = sr_reaction_check_read('modules/' . $consumerModuleKey . '/helpers.php');
-    $consumerTargetContract = sr_reaction_check_read('modules/' . $consumerModuleKey . '/reaction-targets.php');
-    $consumerSettingsView = sr_reaction_check_read('modules/' . $consumerModuleKey . '/views/admin-settings.php');
-    $consumerPublicAction = sr_reaction_check_read('modules/' . $consumerModuleKey . '/actions/view.php');
-    $consumerAdminAction = sr_reaction_check_read('modules/' . $consumerModuleKey . '/actions/admin-' . ($consumerModuleKey === 'quiz' ? 'quiz' : 'surveys') . '.php');
-    $consumerThemeView = sr_reaction_check_read('modules/' . $consumerModuleKey . '/theme/basic/view.php');
-    $consumerSkinView = sr_reaction_check_read('modules/' . $consumerModuleKey . '/skins/basic/view.php');
-    $settingsVariable = $consumerModuleKey === 'quiz' ? '$quizSettings' : '$settings';
-    $enabledVariable = $consumerModuleKey === 'quiz' ? '$quizReactionsEnabled' : '$surveyReactionsEnabled';
-
-    $assert(
-        !empty($consumerModule['settings']['reaction_enabled'])
-            && str_contains($consumerHelpers, "'reaction_enabled' => (\$_POST['reaction_enabled'] ?? '') === '1'")
-            && str_contains($consumerSettingsView, "'reaction_enabled'")
-            && str_contains($consumerPublicAction, "!empty(" . $settingsVariable . "['reaction_enabled'])"),
-        $consumerModuleKey . ' must own and save the global reaction usage decision before loading the public reaction contract.'
-    );
-    $assert(
-        str_contains($consumerAdminAction, 'sr_reaction_preset_options_with_disabled')
-            && str_contains($consumerTargetContract, 'sr_reaction_setting_preset_key_or_disabled')
-            && str_contains($consumerTargetContract, 'sr_reaction_disabled_preset_key')
-            && str_contains($consumerTargetContract, "!empty(\$settings['reaction_enabled'])"),
-        $consumerModuleKey . ' must own per-item reaction disable and enforce it in its target contract.'
-    );
-    $assert(
-        str_contains($consumerThemeView, $enabledVariable . ' = !empty(')
-            && str_contains($consumerSkinView, $enabledVariable . ' = !empty(')
-            && substr_count($consumerThemeView, $enabledVariable . ' && sr_module_enabled') >= 3
-            && substr_count($consumerSkinView, $enabledVariable . ' && sr_module_enabled') >= 3,
-        $consumerModuleKey . ' theme and fallback skin must skip reaction lookup and rendering when the consumer disables reactions.'
-    );
-}
 
 $reactionHelperSource = sr_reaction_check_read('modules/reaction/helpers.php');
 $assert(
@@ -657,8 +617,6 @@ $assert(
 $reactionConsumerFiles = sr_reaction_check_php_files([
     'modules/content',
     'modules/community',
-    'modules/quiz',
-    'modules/survey',
 ]);
 $reactionRuntimeFunctions = [
     "function_exists('sr_reaction_render_widget')",
@@ -691,9 +649,7 @@ foreach ($reactionConsumerFiles as $file) {
             || str_contains($context, 'sr_module_enabled($GLOBALS[\'pdo\'], \'reaction\')')
             || str_contains($context, '$reactionModuleEnabled')
             || str_contains($context, '$contentReactionAvailable')
-            || str_contains($context, '$communityReactionAvailable')
-            || str_contains($context, '$quizReactionAvailable')
-            || str_contains($context, '$surveyReactionAvailable');
+            || str_contains($context, '$communityReactionAvailable');
 
         if (str_contains($line, '/modules/reaction/helpers.php')) {
             $assert($hasReactionEnabledGuard, $lineLabel . ' should only load reaction helpers when the reaction module is enabled.');

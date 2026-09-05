@@ -152,8 +152,6 @@ function sr_popup_layer_target_service_label(string $serviceKey): string
         'content' => '콘텐츠',
         'community' => '커뮤니티',
         'member' => '회원',
-        'quiz' => '퀴즈·테스트',
-        'survey' => '설문·여론조사',
     ];
     if (isset($labels[$serviceKey])) {
         return $labels[$serviceKey];
@@ -181,14 +179,6 @@ function sr_popup_layer_subject_target_type_for_target(?array $target): string
 
     if ($moduleKey === 'community' && $pointKey === 'community.post.view') {
         return 'community_post';
-    }
-
-    if ($moduleKey === 'quiz' && $pointKey === 'quiz.view') {
-        return 'quiz';
-    }
-
-    if ($moduleKey === 'survey' && $pointKey === 'survey.view') {
-        return 'survey';
     }
 
     return '';

@@ -65,7 +65,6 @@ function sr_release_verification_record_required_gate_labels(): array
         '/admin/operations',
         '기본 HTTP smoke',
         '인증 smoke',
-        '퀴즈 E2E smoke',
         '자산/쿠폰/유료 접근권 mutation smoke',
         '개인정보 export/cleanup smoke',
         'CKEditor asset/fallback browser smoke',
@@ -178,7 +177,6 @@ function sr_release_verification_record_required_gate_rows_have_unresolved(strin
         '| /admin/operations | TODO |',
         '| 기본 HTTP smoke | TODO |',
         '| 인증 smoke | TODO |',
-        '| 퀴즈 E2E smoke | TODO |',
         '| 자산/쿠폰/유료 접근권 mutation smoke | TODO |',
         '| 개인정보 export/cleanup smoke | TODO |',
         '| CKEditor asset/fallback browser smoke | TODO |',
@@ -390,7 +388,6 @@ function sr_release_verification_record_fixture(string $requiredGateResult, stri
 | /admin/operations | ' . $requiredGateResult . ' | fixture | fixture |
 | 기본 HTTP smoke | ' . $requiredGateResult . ' | fixture | fixture |
 | 인증 smoke | ' . $requiredGateResult . ' | fixture | fixture |
-| 퀴즈 E2E smoke | ' . $requiredGateResult . ' | fixture | fixture |
 | 자산/쿠폰/유료 접근권 mutation smoke | ' . $requiredGateResult . ' | fixture | fixture |
 | 개인정보 export/cleanup smoke | ' . $requiredGateResult . ' | fixture | fixture |
 | CKEditor asset/fallback browser smoke | ' . $requiredGateResult . ' | fixture | fixture |

@@ -31,8 +31,6 @@ register_shutdown_function(static function () use ($groupDeleteCacheFixtureRoot)
 require_once $root . '/core/helpers.php';
 require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/community/helpers.php';
-require_once $root . '/modules/quiz/helpers/groups.php';
-require_once $root . '/modules/survey/helpers/groups.php';
 
 $errors = [];
 
@@ -109,12 +107,6 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     $pdo->exec('CREATE TABLE sr_community_board_group_settings (group_id INTEGER NOT NULL, setting_key TEXT NOT NULL, setting_value TEXT NOT NULL, value_type TEXT NOT NULL DEFAULT "string", created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_boards (id INTEGER PRIMARY KEY, board_group_id INTEGER, board_key TEXT NOT NULL, title TEXT NOT NULL, updated_at TEXT NOT NULL)');
     $pdo->exec('CREATE TABLE sr_community_board_setting_sources (board_id INTEGER NOT NULL, setting_key TEXT NOT NULL, source TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_quiz_groups (id INTEGER PRIMARY KEY, group_key TEXT NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT "", status TEXT NOT NULL DEFAULT "enabled", sort_order INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_quiz_sets (id INTEGER PRIMARY KEY, quiz_group_id INTEGER, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_quiz_setting_sources (quiz_id INTEGER NOT NULL, setting_key TEXT NOT NULL, source TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_survey_groups (id INTEGER PRIMARY KEY, group_key TEXT NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT "", status TEXT NOT NULL DEFAULT "enabled", sort_order INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_survey_forms (id INTEGER PRIMARY KEY, survey_group_id INTEGER, updated_at TEXT NOT NULL)');
-    $pdo->exec('CREATE TABLE sr_survey_setting_sources (survey_id INTEGER NOT NULL, setting_key TEXT NOT NULL, source TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)');
 
     $now = '2026-06-14 12:00:00';
     $pdo->exec("INSERT INTO sr_content_groups (id, group_key, title) VALUES (10, 'content_group', 'Content Group')");
@@ -152,21 +144,7 @@ if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
     sr_group_delete_detach_assert((string) sr_group_delete_detach_scalar($pdo, "SELECT source FROM sr_community_board_setting_sources WHERE board_id = 200 AND setting_key = 'status'") === 'board', 'Deleted board group source should fall back to board.');
     sr_group_delete_detach_assert((string) sr_group_delete_detach_scalar($pdo, "SELECT source FROM sr_community_board_setting_sources WHERE board_id = 200 AND setting_key = 'read_policy'") === 'all', 'Board all source should remain unchanged after group delete.');
 
-    $pdo->exec("INSERT INTO sr_quiz_groups (id, group_key, title, created_at, updated_at) VALUES (30, 'quiz_group', 'Quiz Group', '$now', '$now')");
-    $pdo->exec("INSERT INTO sr_quiz_sets (id, quiz_group_id, updated_at) VALUES (300, 30, '$now')");
-    $pdo->exec("INSERT INTO sr_quiz_setting_sources (quiz_id, setting_key, source, created_at, updated_at) VALUES (300, 'status', 'group', '$now', '$now'), (300, 'skin_key', 'all', '$now', '$now')");
-    sr_group_delete_detach_assert(sr_quiz_delete_group($pdo, 30), 'Quiz group delete should succeed.');
-    sr_group_delete_detach_assert(sr_group_delete_detach_scalar($pdo, 'SELECT quiz_group_id FROM sr_quiz_sets WHERE id = 300') === null, 'Linked quiz group id should be cleared.');
-    sr_group_delete_detach_assert((string) sr_group_delete_detach_scalar($pdo, "SELECT source FROM sr_quiz_setting_sources WHERE quiz_id = 300 AND setting_key = 'status'") === 'item', 'Deleted quiz group source should fall back to item.');
-    sr_group_delete_detach_assert((string) sr_group_delete_detach_scalar($pdo, "SELECT source FROM sr_quiz_setting_sources WHERE quiz_id = 300 AND setting_key = 'skin_key'") === 'all', 'Quiz all source should remain unchanged after group delete.');
 
-    $pdo->exec("INSERT INTO sr_survey_groups (id, group_key, title, created_at, updated_at) VALUES (40, 'survey_group', 'Survey Group', '$now', '$now')");
-    $pdo->exec("INSERT INTO sr_survey_forms (id, survey_group_id, updated_at) VALUES (400, 40, '$now')");
-    $pdo->exec("INSERT INTO sr_survey_setting_sources (survey_id, setting_key, source, created_at, updated_at) VALUES (400, 'status', 'group', '$now', '$now'), (400, 'skin_key', 'all', '$now', '$now')");
-    sr_group_delete_detach_assert(sr_survey_delete_group($pdo, 40), 'Survey group delete should succeed.');
-    sr_group_delete_detach_assert(sr_group_delete_detach_scalar($pdo, 'SELECT survey_group_id FROM sr_survey_forms WHERE id = 400') === null, 'Linked survey group id should be cleared.');
-    sr_group_delete_detach_assert((string) sr_group_delete_detach_scalar($pdo, "SELECT source FROM sr_survey_setting_sources WHERE survey_id = 400 AND setting_key = 'status'") === 'item', 'Deleted survey group source should fall back to item.');
-    sr_group_delete_detach_assert((string) sr_group_delete_detach_scalar($pdo, "SELECT source FROM sr_survey_setting_sources WHERE survey_id = 400 AND setting_key = 'skin_key'") === 'all', 'Survey all source should remain unchanged after group delete.');
 }
 
 if ($errors !== []) {

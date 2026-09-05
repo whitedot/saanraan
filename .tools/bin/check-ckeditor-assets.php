@@ -13,8 +13,6 @@ require_once $root . '/core/helpers.php';
 require_once $root . '/modules/admin/helpers.php';
 require_once $root . '/modules/content/helpers.php';
 require_once $root . '/modules/community/helpers.php';
-require_once $root . '/modules/quiz/helpers.php';
-require_once $root . '/modules/survey/helpers.php';
 require_once $root . '/modules/ckeditor/helpers.php';
 require_once $root . '/modules/popup_layer/helpers/body-files.php';
 require_once $root . '/.tools/lib/basic-theme-delegates.php';
@@ -358,8 +356,6 @@ sr_ckeditor_assets_assert(
 );
 foreach ([
     'content' => ['html' => 'sr_content_comment_body_html', 'editor' => 'sr_content_comment_editor_key'],
-    'quiz' => ['html' => 'sr_quiz_comment_body_html', 'editor' => 'sr_quiz_comment_editor_key'],
-    'survey' => ['html' => 'sr_survey_comment_body_html', 'editor' => 'sr_survey_comment_editor_key'],
 ] as $commentModuleKey => $commentFunctions) {
     $commentBodyHtmlFunction = (string) $commentFunctions['html'];
     $commentEditorFunction = (string) $commentFunctions['editor'];
@@ -655,8 +651,6 @@ sr_ckeditor_assets_require_markers('core/helpers/output-content.php', [
 sr_ckeditor_assets_require_markers('modules/ckeditor/assets/saanraan-ckeditor.css', [
     'data-sr-editor-body-theme="content.basic"',
     'data-sr-editor-body-theme="community.basic"',
-    'data-sr-editor-body-theme="quiz.basic"',
-    'data-sr-editor-body-theme="survey.basic"',
 ]);
 
 sr_ckeditor_assets_require_markers('modules/content/helpers.php', [
@@ -666,7 +660,7 @@ sr_ckeditor_assets_require_markers('modules/content/helpers.php', [
     'function sr_content_comment_editor_key(PDO $pdo, ?array $settings = null): string',
 ]);
 
-foreach (['content', 'quiz', 'survey'] as $commentModuleKey) {
+foreach (['content'] as $commentModuleKey) {
     sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/helpers/comments.php', [
         'comment_body_format(PDO $pdo, ?array $settings = null): string',
         'comment_body_html(PDO $pdo, array $comment, ?array $settings = null): string',
@@ -685,8 +679,6 @@ foreach (['content', 'quiz', 'survey'] as $commentModuleKey) {
 
 foreach ([
     'modules/content/views/admin-contents.php',
-    'modules/quiz/actions/admin-quiz.php',
-    'modules/survey/actions/admin-surveys.php',
 ] as $commentAdminViewFile) {
     sr_ckeditor_assets_require_markers($commentAdminViewFile, [
         'sr_admin_radio_toggle_group_html(',
@@ -697,7 +689,7 @@ foreach ([
     ]);
 }
 
-foreach (['content', 'quiz', 'survey'] as $commentModuleKey) {
+foreach (['content'] as $commentModuleKey) {
     sr_ckeditor_assets_require_markers('modules/' . $commentModuleKey . '/install.sql', [
         "comment_editor_key VARCHAR(40) NOT NULL DEFAULT 'inherit'",
     ]);
@@ -705,8 +697,6 @@ foreach (['content', 'quiz', 'survey'] as $commentModuleKey) {
 
 foreach ([
     'modules/content/helpers/records.php',
-    'modules/quiz/helpers/admin.php',
-    'modules/survey/helpers/admin-surveys.php',
 ] as $commentAdminSaveFile) {
     sr_ckeditor_assets_require_markers($commentAdminSaveFile, [
         "sr_post_string('comment_editor_key', 40)",
@@ -718,10 +708,6 @@ foreach ([
 foreach ([
     'modules/content/views/content.php' => '$contentCommentEditorAttributes',
     'modules/content/theme/basic/content.php' => '$contentCommentEditorAttributes',
-    'modules/quiz/skins/basic/view.php' => '$quizCommentEditorAttributes',
-    'modules/quiz/theme/basic/view.php' => '$quizCommentEditorAttributes',
-    'modules/survey/skins/basic/view.php' => '$surveyCommentEditorAttributes',
-    'modules/survey/theme/basic/view.php' => '$surveyCommentEditorAttributes',
 ] as $commentViewFile => $editorAttributeMarker) {
     sr_ckeditor_assets_require_markers($commentViewFile, [
         $editorAttributeMarker,
@@ -733,10 +719,6 @@ foreach ([
 foreach ([
     'modules/content/views/content.php' => ['content-comment-action-group-leading', 'content-comment-action-group-trailing', 'content-comment-permalink', 'content-comments-count', 'content-comment-item', 'content-comment-editor-field'],
     'modules/content/theme/basic/content.php' => ['content-comment-action-group-leading', 'content-comment-action-group-trailing', 'content-comment-permalink', 'content-comments-count', 'content-comment-item', 'content-comment-editor-field'],
-    'modules/quiz/skins/basic/view.php' => ['quiz-comment-action-group-leading', 'quiz-comment-action-group-trailing', 'quiz-comment-permalink', 'sr_member_public_identity_parts', 'quiz-comments-count', 'quiz-comment-item', 'quiz-comment-editor-field'],
-    'modules/quiz/theme/basic/view.php' => ['quiz-comment-action-group-leading', 'quiz-comment-action-group-trailing', 'quiz-comment-permalink', 'sr_member_public_identity_parts', 'quiz-comments-count', 'quiz-comment-item', 'quiz-comment-editor-field'],
-    'modules/survey/skins/basic/view.php' => ['survey-comment-action-group-leading', 'survey-comment-action-group-trailing', 'survey-comment-permalink', 'sr_member_public_identity_parts', 'survey-comments-count', 'survey-comment-item', 'survey-comment-editor-field'],
-    'modules/survey/theme/basic/view.php' => ['survey-comment-action-group-leading', 'survey-comment-action-group-trailing', 'survey-comment-permalink', 'sr_member_public_identity_parts', 'survey-comments-count', 'survey-comment-item', 'survey-comment-editor-field'],
 ] as $commentViewFile => $commentUiMarkers) {
     sr_ckeditor_assets_require_markers($commentViewFile, $commentUiMarkers);
 }
@@ -744,18 +726,12 @@ foreach ([
 foreach ([
     'modules/content/views/content.php' => 'href="#content-comment-form"',
     'modules/content/theme/basic/content.php' => 'href="#content-comment-form"',
-    'modules/quiz/skins/basic/view.php' => 'href="#quiz-comment-form"',
-    'modules/quiz/theme/basic/view.php' => 'href="#quiz-comment-form"',
-    'modules/survey/skins/basic/view.php' => 'href="#survey-comment-form"',
-    'modules/survey/theme/basic/view.php' => 'href="#survey-comment-form"',
 ] as $commentViewFile => $detachedWriteLink) {
     sr_ckeditor_assets_forbid_markers($commentViewFile, [$detachedWriteLink]);
 }
 
 foreach ([
     'modules/content/theme/basic/assets/module.css' => ['.content-comment-action-group > .btn', '.content-comment-action-group > form > .btn', '.content-comment-permalink:focus-visible', '--content-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.content-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
-    'modules/quiz/theme/basic/assets/module.css' => ['.quiz-comment-action-group > .btn', '.quiz-comment-action-group > form > .btn', '.quiz-comment-permalink:focus-visible', '--quiz-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.quiz-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
-    'modules/survey/theme/basic/assets/module.css' => ['.survey-comment-action-group > .btn', '.survey-comment-action-group > form > .btn', '.survey-comment-permalink:focus-visible', '--survey-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.survey-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
 ] as $commentStylesheet => $commentUiMarkers) {
     sr_ckeditor_assets_require_markers($commentStylesheet, $commentUiMarkers);
 }
@@ -763,14 +739,6 @@ foreach ([
 sr_ckeditor_assets_forbid_markers('modules/content/theme/basic/assets/module.css', [
     '.content-comments form {',
     '.content-comment-actions .btn {',
-]);
-sr_ckeditor_assets_forbid_markers('modules/quiz/theme/basic/assets/module.css', [
-    '.quiz-comment-actions form,',
-    '.quiz-comment-actions .btn {',
-]);
-sr_ckeditor_assets_forbid_markers('modules/survey/theme/basic/assets/module.css', [
-    '.survey-comment-actions form,',
-    '.survey-comment-actions .btn {',
 ]);
 sr_ckeditor_assets_require_markers('modules/community/theme/basic/assets/module.css', [
     '.community-comment-actions .community-action-group > .btn',
@@ -827,7 +795,7 @@ foreach ([
 sr_ckeditor_assets_require_markers('docs/module-guide.md', [
     '--sr-editor-body-surface',
     'data-sr-editor-body-theme="content.{theme_key}"',
-    '콘텐츠·퀴즈·설문 댓글 에디터',
+    '콘텐츠 댓글 에디터',
 ]);
 
 sr_ckeditor_assets_require_markers('docs/admin-ui-guide.md', [

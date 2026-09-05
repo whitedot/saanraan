@@ -39,8 +39,6 @@ function sr_optional_boundary_php_files(array $roots): array
 $consumerRoots = [
     'modules/content',
     'modules/community',
-    'modules/quiz',
-    'modules/survey',
 ];
 $optionalModules = ['banner', 'popup_layer', 'reaction'];
 

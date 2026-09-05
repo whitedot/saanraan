@@ -50,61 +50,6 @@ function sr_privacy_cleanup_runtime_assert(bool $condition, string $message): vo
     }
 }
 
-function sr_privacy_cleanup_runtime_check_quiz(): void
-{
-    $cleanup = include 'modules/quiz/privacy-cleanup.php';
-    if (!is_callable($cleanup)) {
-        sr_privacy_cleanup_runtime_error('quiz privacy cleanup contract is not callable.');
-        return;
-    }
-
-    $pdo = sr_privacy_cleanup_runtime_pdo();
-    $pdo->exec(
-        'CREATE TABLE sr_quiz_attempts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NULL,
-            user_agent_hash TEXT NULL,
-            ip_hash TEXT NULL
-        )'
-    );
-    $pdo->exec(
-        'CREATE TABLE sr_quiz_reward_grants (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NULL,
-            dedupe_key TEXT NOT NULL
-        )'
-    );
-    $pdo->exec(
-        'CREATE TABLE sr_quiz_comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            author_account_id INTEGER NULL,
-            author_public_name_snapshot TEXT NOT NULL,
-            extra_values_json TEXT NULL,
-            updated_at TEXT NULL
-        )'
-    );
-    $pdo->exec("INSERT INTO sr_quiz_attempts (account_id, user_agent_hash, ip_hash) VALUES (7, 'ua7', 'ip7'), (8, 'ua8', 'ip8')");
-    $pdo->exec("INSERT INTO sr_quiz_reward_grants (account_id, dedupe_key) VALUES (7, 'quiz:7'), (8, 'quiz:8')");
-    $pdo->exec("INSERT INTO sr_quiz_comments (author_account_id, author_public_name_snapshot) VALUES (7, 'name7'), (8, 'name8')");
-
-    $invalidResult = $cleanup($pdo, 0, ['event_type' => 'withdrawal']);
-    sr_privacy_cleanup_runtime_assert(is_array($invalidResult) && ($invalidResult['cleaned'] ?? null) === false, 'quiz cleanup must return cleaned=false for invalid account id.');
-
-    $result = $cleanup($pdo, 7, ['event_type' => 'withdrawal']);
-    sr_privacy_cleanup_runtime_assert(is_array($result), 'quiz cleanup must return an array result.');
-    sr_privacy_cleanup_runtime_assert(($result['cleaned'] ?? null) === true, 'quiz cleanup result must include cleaned=true.');
-    sr_privacy_cleanup_runtime_assert(($result['event_type'] ?? '') === 'withdrawal', 'quiz cleanup result must preserve event_type.');
-    sr_privacy_cleanup_runtime_assert((int) ($result['quiz_attempt_anonymized_count'] ?? -1) === 1, 'quiz cleanup must report attempt anonymization count.');
-    sr_privacy_cleanup_runtime_assert((int) ($result['quiz_reward_grant_anonymized_count'] ?? -1) === 1, 'quiz cleanup must report reward grant anonymization count.');
-    sr_privacy_cleanup_runtime_assert((int) ($result['quiz_comment_anonymized_count'] ?? -1) === 1, 'quiz cleanup must report comment anonymization count.');
-
-    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_quiz_attempts WHERE account_id IS NULL AND user_agent_hash IS NULL AND ip_hash IS NULL') === 1, 'quiz cleanup must anonymize target attempts.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT dedupe_key FROM sr_quiz_reward_grants WHERE id = 1') === 'anonymized:quiz_reward:1', 'quiz cleanup must rewrite target reward dedupe key.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_quiz_comments WHERE id = 1') === '', 'quiz cleanup must clear target comment public name snapshot.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT user_agent_hash FROM sr_quiz_attempts WHERE account_id = 8') === 'ua8', 'quiz cleanup must not alter other account attempts.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT dedupe_key FROM sr_quiz_reward_grants WHERE account_id = 8') === 'quiz:8', 'quiz cleanup must not alter other account reward grants.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_quiz_comments WHERE author_account_id = 8') === 'name8', 'quiz cleanup must not alter other account comments.');
-}
 
 function sr_privacy_cleanup_runtime_check_asset_ledger(): void
 {
@@ -132,62 +77,6 @@ function sr_privacy_cleanup_runtime_check_asset_ledger(): void
     sr_privacy_cleanup_runtime_assert(sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT actor_account_id FROM sr_asset_recovery_failures WHERE id = 2') === null, 'asset_ledger cleanup must clear actor-only recovery links.');
 }
 
-function sr_privacy_cleanup_runtime_check_survey(): void
-{
-    $cleanup = include 'modules/survey/privacy-cleanup.php';
-    if (!is_callable($cleanup)) {
-        sr_privacy_cleanup_runtime_error('survey privacy cleanup contract is not callable.');
-        return;
-    }
-
-    $pdo = sr_privacy_cleanup_runtime_pdo();
-    $pdo->exec(
-        'CREATE TABLE sr_survey_responses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NULL,
-            user_agent_hash TEXT NULL,
-            ip_hash TEXT NULL,
-            updated_at TEXT NULL
-        )'
-    );
-    $pdo->exec(
-        'CREATE TABLE sr_survey_reward_grants (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NULL,
-            dedupe_key TEXT NOT NULL,
-            updated_at TEXT NULL
-        )'
-    );
-    $pdo->exec(
-        'CREATE TABLE sr_survey_comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            author_account_id INTEGER NULL,
-            author_public_name_snapshot TEXT NOT NULL,
-            extra_values_json TEXT NULL,
-            updated_at TEXT NULL
-        )'
-    );
-    $pdo->exec("INSERT INTO sr_survey_responses (account_id, user_agent_hash, ip_hash, updated_at) VALUES (7, 'ua7', 'ip7', ''), (8, 'ua8', 'ip8', '')");
-    $pdo->exec("INSERT INTO sr_survey_reward_grants (account_id, dedupe_key, updated_at) VALUES (7, 'survey:7', ''), (8, 'survey:8', '')");
-    $pdo->exec("INSERT INTO sr_survey_comments (author_account_id, author_public_name_snapshot, updated_at) VALUES (7, 'name7', ''), (8, 'name8', '')");
-
-    $invalidResult = $cleanup($pdo, 0);
-    sr_privacy_cleanup_runtime_assert(is_array($invalidResult) && ($invalidResult['cleaned'] ?? null) === false, 'survey cleanup must return cleaned=false for invalid account id.');
-
-    $result = $cleanup($pdo, 7);
-    sr_privacy_cleanup_runtime_assert(is_array($result), 'survey cleanup must return an array result.');
-    sr_privacy_cleanup_runtime_assert(($result['cleaned'] ?? null) === true, 'survey cleanup result must include cleaned=true.');
-    sr_privacy_cleanup_runtime_assert((int) ($result['survey_response_anonymized_count'] ?? -1) === 1, 'survey cleanup must report response anonymization count.');
-    sr_privacy_cleanup_runtime_assert((int) ($result['survey_reward_grant_anonymized_count'] ?? -1) === 1, 'survey cleanup must report reward grant anonymization count.');
-    sr_privacy_cleanup_runtime_assert((int) ($result['survey_comment_anonymized_count'] ?? -1) === 1, 'survey cleanup must report comment anonymization count.');
-
-    sr_privacy_cleanup_runtime_assert((int) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT COUNT(*) FROM sr_survey_responses WHERE account_id IS NULL AND user_agent_hash IS NULL AND ip_hash IS NULL AND updated_at = :updated_at', ['updated_at' => sr_now()]) === 1, 'survey cleanup must anonymize target responses and timestamp the update.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT dedupe_key FROM sr_survey_reward_grants WHERE id = 1') === 'anonymized:survey_reward:1', 'survey cleanup must rewrite target reward dedupe key.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_survey_comments WHERE id = 1') === '', 'survey cleanup must clear target comment public name snapshot.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT user_agent_hash FROM sr_survey_responses WHERE account_id = 8') === 'ua8', 'survey cleanup must not alter other account responses.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT dedupe_key FROM sr_survey_reward_grants WHERE account_id = 8') === 'survey:8', 'survey cleanup must not alter other account reward grants.');
-    sr_privacy_cleanup_runtime_assert((string) sr_privacy_cleanup_runtime_scalar($pdo, 'SELECT author_public_name_snapshot FROM sr_survey_comments WHERE author_account_id = 8') === 'name8', 'survey cleanup must not alter other account comments.');
-}
 
 function sr_privacy_cleanup_runtime_check_content(): void
 {
@@ -778,8 +667,6 @@ function sr_privacy_cleanup_runtime_check_deposit(): void
 }
 
 sr_privacy_cleanup_runtime_check_asset_ledger();
-sr_privacy_cleanup_runtime_check_quiz();
-sr_privacy_cleanup_runtime_check_survey();
 sr_privacy_cleanup_runtime_check_content();
 sr_privacy_cleanup_runtime_check_content_optional_view_payment_table();
 sr_privacy_cleanup_runtime_check_community();

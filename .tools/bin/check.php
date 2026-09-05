@@ -956,10 +956,8 @@ function sr_check_service_module_default_settings(): void
         'notification' => ['modules/notification/helpers.php', 'sr_notification_default_settings'],
         'point' => ['modules/point/helpers.php', 'sr_point_default_settings'],
         'popup_layer' => ['modules/popup_layer/helpers.php', 'sr_popup_layer_default_settings'],
-        'quiz' => ['modules/quiz/helpers.php', 'sr_quiz_default_settings'],
         'reward' => ['modules/reward/helpers.php', 'sr_reward_default_settings'],
         'seo' => ['modules/seo/helpers.php', 'sr_seo_default_settings'],
-        'survey' => ['modules/survey/helpers.php', 'sr_survey_default_settings'],
     ];
 
     foreach ($modules as $moduleKey => $definition) {
@@ -1243,18 +1241,6 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             'community.form' => ['modules/community/skins/basic/form.php', 'modules/community/theme/basic/form.php'],
             'community.search' => ['modules/community/views/search.php', 'modules/community/theme/basic/search.php'],
         ],
-        'quiz' => [
-            'quiz.home' => ['modules/quiz/skins/basic/home.php', 'modules/quiz/theme/basic/home.php'],
-            'quiz.list' => ['modules/quiz/skins/basic/list.php', 'modules/quiz/theme/basic/list.php'],
-            'quiz.view' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php'],
-            'quiz.result' => ['modules/quiz/skins/basic/view.php', 'modules/quiz/theme/basic/view.php'],
-        ],
-        'survey' => [
-            'survey.home' => ['modules/survey/skins/basic/home.php', 'modules/survey/theme/basic/home.php'],
-            'survey.list' => ['modules/survey/skins/basic/list.php', 'modules/survey/theme/basic/list.php'],
-            'survey.view' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php'],
-            'survey.complete' => ['modules/survey/skins/basic/view.php', 'modules/survey/theme/basic/view.php'],
-        ],
     ];
     $publicModuleLayoutTargets = ['site'];
     foreach ($modulePublicTargetViews as $publicTargetViews) {
@@ -1267,7 +1253,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         }
     }
 
-    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+    foreach (['content', 'community'] as $moduleKey) {
         $moduleResetStylesheetPath = 'modules/' . $moduleKey . '/theme/basic/assets/reset.css';
         $sourceReset = is_file('assets/reset.css') ? file_get_contents('assets/reset.css') : false;
         $moduleReset = is_file($moduleResetStylesheetPath) ? file_get_contents($moduleResetStylesheetPath) : false;
@@ -1314,7 +1300,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             sr_check_add_error('Module public stylesheet must not own skin selectors: ' . $moduleCssPath);
         }
 
-        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
+        if (in_array($moduleKey, ['content', 'community'], true)) {
             $moduleLayoutCssPath = 'modules/' . $moduleKey . '/theme/basic/assets/layout.css';
             $moduleLayoutCss = is_file($moduleLayoutCssPath) ? file_get_contents($moduleLayoutCssPath) : false;
             if (!is_string($moduleLayoutCss)) {
@@ -1405,9 +1391,6 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             }
         }
 
-        if ($moduleKey === 'quiz' && !is_file('modules/quiz/theme/basic/assets/skin.css')) {
-            sr_check_add_error('Module public skin stylesheet is missing: modules/quiz/theme/basic/assets/skin.css');
-        }
 
         $helperFile = $moduleKey === 'community'
             ? 'modules/community/helpers/levels.php'
@@ -1431,7 +1414,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'common.css')",
             "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'module.css')",
         ];
-        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
+        if (in_array($moduleKey, ['content', 'community'], true)) {
             if (!str_contains($body, "\$context['consumer_domain'] = '" . $moduleKey . "'")) {
                 sr_check_add_error('Module public layout context consumer domain is missing: ' . $helperFile);
             }
@@ -1454,7 +1437,7 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             }
             $lastIndex = $index;
         }
-        if (in_array($moduleKey, ['content', 'community', 'quiz', 'survey'], true)) {
+        if (in_array($moduleKey, ['content', 'community'], true)) {
             if (str_contains($body, 'sr_public_layout_module_stylesheet(') || str_contains($body, '$layoutStylesheet')) {
                 sr_check_add_error('Module public layout context should leave shell stylesheet injection to core output helpers: ' . $helperFile);
             }
@@ -1471,13 +1454,6 @@ function sr_check_module_public_ui_kit_stylesheets(): void
             sr_check_add_error('Core public layout helper should inject selected shell assets before module assets.');
         }
 
-        if ($moduleKey === 'quiz') {
-            $skinMarker = "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'skin.css')";
-            $skinIndex = strpos($body, $skinMarker);
-            if ($skinIndex === false || $skinIndex < $lastIndex) {
-                sr_check_add_error('Module public skin stylesheet order is invalid: ' . $helperFile . ' ' . $skinMarker);
-            }
-        }
 
         $uiKitLayoutMarker = "sr_public_layout_module_theme_asset_url('" . $moduleKey . "', \$themeKey, 'ui-kit-layout.css')";
         if (!str_contains($source, $uiKitLayoutMarker)) {
@@ -1503,8 +1479,6 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         'layouts/public/basic/layout.php' => '/assets/public-layout.js',
         'modules/content/theme/basic/layout.php' => '/modules/content/assets/layout.js',
         'modules/community/theme/basic/layout.php' => '/modules/community/assets/layout.js',
-        'modules/quiz/theme/basic/layout.php' => '/modules/quiz/assets/layout.js',
-        'modules/survey/theme/basic/layout.php' => '/modules/survey/assets/layout.js',
     ] as $layoutFile => $layoutScript) {
         $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
         if (!is_string($layoutSource)) {
@@ -1517,16 +1491,11 @@ function sr_check_module_public_ui_kit_stylesheets(): void
         if (!str_contains($layoutSource, $layoutScript)) {
             sr_check_add_error('Public layout template layout script is missing: ' . $layoutFile . ' ' . $layoutScript);
         }
-        if (str_contains($layoutSource, '/assets/quiz-layout.js')) {
-            sr_check_add_error('Public layout template uses legacy quiz layout script path: ' . $layoutFile);
-        }
     }
 
     foreach ([
         'content' => 'Content',
         'community' => 'Community',
-        'quiz' => 'Quiz',
-        'survey' => 'Survey',
     ] as $moduleKey => $moduleName) {
         foreach (['basic'] as $themeKey) {
             $layoutFile = 'modules/' . $moduleKey . '/theme/' . $themeKey . '/layout.php';
@@ -1577,7 +1546,7 @@ function sr_check_banner_public_layout_slots(): void
         }
     }
 
-    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+    foreach (['content', 'community'] as $moduleKey) {
         $layoutFile = 'modules/' . $moduleKey . '/theme/basic/layout.php';
         $layoutSource = is_file($layoutFile) ? file_get_contents($layoutFile) : false;
         if (!is_string($layoutSource)) {
@@ -1624,7 +1593,7 @@ function sr_check_admin_homepage_candidates(): void
     }
 
     foreach ([
-        "\$homepageModuleKeys = ['content', 'community', 'quiz', 'survey'];",
+        "\$homepageModuleKeys = ['content', 'community'];",
         'sr_site_home_path_is_available($pdo, $path)',
         '\'module_key\' => $moduleKey',
     ] as $marker) {
@@ -1633,7 +1602,7 @@ function sr_check_admin_homepage_candidates(): void
         }
     }
 
-    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+    foreach (['content', 'community'] as $moduleKey) {
         $moduleFile = 'modules/' . $moduleKey . '/module.php';
         $moduleSource = is_file($moduleFile) ? file_get_contents($moduleFile) : false;
         if (!is_string($moduleSource)) {
@@ -1658,7 +1627,7 @@ function sr_check_module_ui_kit_samples_match_public(): void
     }
 
     sort($publicSampleFiles, SORT_STRING);
-    foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+    foreach (['content', 'community'] as $moduleKey) {
         $moduleSampleDir = 'modules/' . $moduleKey . '/views/ui-kit-samples';
         foreach ($publicSampleFiles as $publicSampleFile) {
             $basename = basename($publicSampleFile);
@@ -1779,28 +1748,6 @@ function sr_check_admin_anchor_tabs_scroll_spy(): void
     }
 }
 
-function sr_check_quiz_survey_skin_files(): void
-{
-    $contracts = [
-        'quiz' => ['home', 'view', 'result'],
-        'survey' => ['home', 'view', 'complete'],
-    ];
-
-    foreach ($contracts as $moduleKey => $views) {
-        $skinDir = 'modules/' . $moduleKey . '/skins/basic';
-        if (!is_dir($skinDir)) {
-            sr_check_add_error('Default skin directory is missing: ' . $skinDir);
-            continue;
-        }
-
-        foreach ($views as $view) {
-            $file = $skinDir . '/' . $view . '.php';
-            if (!is_file($file)) {
-                sr_check_add_error('Default skin view is missing: ' . $file);
-            }
-        }
-    }
-}
 
 sr_check_run('git diff --check');
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-retention-targets.php'));
@@ -1816,6 +1763,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-rich-text-sanitizer-policy.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-upload-helpers.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-module-status.php'));
+sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-service-module-removal.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-verification-template.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-release-verification-records.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-installed-gate-status.php'));
@@ -1869,7 +1817,6 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-content-layout-selection.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-comment-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-public-comment-pagination.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-comment-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-comment-render-performance.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-feed-cache-contract.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-community-draft-runtime.php'));
@@ -1927,11 +1874,7 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-url-embed-contracts.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-read-reference-contracts.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-reaction-runtime.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-reaction-consumer-states.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-public-report-render.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-quiz-consistency.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-quiz-reward-runtime.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-quiz-delete-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-delete-state-admin-guards.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-reward-abuse-standards.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-asset-settlement-contract.php'));
@@ -1940,18 +1883,11 @@ sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-content-member-submission-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-content-admin-workflow-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-domain-list-pagination.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-admin-selector-current-values.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-public-service-list-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-public-module-sidebars.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-member-asset-history-pagination.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-milestone-28-currency-policy.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-i18n-contract.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-survey-consistency.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-survey-member-group-references.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-survey-response-runtime.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-survey-reward-runtime.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-survey-statistics-runtime.php'));
-sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-survey-export-runtime.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-site-menu-seed-order.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-site-reset-fixtures.php'));
 sr_check_run(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg('.tools/bin/check-install-reset-policy.php'));
@@ -1983,7 +1919,6 @@ sr_check_banner_public_layout_slots();
 sr_check_admin_homepage_candidates();
 sr_check_module_ui_kit_samples_match_public();
 sr_check_admin_anchor_tabs_scroll_spy();
-sr_check_quiz_survey_skin_files();
 sr_check_php_lint();
 
 if ($errors !== []) {

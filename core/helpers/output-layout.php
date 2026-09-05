@@ -39,7 +39,7 @@ function sr_public_layout_support_domains(array $supports): array
 
 function sr_public_layout_domains(): array
 {
-    return ['site', 'content', 'community', 'quiz', 'survey'];
+    return ['site', 'content', 'community'];
 }
 
 function sr_public_layout_support_targets(array $supports): array
@@ -1019,8 +1019,6 @@ function sr_public_layout_module_setting_targets(string $moduleKey): array
     return [
         'content' => ['content.home', 'content.group', 'content.view', 'content.form', 'content.search'],
         'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
-        'quiz' => ['quiz.home', 'quiz.list', 'quiz.view', 'quiz.result'],
-        'survey' => ['survey.home', 'survey.list', 'survey.view', 'survey.complete'],
     ][$moduleKey] ?? [$moduleKey];
 }
 
@@ -1143,7 +1141,7 @@ function sr_public_layout_end(): void
     $consumerDomains = $consumerDomains !== [] ? $consumerDomains : ($consumerDomain !== '' ? [$consumerDomain] : ['site']);
     $layoutScope = is_string($layoutContext['layout_scope'] ?? null) ? (string) $layoutContext['layout_scope'] : ($consumerDomain !== '' ? $consumerDomain . '.layout' : 'site.public_layout');
     $layoutKey = sr_public_layout_effective_key($layoutKey, $consumerTargets, $pdo instanceof PDO ? $pdo : null, $includeInstalledLayoutOptions, $layoutScope);
-    $moduleViewThemeDomains = ['content', 'community', 'quiz', 'survey'];
+    $moduleViewThemeDomains = ['content', 'community'];
     $usesModuleViewTheme = array_intersect($consumerDomains, $moduleViewThemeDomains) !== [];
     $themeKey = (string) ($layoutContext['theme_key'] ?? '');
     if ($themeKey === '') {

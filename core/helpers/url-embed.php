@@ -39,8 +39,6 @@ function sr_url_embed_module_label(string $moduleKey): string
     $labels = [
         'content' => '콘텐츠',
         'community' => '커뮤니티',
-        'quiz' => '퀴즈',
-        'survey' => '설문',
     ];
 
     return $labels[$moduleKey] ?? $moduleKey;
@@ -54,12 +52,6 @@ function sr_url_embed_target_type_label(string $targetModule, string $targetType
         ],
         'community' => [
             'post' => '게시글',
-        ],
-        'quiz' => [
-            'quiz_set' => '퀴즈',
-        ],
-        'survey' => [
-            'survey_form' => '설문',
         ],
     ];
 
@@ -1949,8 +1941,8 @@ function sr_url_embed_sanitize_rendered_fragment(string $html, array $definition
     if (!$loaded) {
         return '';
     }
-    $allowedTags = ['div', 'a', 'img', 'strong', 'p', 'span', 'sr-content-embed', 'sr-community-embed', 'sr-coupon-embed', 'sr-quiz-embed', 'sr-survey-embed'];
-    $allowedAttrs = ['class', 'href', 'src', 'alt', 'loading', 'decoding', 'data-content-embed', 'data-community-embed', 'data-coupon-embed', 'data-quiz-embed', 'data-survey-embed'];
+    $allowedTags = ['div', 'a', 'img', 'strong', 'p', 'span', 'sr-content-embed', 'sr-community-embed', 'sr-coupon-embed'];
+    $allowedAttrs = ['class', 'href', 'src', 'alt', 'loading', 'decoding', 'data-content-embed', 'data-community-embed', 'data-coupon-embed'];
     $targetModule = sr_url_embed_clean_identifier((string) ($definition['target_module'] ?? ''));
     if ($targetModule !== '') {
         $allowedTags[] = 'sr-' . $targetModule . '-embed';

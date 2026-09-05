@@ -25,15 +25,7 @@ modules/community/theme/{theme_key}/form.php
 modules/community/theme/{theme_key}/search.php
 modules/community/theme/{theme_key}/ui-kit.php
 
-modules/quiz/theme/{theme_key}/home.php
-modules/quiz/theme/{theme_key}/view.php
-modules/quiz/theme/{theme_key}/result.php
-modules/quiz/theme/{theme_key}/ui-kit.php
 
-modules/survey/theme/{theme_key}/home.php
-modules/survey/theme/{theme_key}/view.php
-modules/survey/theme/{theme_key}/complete.php
-modules/survey/theme/{theme_key}/ui-kit.php
 ```
 
 모듈 공개 화면의 layout shell과 정적 asset도 같은 theme 디렉터리가 소유한다.
@@ -55,11 +47,11 @@ modules/{module_key}/theme/{theme_key}/assets/theme.css
 
 - `theme_key`: 화면 소유 모듈의 사용자 공개 화면 DOM과 theme별 asset 선택.
 - `layout_key`: 공개 화면 shell 선택. header, footer, 메뉴 슬롯, layout shell CSS/JS를 포함한다.
-- `skin_key`: 커뮤니티/퀴즈/설문처럼 모듈 내부 기능 단위의 출력 템플릿 선택.
+- `skin_key`: 커뮤니티처럼 모듈 내부 기능 단위의 출력 템플릿 선택.
 
 관리자 화면은 이 공개 theme 체계의 적용 대상이 아니다. 관리자 shell과 관리자 theme은 admin 모듈이 별도로 소유한다.
 
-콘텐츠는 v1에서 skin 대상이 아니며 `theme_key`와 `layout_key`로만 공개 화면을 바꾼다. 커뮤니티, 퀴즈, 설문의 번들 `basic` theme view는 선택된 skin view에 본문 렌더링을 위임한다. 커뮤니티 검색처럼 skin 대상이 아닌 모듈 화면은 번들 `basic` theme이 모듈 fallback view를 정본으로 include한다. 따라서 `skin_key`는 기본 테마 안쪽의 기능 템플릿을 선택하고, 별도로 설치한 theme이 같은 화면의 전체 view를 제공하면 그 theme view가 우선한다. skin 또는 해당 view가 없으면 `basic` skin으로 fallback한다.
+콘텐츠는 v1에서 skin 대상이 아니며 `theme_key`와 `layout_key`로만 공개 화면을 바꾼다. 커뮤니티의 번들 `basic` theme view는 선택된 skin view에 본문 렌더링을 위임한다. 커뮤니티 검색처럼 skin 대상이 아닌 모듈 화면은 번들 `basic` theme이 모듈 fallback view를 정본으로 include한다. 따라서 `skin_key`는 기본 테마 안쪽의 기능 템플릿을 선택하고, 별도로 설치한 theme이 같은 화면의 전체 view를 제공하면 그 theme view가 우선한다. skin 또는 해당 view가 없으면 `basic` skin으로 fallback한다.
 
 ## 레이아웃과 asset 순서
 
@@ -82,17 +74,16 @@ modules/{module_key}/theme/{theme_key}/assets/theme.css
 
 ## 레이아웃 지원 범위
 
-공개 layout option은 `site`, `content`, `community`, `quiz`, `survey` 도메인과 `content.home`, `content.search`, `community.post`, `quiz.result`, `survey.complete` 같은 화면 target을 선언할 수 있다.
 
-콘텐츠, 커뮤니티, 퀴즈, 설문 환경설정의 단일 `layout_key`는 해당 모듈의 필수 공개 화면 전체에 적용된다. 따라서 후보 layout은 그 모듈의 필수 target 전체를 지원해야 한다. 번들 `content.basic`, `community.basic`, `quiz.basic`, `survey.basic`은 네 공개 모듈 target 전체를 지원하므로 각 모듈 설정에서 다른 모듈 layout도 선택할 수 있다.
+콘텐츠, 커뮤니티 환경설정의 단일 `layout_key`는 해당 모듈의 필수 공개 화면 전체에 적용된다. 따라서 후보 layout은 그 모듈의 필수 target 전체를 지원해야 한다. 번들 `content.basic`, `community.basic`은 두 공개 모듈 target 전체를 지원하므로 각 모듈 설정에서 다른 모듈 layout도 선택할 수 있다.
 
 현재 화면 target을 지원하지 않는 layout은 공개 렌더링에서 `common.basic`으로 fallback한다. `common.basic`은 terminal fallback이며 다시 다른 layout으로 재귀 fallback하지 않는다.
 
 ## 읽기 화면 작성자 프로필 이미지
 
-콘텐츠, 커뮤니티, 퀴즈, 설문의 기본 읽기 화면은 운영자가 회원 프로필 설정에서 프로필 이미지 항목을 사용하도록 설정한 경우 본문 작성자와 댓글 작성자의 공개 이름 옆에 회원 프로필 이미지를 표시한다. 회원 프로필에 공개할 실제 업로드 이미지가 있으면 해당 이미지를 노출하고, 이미지가 없으면 공개 표시명의 첫 글자를 원형 문자 프로필 이미지로 표시하며 표시명에 따라 같은 색상 팔레트를 안정적으로 사용한다. 탈퇴 또는 익명화 상태의 계정은 업로드 이미지를 공개하지 않고 현재 화면에 노출되는 공개 표시명으로 문자 프로필 이미지를 만든다. 프로필 이미지 항목을 사용하지 않도록 설정하면 업로드 이미지와 문자 fallback을 모두 표시하지 않는다.
+콘텐츠, 커뮤니티의 기본 읽기 화면은 운영자가 회원 프로필 설정에서 프로필 이미지 항목을 사용하도록 설정한 경우 본문 작성자와 댓글 작성자의 공개 이름 옆에 회원 프로필 이미지를 표시한다. 회원 프로필에 공개할 실제 업로드 이미지가 있으면 해당 이미지를 노출하고, 이미지가 없으면 공개 표시명의 첫 글자를 원형 문자 프로필 이미지로 표시하며 표시명에 따라 같은 색상 팔레트를 안정적으로 사용한다. 탈퇴 또는 익명화 상태의 계정은 업로드 이미지를 공개하지 않고 현재 화면에 노출되는 공개 표시명으로 문자 프로필 이미지를 만든다. 프로필 이미지 항목을 사용하지 않도록 설정하면 업로드 이미지와 문자 fallback을 모두 표시하지 않는다.
 
-회원 환경설정의 `profile_image_size_small`, `profile_image_size_medium`, `profile_image_size_large`는 소·중·대 프로필 이미지 크기를 각각 px 단위로 저장한다. 기본값은 24px·32px·40px이고 각 값은 16~128px 범위에서 `소 ≤ 중 ≤ 대`가 되도록 지정한다. 콘텐츠·커뮤니티·퀴즈·설문의 댓글 작성자는 소, 본문 작성자는 중, 회원 프로필과 회원 상세는 대 크기를 사용하며 업로드 이미지와 문자 fallback에 같은 단계 값을 적용한다. 회원은 이미지 파일 하나만 등록하고 서버도 검증·재인코딩한 파일 하나만 `member/profile-images/YYYY/MM` 경로에 저장한다. 공개 이미지는 `/member/profile-image`에서 제공하고 화면별 크기는 별도 파생 이미지를 만들지 않고 동일한 파일을 표시할 때 조정한다. 기존 `member/avatars` 참조는 업데이트 후에도 이미 저장된 파일을 읽는 경우에만 허용하며 새 업로드에는 사용하지 않는다. 공개 layout header의 글자형 계정 아이콘과 UI-KIT 예시는 읽기 화면 작성자 프로필 이미지가 아니므로 이 설정에 따라 바꾸지 않는다.
+회원 환경설정의 `profile_image_size_small`, `profile_image_size_medium`, `profile_image_size_large`는 소·중·대 프로필 이미지 크기를 각각 px 단위로 저장한다. 기본값은 24px·32px·40px이고 각 값은 16~128px 범위에서 `소 ≤ 중 ≤ 대`가 되도록 지정한다. 콘텐츠·커뮤니티의 댓글 작성자는 소, 본문 작성자는 중, 회원 프로필과 회원 상세는 대 크기를 사용하며 업로드 이미지와 문자 fallback에 같은 단계 값을 적용한다. 회원은 이미지 파일 하나만 등록하고 서버도 검증·재인코딩한 파일 하나만 `member/profile-images/YYYY/MM` 경로에 저장한다. 공개 이미지는 `/member/profile-image`에서 제공하고 화면별 크기는 별도 파생 이미지를 만들지 않고 동일한 파일을 표시할 때 조정한다. 기존 `member/avatars` 참조는 업데이트 후에도 이미 저장된 파일을 읽는 경우에만 허용하며 새 업로드에는 사용하지 않는다. 공개 layout header의 글자형 계정 아이콘과 UI-KIT 예시는 읽기 화면 작성자 프로필 이미지가 아니므로 이 설정에 따라 바꾸지 않는다.
 
 댓글 목록의 프로필 이미지는 화면에 표시할 작성자 계정을 묶어서 조회한다. 각 댓글을 렌더링할 때 회원 프로필을 다시 조회하는 방식은 사용하지 않는다. 모듈 theme과 fallback skin은 같은 공개 조건과 작성자 메타데이터 구조를 유지한다.
 
@@ -116,4 +107,4 @@ php .tools/bin/check.php
 php .tools/bin/check-skin-theme-ui.php
 ```
 
-로컬 또는 staging base URL이 있으면 `/content/ui-kit`, `/community/ui-kit`, `/quiz/ui-kit`, `/survey/ui-kit`에서 선택 theme와 선택 layout provider 조합이 실제 asset과 DOM marker로 나타나는지 확인한다.
+로컬 또는 staging base URL이 있으면 `/content/ui-kit`, `/community/ui-kit`에서 선택 theme와 선택 layout provider 조합이 실제 asset과 DOM marker로 나타나는지 확인한다.

@@ -527,10 +527,6 @@ $signals = [
     'community.storage_cleanup.pending',
     'community.board_copy.active',
     'community.board_copy.failed',
-    'quiz.reward_grants.pending',
-    'quiz.reward_grants.failed',
-    'survey.reward_grants.pending',
-    'survey.reward_grants.failed',
     'point.expiration.due',
 ];
 

@@ -83,7 +83,7 @@ class SrSiteMenuCheckPdo extends PDO
 }
 
 $options = [];
-foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+foreach (['content', 'community'] as $moduleKey) {
     $metadata = sr_module_metadata($moduleKey);
     $serviceDomain = is_array($metadata['service_domain'] ?? null) ? $metadata['service_domain'] : [];
     $mainPage = is_array($serviceDomain['main_page'] ?? null) ? $serviceDomain['main_page'] : [];
@@ -94,14 +94,14 @@ foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
     ];
 }
 
-$items = sr_site_menu_seed_default_header_menu_items($options, ['survey', 'quiz', 'community', 'content']);
+$items = sr_site_menu_seed_default_header_menu_items($options, ['community', 'content']);
 $labels = array_map('strval', array_column($items, 'label'));
-$expected = ['Home', 'Contents', 'Community', 'Quiz', 'Survey'];
+$expected = ['Home', 'Contents', 'Community'];
 if ($labels !== $expected) {
     sr_site_menu_check_error('Site menu seed labels must use English menu metadata in service main order: ' . implode(' > ', $labels));
 }
 $mainPageLabels = array_values(array_map(static fn (array $option): string => (string) ($option['label'] ?? ''), $options));
-sr_site_menu_check_assert($mainPageLabels === ['콘텐츠', '커뮤니티', '퀴즈·테스트', '설문·여론조사'], 'English site menu seed labels must not change module main-page labels.');
+sr_site_menu_check_assert($mainPageLabels === ['콘텐츠', '커뮤니티'], 'English site menu seed labels must not change module main-page labels.');
 
 $pdo = new SrSiteMenuCheckPdo('sqlite::memory:');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -146,8 +146,8 @@ $pdo->exec(
         (5, 1, 4, '너무 깊은 항목', '/too-deep', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (6, 1, NULL, '비활성', '/disabled', 'self', 'disabled', 30, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (7, 2, NULL, '숨김 메뉴', '/hidden', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
-        (8, 1, NULL, '퀴즈', '/quiz', 'self', 'enabled', 40, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
-        (9, 1, NULL, '퀴즈 확장', '/quiz-extra', 'self', 'enabled', 50, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (8, 1, NULL, '자료실', '/library', 'self', 'enabled', 40, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
+        (9, 1, NULL, '자료실 확장', '/library-extra', 'self', 'enabled', 50, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (10, 1, NULL, '링크 없는 묶음', '', 'self', 'enabled', 60, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (11, 1, 10, '묶음 하위', '/group-child', 'self', 'enabled', 10, '2026-06-11 00:00:00', '2026-06-11 00:00:00'),
         (12, 1, NULL, '링크 없는 항목', '', 'self', 'enabled', 70, '2026-06-11 00:00:00', '2026-06-11 00:00:00')"
@@ -238,10 +238,10 @@ sr_site_menu_check_assert(($emptyTree['enabled'] ?? false) === true, 'Site menu 
 sr_site_menu_check_assert(($emptyTree['label'] ?? '') === '빈 메뉴', 'Site menu tree cache must retain the published menu label.');
 sr_site_menu_check_assert(sr_site_menu_render($pdo, 'empty_menu', 'navigation') === '', 'Site menu render runtime fixture must render empty enabled menus as empty output.');
 
-$_SERVER['REQUEST_URI'] = '/quiz/qa260611p1530_category';
-$quizSectionHtml = sr_site_menu_render($pdo, 'header', 'navigation');
-sr_site_menu_check_assert(str_contains($quizSectionHtml, '<li class="sr-site-menu-item sr-site-menu-item-depth-1 is-current"><a href="/quiz" aria-current="page"'), 'Site menu section root item must be current for a child path.');
-sr_site_menu_check_assert(!str_contains($quizSectionHtml, '<li class="sr-site-menu-item sr-site-menu-item-depth-1 is-current"><a href="/quiz-extra" aria-current="page"'), 'Site menu section current matching must not cross path segment boundaries.');
+$_SERVER['REQUEST_URI'] = '/library/qa260611p1530_category';
+$librarySectionHtml = sr_site_menu_render($pdo, 'header', 'navigation');
+sr_site_menu_check_assert(str_contains($librarySectionHtml, '<li class="sr-site-menu-item sr-site-menu-item-depth-1 is-current"><a href="/library" aria-current="page"'), 'Site menu section root item must be current for a child path.');
+sr_site_menu_check_assert(!str_contains($librarySectionHtml, '<li class="sr-site-menu-item sr-site-menu-item-depth-1 is-current"><a href="/library-extra" aria-current="page"'), 'Site menu section current matching must not cross path segment boundaries.');
 
 $_SERVER['REQUEST_URI'] = '/content/example';
 sr_site_menu_check_assert(sr_site_menu_item_href('/login') === '/login?next=%2Fcontent%2Fexample', 'Site menu login link must include safe current next path.');

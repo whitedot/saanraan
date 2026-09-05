@@ -155,8 +155,6 @@ if (!is_string($identityHelpers)) {
     || !str_contains($identityHelpers, 'function sr_identity_verification_adult_setting_errors(PDO $pdo, bool $adultRequired')
     || !str_contains($identityHelpers, "str_ends_with(\$purpose, '.adult')")
     || !str_contains($identityHelpers, "'content.view.adult'")
-    || !str_contains($identityHelpers, "'quiz.view.adult'")
-    || !str_contains($identityHelpers, "'survey.view.adult'")
     || !str_contains($identityHelpers, "sr_request_contract_mark('csrf_checked');")
     || !str_contains($identityHelpers, 'function sr_identity_verification_identity_snapshot(array $identity): array')
     || !str_contains($identityHelpers, 'function sr_identity_verification_session_identity_snapshot(')
@@ -330,48 +328,6 @@ if (!is_string($contentSettingsAction) || !is_string($contentSettingsView) || !i
     || !str_contains($contentViewAction, "sr_identity_verification_account_satisfies_adult(\$pdo, (int) \$account['id'], 'content.view.adult')")
 ) {
     $errors[] = 'content settings and view action must support identity and adult identity access policies.';
-}
-
-$quizHelpers = file_get_contents($root . '/modules/quiz/helpers.php');
-$quizSettingsView = file_get_contents($root . '/modules/quiz/views/admin-settings.php');
-$quizSkinView = file_get_contents($root . '/modules/quiz/skins/basic/view.php');
-if (!is_string($quizHelpers) || !is_string($quizSettingsView) || !is_string($quizSkinView)) {
-    $errors[] = 'quiz identity access files must be readable.';
-} elseif (!str_contains($quizHelpers, "'identity_view_required' => false")
-    || !str_contains($quizHelpers, '퀴즈 참여 본인확인을 사용하려면 본인확인 사용을 켜고 퀴즈 참여 목적을 지원하는 제공자를 설정하세요.')
-    || !str_contains($quizHelpers, '퀴즈 참여 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 퀴즈 성인 참여 목적 제공자를 설정하세요.')
-    || !str_contains($quizHelpers, 'function sr_quiz_enforce_identity_view_policy(')
-    || !str_contains($quizHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'quiz.view'")
-    || !str_contains($quizHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'quiz.view.adult')")
-    || !str_contains($quizSettingsView, '$quizIdentityViewAvailable')
-    || !str_contains($quizSettingsView, '$quizIdentityViewAdultAvailable')
-    || !str_contains($quizSettingsView, 'quiz-settings-identity-unavailable')
-    || !str_contains($quizSettingsView, "'identity_view_required', '1'")
-    || !str_contains($quizSettingsView, "'identity_view_adult_required', '1'")
-    || !str_contains($quizSkinView, 'sr_quiz_enforce_identity_view_policy($pdo, $quiz, $quizSettings, $currentAccount, $canPreviewAsAdmin);')
-) {
-    $errors[] = 'quiz settings and view screens must support identity and adult identity participation policies.';
-}
-
-$surveyHelpers = file_get_contents($root . '/modules/survey/helpers.php');
-$surveySettingsView = file_get_contents($root . '/modules/survey/views/admin-settings.php');
-$surveySkinView = file_get_contents($root . '/modules/survey/skins/basic/view.php');
-if (!is_string($surveyHelpers) || !is_string($surveySettingsView) || !is_string($surveySkinView)) {
-    $errors[] = 'survey identity access files must be readable.';
-} elseif (!str_contains($surveyHelpers, "'identity_view_required' => false")
-    || !str_contains($surveyHelpers, '설문 참여 본인확인을 사용하려면 본인확인 사용을 켜고 설문 참여 목적을 지원하는 제공자를 설정하세요.')
-    || !str_contains($surveyHelpers, '설문 참여 성인 본인확인을 사용하려면 본인확인 사용, 생년월일 사용, 설문 성인 참여 목적 제공자를 설정하세요.')
-    || !str_contains($surveyHelpers, 'function sr_survey_enforce_identity_view_policy(')
-    || !str_contains($surveyHelpers, "sr_identity_verification_requirement_policy(\$pdo, \$accountId, 'survey.view'")
-    || !str_contains($surveyHelpers, "sr_identity_verification_account_satisfies_adult(\$pdo, \$accountId, 'survey.view.adult')")
-    || !str_contains($surveySettingsView, '$surveyIdentityViewAvailable')
-    || !str_contains($surveySettingsView, '$surveyIdentityViewAdultAvailable')
-    || !str_contains($surveySettingsView, 'survey-settings-identity-unavailable')
-    || !str_contains($surveySettingsView, "'identity_view_required', '1'")
-    || !str_contains($surveySettingsView, "'identity_view_adult_required', '1'")
-    || !str_contains($surveySkinView, 'sr_survey_enforce_identity_view_policy($pdo, $survey, $settings, $currentAccount, $canPreviewAsAdmin);')
-) {
-    $errors[] = 'survey settings and view screens must support identity and adult identity participation policies.';
 }
 
 $identityConsumerFiles = [

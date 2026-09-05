@@ -577,23 +577,11 @@ $publicModuleLayoutTargets = [
     'community.post',
     'community.form',
     'community.search',
-    'quiz',
-    'quiz.home',
-    'quiz.list',
-    'quiz.view',
-    'quiz.result',
-    'survey',
-    'survey.home',
-    'survey.list',
-    'survey.view',
-    'survey.complete',
 ];
 
 foreach ([
     'content' => ['content.home', 'content.group', 'content.view', 'content.form', 'content.search'],
     'community' => ['community.home', 'community.group', 'community.list', 'community.post', 'community.form', 'community.search'],
-    'quiz' => ['quiz.home', 'quiz.list', 'quiz.view', 'quiz.result'],
-    'survey' => ['survey.home', 'survey.list', 'survey.view', 'survey.complete'],
 ] as $moduleKey => $requiredTargets) {
     sr_skin_theme_check_contains('modules/' . $moduleKey . '/helpers' . ($moduleKey === 'community' ? '/presentation' : '') . '.php', [
         'function sr_' . $moduleKey . '_layout_required_targets(): array',
@@ -607,13 +595,11 @@ foreach ([
 sr_skin_theme_check_contains([
     'modules/content/actions/admin-settings.php',
     'modules/community/actions/admin-settings.php',
-    'modules/quiz/actions/admin-settings.php',
-    'modules/survey/actions/admin-settings.php',
 ], [
     'layout_options($pdo)',
 ], 'Public module layout setting target-filtered options');
 
-foreach (['content', 'community', 'quiz', 'survey'] as $moduleKey) {
+foreach (['content', 'community'] as $moduleKey) {
     sr_skin_theme_check_contains('modules/' . $moduleKey . '/actions/ui-kit.php', [
         'layout_options($pdo, true)',
         'theme_view_file',
@@ -643,31 +629,9 @@ sr_skin_theme_check_contains('modules/community/helpers/levels.php', [
     "sr_module_view_theme_stylesheet_url('community'",
 ], 'Community local view theme asset helper');
 
-sr_skin_theme_check_contains('modules/quiz/helpers.php', [
-    'function sr_quiz_theme_options(): array',
-    "SR_ROOT . '/modules/quiz/theme'",
-    "['home.php', 'list.php', 'view.php', 'result.php', 'ui-kit.php']",
-    "array_merge(sr_quiz_skin_views(), ['ui-kit'])",
-    "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'common.css')",
-    "sr_public_layout_module_theme_asset_url('quiz', \$themeKey, 'ui-kit-layout.css')",
-    "sr_module_view_theme_stylesheet_url('quiz'",
-], 'Quiz local view theme helper');
-
-sr_skin_theme_check_contains('modules/survey/helpers.php', [
-    'function sr_survey_theme_options(): array',
-    "SR_ROOT . '/modules/survey/theme'",
-    "['home.php', 'list.php', 'view.php', 'complete.php', 'ui-kit.php']",
-    "array_merge(sr_survey_skin_views(), ['ui-kit'])",
-    "sr_public_layout_module_theme_asset_url('survey', \$themeKey, 'common.css')",
-    "sr_public_layout_module_theme_asset_url('survey', \$themeKey, 'ui-kit-layout.css')",
-    "sr_module_view_theme_stylesheet_url('survey'",
-], 'Survey local view theme helper');
-
 sr_skin_theme_check_contains([
     'modules/content/actions/ui-kit.php',
     'modules/community/actions/ui-kit.php',
-    'modules/quiz/actions/ui-kit.php',
-    'modules/survey/actions/ui-kit.php',
 ], [
     'theme_view_file',
     '/theme/basic/ui-kit.php',
@@ -787,14 +751,6 @@ foreach ([
     'modules/community/theme/basic/form.php',
     'modules/community/theme/basic/search.php',
     'modules/community/theme/basic/ui-kit.php',
-    'modules/quiz/theme/basic/home.php',
-    'modules/quiz/theme/basic/view.php',
-    'modules/quiz/theme/basic/result.php',
-    'modules/quiz/theme/basic/ui-kit.php',
-    'modules/survey/theme/basic/home.php',
-    'modules/survey/theme/basic/view.php',
-    'modules/survey/theme/basic/complete.php',
-    'modules/survey/theme/basic/ui-kit.php',
     'modules/content/theme/basic/layout.php',
     'modules/content/theme/basic/assets/reset.css',
     'modules/content/theme/basic/assets/common.css',
@@ -808,19 +764,6 @@ foreach ([
     'modules/community/theme/basic/assets/ui-kit-layout.css',
     'modules/community/theme/basic/assets/layout.css',
     'modules/community/theme/basic/assets/module.css',
-    'modules/quiz/theme/basic/layout.php',
-    'modules/quiz/theme/basic/assets/reset.css',
-    'modules/quiz/theme/basic/assets/common.css',
-    'modules/quiz/theme/basic/assets/ui-kit-layout.css',
-    'modules/quiz/theme/basic/assets/layout.css',
-    'modules/quiz/theme/basic/assets/module.css',
-    'modules/quiz/theme/basic/assets/skin.css',
-    'modules/survey/theme/basic/layout.php',
-    'modules/survey/theme/basic/assets/reset.css',
-    'modules/survey/theme/basic/assets/common.css',
-    'modules/survey/theme/basic/assets/ui-kit-layout.css',
-    'modules/survey/theme/basic/assets/layout.css',
-    'modules/survey/theme/basic/assets/module.css',
 ] as $themeFile) {
     sr_skin_theme_check_file_exists($themeFile, 'Local public view theme');
 }
@@ -830,10 +773,6 @@ foreach ([
     'core/views/theme/sample',
     'modules/content/theme/sample',
     'modules/community/theme/sample',
-    'modules/quiz/theme/sample',
-    'modules/survey/theme/sample',
-    'modules/quiz/skins/card',
-    'modules/quiz/skins/focus',
 ] as $removedBundledThemePath) {
     sr_skin_theme_check_path_missing($removedBundledThemePath, 'Removed bundled sample theme or alias skin');
 }
@@ -854,22 +793,10 @@ sr_skin_theme_check_contains([
     'modules/community/actions/write.php',
     'modules/community/actions/edit.php',
     'modules/community/actions/search.php',
-    'modules/quiz/actions/home.php',
-    'modules/quiz/actions/view.php',
-    'modules/survey/actions/home.php',
-    'modules/survey/actions/view.php',
 ], [
     'public_view_file',
 ], 'Public module theme view-root include flow');
 
-sr_skin_theme_check_not_contains([
-    'modules/quiz/actions/home.php',
-    'modules/quiz/actions/view.php',
-    'modules/survey/actions/home.php',
-    'modules/survey/actions/view.php',
-], [
-    'render_skin(',
-], 'Public theme flow must not call skin renderer directly');
 
 sr_skin_theme_check_not_contains([
     'modules/content/actions/home.php',
@@ -883,25 +810,16 @@ sr_skin_theme_check_not_contains([
     'modules/community/actions/write.php',
     'modules/community/actions/edit.php',
     'modules/community/actions/search.php',
-    'modules/quiz/actions/home.php',
-    'modules/quiz/actions/view.php',
-    'modules/survey/actions/home.php',
-    'modules/survey/actions/view.php',
 ], [
     'sr_content_include_public_view(',
     'sr_community_include_public_view(',
-    'sr_quiz_include_public_view(',
-    'sr_survey_include_public_view(',
 ], 'Public theme action include scope');
 
 sr_skin_theme_check_contains([
     'modules/content/views/admin-settings.php',
     'modules/community/views/admin-settings.php',
-    'modules/quiz/views/admin-settings.php',
-    'modules/survey/views/admin-settings.php',
 ], [
     'name="theme_key"',
-    '공개 테마',
 ], 'Public module theme setting UI');
 
 sr_skin_theme_check_contains([
@@ -969,26 +887,6 @@ foreach ([
         'post_marker' => "\$_POST['business_info_visible'] ?? ''",
         'helper_default_marker' => "'business_info_visible' => (bool)",
     ],
-    'quiz' => [
-        'helper' => 'modules/quiz/helpers.php',
-        'module' => 'modules/quiz/module.php',
-        'action' => 'modules/quiz/helpers.php',
-        'view' => 'modules/quiz/views/admin-settings.php',
-        'layouts' => ['modules/quiz/theme/basic/layout.php'],
-        'switch_id' => 'quiz_settings_business_info_visible',
-        'post_marker' => "\$_POST['business_info_visible'] ?? ''",
-        'helper_default_marker' => "'business_info_visible' => true",
-    ],
-    'survey' => [
-        'helper' => 'modules/survey/helpers.php',
-        'module' => 'modules/survey/module.php',
-        'action' => 'modules/survey/helpers.php',
-        'view' => 'modules/survey/views/admin-settings.php',
-        'layouts' => ['modules/survey/theme/basic/layout.php'],
-        'switch_id' => 'survey_settings_business_info_visible',
-        'post_marker' => "\$_POST['business_info_visible'] ?? ''",
-        'helper_default_marker' => "'business_info_visible' => true",
-    ],
 ] as $moduleKey => $businessInfoTarget) {
     sr_skin_theme_check_contains($businessInfoTarget['helper'], [
         (string) $businessInfoTarget['helper_default_marker'],
@@ -1019,8 +917,6 @@ foreach ([
 foreach ([
     'modules/content/views/admin-settings.php',
     'modules/community/views/admin-settings.php',
-    'modules/quiz/views/admin-settings.php',
-    'modules/survey/views/admin-settings.php',
 ] as $settingsViewPath) {
     sr_skin_theme_check_order($settingsViewPath, 'name="theme_key"', 'name="layout_key"', 'Public module theme/layout setting order: ' . $settingsViewPath);
 }
@@ -1029,16 +925,6 @@ sr_skin_theme_check_contains('modules/community/views/admin-settings.php', [
     'community_settings_help_theme',
     "communitySettingsHelp['theme']['id']",
 ], 'Community theme setting help UI');
-
-sr_skin_theme_check_contains('modules/quiz/views/admin-settings.php', [
-    'quiz-settings-help-theme-key',
-    "quizSettingsHelp['theme_key']['id']",
-], 'Quiz theme setting help UI');
-
-sr_skin_theme_check_contains('modules/survey/views/admin-settings.php', [
-    'survey-settings-help-theme-key',
-    "surveySettingsHelp['theme_key']['id']",
-], 'Survey theme setting help UI');
 
 sr_skin_theme_check_contains('modules/content/views/admin-settings.php', [
     '콘텐츠 화면 틀',
@@ -1074,8 +960,6 @@ sr_skin_theme_check_not_contains([
     'modules/admin/helpers/navigation.php',
     'modules/admin/views/settings.php',
     'modules/community/helpers/presentation.php',
-    'modules/quiz/helpers.php',
-    'modules/survey/helpers.php',
     '.htaccess',
 ], [
     '/sr-' . 'package-asset',
@@ -1201,8 +1085,6 @@ $publicCommonStylesheetPaths = [
     'assets/common.css',
     'modules/content/theme/basic/assets/common.css',
     'modules/community/theme/basic/assets/common.css',
-    'modules/quiz/theme/basic/assets/common.css',
-    'modules/survey/theme/basic/assets/common.css',
 ];
 sr_skin_theme_check_contains(array_merge($publicCommonStylesheetPaths, ['modules/admin/assets/common.css']), [
     ':is(.btn-group,.filtering-toggle-group):has(.form-choice-toggle-input){flex-direction:column;overflow-x:visible;width:100%}',
@@ -1255,15 +1137,12 @@ $publicHintViewPaths = [
     'modules/privacy/helpers.php',
     'modules/community/theme/basic/form.php',
     'modules/community/skins/basic/form.php',
-    'modules/survey/theme/basic/view.php',
-    'modules/survey/skins/basic/view.php',
 ];
 sr_skin_theme_check_contains($publicHintViewPaths, [
     '<small class="ui-kit-hint">',
 ], 'Public form hint text markup');
 sr_skin_theme_check_not_contains($publicHintViewPaths, [
     '<small>',
-    '<p class="sr-survey-help">',
 ], 'Public form hints should use the UI kit hint pattern');
 sr_skin_theme_check_contains('modules/community/helpers/privacy-consents.php', [
     '<p><small class="ui-kit-hint">',
@@ -1302,27 +1181,9 @@ sr_skin_theme_check_contains([
     'class="card',
     'class="card-body ui-card-body-stack',
 ], 'Standalone public screens should use UI kit page and card components');
-sr_skin_theme_check_contains([
-    'modules/quiz/theme/basic/view.php',
-    'modules/quiz/skins/basic/view.php',
-    'modules/survey/theme/basic/view.php',
-    'modules/survey/skins/basic/view.php',
-], [
-    'class="form-checkbox"',
-    'class="form-radio"',
-    'class="form-input',
-], 'Quiz and survey controls should use UI kit form components');
 $publicShareViewPaths = [
-    'modules/quiz/theme/basic/view.php',
-    'modules/quiz/skins/basic/view.php',
-    'modules/survey/theme/basic/view.php',
-    'modules/survey/skins/basic/view.php',
 ];
 foreach ($publicShareViewPaths as $publicShareViewPath) {
-    sr_skin_theme_check_contains($publicShareViewPath, [
-        'class="ui-inline-action"',
-        'class="form-input form-control-medium" readonly data-sr-share-url',
-    ], 'Quiz and survey share controls should keep the copy button beside the URL in ' . $publicShareViewPath);
 }
 sr_skin_theme_check_contains('modules/asset_exchange/views/account-asset-exchange.php', [
     'class="ui-inline-action"',
@@ -1388,8 +1249,6 @@ sr_skin_theme_check_contains([
     'modules/admin/assets/common.css',
     'modules/content/theme/basic/assets/common.css',
     'modules/community/theme/basic/assets/common.css',
-    'modules/quiz/theme/basic/assets/common.css',
-    'modules/survey/theme/basic/assets/common.css',
 ], [
     '--modal-viewport-gap:clamp(',
     'box-sizing:border-box',
@@ -1401,8 +1260,6 @@ sr_skin_theme_check_contains([
     'modules/admin/assets/common.css',
     'modules/content/theme/basic/assets/common.css',
     'modules/community/theme/basic/assets/common.css',
-    'modules/quiz/theme/basic/assets/common.css',
-    'modules/survey/theme/basic/assets/common.css',
 ], [
     '.modal-dialog,.modal-dialog-bottom,.modal-dialog-center{width:calc(100% - calc(var(--spacing) * 6))',
     '.modal-dialog-sm{width:calc(100% - calc(var(--spacing) * 6))',
@@ -1423,8 +1280,6 @@ $modalSamplePaths = [
     'modules/admin/views/ui-kit-samples/ui-modals.php',
     'modules/content/views/ui-kit-samples/ui-modals.php',
     'modules/community/views/ui-kit-samples/ui-modals.php',
-    'modules/quiz/views/ui-kit-samples/ui-modals.php',
-    'modules/survey/views/ui-kit-samples/ui-modals.php',
 ];
 foreach ($modalSamplePaths as $modalSamplePath) {
     sr_skin_theme_check_contains($modalSamplePath, [

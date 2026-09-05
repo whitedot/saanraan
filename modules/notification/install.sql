@@ -190,8 +190,6 @@ VALUES
     ('community', 'comment.created', '새 댓글이 등록되었습니다.', '{member_name}님이 회원님의 게시글에 댓글을 남겼습니다.\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('community', 'comment.mention', '댓글에서 회원님을 언급했습니다.', '{member_name}님이 커뮤니티 댓글에서 회원님을 언급했습니다.\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('community', 'followed_author.post_created', '{member_name}님이 새 게시글을 등록했습니다.', '게시판: {board_title}\n게시글: {post_title}\n등록 시각: {created_at}\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
-    ('quiz', 'comment.mention', '퀴즈 댓글에서 회원님을 언급했습니다.', '{member_name}님이 퀴즈 댓글에서 회원님을 언급했습니다.\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
-    ('survey', 'comment.mention', '설문 댓글에서 회원님을 언급했습니다.', '{member_name}님이 설문 댓글에서 회원님을 언급했습니다.\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('reaction', 'target.reacted', '새 리액션이 등록되었습니다.', '{member_name}님이 {target_label}에 {reaction_label} 리액션을 남겼습니다.\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('community', 'attachment.publisher_reward.granted', '첨부 다운로드 리워드가 지급되었습니다.', '지급 금액: {amount}{asset}\n\n{link_url}', '{link_url}', '["site"]', 'active', NOW(), NOW()),
     ('message', 'message.received', '새 쪽지가 도착했습니다.', '{sender_name}님이 쪽지를 보냈습니다.', '{link_url}', '["site"]', 'active', NOW(), NOW()),

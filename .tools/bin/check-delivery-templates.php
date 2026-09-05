@@ -195,12 +195,6 @@ function sr_delivery_template_check_expected_notification_events(): array
             'followed_author.post_created',
             'attachment.publisher_reward.granted',
         ],
-        'quiz' => [
-            'comment.mention',
-        ],
-        'survey' => [
-            'comment.mention',
-        ],
         'reaction' => [
             'target.reacted',
         ],
@@ -342,10 +336,8 @@ $notificationTemplateAdminActions = [
     'member' => 'modules/member/actions/admin-notification-templates.php',
     'message' => 'modules/message/actions/admin-notification-templates.php',
     'point' => 'modules/point/actions/admin-notification-templates.php',
-    'quiz' => 'modules/quiz/actions/admin-notification-templates.php',
     'reaction' => 'modules/reaction/actions/admin-notification-templates.php',
     'reward' => 'modules/reward/actions/admin-notification-templates.php',
-    'survey' => 'modules/survey/actions/admin-notification-templates.php',
 ];
 foreach ($notificationTemplateAdminActions as $moduleKey => $actionPath) {
     $actionSource = is_file($root . '/' . $actionPath) ? file_get_contents($root . '/' . $actionPath) : false;

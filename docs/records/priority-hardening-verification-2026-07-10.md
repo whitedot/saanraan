@@ -54,7 +54,6 @@
 | /admin/operations | 통과 | disposable 설치 DB + 관리자 | 로그인 세션 read-only 화면과 기대 문구 확인 |
 | 기본 HTTP smoke | 통과 | disposable 로컬 서버 | 커뮤니티 설치 기대 모드 포함 route, 보안 헤더, 보호 경로 확인 |
 | 인증 smoke | 통과 | disposable 더미 회원 | 로그인, 글·댓글·쪽지·스크랩·신고와 관리자 moderation 흐름 확인 |
-| 퀴즈 E2E smoke | 통과 | disposable 더미 데이터 | 생성, 제출, 보상, 재응시 차단 확인 |
 | 자산/쿠폰/유료 접근권 mutation smoke | 통과 | disposable 유료 콘텐츠 | 같은 확인 token 6개 병렬 POST에서 dedupe row 1개 확인, 쿠폰/접근권 runtime fixture 통과 |
 | 개인정보 export/cleanup smoke | 통과 | 탈퇴 전용 disposable 계정 | export JSON, 익명화·탈퇴, 기존 세션과 자격증명 접근 차단 확인 |
 | CKEditor asset/fallback browser smoke | 통과 | Playwright Chromium + 사용자 로컬 GUI 런타임 | self-hosted 초기화, 누락 fallback, upload adapter 성공/오류 4개 시나리오 통과 |
@@ -103,3 +102,11 @@
 
 - 실제 배포 서버 보호 규칙, 유료 본문 이미지, 외부 provider 흐름을 staging에서 확인한다.
 - CSP `unsafe-inline` 제거는 nonce 도입과 인라인 스크립트 이동 범위를 먼저 고정한 뒤 별도 변경으로 처리한다.
+
+## 제거된 기능의 과거 검증
+
+퀴즈·설문은 2026-09-05 번들에서 제거되었다. 아래는 당시 실행 기록이며 현재 필수 게이트가 아니다. [제거 안내](../module-removal-quiz-survey.md)를 따른다.
+
+| 과거 게이트 | 결과 | 환경 | 메모 |
+| --- | --- | --- | --- |
+| 퀴즈 E2E smoke | 통과 | disposable 더미 데이터 | 생성, 제출, 보상, 재응시 차단 확인 |

@@ -208,7 +208,7 @@ $optionalModules = [
         'name' => '리액션',
         'version' => '2026.06.002',
         'label' => '리액션',
-        'description' => '콘텐츠, 커뮤니티, 퀴즈, 설문이 함께 사용하는 공통 리액션 정의와 원장을 설치합니다.',
+        'description' => '콘텐츠와 커뮤니티가 함께 사용하는 공통 리액션 정의와 원장을 설치합니다.',
     ],
     'content' => [
         'name' => '콘텐츠',
@@ -221,18 +221,6 @@ $optionalModules = [
         'version' => '2026.07.015',
         'label' => sr_t('install.module.community.label'),
         'description' => '게시판, 댓글, 신고, 스크랩 기능을 설치합니다.',
-    ],
-    'quiz' => [
-        'name' => '퀴즈·테스트',
-        'version' => '2026.07.012',
-        'label' => '퀴즈·테스트',
-        'description' => '콘텐츠 연계 퀴즈 응시, 채점, 보상 기반을 설치합니다.',
-    ],
-    'survey' => [
-        'name' => '설문·여론조사',
-        'version' => '2026.07.012',
-        'label' => '설문·여론조사',
-        'description' => '설문 작성, 공개 응답 수집, 응답 보상 기반을 설치합니다.',
     ],
 ];
 

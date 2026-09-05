@@ -250,10 +250,6 @@ foreach ([
     'modules/community/skins/basic/list.php',
     'modules/community/theme/basic/post.php',
     'modules/community/skins/basic/view.php',
-    'modules/quiz/theme/basic/view.php',
-    'modules/quiz/skins/basic/view.php',
-    'modules/survey/theme/basic/view.php',
-    'modules/survey/skins/basic/view.php',
 ] as $memberProfileMenuConsumerView) {
     $sourceContains($memberProfileMenuConsumerView, [
         'sr_member_public_identity_parts(',

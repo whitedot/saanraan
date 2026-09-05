@@ -5,7 +5,7 @@ $allowedGroupKeys = isset($settings['refund_allowed_group_keys']) && is_array($s
     : [];
 $usageEnabled = !isset($settings['usage_enabled']) || !empty($settings['usage_enabled']);
 $depositUsageFeatureLabels = [];
-foreach (['content', 'community', 'quiz', 'survey'] as $depositConsumerModuleKey) {
+foreach (['content', 'community'] as $depositConsumerModuleKey) {
     if (sr_module_enabled($pdo, $depositConsumerModuleKey)) {
         $depositUsageFeatureLabels[] = '보상';
         break;
