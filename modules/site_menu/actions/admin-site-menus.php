@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/site_menu/helpers.php';
+require_once SR_ROOT . '/modules/site_menu/admin-editor.php';
 
 $account = sr_member_require_login($pdo);
 sr_admin_require_permission($pdo, (int) $account['id'], '/admin/site-menus', 'view');
@@ -19,90 +20,16 @@ $notice = (string) $flashResult['notice'];
 $menuLinkSuggestions = sr_site_menu_link_suggestions($pdo);
 $siteMenuIconOptions = sr_site_menu_icon_options($pdo);
 
-function sr_site_menu_admin_parent_depth(PDO $pdo, int $menuId, int $parentId, int $excludeItemId = 0): ?int
-{
-    if ($parentId <= 0) {
-        return 0;
-    }
-
-    $depth = 1;
-    $currentId = $parentId;
-    $visited = [];
-    while ($currentId > 0 && $depth <= 3) {
-        if ($excludeItemId > 0 && $currentId === $excludeItemId) {
-            return null;
-        }
-        if (isset($visited[$currentId])) {
-            return null;
-        }
-        $visited[$currentId] = true;
-
-        $stmt = $pdo->prepare('SELECT id, parent_id FROM sr_site_menu_draft_items WHERE id = :id AND menu_id = :menu_id LIMIT 1');
-        $stmt->execute(['id' => $currentId, 'menu_id' => $menuId]);
-        $row = $stmt->fetch();
-        if (!is_array($row)) {
-            return null;
-        }
-
-        $nextParentId = (int) ($row['parent_id'] ?? 0);
-        if ($nextParentId <= 0) {
-            return $depth;
-        }
-
-        $currentId = $nextParentId;
-        $depth++;
-    }
-
-    return null;
-}
-
-function sr_site_menu_admin_descendant_ids(PDO $pdo, int $itemId): array
-{
-    $ids = [];
-    $frontier = [$itemId];
-    while ($frontier !== []) {
-        $placeholders = implode(',', array_fill(0, count($frontier), '?'));
-        $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_draft_items WHERE parent_id IN (' . $placeholders . ')');
-        $stmt->execute($frontier);
-        $frontier = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $childId = (int) ($row['id'] ?? 0);
-            if ($childId > 0 && !in_array($childId, $ids, true)) {
-                $ids[] = $childId;
-                $frontier[] = $childId;
-            }
-        }
-    }
-
-    return $ids;
-}
-
-function sr_site_menu_admin_subtree_max_relative_depth(PDO $pdo, int $itemId): int
-{
-    $maxDepth = 1;
-    $walk = static function (int $parentId, int $depth) use (&$walk, &$maxDepth, $pdo): void {
-        $maxDepth = max($maxDepth, $depth);
-        $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_draft_items WHERE parent_id = :parent_id');
-        $stmt->execute(['parent_id' => $parentId]);
-        foreach ($stmt->fetchAll() as $row) {
-            $childId = (int) ($row['id'] ?? 0);
-            if ($childId > 0) {
-                $walk($childId, $depth + 1);
-            }
-        }
-    };
-    $walk($itemId, 1);
-
-    return $maxDepth;
-}
-
 function sr_site_menu_admin_publish_draft(PDO $pdo): int
 {
     $now = sr_now();
     $publishedCount = 0;
+    $ownsTransaction = !$pdo->inTransaction();
 
     try {
-        $pdo->beginTransaction();
+        if ($ownsTransaction) {
+            $pdo->beginTransaction();
+        }
 
         $pdo->exec('DELETE FROM sr_site_menu_items');
         $pdo->exec('DELETE FROM sr_site_menus');
@@ -126,9 +53,11 @@ function sr_site_menu_admin_publish_draft(PDO $pdo): int
         $stmt->execute(['updated_at' => $now]);
         $publishedCount += $stmt->rowCount();
 
-        $pdo->commit();
+        if ($ownsTransaction) {
+            $pdo->commit();
+        }
     } catch (Throwable $exception) {
-        if ($pdo->inTransaction()) {
+        if ($ownsTransaction && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
 
@@ -138,391 +67,111 @@ function sr_site_menu_admin_publish_draft(PDO $pdo): int
     return $publishedCount;
 }
 
+$canEditSiteMenus = sr_admin_has_permission($pdo, (int) $account['id'], '/admin/site-menus', 'edit');
+$canDeleteSiteMenus = $canEditSiteMenus && sr_admin_has_permission($pdo, (int) $account['id'], '/admin/site-menus', 'delete');
+$siteMenuEditor = $_SESSION['sr_site_menu_editor'] ?? null;
+if (!is_array($siteMenuEditor) || (int) ($siteMenuEditor['account_id'] ?? 0) !== (int) $account['id']) {
+    $siteMenuEditor = sr_site_menu_editor_create(sr_site_menu_editor_snapshot($pdo), (int) $account['id']);
+    $_SESSION['sr_site_menu_editor'] = $siteMenuEditor;
+}
+
 if (sr_request_method() === 'POST') {
     sr_require_csrf();
-
-    $publicMenuChanged = false;
+    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/site-menus', 'edit');
     $intent = sr_post_string('intent', 40);
-    sr_admin_require_permission($pdo, (int) $account['id'], '/admin/site-menus', in_array($intent, ['delete_item', 'delete_menu'], true) ? 'delete' : 'edit');
-    $menuId = (int) sr_post_string('menu_id', 20);
-    $itemId = (int) sr_post_string('item_id', 20);
-
-    if ($intent === 'publish_site_menus') {
-        $sortOrders = $_POST['item_sort_order'] ?? [];
-        if ($sortOrders !== [] && !is_array($sortOrders)) {
-            $errors[] = sr_t('site_menu::action.admin.sort_order_invalid');
+    if (in_array($intent, ['delete_item', 'delete_menu', 'delete_draft'], true)
+        || (in_array($intent, ['save_draft', 'publish_site_menus'], true) && sr_site_menu_editor_has_deletions($siteMenuEditor))) {
+        sr_admin_require_permission($pdo, (int) $account['id'], '/admin/site-menus', 'delete');
+    }
+    $input = [];
+    foreach (['intent', 'form_id', 'original_menu_key', 'menu_key', 'menu_id', 'item_id', 'parent_id', 'label', 'url', 'icon_name', 'target', 'status', 'sort_order', 'confirm_descendant_delete'] as $key) {
+        if (isset($_POST[$key]) && is_scalar($_POST[$key])) {
+            $input[$key] = substr((string) $_POST[$key], 0, 1024);
         }
-
-        if ($errors === []) {
-            $now = sr_now();
-            $stmt = $pdo->prepare('UPDATE sr_site_menu_draft_items SET sort_order = :sort_order, updated_at = :updated_at WHERE id = :id');
-            foreach ($sortOrders as $id => $sortOrderValue) {
-                $id = (int) $id;
-                if ($id <= 0) {
-                    continue;
+    }
+    try {
+        if (!hash_equals((string) $siteMenuEditor['revision'], sr_post_string('editor_revision', 32))) {
+            throw new DomainException('편집 화면이 바뀌었습니다. 새로고침한 뒤 다시 시도해 주세요.');
+        }
+        if ($intent === 'delete_draft') {
+            $pdo->beginTransaction();
+            $restored = sr_site_menu_editor_delete_draft($pdo, $siteMenuEditor, sr_post_string('confirm_delete_draft', 20));
+            sr_audit_log($pdo, [
+                'actor_account_id' => (int) $account['id'], 'actor_type' => 'admin',
+                'event_type' => 'site_menu.draft.deleted', 'target_type' => 'site_menu',
+                'target_id' => 'site_menu', 'result' => 'success',
+                'message' => 'Saved site menu changes discarded and published menus restored as the editor baseline.',
+                'metadata' => ['menu_count' => count($restored['menus']), 'item_count' => count($restored['items'])],
+            ]);
+            $pdo->commit();
+            $siteMenuEditor = sr_site_menu_editor_create($restored, (int) $account['id']);
+            $notice = sr_t('site_menu::action.admin.draft_deleted');
+        } elseif ($intent === 'discard_changes') {
+            $siteMenuEditor = sr_site_menu_editor_create(sr_site_menu_editor_snapshot($pdo), (int) $account['id']);
+            $notice = '저장하지 않은 변경을 취소하고 저장된 초안을 불러왔습니다.';
+        } else {
+            $candidate = sr_site_menu_editor_apply_orders($siteMenuEditor, $_POST['item_sort_order'] ?? [], in_array($intent, ['save_draft', 'publish_site_menus'], true));
+            // Keep valid list order edits even if a modal field fails validation.
+            $siteMenuEditor = $candidate;
+            if (in_array($intent, ['save_draft', 'publish_site_menus'], true)) {
+                $pdo->beginTransaction();
+                sr_site_menu_editor_save($pdo, $candidate);
+                if ($intent === 'publish_site_menus') {
+                    $publishedCount = sr_site_menu_admin_publish_draft($pdo);
                 }
-                $sortOrder = max(-100000, min(100000, (int) $sortOrderValue));
-                $stmt->execute(['sort_order' => $sortOrder, 'updated_at' => $now, 'id' => $id]);
-            }
-        }
-
-        if ($errors === []) {
-            try {
-                $publishedCount = sr_site_menu_admin_publish_draft($pdo);
                 sr_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'site_menu.published',
-                    'target_type' => 'site_menu',
-                    'target_id' => 'site_menu',
-                    'result' => 'success',
-                    'message' => 'Site menu draft published.',
-                    'metadata' => ['published_count' => $publishedCount],
+                    'actor_account_id' => (int) $account['id'], 'actor_type' => 'admin',
+                    'event_type' => $intent === 'publish_site_menus' ? 'site_menu.published' : 'site_menu.draft.saved',
+                    'target_type' => 'site_menu', 'target_id' => 'site_menu', 'result' => 'success',
+                    'message' => $intent === 'publish_site_menus' ? 'Site menu draft published.' : 'Site menu draft saved.',
+                    'metadata' => ['menu_count' => count($candidate['menus']), 'item_count' => count($candidate['items'])],
                 ]);
-                $publicMenuChanged = true;
-                $notice = sr_t('site_menu::action.admin.published');
-            } catch (Throwable $exception) {
-                $errors[] = sr_t('site_menu::action.admin.publish_failed');
-            }
-        }
-    } elseif ($intent === 'save_menu') {
-        $menuKey = sr_site_menu_clean_key(sr_post_string('menu_key', 60));
-        $originalMenuKey = sr_site_menu_clean_key(sr_post_string('original_menu_key', 60));
-        $label = sr_site_menu_clean_label(sr_post_string('label', 120));
-        $status = sr_post_string('status', 30);
-
-        if ($menuKey === '') {
-            $errors[] = sr_t('site_menu::action.admin.menu_key_invalid');
-        }
-        if ($label === '') {
-            $errors[] = sr_t('site_menu::action.admin.menu_name_required');
-        }
-        if (!in_array($status, $allowedStatuses, true)) {
-            $errors[] = sr_t('site_menu::action.admin.menu_status_invalid');
-        }
-
-        if ($errors === []) {
-            $now = sr_now();
-            if ($originalMenuKey !== '') {
-                $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_draft_menus WHERE menu_key = :menu_key LIMIT 1');
-                $stmt->execute(['menu_key' => $originalMenuKey]);
-                if (!is_array($stmt->fetch())) {
-                    $errors[] = sr_t('site_menu::action.admin.menu_edit_not_found');
-                }
-
-                if ($originalMenuKey !== $menuKey) {
-                    $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_draft_menus WHERE menu_key = :menu_key LIMIT 1');
-                    $stmt->execute(['menu_key' => $menuKey]);
-                    if (is_array($stmt->fetch())) {
-                        $errors[] = sr_t('site_menu::action.admin.menu_key_duplicate');
+                $pdo->commit();
+                $siteMenuEditor = sr_site_menu_editor_create(sr_site_menu_editor_snapshot($pdo), (int) $account['id']);
+                $notice = $intent === 'publish_site_menus' ? sr_t('site_menu::action.admin.published') : sr_t('site_menu::action.admin.draft_saved');
+                if ($intent === 'publish_site_menus') {
+                    if (!sr_site_menu_clear_cache()) {
+                        $notice .= ' ' . sr_t('site_menu::action.admin.cache_invalidation_failed');
                     }
                 }
-
-                if ($errors === []) {
-                    $stmt = $pdo->prepare(
-                        'UPDATE sr_site_menu_draft_menus
-                         SET menu_key = :menu_key, label = :label, status = :status, updated_at = :updated_at
-                         WHERE menu_key = :original_menu_key'
-                    );
-                    $stmt->execute([
-                        'menu_key' => $menuKey,
-                        'label' => $label,
-                        'status' => $status,
-                        'updated_at' => $now,
-                        'original_menu_key' => $originalMenuKey,
-                    ]);
-                }
             } else {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO sr_site_menu_draft_menus (menu_key, label, status, created_at, updated_at)
-                     VALUES (:menu_key, :label, :status, :created_at, :updated_at)
-                     ON DUPLICATE KEY UPDATE label = VALUES(label), status = VALUES(status), updated_at = VALUES(updated_at)'
-                );
-                $stmt->execute([
-                    'menu_key' => $menuKey,
-                    'label' => $label,
-                    'status' => $status,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-
-            if ($errors === []) {
-                sr_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'site_menu.draft.saved',
-                    'target_type' => 'site_menu',
-                    'target_id' => $menuKey,
-                    'result' => 'success',
-                    'message' => 'Site menu draft saved.',
-                    'metadata' => ['original_menu_key' => $originalMenuKey],
-                ]);
-
-                $notice = sr_t('site_menu::action.admin.menu_saved');
+                $siteMenuEditor = sr_site_menu_editor_change($pdo, $candidate, $intent, $input);
+                $notice = '편집 목록에 적용했습니다. 임시저장을 누르면 추가·수정·삭제·순서 변경이 함께 저장됩니다.';
             }
         }
-    } elseif ($intent === 'save_item') {
-        $label = sr_site_menu_clean_label(sr_post_string('label', 120));
-        $postedUrl = trim(sr_post_string('url', 255));
-        $url = sr_site_menu_clean_url($postedUrl);
-        $iconName = sr_site_menu_clean_icon_name($pdo, sr_post_string('icon_name', 80));
-        $target = sr_post_string('target', 20);
-        $status = sr_post_string('status', 30);
-        $sortOrder = max(-100000, min(100000, (int) sr_post_string('sort_order', 20)));
-        $parentId = (int) sr_post_string('parent_id', 20);
-
-        if ($menuId <= 0) {
-            $errors[] = sr_t('site_menu::action.admin.menu_required');
+    } catch (DomainException $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
         }
-        if ($label === '') {
-            $errors[] = sr_t('site_menu::action.admin.item_name_required');
+        $errors[] = $exception->getMessage();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
         }
-        if ($postedUrl !== '' && $url === '') {
-            $errors[] = sr_t('site_menu::action.admin.item_url_invalid');
-        }
-        if (!in_array($target, $allowedTargets, true)) {
-            $errors[] = sr_t('site_menu::action.admin.link_target_invalid');
-        }
-        if (!in_array($status, $allowedStatuses, true)) {
-            $errors[] = sr_t('site_menu::action.admin.item_status_invalid');
-        }
-
-        if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_draft_menus WHERE id = :id LIMIT 1');
-            $stmt->execute(['id' => $menuId]);
-            if (!is_array($stmt->fetch())) {
-                $errors[] = sr_t('site_menu::action.admin.menu_not_found');
-            }
-        }
-
-        if ($errors === [] && $itemId > 0) {
-            $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_draft_items WHERE id = :id AND menu_id = :menu_id LIMIT 1');
-            $stmt->execute(['id' => $itemId, 'menu_id' => $menuId]);
-            if (!is_array($stmt->fetch())) {
-                $errors[] = sr_t('site_menu::action.admin.item_edit_not_found');
-            }
-        }
-
-        if ($errors === [] && $parentId > 0) {
-            $parentDepth = sr_site_menu_admin_parent_depth($pdo, $menuId, $parentId, $itemId);
-            if ($parentDepth === null) {
-                $errors[] = sr_t('site_menu::action.admin.parent_invalid');
-            } elseif ($parentDepth >= 3) {
-                $errors[] = sr_t('site_menu::action.admin.depth_limit');
-            } elseif ($itemId > 0 && $parentDepth + sr_site_menu_admin_subtree_max_relative_depth($pdo, $itemId) > 3) {
-                $errors[] = sr_t('site_menu::action.admin.descendant_depth_limit');
-            }
-        }
-
-        if ($errors === []) {
-            $now = sr_now();
-            if ($itemId > 0) {
-                $itemSaveParams = [
-                    'parent_id' => $parentId > 0 ? $parentId : null,
-                    'label' => $label,
-                    'url' => $url,
-                    'target' => $target,
-                    'status' => $status,
-                    'sort_order' => $sortOrder,
-                    'updated_at' => $now,
-                    'id' => $itemId,
-                    'menu_id' => $menuId,
-                ];
-                $itemSaveParams['icon_name'] = $iconName;
-                $stmt = $pdo->prepare(
-                    'UPDATE sr_site_menu_draft_items
-                     SET parent_id = :parent_id, label = :label, url = :url, icon_name = :icon_name, target = :target, status = :status, sort_order = :sort_order, updated_at = :updated_at
-                     WHERE id = :id AND menu_id = :menu_id'
-                );
-                $stmt->execute($itemSaveParams);
-            } else {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO sr_site_menu_draft_items
-                        (menu_id, parent_id, label, url, icon_name, target, status, sort_order, created_at, updated_at)
-                     VALUES
-                        (:menu_id, :parent_id, :label, :url, :icon_name, :target, :status, :sort_order, :created_at, :updated_at)'
-                );
-                $itemSaveParams = [
-                    'menu_id' => $menuId,
-                    'parent_id' => $parentId > 0 ? $parentId : null,
-                    'label' => $label,
-                    'url' => $url,
-                    'target' => $target,
-                    'status' => $status,
-                    'sort_order' => $sortOrder,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                    'icon_name' => $iconName,
-                ];
-                $stmt->execute($itemSaveParams);
-                $itemId = (int) $pdo->lastInsertId();
-            }
-
-            if ($errors === []) {
-                sr_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'site_menu.item.draft.saved',
-                    'target_type' => 'site_menu_item',
-                    'target_id' => (string) $itemId,
-                    'result' => 'success',
-                    'message' => 'Site menu item draft saved.',
-                    'metadata' => ['menu_id' => $menuId, 'parent_id' => $parentId > 0 ? $parentId : null],
-                ]);
-
-                $notice = sr_t('site_menu::action.admin.item_saved');
-            }
-        }
-    } elseif ($intent === 'save_item_order') {
-        $sortOrders = $_POST['item_sort_order'] ?? [];
-        if (!is_array($sortOrders)) {
-            $errors[] = sr_t('site_menu::action.admin.sort_order_invalid');
-        }
-
-        if ($errors === []) {
-            $now = sr_now();
-            $stmt = $pdo->prepare('UPDATE sr_site_menu_draft_items SET sort_order = :sort_order, updated_at = :updated_at WHERE id = :id');
-            foreach ($sortOrders as $id => $sortOrderValue) {
-                $id = (int) $id;
-                if ($id <= 0) {
-                    continue;
-                }
-                $sortOrder = max(-100000, min(100000, (int) $sortOrderValue));
-                $stmt->execute(['sort_order' => $sortOrder, 'updated_at' => $now, 'id' => $id]);
-            }
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'site_menu.item_order.draft.saved',
-                'target_type' => 'site_menu_draft_items',
-                'target_id' => 'site_menu',
-                'result' => 'success',
-                'message' => 'Site menu item draft order saved.',
-            ]);
-
-            $notice = sr_t('site_menu::action.admin.item_order_saved');
-        }
-    } elseif ($intent === 'delete_item') {
-        $deleteIds = [];
-        $descendantIds = [];
-        if ($itemId <= 0) {
-            $errors[] = sr_t('site_menu::action.admin.item_delete_not_found');
-        }
-
-        if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT id FROM sr_site_menu_draft_items WHERE id = :id LIMIT 1');
-            $stmt->execute(['id' => $itemId]);
-            if (!is_array($stmt->fetch())) {
-                $errors[] = sr_t('site_menu::action.admin.item_delete_not_found');
-            }
-        }
-
-        if ($errors === []) {
-            $descendantIds = sr_site_menu_admin_descendant_ids($pdo, $itemId);
-            if ($descendantIds !== [] && sr_post_string('confirm_descendant_delete', 1) !== '1') {
-                $errors[] = sr_t('site_menu::action.admin.item_descendant_delete_confirmation_required');
-            }
-        }
-
-        if ($errors === []) {
-            $deleteIds = array_merge([$itemId], $descendantIds);
-            $placeholders = implode(',', array_fill(0, count($deleteIds), '?'));
-            $stmt = $pdo->prepare('DELETE FROM sr_site_menu_draft_items WHERE id IN (' . $placeholders . ')');
-            $stmt->execute($deleteIds);
-
-            sr_audit_log($pdo, [
-                'actor_account_id' => (int) $account['id'],
-                'actor_type' => 'admin',
-                'event_type' => 'site_menu.item.draft.deleted',
-                'target_type' => 'site_menu_draft_item',
-                'target_id' => (string) $itemId,
-                'result' => 'success',
-                'message' => 'Site menu item draft deleted.',
-                'metadata' => ['deleted_item_count' => count($deleteIds), 'descendant_count' => count($descendantIds)],
-            ]);
-
-            $notice = sr_t('site_menu::action.admin.item_deleted');
-        }
-    } elseif ($intent === 'delete_menu') {
-        if ($menuId <= 0) {
-            $errors[] = sr_t('site_menu::action.admin.menu_delete_not_found');
-        }
-
-        if ($errors === []) {
-            $stmt = $pdo->prepare('SELECT menu_key FROM sr_site_menu_draft_menus WHERE id = :id LIMIT 1');
-            $stmt->execute(['id' => $menuId]);
-            $menu = $stmt->fetch();
-            if (!is_array($menu)) {
-                $errors[] = sr_t('site_menu::action.admin.menu_delete_not_found');
-            }
-        }
-
-        if ($errors === [] && is_array($menu)) {
-            try {
-                $pdo->beginTransaction();
-
-                $stmt = $pdo->prepare('DELETE FROM sr_site_menu_draft_items WHERE menu_id = :menu_id');
-                $stmt->execute(['menu_id' => $menuId]);
-
-                $stmt = $pdo->prepare('DELETE FROM sr_site_menu_draft_menus WHERE id = :id');
-                $stmt->execute(['id' => $menuId]);
-
-                $pdo->commit();
-
-                sr_audit_log($pdo, [
-                    'actor_account_id' => (int) $account['id'],
-                    'actor_type' => 'admin',
-                    'event_type' => 'site_menu.draft.deleted',
-                    'target_type' => 'site_menu',
-                    'target_id' => (string) $menu['menu_key'],
-                    'result' => 'success',
-                    'message' => 'Site menu draft deleted.',
-                ]);
-
-                $notice = sr_t('site_menu::action.admin.menu_deleted');
-            } catch (Throwable $exception) {
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-
-                $errors[] = sr_t('site_menu::action.admin.menu_delete_failed');
-            }
-        }
-    } else {
-        $errors[] = sr_t('site_menu::action.admin.intent_invalid');
+        sr_log_exception($exception, 'site_menu_editor_save');
+        $errors[] = '사이트 메뉴 변경을 저장하지 못했습니다. 편집 내용은 유지됩니다. 다시 시도해 주세요.';
     }
-
-    if ($errors === [] && $publicMenuChanged) {
-        if (!sr_site_menu_clear_cache()) {
-            $notice .= ' ' . sr_t('site_menu::action.admin.cache_invalidation_failed');
-        }
-    }
-
-    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice), '/admin/site-menus');
+    $siteMenuEditor['revision'] = bin2hex(random_bytes(16));
+    $_SESSION['sr_site_menu_editor'] = $siteMenuEditor;
+    sr_admin_redirect_with_result(sr_admin_action_result($errors, $notice, $errors !== [] ? ['input' => $input] : []), '/admin/site-menus');
 }
 
-$menus = [];
-$stmt = $pdo->query('SELECT id, menu_key, label, status, updated_at FROM sr_site_menu_draft_menus ORDER BY menu_key ASC');
-foreach ($stmt->fetchAll() as $row) {
-    $menus[] = $row;
+$siteMenuEditorRevision = (string) $siteMenuEditor['revision'];
+$siteMenuEditorDirty = sr_site_menu_editor_dirty($siteMenuEditor);
+$siteMenuFailedInput = is_array($flashResult['data']['input'] ?? null) ? $flashResult['data']['input'] : [];
+$menus = array_values($siteMenuEditor['menus']);
+usort($menus, static fn (array $a, array $b): int => strcmp($a['menu_key'], $b['menu_key']));
+$items = array_values($siteMenuEditor['items']);
+foreach ($items as &$item) {
+    $item['menu_key'] = (string) $siteMenuEditor['menus'][$item['menu_id']]['menu_key'];
 }
-
-$items = [];
+unset($item);
+usort($items, static fn (array $a, array $b): int => [$a['menu_key'], (int) $a['sort_order'], (int) $a['id']] <=> [$b['menu_key'], (int) $b['sort_order'], (int) $b['id']]);
 $menuParentNextSortOrders = [];
-$stmt = $pdo->query(
-    'SELECT i.id, i.menu_id, i.parent_id, m.menu_key, i.label, i.url, i.icon_name, i.target, i.status, i.sort_order, i.updated_at
-     FROM sr_site_menu_draft_items i
-    INNER JOIN sr_site_menu_draft_menus m ON m.id = i.menu_id
-     ORDER BY m.menu_key ASC, i.sort_order ASC, i.id ASC'
-);
-foreach ($stmt->fetchAll() as $row) {
-    $items[] = $row;
+foreach ($items as $row) {
     $rowMenuId = (int) $row['menu_id'];
     $rowParentId = (int) ($row['parent_id'] ?? 0);
-    $rowSortOrder = (int) $row['sort_order'];
-    $menuParentNextSortOrders[$rowMenuId][$rowParentId] = max((int) ($menuParentNextSortOrders[$rowMenuId][$rowParentId] ?? 0), $rowSortOrder + 10);
+    $menuParentNextSortOrders[$rowMenuId][$rowParentId] = max((int) ($menuParentNextSortOrders[$rowMenuId][$rowParentId] ?? 0), (int) $row['sort_order'] + 10);
 }
 
 foreach ($menus as $menu) {

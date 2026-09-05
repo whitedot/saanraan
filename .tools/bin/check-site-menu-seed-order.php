@@ -293,10 +293,10 @@ sr_site_menu_check_assert(str_contains($siteMenuKo, "'action.admin.cache_invalid
 sr_site_menu_check_assert(str_contains($siteMenuAdminView, 'sr_admin_form_label_help_html($modalId . \'_menu_key\''), 'Site menu identifier field must expose detailed operator help.');
 sr_site_menu_check_assert(str_contains($siteMenuAdminView, '식별값을 바꿔도 다른 설정에 저장된 선택값은 자동으로 바뀌지 않습니다.'), 'Site menu identifier help must warn that dependent layout selections are not renamed automatically.');
 sr_site_menu_check_assert(
-    str_contains($siteMenuAdminView, '$siteMenuDraftOrderSaveLabel = sr_t(')
+    str_contains($siteMenuAdminView, '$siteMenuDraftSaveLabel = sr_t(')
     && str_contains($siteMenuAdminView, '$siteMenuPublishLabel = sr_t(')
-    && str_contains($siteMenuAdminView, '<?php echo sr_e($siteMenuDraftOrderSaveLabel); ?>’은 공개 사이트에 바로 반영되지 않습니다.')
-    && str_contains($siteMenuAdminView, '<?php echo sr_e($siteMenuPublishLabel); ?>’을 누르면 현재 초안이 실제 메뉴로 적용됩니다.'),
+    && str_contains($siteMenuAdminView, '<?php echo sr_e($siteMenuDraftSaveLabel); ?>’은 공개 사이트에 바로 반영되지 않습니다.')
+    && str_contains($siteMenuAdminView, '<?php echo sr_e($siteMenuPublishLabel); ?>’을 누르면 현재 편집 내용을 저장하고 공개 메뉴로 적용합니다.'),
     'Site menu order help and buttons must share the draft-save and publish labels.'
 );
 sr_site_menu_check_assert(str_contains($siteMenuKo, "'ui.menu.key.20cd5d6a' => '메뉴 식별값'"), 'Site menu operator copy must use an easy Korean label for the menu key.');

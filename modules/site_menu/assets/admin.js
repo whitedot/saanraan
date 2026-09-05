@@ -136,45 +136,92 @@
             }
         });
 
+        document.addEventListener('click', function (event) {
+            var trigger = event.target.closest ? event.target.closest('[data-overlay]') : null;
+            var selector = trigger ? trigger.getAttribute('data-overlay') : '';
+            if (!selector || selector.indexOf('#site_menu_edit_item_') !== 0) {
+                return;
+            }
+            var modal = document.querySelector(selector);
+            var id = selector.slice('#site_menu_edit_item_'.length);
+            var order = document.querySelector('[name="item_sort_order[' + id + ']"]');
+            var modalOrder = modal ? modal.querySelector('[name="sort_order"]') : null;
+            if (order && modalOrder) {
+                modalOrder.value = order.value;
+            }
+        });
+
+        document.addEventListener('change', function (event) {
+            if (event.target.matches('[data-admin-sort-order]')) {
+                var pending = document.querySelector('[data-site-menu-pending]');
+                if (pending) {
+                    pending.textContent = '임시저장되지 않은 변경이 있습니다.';
+                }
+            }
+        });
+
         document.addEventListener('submit', function (event) {
-            var publishForm = event.target && event.target.closest ? event.target.closest('#site-menu-publish-form') : null;
-            if (publishForm) {
-                Array.prototype.slice.call(publishForm.querySelectorAll('[data-site-menu-publish-sort-input]')).forEach(function (input) {
-                    input.parentNode.removeChild(input);
-                });
+            var form = event.target;
+            if (!form.matches('form[data-site-menu-editor-form]') || event.defaultPrevented) {
+                return;
+            }
+            var intent = form.querySelector('[name="intent"]');
+            if (intent && intent.value === 'discard_changes') {
+                return;
+            }
+            if (intent && intent.value === 'delete_draft') {
+                var draftConfirm = form.querySelector('[data-site-menu-delete-draft-confirm]');
+                if (!draftConfirm) {
+                    event.preventDefault();
+                    return;
+                }
+                if (draftConfirm.value !== '1') {
+                    if (!window.confirm(form.getAttribute('data-site-menu-delete-message'))) {
+                        event.preventDefault();
+                        return;
+                    }
+                    draftConfirm.value = '1';
+                }
+            }
+            var confirmInput = form.querySelector('[data-site-menu-delete-confirm-input]');
+            if (form.hasAttribute('data-site-menu-delete-descendants') && confirmInput && confirmInput.value !== '1') {
+                var message = form.getAttribute('data-site-menu-delete-message') || '하위 항목도 함께 편집 목록에서 삭제할까요?';
+                if (!window.confirm(message)) {
+                    event.preventDefault();
+                    return;
+                }
+                confirmInput.value = '1';
+            }
+
+            // Every operation carries the current list order through its POST/redirect.
+            Array.prototype.slice.call(form.querySelectorAll('[data-site-menu-order-copy]')).forEach(function (input) {
+                input.remove();
+            });
+            if (form.id !== 'site-menu-draft-form' && (!intent || intent.value !== 'delete_draft')) {
                 Array.prototype.slice.call(document.querySelectorAll('[data-admin-sort-order]')).forEach(function (input) {
-                    if (!input.name) {
+                    if (!input.name || input.disabled) {
                         return;
                     }
                     var hidden = document.createElement('input');
                     hidden.type = 'hidden';
                     hidden.name = input.name;
                     hidden.value = input.value;
-                    hidden.setAttribute('data-site-menu-publish-sort-input', '1');
-                    publishForm.appendChild(hidden);
+                    hidden.setAttribute('data-site-menu-order-copy', '1');
+                    form.appendChild(hidden);
                 });
-                return;
             }
-
-            var form = event.target && event.target.closest ? event.target.closest('form[data-site-menu-delete-descendants]') : null;
-            if (!form) {
-                return;
-            }
-
-            var confirmInput = form.querySelector('[data-site-menu-delete-confirm-input]');
-            if (confirmInput && confirmInput.value === '1') {
-                return;
-            }
-
-            var message = form.getAttribute('data-site-menu-delete-message') || '이 항목의 하위 항목도 함께 삭제됩니다. 계속 삭제할까요?';
-            if (!window.confirm(message)) {
-                event.preventDefault();
-                return;
-            }
-
-            if (confirmInput) {
-                confirmInput.value = '1';
-            }
+            // Keep the submitted payload intact, then prevent accidental double submits.
+            window.setTimeout(function () {
+                if (event.defaultPrevented) {
+                    return;
+                }
+                if (event.submitter && intent && ['save_draft', 'publish_site_menus', 'delete_draft'].indexOf(intent.value) !== -1) {
+                    event.submitter.textContent = intent.value === 'delete_draft' ? '삭제 중…' : '저장 중…';
+                }
+                Array.prototype.slice.call(document.querySelectorAll('button[type="submit"]')).forEach(function (button) {
+                    button.disabled = true;
+                });
+            }, 0);
         });
     });
 })();

@@ -131,7 +131,7 @@ $buttonLabelContracts = [
         'required' => [
             '$siteMenuMenuDraftSaveLabel = sr_t(',
             '$siteMenuItemDraftSaveLabel = sr_t(',
-            '$siteMenuDraftOrderSaveLabel = sr_t(',
+            '$siteMenuDraftSaveLabel = sr_t(',
             '$siteMenuPublishLabel = sr_t(',
             '<?php echo sr_e($siteMenuMenuDraftSaveLabel); ?>’을 누르면',
             '<?php echo sr_e($siteMenuItemDraftSaveLabel); ?>’을 누르면',

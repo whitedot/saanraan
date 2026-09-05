@@ -10,7 +10,9 @@
     margin-right: auto;
 }
 
-#site-menu-order-form,
+#site-menu-draft-form,
+#site-menu-discard-form,
+#site-menu-delete-draft-form,
 #site-menu-publish-form {
     display: none;
 }

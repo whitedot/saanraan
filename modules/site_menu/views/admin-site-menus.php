@@ -8,7 +8,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
 $siteMenuHelpOpenLabel = '도움말 보기';
 $siteMenuMenuDraftSaveLabel = sr_t('site_menu::ui.menu.draft.save.97477650');
 $siteMenuItemDraftSaveLabel = sr_t('site_menu::ui.item.draft.save.73d4c98b');
-$siteMenuDraftOrderSaveLabel = sr_t('site_menu::ui.draft.order.save.17fa471c');
+$siteMenuDraftSaveLabel = sr_t('site_menu::ui.draft.save');
 $siteMenuPublishLabel = sr_t('site_menu::ui.publish.30a64fe2');
 $siteMenuHelp = [
     'menu' => [
@@ -33,8 +33,8 @@ $siteMenuHelp = [
     'order' => [
         'id' => 'site-menu-help-order',
         'title' => '표시 순서와 공개 반영',
-        'body' => '<p>같은 상위 항목 안에서 표시 순서 숫자가 작을수록 먼저 나옵니다. 드래그하거나 이동 버튼을 누르면 목록의 숫자가 바뀍니다.</p>'
-            . '<p>항목 추가·수정 창에서 <strong>' . sr_e($siteMenuItemDraftSaveLabel) . '</strong>을 누르면 그 항목의 표시 순서만 저장됩니다. 목록에서 바꾼 여러 항목의 순서는 <strong>' . sr_e($siteMenuDraftOrderSaveLabel) . '</strong> 또는 <strong>' . sr_e($siteMenuPublishLabel) . '</strong>을 눌러야 저장됩니다. 공개 사이트에는 ' . sr_e($siteMenuPublishLabel) . '을 누른 시점의 초안 전체가 적용됩니다.</p>',
+        'body' => '<p>임시저장 삭제는 저장된 변경과 현재 편집 내용을 버리고 공개 메뉴로 되돌립니다. 변경 취소는 저장하지 않은 편집만 취소하고 저장된 초안으로 돌아갑니다.</p><p>같은 상위 항목 안에서 표시 순서 숫자가 작을수록 먼저 나옵니다. 드래그하거나 이동 버튼을 누르면 목록의 숫자가 바뀝니다.</p>'
+            . '<p>항목 추가·수정 창에서 <strong>' . sr_e($siteMenuItemDraftSaveLabel) . '</strong>을 누르면 항목을 편집 목록에 적용합니다. 추가·수정·삭제와 목록에서 바꾼 순서는 <strong>' . sr_e($siteMenuDraftSaveLabel) . '</strong> 또는 <strong>' . sr_e($siteMenuPublishLabel) . '</strong>을 눌러야 저장됩니다. 공개 사이트에는 ' . sr_e($siteMenuPublishLabel) . '을 누른 시점의 초안 전체가 적용됩니다.</p>',
     ],
 ];
 
@@ -194,23 +194,31 @@ $siteMenuModalCloseButton = static function (string $modalId): void {
     <?php
 };
 
-$siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuMenuDraftSaveLabel, $siteMenuPublishLabel, $siteMenuModalCloseButton): void {
+$siteMenuRenderMenuModal = static function (string $modalId, string $title, ?array $menu = null) use ($allowedStatuses, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuMenuDraftSaveLabel, $siteMenuPublishLabel, $siteMenuModalCloseButton, $siteMenuEditorRevision, $siteMenuFailedInput): void {
     $editingMenu = is_array($menu);
     $menuKey = $editingMenu ? (string) ($menu['menu_key'] ?? '') : '';
     $label = $editingMenu ? (string) ($menu['label'] ?? '') : '';
     $statusValue = $editingMenu ? (string) ($menu['status'] ?? 'enabled') : 'enabled';
+    $originalMenuKey = $menuKey;
+    if (($siteMenuFailedInput['form_id'] ?? '') === $modalId) {
+        $menuKey = (string) ($siteMenuFailedInput['menu_key'] ?? $menuKey);
+        $label = (string) ($siteMenuFailedInput['label'] ?? $label);
+        $statusValue = (string) ($siteMenuFailedInput['status'] ?? $statusValue);
+    }
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+            <form method="post" data-site-menu-editor-form action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($modalId); ?>_title" class="modal-title"><?php echo sr_e($title); ?></h3>
                     <?php $siteMenuModalCloseButton($modalId); ?>
                 </div>
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
+                    <input type="hidden" name="form_id" value="<?php echo sr_e($modalId); ?>">
                     <input type="hidden" name="intent" value="save_menu">
-                    <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e($menuKey) : ''; ?>">
+                    <input type="hidden" name="original_menu_key" value="<?php echo $editingMenu ? sr_e($originalMenuKey) : ''; ?>">
                     <div class="form-row">
                         <?php echo sr_admin_form_label_help_html($modalId . '_menu_key', sr_t('site_menu::ui.menu.key.20cd5d6a'), $siteMenuHelp['menu']['id'], $siteMenuHelpOpenLabel, true); ?>
                         <div class="form-field">
@@ -240,7 +248,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">‘<?php echo sr_e($siteMenuMenuDraftSaveLabel); ?>’을 누르면 메뉴 초안만 바뀝니다. 공개 사이트에 적용하려면 목록에서 ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 눌러야 합니다.</p>
+                    <p class="form-help">‘<?php echo sr_e($siteMenuMenuDraftSaveLabel); ?>’을 누르면 편집 목록만 바뀝니다. 목록의 임시저장으로 전체 변경을 저장하거나 ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 눌러야 합니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
@@ -252,7 +260,7 @@ $siteMenuRenderMenuModal = static function (string $modalId, string $title, ?arr
     <?php
 };
 
-$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuItemDraftSaveLabel, $siteMenuPublishLabel, $siteMenuIconOptions, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions): void {
+$siteMenuRenderItemModal = static function (string $modalId, string $title, int $menuId, int $parentId = 0, ?array $item = null, int $defaultSortOrder = 100) use ($allowedStatuses, $allowedTargets, $siteMenuHelp, $siteMenuHelpOpenLabel, $siteMenuItemDraftSaveLabel, $siteMenuPublishLabel, $siteMenuIconOptions, $siteMenuModalCloseButton, $siteMenuParentOptions, $siteMenuSelectedAssetKeys, $siteMenuModuleOptions, $siteMenuAssetTypeOptions, $siteMenuAssetOptions, $siteMenuEditorRevision, $siteMenuFailedInput): void {
     $editingItem = is_array($item);
     $itemId = $editingItem ? (int) ($item['id'] ?? 0) : 0;
     $itemMenuId = $editingItem ? (int) ($item['menu_id'] ?? $menuId) : $menuId;
@@ -263,17 +271,28 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
     $targetValue = $editingItem ? (string) ($item['target'] ?? 'self') : 'self';
     $statusValue = $editingItem ? (string) ($item['status'] ?? 'enabled') : 'enabled';
     $sortOrder = $editingItem ? (int) ($item['sort_order'] ?? $defaultSortOrder) : $defaultSortOrder;
+    if (($siteMenuFailedInput['form_id'] ?? '') === $modalId) {
+        $label = (string) ($siteMenuFailedInput['label'] ?? $label);
+        $url = (string) ($siteMenuFailedInput['url'] ?? $url);
+        $iconName = (string) ($siteMenuFailedInput['icon_name'] ?? $iconName);
+        $targetValue = (string) ($siteMenuFailedInput['target'] ?? $targetValue);
+        $statusValue = (string) ($siteMenuFailedInput['status'] ?? $statusValue);
+        $sortOrder = (string) ($siteMenuFailedInput['sort_order'] ?? $sortOrder);
+        $itemParentId = (int) ($siteMenuFailedInput['parent_id'] ?? $itemParentId);
+    }
     [$selectedModuleKey, $selectedAssetType] = $siteMenuSelectedAssetKeys($url);
     ?>
     <div id="<?php echo sr_e($modalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($modalId); ?>_title" aria-hidden="true" inert>
         <div class="modal-dialog">
-            <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
+            <form method="post" data-site-menu-editor-form action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>" class="modal-content ui-form-theme" data-sr-validate-form>
                 <div class="modal-header">
                     <h3 id="<?php echo sr_e($modalId); ?>_title" class="modal-title"><?php echo sr_e($title); ?></h3>
                     <?php $siteMenuModalCloseButton($modalId); ?>
                 </div>
                 <div class="modal-body">
                     <?php echo sr_csrf_field(); ?>
+                    <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
+                    <input type="hidden" name="form_id" value="<?php echo sr_e($modalId); ?>">
                     <input type="hidden" name="intent" value="save_item">
                     <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
                     <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $itemMenuId); ?>">
@@ -371,7 +390,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                     </div>
                 </div>
                 <div class="modal-footer-note">
-                    <p class="form-help">‘<?php echo sr_e($siteMenuItemDraftSaveLabel); ?>’을 누르면 이 항목의 초안만 바뀝니다. 목록에서 바꾼 다른 항목의 표시 순서는 함께 저장되지 않으며, 공개 사이트에 적용하려면 ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 눌러야 합니다.</p>
+                    <p class="form-help">‘<?php echo sr_e($siteMenuItemDraftSaveLabel); ?>’을 누르면 이 항목을 편집 목록에 적용합니다. 목록의 임시저장으로 추가·수정·삭제·순서를 함께 저장하거나 ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 눌러야 합니다.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-solid-light modal-action" data-overlay="#<?php echo sr_e($modalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.close.1e8c1020')); ?></button>
@@ -386,13 +405,15 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
 
 <?php echo sr_admin_feedback_toasts($notice, $errors); ?>
 
+<p class="form-help">메뉴 묶음 <?php echo sr_e((string) count($menus)); ?>개 · 항목 <?php echo sr_e((string) count($items)); ?>개</p>
+<p class="form-help" data-site-menu-pending><?php echo $siteMenuEditorDirty ? '임시저장되지 않은 변경이 있습니다.' : '저장된 초안을 편집하고 있습니다.'; ?></p>
 <section class="card admin-list-card admin-list-form admin-site-menu-form">
     <div class="card-header">
         <div>
             <h2 class="card-title"><?php echo sr_e(sr_t('site_menu::ui.menu.5b2bf65a')); ?></h2>
             <p class="admin-dashboard-meta"><?php echo sr_e(sr_t('site_menu::ui.draft.notice.66a164cf')); ?></p>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="site_menu_add_menu_modal" data-overlay="#site_menu_add_menu_modal"><?php echo sr_e(sr_t('site_menu::ui.menu.ba050327')); ?></button>
+        <?php if ($canEditSiteMenus) { ?><button type="button" class="btn btn-sm btn-outline-secondary" aria-haspopup="dialog" aria-expanded="false" aria-controls="site_menu_add_menu_modal" data-overlay="#site_menu_add_menu_modal"><?php echo sr_e(sr_t('site_menu::ui.menu.ba050327')); ?></button><?php } ?>
     </div>
     <div class="table-wrapper">
         <table class="table table-list">
@@ -419,6 +440,7 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                             $menuId = (int) $row['id'];
                             $menuModalId = 'site_menu_edit_menu_' . $menuId;
                             $addItemModalId = 'site_menu_add_item_menu_' . $menuId;
+                            $menuItemCount = count(array_filter($items, static fn (array $item): bool => (int) $item['menu_id'] === $menuId));
                             ?>
                             <tr class="admin-menu-row admin-menu-row-depth-0">
                                 <td></td>
@@ -435,16 +457,22 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                 <td><span class="badge-status <?php echo (string) $row['status'] === 'enabled' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
                                 <td class="admin-menu-sort-order-cell"></td>
                                 <td class="admin-table-actions-cell">
+                                    <?php if ($canEditSiteMenus) { ?>
                                     <div class="admin-row-actions">
                                         <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($addItemModalId); ?>" data-overlay="#<?php echo sr_e($addItemModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.text.2c54ca2d')); ?></button>
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($menuModalId); ?>" data-overlay="#<?php echo sr_e($menuModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
-                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+                                        <?php if ($canDeleteSiteMenus) { ?>
+                                        <form method="post" data-site-menu-editor-form data-site-menu-delete-descendants="<?php echo sr_e((string) $menuItemCount); ?>" data-site-menu-delete-message="<?php echo sr_e(sprintf('메뉴 묶음과 항목 %d개를 편집 목록에서 삭제할까요? 임시저장 후 저장된 초안에 적용됩니다.', $menuItemCount)); ?>" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
                                             <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
                                             <input type="hidden" name="intent" value="delete_menu">
+                                            <input type="hidden" name="confirm_descendant_delete" value="0" data-site-menu-delete-confirm-input>
                                             <input type="hidden" name="menu_id" value="<?php echo sr_e((string) $menuId); ?>">
                                             <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
+                                        <?php } ?>
                                     </div>
+                                    <?php } ?>
                                 </td>
                             </tr>
                         <?php } else { ?>
@@ -460,11 +488,11 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                             ?>
                             <tr class="admin-menu-row admin-menu-row-depth-<?php echo sr_e((string) $rowDepth); ?>" data-admin-sortable-row data-sort-scope="site_menu_<?php echo sr_e((string) $row['menu_id']); ?>" data-sort-parent="<?php echo sr_e((string) ((int) ($row['parent_id'] ?? 0))); ?>" data-sort-key="<?php echo sr_e((string) $itemId); ?>" data-sort-depth="<?php echo sr_e((string) $rowDepth); ?>">
                                 <td>
-                                    <span class="admin-menu-move-controls" role="group" aria-label="메뉴 항목 이동 도구">
+                                    <?php if ($canEditSiteMenus) { ?><span class="admin-menu-move-controls" role="group" aria-label="메뉴 항목 이동 도구">
                                         <span class="admin-drag-handle" draggable="true" aria-label="<?php echo sr_e(sr_t('site_menu::ui.text.baef0d03')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.text.baef0d03')); ?>"><?php echo sr_material_icon_html('apps', 'admin-drag-handle-icon'); ?></span>
                                         <button type="button" class="btn btn-icon-xs btn-ghost-default admin-menu-move-button" data-admin-sort-move="up" aria-label="<?php echo sr_e((string) $row['label'] . ' 위로 이동'); ?>" title="위로 이동"><?php echo sr_material_icon_html('keyboard_arrow_up'); ?></button>
                                         <button type="button" class="btn btn-icon-xs btn-ghost-default admin-menu-move-button" data-admin-sort-move="down" aria-label="<?php echo sr_e((string) $row['label'] . ' 아래로 이동'); ?>" title="아래로 이동"><?php echo sr_material_icon_html('keyboard_arrow_down'); ?></button>
-                                    </span>
+                                    </span><?php } ?>
                                 </td>
                                 <td><span class="admin-menu-scope-badge admin-menu-scope-item"><?php echo sr_e((string) $rowDepth); ?><?php echo sr_e(sr_t('site_menu::ui.text.29ee1bb7')); ?></span></td>
                                 <td class="admin-menu-target-cell">
@@ -484,22 +512,27 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
                                 <td class="admin-table-break"><?php echo sr_e(trim((string) ($row['url'] ?? '')) !== '' ? (string) $row['url'] : '링크 없음'); ?></td>
                                 <td><span class="badge-status <?php echo (string) $row['status'] === 'enabled' ? 'is-success' : 'is-danger'; ?>"><?php echo sr_e(sr_admin_code_label((string) $row['status'], 'content_status')); ?></span></td>
                                 <td class="admin-menu-sort-order-cell">
-                                    <input type="number" name="item_sort_order[<?php echo sr_e((string) $itemId); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" form="site-menu-order-form" data-admin-sort-order class="form-input admin-menu-sort-order-input">
+                                    <input type="number" name="item_sort_order[<?php echo sr_e((string) $itemId); ?>]" value="<?php echo sr_e((string) $row['sort_order']); ?>" form="site-menu-draft-form" min="-100000" max="100000"<?php echo !$canEditSiteMenus ? ' disabled' : ''; ?> data-admin-sort-order class="form-input admin-menu-sort-order-input">
                                 </td>
                                 <td class="admin-table-actions-cell">
+                                    <?php if ($canEditSiteMenus) { ?>
                                     <div class="admin-row-actions">
                                         <?php if ($rowDepth < 3) { ?>
                                             <button type="button" class="btn btn-sm btn-solid-light" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($childAddModalId); ?>" data-overlay="#<?php echo sr_e($childAddModalId); ?>"><?php echo sr_e(sr_t('site_menu::ui.text.8d136d31')); ?></button>
                                         <?php } ?>
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" aria-label="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.edit.3537f0cc')); ?>" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($itemEditModalId); ?>" data-overlay="#<?php echo sr_e($itemEditModalId); ?>"><?php echo sr_material_icon_html('edit'); ?></button>
-                                        <form method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>"<?php echo $itemDescendantCount > 0 ? ' data-site-menu-delete-descendants="' . sr_e((string) $itemDescendantCount) . '" data-site-menu-delete-message="' . sr_e($itemDeleteConfirmMessage) . '"' : ''; ?>>
+                                        <?php if ($canDeleteSiteMenus) { ?>
+                                        <form method="post" data-site-menu-editor-form action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>"<?php echo $itemDescendantCount > 0 ? ' data-site-menu-delete-descendants="' . sr_e((string) $itemDescendantCount) . '" data-site-menu-delete-message="' . sr_e($itemDeleteConfirmMessage) . '"' : ''; ?>>
                                             <?php echo sr_csrf_field(); ?>
+                                            <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
                                             <input type="hidden" name="intent" value="delete_item">
                                             <input type="hidden" name="item_id" value="<?php echo sr_e((string) $itemId); ?>">
                                             <input type="hidden" name="confirm_descendant_delete" value="0" data-site-menu-delete-confirm-input>
                                             <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" aria-label="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>" title="<?php echo sr_e(sr_t('site_menu::ui.delete.6139b6c3')); ?>"><?php echo sr_material_icon_html('delete'); ?></button>
                                         </form>
+                                        <?php } ?>
                                     </div>
+                                    <?php } ?>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -515,21 +548,43 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
     <?php echo sr_admin_status_description_list_html('content_status', sr_admin_code_label_options(['enabled', 'disabled'], 'content_status')); ?>
 </section>
 
+<?php if ($canEditSiteMenus) { ?>
 <div class="form-actions form-sticky-actions admin-site-menu-form-actions">
-    <p class="form-help">‘<?php echo sr_e($siteMenuDraftOrderSaveLabel); ?>’은 공개 사이트에 바로 반영되지 않습니다. ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 누르면 현재 초안이 실제 메뉴로 적용됩니다.</p>
-    <button type="submit" form="site-menu-order-form" class="btn btn-solid-light"><?php echo sr_e($siteMenuDraftOrderSaveLabel); ?></button>
+    <p class="form-help">‘<?php echo sr_e($siteMenuDraftSaveLabel); ?>’은 공개 사이트에 바로 반영되지 않습니다. ‘<?php echo sr_e($siteMenuPublishLabel); ?>’을 누르면 현재 편집 내용을 저장하고 공개 메뉴로 적용합니다.</p>
+    <?php if ($canDeleteSiteMenus) { ?>
+        <button type="submit" form="site-menu-delete-draft-form" class="btn btn-outline-danger"><?php echo sr_e(sr_t('site_menu::ui.draft.delete')); ?></button>
+    <?php } ?>
+    <button type="submit" form="site-menu-discard-form" class="btn btn-outline-secondary" data-confirm-message="저장하지 않은 변경을 취소하고 최신 초안을 불러올까요?">변경 취소</button>
+    <button type="submit" form="site-menu-draft-form" class="btn btn-solid-light"><?php echo sr_e($siteMenuDraftSaveLabel); ?></button>
     <button type="submit" form="site-menu-publish-form" class="btn btn-solid-primary" data-confirm-message="<?php echo sr_e(sr_t('site_menu::ui.publish.confirm.46c70ccb')); ?>"><?php echo sr_e($siteMenuPublishLabel); ?></button>
 </div>
 
-<form id="site-menu-order-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+<form id="site-menu-draft-form" method="post" data-site-menu-editor-form action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
     <?php echo sr_csrf_field(); ?>
-    <input type="hidden" name="intent" value="save_item_order">
+    <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
+    <input type="hidden" name="intent" value="save_draft">
 </form>
 
-<form id="site-menu-publish-form" method="post" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+<form id="site-menu-publish-form" method="post" data-site-menu-editor-form action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
     <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
     <input type="hidden" name="intent" value="publish_site_menus">
 </form>
+
+<form id="site-menu-discard-form" method="post" data-site-menu-editor-form action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
+    <input type="hidden" name="intent" value="discard_changes">
+</form>
+
+<?php if ($canDeleteSiteMenus) { ?>
+<form id="site-menu-delete-draft-form" method="post" data-site-menu-editor-form data-site-menu-delete-draft data-site-menu-delete-message="<?php echo sr_e(sprintf('임시저장된 메뉴 묶음 %d개·항목 %d개의 변경과 현재 편집 내용을 삭제하고, 현재 공개 메뉴로 되돌릴까요? 다른 작업에서 초안이 바뀌었다면 삭제되지 않습니다. 공개 메뉴는 그대로 유지됩니다.', count($siteMenuEditor['base']['menus']), count($siteMenuEditor['base']['items']))); ?>" action="<?php echo sr_e(sr_url('/admin/site-menus')); ?>">
+    <?php echo sr_csrf_field(); ?>
+    <input type="hidden" name="editor_revision" value="<?php echo sr_e($siteMenuEditorRevision); ?>">
+    <input type="hidden" name="intent" value="delete_draft">
+    <input type="hidden" name="confirm_delete_draft" value="0" data-site-menu-delete-draft-confirm>
+</form>
+<?php } ?>
 
 <?php $siteMenuRenderMenuModal('site_menu_add_menu_modal', sr_t('site_menu::ui.menu.ba050327')); ?>
 <?php foreach ($menus as $menu) { ?>
@@ -548,6 +603,8 @@ $siteMenuRenderItemModal = static function (string $modalId, string $title, int 
         $siteMenuRenderItemModal('site_menu_add_child_' . $itemId, sr_t('site_menu::ui.text.56b2723f'), (int) $item['menu_id'], $itemId, null, (int) ($menuParentNextSortOrders[(int) $item['menu_id']][$itemId] ?? 100));
     }
     ?>
+<?php } ?>
+
 <?php } ?>
 
 <?php foreach ($siteMenuHelp as $siteMenuHelpModal) { ?>
