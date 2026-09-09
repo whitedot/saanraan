@@ -128,11 +128,12 @@ input:checked + .btn-choice-light:where([data-theme=dark],[data-theme=dark] *),.
 input:checked + .btn-choice-light:where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active),.btn-choice-light:has(> .form-choice-toggle-input:checked):where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active),.btn-choice-light.is-active:where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active),.btn-choice-light[aria-pressed=true]:where([data-theme=dark],[data-theme=dark] *):is(:focus,:focus-visible,:active){background-color:var(--color-choice-light-active);border-color:var(--color-choice-light-active);color:var(--color-white)}
 input:focus-visible + [class*=btn-choice-],[class*=btn-choice-]:has(> .form-choice-toggle-input:focus-visible){z-index:3;box-shadow:0 0 0 3px color-mix(in oklab,var(--btn-choice-color,var(--color-primary)) 14%,transparent)}
 input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowed;opacity:.5;pointer-events:none}
-.card{border-radius:var(--radius);background-color:var(--color-card);overflow-wrap:break-word;height:fit-content;box-shadow:var(--card-shadow);background-clip:border-box;flex-direction:column;display:flex;position:relative}
-.card .card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px solid var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
-.card .card-body{padding:calc(var(--spacing) * 5);flex:auto}
-.card .card-footer{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-top:1px solid var(--color-light);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
-.card-title{font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
+.card{border:1px solid var(--sr-border-soft,var(--color-default-300));border-radius:1.25rem;background-color:var(--sr-surface,var(--color-card));overflow-wrap:break-word;height:fit-content;box-shadow:var(--card-shadow);background-clip:border-box;flex-direction:column;display:flex;position:relative}
+.card .card-header{justify-content:space-between;align-items:center;gap:.75rem;border:0;padding:1.5rem 1.5rem 0;flex-wrap:wrap;display:flex}
+.card .card-body{padding:1.5rem;flex:auto}
+.card .card-footer{justify-content:space-between;align-items:center;gap:.75rem;border-top:1px solid var(--sr-border-soft,var(--color-default-300));padding:1rem 1.5rem;flex-wrap:wrap;display:flex}
+.card>.card-img-top{border-start-start-radius:calc(1.25rem - 1px);border-start-end-radius:calc(1.25rem - 1px)}
+.card-title{margin:0;font-size:1.0625rem;line-height:1.5;font-weight:600;letter-spacing:-.025em;color:var(--sr-text,var(--color-body-color))}
 .form-card{margin-bottom:calc(var(--spacing) * 5)}
 .card-description-block{border-top:1px solid var(--color-default-200);margin-top:calc(var(--spacing) * 4);padding:calc(var(--spacing) * 4)}
 .card-description-title{margin:0 0 calc(var(--spacing) * 2);color:var(--text-strong);font-size:var(--type-card-title-size);line-height:var(--type-card-title-line-height);font-weight:var(--font-weight-semibold)}
@@ -143,7 +144,7 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .card-description-list dt{display:inline;margin:0;color:var(--text-strong);font-weight:var(--font-weight-semibold)}
 .card-description-list dt:after{content:": "}
 .card-description-list dd{display:inline;margin:0}
-.card-header .card-title{font-weight:var(--font-weight-bold)}
+.card-header .card-title{font-weight:600}
 .form-actions{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2)}
 .form-actions-primary{justify-content:flex-end}
 .form-actions-split>button[type=submit],.form-actions-split>input[type=submit]{margin-left:auto}
@@ -172,8 +173,6 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .admin-help-modal-body a:hover,.admin-help-modal-body a:focus{color:var(--color-info-hover);text-decoration-thickness:.12em}
 .form-field>.form-help:first-child{margin-top:0}
 .form-row-label{align-items:center;color:var(--color-default-700);display:flex;font-size:.875rem;font-weight:var(--font-weight-semibold);line-height:1.45;min-height:calc(var(--spacing) * 9.25);padding-top:0}
-.admin-list-card>.card-header{justify-content:space-between;align-items:center;gap:calc(var(--spacing) * 3);border-bottom:1px solid var(--color-default-300);padding-inline:calc(var(--spacing) * 5);padding-block:calc(var(--spacing) * 3.75);flex-wrap:wrap;display:flex}
-.admin-list-card>.card-header>.card-title{margin:calc(var(--spacing) * 0);font-size:var(--text-md);line-height:var(--leading-normal);font-weight:var(--font-weight-medium);color:var(--color-body-color)}
 .admin-list-card>.card-header>.card-actions{align-items:center;display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);justify-content:flex-end}
 .filtering{align-items:end;background-color:var(--color-default-50);border:1px solid var(--color-default-200);border-radius:var(--radius);display:flex;font-size:.875rem;gap:calc(var(--spacing) * 3);margin:0;padding:calc(var(--spacing) * 4)}
 .filtering-form{font-size:.875rem}
@@ -270,8 +269,8 @@ input.form-choice-toggle-input:disabled + [class*=btn-choice-]{cursor:not-allowe
 .table-bordered td,.table-bordered th{border:1px solid var(--color-light)}
 .table-striped tbody tr:nth-child(odd),.table-hover tbody tr:hover{background-color:color-mix(in oklab,var(--color-light) 45%,transparent)!important}
 .table-sm thead th,.table-sm tbody td{padding:calc(var(--spacing) * 2)}
-.table-card{border:1px solid var(--color-default-300);box-shadow:var(--shadow-sm);min-width:0;overflow:hidden}
-.table-card>.card-header{border-bottom:1px solid var(--color-default-300)}
+.table-card{min-width:0;overflow:hidden}
+.table-card>.card-header{padding-bottom:1.5rem;border-bottom:1px solid var(--sr-border-soft,var(--color-default-300))}
 .table-card .table-wrapper{min-width:0;width:100%;overflow:auto;padding:0}
 .table-summary{border-bottom:1px solid var(--color-default-200);color:var(--text-muted);font-size:var(--type-meta-size);line-height:var(--type-meta-line-height);padding:calc(var(--spacing) * 3) calc(var(--spacing) * 4)}
 .table-summary strong{color:var(--text-strong)}

@@ -31,6 +31,10 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     </div>
 </div>
 
+<?php include SR_ROOT . '/modules/admin/views/dashboard-overview.php'; ?>
+
+<details class="admin-dashboard-details"<?php echo $recoveryMarkers !== [] || ($moduleDashboardSections ?? []) === [] ? ' open' : ''; ?> id="admin-dashboard-details">
+    <summary><span>모듈별 상세 · 사이트 정보</span><span class="admin-dashboard-details-hint">카드 보기와 배치 설정</span><?php echo sr_material_icon_html('expand_more'); ?></summary>
 <div class="admin-dashboard-sections" data-admin-dashboard-sections>
 <section class="card admin-list-card admin-dashboard-site-card admin-dashboard-section" data-admin-dashboard-section="site" data-admin-dashboard-label="<?php echo sr_e(sr_t('admin::ui.text.b2c8d45c')); ?>" data-admin-dashboard-default-visible="1">
     <div class="card-header">
@@ -112,5 +116,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
     <?php } ?>
 <?php } ?>
 </div>
+
+</details>
 
 <?php include SR_ROOT . '/modules/admin/views/layout-footer.php'; ?>

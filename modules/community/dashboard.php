@@ -10,6 +10,7 @@ return [
             [
                 'label' => sr_t('community::ui.text.0b138cfe'),
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_community_posts WHERE status = 'published'",
+                'overview' => ['role' => 'service', 'path' => '/admin/community/posts'],
                 'detail_prefix' => sr_t('community::ui.text.c9fff683') . ' ',
                 'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_community_comments WHERE status = 'published'",
                 'state' => 'info',
@@ -18,6 +19,7 @@ return [
             [
                 'label' => sr_t('community::ui.text.bbb56c63'),
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_community_reports WHERE status = 'open'",
+                'overview' => ['role' => 'task', 'path' => '/admin/community/reports?status%5B%5D=open'],
                 'detail_prefix' => sr_t('community::ui.text.4732a58f') . ' ',
                 'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_community_boards WHERE status = 'enabled'",
                 'state' => 'warning',

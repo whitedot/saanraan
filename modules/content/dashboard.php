@@ -10,6 +10,7 @@ return [
             [
                 'label' => '공개 콘텐츠',
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_content_items WHERE status = 'published'",
+                'overview' => ['role' => 'service', 'path' => '/admin/content'],
                 'detail_prefix' => '초안 ',
                 'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_content_items WHERE status = 'draft'",
                 'state' => 'info',
@@ -18,6 +19,7 @@ return [
             [
                 'label' => '검토 대기',
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_content_submissions WHERE review_status = 'pending_review'",
+                'overview' => ['role' => 'task', 'path' => '/admin/content/submissions?status%5B%5D=pending_review'],
                 'detail_prefix' => '작성자 신청 ',
                 'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_content_author_applications WHERE status = 'pending'",
                 'state' => 'warning',

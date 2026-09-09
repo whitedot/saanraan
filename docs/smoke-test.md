@@ -540,3 +540,23 @@ HTTP 스모크 점검이 실패하면 다음 순서로 확인한다.
 `php .tools/bin/check-site-menu-editor.php`는 메모리 DB에서 추가·수정·삭제·순서 변경이 임시저장 전 초안/공개 테이블에 쓰이지 않는지, 일괄 저장과 실패 rollback, 빈 초안, 계층·URL 검증, 동시 편집 충돌을 검사한다. `site-menu-editor-browser.spec.js`는 실제 모듈 JavaScript를 로드해 개별 작업과 공개 반영의 순서 전달, 중복 hidden field 방지, 삭제 확인 취소를 검사한다. 설치 상태의 관리자 HTTP 검증은 local/staging dummy data로 수행한다. 추가·삭제 후 목록 순서를 유지하는지, 임시저장 후 공개 메뉴가 그대로인지, 공개 반영 시 전체 편집 내용이 적용되는지, 권한/CSRF 거부와 PRG 검증 실패에서 입력값이 유지되는지를 확인한다.
 
 임시저장 삭제는 확인 취소/확인값 누락, delete 권한 거부, 동시 저장 충돌, 복원 실패 rollback, 공개 메뉴가 비어 있는 상태를 함께 검증한다. 성공 후 편집 목록과 초안이 현재 공개 메뉴로 복원되며 공개 테이블은 변경되지 않아야 한다.
+
+### UI kit 카드와 대시보드 배치 회귀 확인
+
+`admin-dashboard-layout.spec.js`는 새 기본 2·3·3열 배치, 사이트 정보 전체 폭, 숨긴 모듈 제외, 저장된 순서·크기 보존, 좁은 화면과 넓은 카드의 지표 배치를 검증한다. `ui-kit-card-theme.spec.js`는 공통·관리자·콘텐츠·커뮤니티 UI kit의 기본·이미지·표·색상 카드가 라이트/다크 모드에서 같은 모서리와 그림자를 사용하고, 일반 버튼의 모서리는 변하지 않는지 확인한다. 이 fixture 검사는 설치 DB 또는 실제 로그인 HTTP smoke를 대체하지 않는다.
+
+```sh
+cd .tools/browser-qa
+npx playwright test admin-dashboard-layout.spec.js ui-kit-card-theme.spec.js --project=chromium-full
+```
+
+### 운영 대시보드 요약
+
+`admin-dashboard-overview.spec.js`는 처리 대기 합계, 0건/조회 불명/미제공 상태, 저장된 표시 설정, 설정 모달 변경·변경취소, 상세 펼침, 숨긴 복구 카드의 경고 링크 접근, 라이트/다크와 반응형 배치를 실제 dashboard JavaScript와 CSS로 확인한다. `fixtures/admin-dashboard-overview.js`는 브라우저용 샘플 마크업이며 실제 PHP 렌더링이나 인증 상태 검증을 대체하지 않는다.
+
+```sh
+cd .tools/browser-qa
+npx playwright test admin-dashboard-overview.spec.js admin-dashboard-layout.spec.js --project=chromium-full
+```
+
+PHP 검사를 실행하는 작업에서는 `php .tools/bin/check-admin-dashboard-overview.php`로 제공자 계약/GET 경로와 추가 SQL 없음, 조회 실패·빈 데이터·escape를 확인한다. 전체 검사에도 이 항목이 포함된다. PHP 검사가 명시적으로 요청되지 않은 작업에서는 실행하지 않는다.

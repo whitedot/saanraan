@@ -18,6 +18,7 @@ if (!sr_admin_is_owner($pdo, (int) $account['id'])) {
 }
 
 $moduleDashboardSections = sr_admin_dashboard_module_sections($pdo);
+$dashboardOverview = sr_admin_dashboard_overview($moduleDashboardSections);
 $recoveryMarkers = sr_admin_dashboard_recovery_markers();
 $moduleBackupSummary = sr_admin_dashboard_module_backup_summary();
 

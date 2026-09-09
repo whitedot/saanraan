@@ -1358,11 +1358,15 @@ return [
 - `default_visible`은 사용자가 별도 표시 설정을 저장하지 않았을 때의 기본 노출 여부다. 생략하면 표시하고, `false`, `0`, `hidden`, `no`, `off` 값은 기본 숨김으로 처리한다.
 - `view`는 모듈 폴더 기준 `views/*.php` 상대 경로다. admin 모듈은 경로가 모듈 폴더 안에 있는지 검증한 뒤 대시보드 섹션 내부로 include한다.
 - `view`를 제공한 모듈은 섹션 내부 구성과 도메인별 표시 리듬을 직접 맡는다. 카드형 UI를 사용할 수도 있고 카드가 아닌 자체 레이아웃을 렌더링할 수도 있다. 이때 사용할 수 있는 변수는 `$pdo`, `$dashboardSection`, `$dashboardRows`, `$dashboardModuleKey`, `$dashboardSectionTitle`이다.
-- admin 모듈은 대시보드 섹션의 외곽 wrapper, 이동 핸들, 정렬 저장만 맡는다. wrapper는 최소 drop target과 drop line 기준을 안정적으로 제공하는 배치 단위이며, 모듈 view의 시각 구조를 카드로 강제하지 않는다. 모듈 view는 핸들 주변의 시각적 안전 여백을 포함해 전체 HTML layout을 렌더링하되 출력값을 직접 escape하고, 필요한 스타일은 `module.php`의 `admin.stylesheets`로 선언한 모듈 내부 CSS에서 소유한다.
+- admin 모듈은 대시보드 섹션의 외곽 wrapper, 이동 핸들, 정렬 저장 및 명시적으로 선언된 운영 요약의 조합을 맡는다. wrapper는 최소 drop target과 drop line 기준을 안정적으로 제공하는 배치 단위이며, 모듈 view의 시각 구조를 카드로 강제하지 않는다. 모듈 view는 핸들 주변의 시각적 안전 여백을 포함해 전체 HTML layout을 렌더링하되 출력값을 직접 escape하고, 필요한 스타일은 `module.php`의 `admin.stylesheets`로 선언한 모듈 내부 CSS에서 소유한다.
 - `layout`은 기존 모듈 호환용 fallback이며 `table` 또는 `stats`만 지원한다. 생략하거나 알 수 없는 값이면 `table`로 처리한다. view를 제공하는 모듈에는 HTML 구조를 강제하지 않는 호환 옵션이다.
 - `table` layout은 기존 `rows`를 사용하고 `항목 / 주요 수치 / 상세` 표로 표시한다.
 - `stats` layout은 `items`를 우선 사용하고, 없으면 `rows`를 사용한다. 각 item은 지표 카드로 표시한다.
 - 각 row는 `label`과 `value_sql` 또는 `value`, 선택 `detail_sql` 또는 `detail`, 선택 `detail_prefix`, 선택 `detail_suffix`를 가진다.
+- 각 row는 선택 `overview` 배열을 선언할 수 있다. `role`은 `service`(서비스 규모), `task`(처리 대기), `activity`(최근 7일 활동), `asset`(자산·쿠폰 현황) 중 하나이고, `path`는 해당 모듈이 소유한 `/admin/...` GET 경로다. 선택 `title`은 자산 요약의 항목명이며 생략하면 모듈 제목을 사용한다. 필터가 필요한 작업은 query string을 포함한다. 외부 URL, 상위 디렉터리 이동, 미지원 role은 운영 요약에서 제외한다.
+- 업무 분류와 집계 조건, 이동 경로는 지표 제공 모듈이 소유한다. `task`는 미처리 업무 건수에만 사용하고 잔액·누적 실패·최근 활동을 대기 업무로 선언하지 않는다. `activity`는 실제 최근 7일 집계에만 사용한다. admin은 `state` 색상이나 라벨에서 역할을 추론하지 않는다.
+- 정규화된 `$dashboardRows`의 `overview`는 허용된 `role`/`path`와 선택 `title` 또는 빈 배열이다. admin 요청은 지표 조회 다음에 `sr_admin_dashboard_overview($moduleDashboardSections)`를 호출하고, `dashboard-overview.php`를 명시적으로 include한다. 이 조립은 추가 DB 조회를 하지 않는다. 잘못되거나 실패한 집계 값은 업무 합계에서 제외하고 확인 필요 상태로 표시한다.
+- `overview`는 선택 항목이므로 기존 `view`/fallback 및 미선언 모듈의 상세 카드는 그대로 동작한다. 제공자 메타데이터, GET 경로, 조회 재사용, 빈 값 및 escape는 `.tools/bin/check-admin-dashboard-overview.php`에서, 화면 표시·숨김·변경취소는 브라우저 fixture에서 검증한다.
 - `stats` item은 선택 `state`와 선택 `emphasis`를 가질 수 있다. `state` 허용 값은 `default`, `success`, `warning`, `danger`, `info`이고, `emphasis` 허용 값은 `default`, `primary`이다. 알 수 없는 값은 각각 `default`로 처리한다.
 - SQL은 단일 `SELECT`만 사용하고 `value_sql`은 `value`, `detail_sql`은 `detail` 컬럼을 반환한다. locale 전환이 필요한 화면 문구는 SQL 문자열 안에 넣지 않고, `label`, `detail_prefix`, `detail_suffix`에서 번역 값을 조합한다.
 - admin 모듈은 SQL 실행 실패를 해당 row의 빈 값으로 처리하므로, 모듈은 자기 테이블이 없거나 비활성 상태인 경우에도 전체 대시보드를 깨지 않게 작성한다.

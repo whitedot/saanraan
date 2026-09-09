@@ -39,6 +39,34 @@ window.AdminDashboard = {
 
             const sections = () => Array.prototype.slice.call(dashboardSectionsRoot.querySelectorAll('[data-admin-dashboard-section]'));
             const visibleSections = () => sections().filter(section => !section.hidden);
+            const syncOverview = () => {
+                const visibleKeys = new Set(visibleSections().map(section => section.dataset.adminDashboardSection));
+                document.querySelectorAll('[data-admin-overview-item]').forEach(item => {
+                    item.hidden = !visibleKeys.has(item.dataset.adminOverviewItem);
+                });
+                document.querySelectorAll('[data-admin-overview-group]').forEach(group => {
+                    group.hidden = !Array.from(group.querySelectorAll('[data-admin-overview-item]')).some(item => !item.hidden);
+                });
+                const tasks = Array.from(document.querySelectorAll('[data-admin-overview-task-count]')).filter(item => !item.hidden);
+                let total = 0;
+                let unknown = 0;
+                tasks.forEach(item => {
+                    const value = item.dataset.adminOverviewTaskCount;
+                    const count = value === '' ? NaN : Number(value);
+                    if (Number.isSafeInteger(count) && count >= 0) total += count;
+                    else unknown++;
+                });
+                const summary = document.querySelector('[data-admin-overview-task-summary]');
+                if (summary) {
+                    const count = total.toLocaleString('ko-KR');
+                    summary.textContent = tasks.length === 0 ? '표시 항목 없음'
+                        : (unknown > 0 ? `${count}건 대기 · ${unknown}개 항목 확인 필요` : (total > 0 ? `${count}건 대기` : '대기 업무 없음'));
+                    summary.classList.toggle('badge-soft-warning', total > 0 || unknown > 0);
+                    summary.classList.toggle('badge-solid-light', total === 0 && unknown === 0);
+                }
+                const empty = document.querySelector('[data-admin-overview-task-empty]');
+                if (empty) empty.hidden = tasks.length > 0;
+            };
             const sectionKey = section => section ? (section.dataset.adminDashboardSection || '') : '';
             const sectionLabel = section => section ? (section.dataset.adminDashboardLabel || sectionKey(section)) : '';
             const sectionDefaultVisible = section => !section || section.dataset.adminDashboardDefaultVisible !== '0';
@@ -177,6 +205,7 @@ window.AdminDashboard = {
             };
             const normalizeVisibleSectionLayout = () => {
                 applyLayoutRows(layoutRowsFromSections(visibleSections()));
+                syncOverview();
             };
             const sectionIsVisible = section => {
                 const key = sectionKey(section);
@@ -726,12 +755,31 @@ window.AdminDashboard = {
 
             applySectionVisibility();
             if (!hasSavedLayout) {
-                sections().forEach(section => {
-                    applySectionSpan(section, 'full', true);
-                });
+                sections().forEach(section => applySectionSpan(section, 'full', true));
+                const moduleSections = visibleSections().filter(section => section.classList.contains('admin-dashboard-module-section'));
+                const rowSizes = [2, 3, 3];
+                let offset = 0;
+                let rowIndex = 0;
+                while (offset < moduleSections.length) {
+                    const count = Math.min(rowSizes[rowIndex % rowSizes.length], moduleSections.length - offset);
+                    const span = count === 1 ? 'full' : (count === 2 ? 'half' : 'third');
+                    moduleSections.slice(offset, offset + count).forEach(section => applySectionSpan(section, span, true));
+                    offset += count;
+                    rowIndex += 1;
+                }
             }
             normalizeVisibleSectionLayout();
             renderVisibilityManager();
+
+            document.querySelector('[data-admin-dashboard-show-recovery]')?.addEventListener('click', () => {
+                const details = document.querySelector('.admin-dashboard-details');
+                if (details) details.open = true;
+                const recovery = sections().find(section => sectionKey(section) === 'recovery');
+                if (recovery) {
+                    setSectionVisible(recovery, true);
+                    renderVisibilityManager();
+                }
+            });
 
             const openDashboardManager = () => {
                 if (!managerPanel) {

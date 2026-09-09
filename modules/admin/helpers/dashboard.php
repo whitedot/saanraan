@@ -128,6 +128,54 @@ function sr_admin_dashboard_module_section_body(PDO $pdo, array $section): strin
     }
 }
 
+function sr_admin_dashboard_overview_descriptor(mixed $definition): array
+{
+    if (!is_array($definition)) {
+        return [];
+    }
+
+    $role = (string) ($definition['role'] ?? '');
+    $path = (string) ($definition['path'] ?? '');
+    if (!in_array($role, ['service', 'task', 'activity', 'asset'], true)
+        || preg_match('/\A\/admin(?:\/[a-z0-9_-]+)*(?:\?[a-zA-Z0-9_%=&-]+)?\z/', $path) !== 1) {
+        return [];
+    }
+
+    return ['role' => $role, 'path' => $path, 'title' => trim((string) ($definition['title'] ?? ''))];
+}
+
+function sr_admin_dashboard_overview(array $sections): array
+{
+    $overview = ['service' => [], 'task' => [], 'activity' => [], 'asset' => []];
+    foreach ($sections as $section) {
+        foreach ((array) ($section['rows'] ?? []) as $row) {
+            $descriptor = sr_admin_dashboard_overview_descriptor($row['overview'] ?? null);
+            if ($descriptor === []) {
+                continue;
+            }
+
+            $value = (string) ($row['value'] ?? '');
+            $count = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 9007199254740991]]);
+            $overview[$descriptor['role']][] = [
+                'section_key' => 'module_' . (string) $section['key'],
+                'module_title' => (string) $section['title'],
+                'title' => $descriptor['title'] !== '' ? $descriptor['title'] : (string) $section['title'],
+                'label' => (string) ($row['label'] ?? ''),
+                'value' => $value !== '' ? $value : '—',
+                'detail' => (string) ($row['detail'] ?? ''),
+                'detail_value' => (string) ($row['detail_value'] ?? ''),
+                'detail_prefix' => (string) ($row['detail_prefix'] ?? ''),
+                'detail_suffix' => (string) ($row['detail_suffix'] ?? ''),
+                'count' => $count !== false ? $count : null,
+                'path' => $descriptor['path'],
+                'visible' => (bool) ($section['default_visible'] ?? true),
+            ];
+        }
+    }
+
+    return $overview;
+}
+
 function sr_admin_dashboard_metric_rows(PDO $pdo, array $rows): array
 {
     $metrics = [];
@@ -143,14 +191,19 @@ function sr_admin_dashboard_metric_rows(PDO $pdo, array $rows): array
         }
 
         $detail = sr_admin_dashboard_scalar($pdo, (string) ($row['detail_sql'] ?? ''), 'detail', (string) ($row['detail'] ?? ''));
+        $detailValue = $detail;
         if ($detail !== '') {
             $detail = (string) ($row['detail_prefix'] ?? '') . $detail . (string) ($row['detail_suffix'] ?? '');
         }
 
         $metrics[] = [
             'label' => $label,
+            'overview' => sr_admin_dashboard_overview_descriptor($row['overview'] ?? null),
             'value' => sr_admin_dashboard_scalar($pdo, (string) ($row['value_sql'] ?? ''), 'value', (string) ($row['value'] ?? '')),
             'detail' => $detail,
+            'detail_value' => $detailValue,
+            'detail_prefix' => (string) ($row['detail_prefix'] ?? ''),
+            'detail_suffix' => (string) ($row['detail_suffix'] ?? ''),
             'state' => sr_admin_dashboard_state((string) ($row['state'] ?? 'default')),
             'emphasis' => sr_admin_dashboard_emphasis((string) ($row['emphasis'] ?? 'default')),
         ];

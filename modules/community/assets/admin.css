@@ -148,16 +148,6 @@
 .community-level-recalculate-progress p{margin:0;color:var(--admin-muted-text)}
 .community-level-recalculate-progress progress{width:100%;height:.75rem}
 .community-confirm-validation-message{color:var(--color-danger);display:block;margin:calc(var(--spacing) * 1) 0 0}
-.community-dashboard-summary{border:1px solid var(--color-default-300);display:grid;gap:calc(var(--spacing) * 4);grid-template-columns:minmax(0,1.15fr) minmax(8rem,.85fr);min-height:13rem;padding:calc(var(--spacing) * 5);padding-right:calc(var(--spacing) * 12)}
-.community-dashboard-main p{color:var(--color-info);font-weight:var(--font-weight-semibold);margin:0 0 calc(var(--spacing) * 1.5)}
-.community-dashboard-main h2{margin:0}
-.community-dashboard-main strong{color:var(--color-info);display:block;line-height:1;margin-top:calc(var(--spacing) * 3)}
-.community-dashboard-main span,.community-dashboard-main small,.community-dashboard-side span,.community-dashboard-side small{color:var(--text-muted);display:block;margin-top:calc(var(--spacing) * 1)}
-.community-dashboard-side{align-content:space-between;background:var(--color-card);border:1px solid var(--color-default-300);border-radius:var(--radius);display:grid;gap:calc(var(--spacing) * 3);padding:calc(var(--spacing) * 4)}
-@supports (color:color-mix(in lab, red, red)){.community-dashboard-side{background:color-mix(in oklab,var(--color-warning) 9%,var(--color-card));border-color:color-mix(in oklab,var(--color-warning) 36%,var(--color-default-300))}}
-.community-dashboard-side strong{color:var(--color-warning);display:block;font-weight:var(--font-weight-bold);line-height:1;margin-top:calc(var(--spacing) * 2)}
-.community-dashboard-links{display:flex;flex-wrap:wrap;gap:calc(var(--spacing) * 2);grid-column:1 / -1}
-@media (max-width:767px){.community-dashboard-summary{grid-template-columns:1fr}}
 @media (max-width:1023px){.admin-page-community-board-list .admin-community-board-search-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:767px){.admin-page-community-board-list .admin-community-board-search-grid{grid-template-columns:1fr}}
 @media (max-width:767px){.admin-page-community-board-list .admin-community-board-table :is(th,td:not(.admin-empty-state)):nth-child(1),.admin-page-community-board-list .admin-community-board-table :is(th,td):nth-child(3){display:none}}

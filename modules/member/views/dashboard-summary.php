@@ -1,21 +1,27 @@
 <?php
 
-$accountRow = is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : [];
-$groupRow = is_array($dashboardRows[1] ?? null) ? $dashboardRows[1] : [];
+$summaryRows = [
+    array_merge(['label' => '활성 회원', 'value' => '0', 'detail' => '최근 가입 0', 'state' => 'default', 'emphasis' => 'primary'], is_array($dashboardRows[0] ?? null) ? $dashboardRows[0] : []),
+    array_merge(['label' => '회원 그룹', 'value' => '0', 'detail' => '활성 배정 0', 'state' => 'default', 'emphasis' => 'default'], is_array($dashboardRows[1] ?? null) ? $dashboardRows[1] : []),
+];
 ?>
 
-<div class="member-dashboard-summary card">
-    <div class="member-dashboard-main">
-        <p class="type-meta">회원 기반</p>
-        <h2 class="type-section-title"><?php echo sr_e($dashboardSectionTitle); ?></h2>
-        <strong class="type-display"><?php echo sr_e((string) ($accountRow['value'] ?? '0')); ?></strong>
-        <span class="type-small"><?php echo sr_e((string) ($accountRow['label'] ?? '활성 회원')); ?></span>
-        <small class="type-small"><?php echo sr_e((string) ($accountRow['detail'] ?? '최근 가입 0')); ?></small>
+<div class="card admin-dashboard-module-default">
+    <div class="card-header">
+        <h2 class="card-title"><?php echo sr_e($dashboardSectionTitle); ?></h2>
     </div>
-    <div class="member-dashboard-side">
-        <span class="type-small"><?php echo sr_e((string) ($groupRow['label'] ?? '회원 그룹')); ?></span>
-        <strong class="type-section-title"><?php echo sr_e((string) ($groupRow['value'] ?? '0')); ?></strong>
-        <small class="type-small"><?php echo sr_e((string) ($groupRow['detail'] ?? '활성 배정 0')); ?></small>
-        <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-surface-default-soft">회원 보기</a>
+    <dl class="admin-dashboard-module-stats">
+        <?php foreach ($summaryRows as $row) { ?>
+            <div class="admin-dashboard-module-stat" data-admin-dashboard-state="<?php echo sr_e((string) $row['state']); ?>" data-admin-dashboard-emphasis="<?php echo sr_e((string) $row['emphasis']); ?>">
+                <dt><?php echo sr_e((string) $row['label']); ?></dt>
+                <dd><?php echo sr_e((string) $row['value']); ?></dd>
+                <?php if ((string) $row['detail'] !== '') { ?>
+                    <dd class="admin-dashboard-module-stat-detail"><?php echo sr_e((string) $row['detail']); ?></dd>
+                <?php } ?>
+            </div>
+        <?php } ?>
+    </dl>
+    <div class="card-footer">
+        <a href="<?php echo sr_e(sr_url('/admin/members')); ?>" class="btn btn-sm btn-ghost-light"><?php echo sr_e('회원 보기'); ?></a>
     </div>
 </div>

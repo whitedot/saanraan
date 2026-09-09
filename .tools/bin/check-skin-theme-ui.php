@@ -1092,10 +1092,10 @@ sr_skin_theme_check_contains(array_merge($publicCommonStylesheetPaths, ['modules
     'border-block-start-width:0!important;border-inline-start-width:1px!important',
 ], 'Responsive checkbox and radio toggle groups');
 sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
-    '.card{border:1px solid var(--sr-border,var(--color-default-300));',
+    '.card{border:1px solid var(--sr-border-soft,var(--color-default-300));border-radius:1.25rem;',
     'height:fit-content;box-shadow:var(--card-shadow);',
-    '.table-card{border:1px solid var(--sr-border,var(--color-default-300));box-shadow:none;',
-], 'Public UI kit subtle card shadow and flat table style');
+    '.table-card{min-width:0;overflow:hidden}',
+], 'Public UI kit shared card surface and table overflow');
 sr_skin_theme_check_not_contains($publicCommonStylesheetPaths, [
     '.card{border:0;',
     '.table-card{border:0;',

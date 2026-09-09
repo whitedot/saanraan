@@ -18,6 +18,7 @@ return [
             [
                 'label' => '최근 7일 성공',
                 'value_sql' => "SELECT COUNT(*) AS value FROM sr_asset_exchange_logs WHERE status = 'completed' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
+                'overview' => ['role' => 'activity', 'path' => '/admin/asset-exchange/logs'],
                 'detail_prefix' => '실패 ',
                 'detail_sql' => "SELECT COUNT(*) AS detail FROM sr_asset_exchange_logs WHERE status = 'failed'",
                 'state' => 'warning',
