@@ -1093,9 +1093,9 @@ sr_skin_theme_check_contains(array_merge($publicCommonStylesheetPaths, ['modules
 ], 'Responsive checkbox and radio toggle groups');
 sr_skin_theme_check_contains($publicCommonStylesheetPaths, [
     '.card{border:1px solid var(--sr-border,var(--color-default-300));',
-    'height:fit-content;box-shadow:none;',
+    'height:fit-content;box-shadow:var(--card-shadow);',
     '.table-card{border:1px solid var(--sr-border,var(--color-default-300));box-shadow:none;',
-], 'Public UI kit flat card style');
+], 'Public UI kit subtle card shadow and flat table style');
 sr_skin_theme_check_not_contains($publicCommonStylesheetPaths, [
     '.card{border:0;',
     '.table-card{border:0;',
