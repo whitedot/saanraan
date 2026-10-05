@@ -1,6 +1,7 @@
 <?php
 
 $uiKitSamples = [
+    'ui-compositions' => 'Compositions & States',
     'typography' => 'Typography',
     'ui-buttons' => 'Buttons',
     'ui-cards' => 'Cards',
@@ -71,30 +72,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_ui_kit_la
         button.setAttribute('aria-label', 'Open sample menu');
     });
 
-    root.querySelectorAll('select:not([aria-label]):not([aria-labelledby])').forEach(function (select) {
-        var group = select.closest('.ui-kit-grid');
-        var label = group ? group.querySelector('.form-label') : null;
-        var labelText = label ? label.textContent.trim() : '';
-        select.setAttribute('aria-label', labelText || 'Sample select');
-    });
-
-    root.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([aria-label]):not([aria-labelledby])').forEach(function (input) {
-        if (input.id && root.querySelector('label[for="' + input.id.replace(/"/g, '\\"') + '"]')) {
-            return;
-        }
-
-        var group = input.closest('.ui-kit-grid');
-        var label = group ? group.querySelector('.form-label') : null;
-        var labelText = label ? label.textContent.trim() : '';
-        input.setAttribute('aria-label', labelText || input.getAttribute('placeholder') || 'Sample input');
-    });
-
-    root.querySelectorAll('textarea:not([aria-label]):not([aria-labelledby])').forEach(function (textarea) {
-        var group = textarea.closest('.ui-kit-grid');
-        var label = group ? group.querySelector('.form-label') : null;
-        var labelText = label ? label.textContent.trim() : '';
-        textarea.setAttribute('aria-label', labelText || textarea.getAttribute('placeholder') || 'Sample textarea');
-    });
 })();
 </script>
 

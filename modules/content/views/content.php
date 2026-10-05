@@ -415,7 +415,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                     <div class="content-comment-actions">
                                         <div class="content-comment-action-group content-comment-action-group-leading">
                                         <?php if ($contentCommentCanReply) { ?>
-                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentReplyModalId); ?>">답글</button>
+                                            <button type="button" class="btn btn-text btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentReplyModalId); ?>">답글</button>
                                             <div id="<?php echo sr_e($contentCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($contentCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
                                                 <div class="modal-dialog content-comment-editor-dialog">
                                                     <form method="post" action="<?php echo sr_e(sr_url('/content/comment')); ?>" class="modal-content">
@@ -460,7 +460,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         </div>
                                         <div class="content-comment-action-group content-comment-action-group-trailing">
                                         <?php if ($contentCommentCanEdit) { ?>
-                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentEditModalId); ?>">수정</button>
+                                            <button type="button" class="btn btn-text btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($contentCommentEditModalId); ?>" data-overlay="#<?php echo sr_e($contentCommentEditModalId); ?>">수정</button>
                                             <div id="<?php echo sr_e($contentCommentEditModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($contentCommentEditModalId . '_title'); ?>" aria-hidden="true" inert>
                                                 <div class="modal-dialog content-comment-editor-dialog">
                                                     <form method="post" action="<?php echo sr_e(sr_url('/content/comment/edit')); ?>" class="modal-content">
@@ -498,14 +498,14 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                             <form method="post" action="<?php echo sr_e(sr_url('/content/comment/delete')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
-                                                <button type="submit" class="btn btn-ghost-danger">삭제</button>
+                                                <button type="submit" class="btn btn-text btn-ghost-danger">삭제</button>
                                             </form>
                                         <?php } ?>
                                         <?php if ($contentCommentCanHide) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/content/comment/hide')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $contentComment['id']); ?>">
-                                                <button type="submit" class="btn btn-ghost-default">숨기기</button>
+                                                <button type="submit" class="btn btn-text btn-ghost-default">숨기기</button>
                                             </form>
                                         <?php } ?>
                                         </div>

@@ -602,9 +602,9 @@ unset($_SESSION['sr_member_follow_feedback']);
                                 <div class="community-action-group community-action-group-leading">
                                 <?php if ($communityCommentCanReply) { ?>
                                             <?php if (is_array($account)) { ?>
-                                                <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_reply_modal" data-overlay="#community_comment_reply_modal" data-community-comment-reply data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e(sr_community_comment_body_plain_text($pdo, $comment, $postBoard, $communityLayoutSettings)); ?>">답글</button>
+                                                <button type="button" class="btn btn-text btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_reply_modal" data-overlay="#community_comment_reply_modal" data-community-comment-reply data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e(sr_community_comment_body_plain_text($pdo, $comment, $postBoard, $communityLayoutSettings)); ?>">답글</button>
                                             <?php } else { ?>
-                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">답글</button>
+                                            <button type="button" class="btn btn-text btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentReplyModalId); ?>" data-overlay="#<?php echo sr_e($communityCommentReplyModalId); ?>">답글</button>
                                             <div id="<?php echo sr_e($communityCommentReplyModalId); ?>" class="modal-overlay modal-overlay-fade overlay hidden pointer-events-none opacity-0" role="dialog" tabindex="-1" aria-labelledby="<?php echo sr_e($communityCommentReplyModalId . '_title'); ?>" aria-hidden="true" inert>
                                                 <div class="modal-dialog community-comment-editor-dialog">
                                                     <form method="post" action="<?php echo sr_e(sr_url('/community/comment')); ?>" class="modal-content">
@@ -663,25 +663,25 @@ unset($_SESSION['sr_member_follow_feedback']);
                                             <?php } ?>
                                 <?php } ?>
                                 <?php if (is_array($account) && $communityCommentCanViewBody && (int) $comment['author_account_id'] !== (int) $account['id']) { ?>
-                                    <button type="button" class="btn btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_report_comment_modal" data-overlay="#community_report_comment_modal" data-community-comment-report data-comment-id="<?php echo sr_e((string) $comment['id']); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
+                                    <button type="button" class="btn btn-text btn-ghost-warning" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_report_comment_modal" data-overlay="#community_report_comment_modal" data-community-comment-report data-comment-id="<?php echo sr_e((string) $comment['id']); ?>"><?php echo sr_e(sr_t('community::ui.text.9fc1481d')); ?></button>
                                 <?php } ?>
                                 </div>
                                 <div class="community-action-group community-action-group-trailing">
                                     <?php if ($communityCommentCanEdit || $communityCommentCanHide || $communityCommentCanDelete || $communityCommentIsGuestAuthor) { ?>
                                         <?php if ($communityCommentCanEdit) { ?>
-                                            <button type="button" class="btn btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_edit_modal" data-overlay="#community_comment_edit_modal" data-community-comment-edit data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e((string) $comment['body_text']); ?>" data-comment-secret="<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? '1' : '0'; ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
+                                            <button type="button" class="btn btn-text btn-ghost-default" aria-haspopup="dialog" aria-expanded="false" aria-controls="community_comment_edit_modal" data-overlay="#community_comment_edit_modal" data-community-comment-edit data-comment-id="<?php echo sr_e((string) $comment['id']); ?>" data-comment-body="<?php echo sr_e((string) $comment['body_text']); ?>" data-comment-secret="<?php echo (int) ($comment['is_secret'] ?? 0) === 1 ? '1' : '0'; ?>"><?php echo sr_e(sr_t('community::ui.edit.3537f0cc')); ?></button>
                                         <?php } ?>
                                         <?php if ($communityCommentCanDelete) { ?>
                                             <form method="post" action="<?php echo sr_e(sr_url('/community/comment/delete')); ?>">
                                                 <?php echo sr_csrf_field(); ?>
                                                 <input type="hidden" name="comment_id" value="<?php echo sr_e((string) $comment['id']); ?>">
                                                 <input type="hidden" name="comment_page" value="<?php echo sr_e((string) ($commentPage['page'] ?? 1)); ?>">
-                                                <button type="submit" class="btn btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
+                                                <button type="submit" class="btn btn-text btn-ghost-danger"><?php echo sr_e(sr_t('community::ui.delete.6139b6c3')); ?></button>
                                             </form>
                                         <?php } ?>
                                         <?php if ($communityCommentHasModerationActions) { ?>
                                             <div class="dropdown community-comment-management-dropdown" data-dropdown-placement="bottom-end">
-                                                <button type="button" class="dropdown-toggle btn btn-ghost-default" aria-haspopup="menu" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentManagementMenuId); ?>">
+                                                <button type="button" class="dropdown-toggle btn btn-text btn-ghost-default" aria-haspopup="menu" aria-expanded="false" aria-controls="<?php echo sr_e($communityCommentManagementMenuId); ?>">
                                                     <?php echo sr_e('관리'); ?>
                                                 </button>
                                                 <div id="<?php echo sr_e($communityCommentManagementMenuId); ?>" class="dropdown-menu community-comment-management-menu" role="menu" aria-orientation="vertical">

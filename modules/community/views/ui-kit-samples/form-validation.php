@@ -277,8 +277,8 @@
 
                                     <!-- Select -->
                                     <div>
-                                        <span class="form-label"><?php echo sr_e(sr_t('ui.select.menu.76cfe1a7')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></span>
-                                        <select required class="form-select form-select-valid">
+                                        <label class="form-label" for="kit-validation-select"><?php echo sr_e(sr_t('ui.select.menu.76cfe1a7')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                                        <select id="kit-validation-select" required class="form-select form-select-valid">
                                             <option value=""><?php echo sr_e(sr_t('ui.select.menu.0c8ad3cb')); ?></option>
                                             <option value="1"><?php echo sr_e(sr_t('ui.text.556dcbf0')); ?></option>
                                             <option value="2"><?php echo sr_e(sr_t('ui.text.ca76b128')); ?></option>
@@ -288,8 +288,8 @@
 
                                     <!-- File Input -->
                                     <div>
-                                        <span class="form-label"><?php echo sr_e(sr_t('ui.text.0c8354d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></span>
-                                        <input type="file" required class="form-input" />
+                                        <label class="form-label" for="kit-validation-file"><?php echo sr_e(sr_t('ui.text.0c8354d0')); ?> <span class="sr-required-label"><?php echo sr_e(sr_t('ui.required.1f227c67')); ?></span></label>
+                                        <input id="kit-validation-file" type="file" required class="form-input" />
                                         <p class="validation-error-note"><?php echo sr_e(sr_t('ui.text.8bce73cb')); ?></p>
                                     </div>
 

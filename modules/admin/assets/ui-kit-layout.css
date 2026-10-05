@@ -944,3 +944,15 @@
     display: inline-flex;
     justify-content: center;
 }
+
+/* Examples respond to their own available width, including foreign shells. */
+.ui-kit-card-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+
+.ui-kit-compositions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 2rem; align-items: start; }
+.ui-kit-compositions > * { min-width: 0; }
+.ui-kit-editorial-example { padding-block: 1.5rem; }
+.ui-kit-editorial-example h3 { font-size: 1.625rem; line-height: 1.4; margin-block: 1rem; }
+.ui-kit-editorial-example p { color: var(--sr-muted, var(--color-default-600)); margin-block: 1rem; }
+.ui-kit-list-example { list-style: none; padding: 0; margin: 0; }
+.ui-kit-list-example li { display: flex; align-items: baseline; gap: 1rem; justify-content: space-between; padding-block: 1rem; border-bottom: 1px solid var(--sr-border, var(--color-default-300)); }
+.ui-kit-list-example a { color: var(--sr-text, var(--color-default-900)); }

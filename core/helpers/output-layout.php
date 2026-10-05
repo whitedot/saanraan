@@ -789,19 +789,22 @@ function sr_public_layout_context_with_theme_assets(array $layoutContext, string
 {
     $stylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
     $scripts = is_array($layoutContext['scripts'] ?? null) ? $layoutContext['scripts'] : [];
-    $layoutContext['stylesheets'] = sr_public_layout_insert_before_module_asset($stylesheets, sr_public_theme_stylesheets($themeKey, $pdo, $includeInstalledModules));
-    $layoutContext['scripts'] = sr_public_layout_insert_before_module_asset($scripts, sr_public_theme_scripts($themeKey, $pdo, $includeInstalledModules));
+    $layoutContext['stylesheets'] = sr_public_layout_insert_before_module_asset($stylesheets, sr_public_theme_stylesheets($themeKey, $pdo, $includeInstalledModules), (string) ($layoutContext['consumer_domain'] ?? ''));
+    $layoutContext['scripts'] = sr_public_layout_insert_before_module_asset($scripts, sr_public_theme_scripts($themeKey, $pdo, $includeInstalledModules), (string) ($layoutContext['consumer_domain'] ?? ''));
 
     return $layoutContext;
 }
 
-function sr_public_layout_insert_before_module_asset(array $assets, array $insertAssets): array
+function sr_public_layout_insert_before_module_asset(array $assets, array $insertAssets, string $consumerDomain = ''): array
 {
     $insertAssets = array_values(array_filter(array_unique($insertAssets), 'strlen'));
     if ($insertAssets === []) {
         return array_values(array_unique($assets));
     }
 
+    $modulePattern = preg_match('/^[a-z][a-z0-9_]{1,39}$/D', $consumerDomain) === 1
+        ? preg_quote($consumerDomain, '#')
+        : '[a-z][a-z0-9_]{1,39}';
     $result = [];
     $inserted = false;
     foreach ($assets as $asset) {
@@ -809,7 +812,7 @@ function sr_public_layout_insert_before_module_asset(array $assets, array $inser
         if ($asset === '') {
             continue;
         }
-        if (!$inserted && preg_match('#/modules/[a-z][a-z0-9_]{1,39}/(?:assets|theme/[a-z][a-z0-9_]{1,39}/assets)/module\.(?:css|js)(?:\?|$)#', $asset) === 1) {
+        if (!$inserted && preg_match('#/modules/' . $modulePattern . '/(?:assets|theme/[a-z][a-z0-9_]{1,39}/assets)/module\.(?:css|js)(?:\?|$)#', $asset) === 1) {
             foreach ($insertAssets as $insertAsset) {
                 $result[] = $insertAsset;
             }
@@ -832,8 +835,8 @@ function sr_public_layout_context_with_shell_assets(array $layoutContext, string
     $stylesheets = is_array($layoutContext['stylesheets'] ?? null) ? $layoutContext['stylesheets'] : [];
     $scripts = is_array($layoutContext['scripts'] ?? null) ? $layoutContext['scripts'] : [];
     $themeKey = is_string($layoutContext['theme_key'] ?? null) ? (string) $layoutContext['theme_key'] : '';
-    $layoutContext['stylesheets'] = sr_public_layout_insert_before_module_asset($stylesheets, sr_public_layout_shell_stylesheets($layoutKey, $pdo, $includeInstalledModules, $themeKey));
-    $layoutContext['scripts'] = sr_public_layout_insert_before_module_asset($scripts, sr_public_layout_shell_scripts($layoutKey, $pdo, $includeInstalledModules));
+    $layoutContext['stylesheets'] = sr_public_layout_insert_before_module_asset($stylesheets, sr_public_layout_shell_stylesheets($layoutKey, $pdo, $includeInstalledModules, $themeKey), (string) ($layoutContext['consumer_domain'] ?? ''));
+    $layoutContext['scripts'] = sr_public_layout_insert_before_module_asset($scripts, sr_public_layout_shell_scripts($layoutKey, $pdo, $includeInstalledModules), (string) ($layoutContext['consumer_domain'] ?? ''));
 
     return $layoutContext;
 }

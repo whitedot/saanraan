@@ -321,6 +321,16 @@
     refs.menu.style.display = expanded ? 'block' : 'none';
     refs.menu.style.opacity = expanded ? '1' : '0';
     refs.menu.style.visibility = expanded ? 'visible' : 'hidden';
+    if (typeof refs.menu.showPopover === 'function') {
+      refs.menu.setAttribute('popover', 'manual');
+      refs.menu.style.inset = 'auto';
+      refs.menu.style.margin = '0';
+      if (expanded && !refs.menu.matches(':popover-open')) {
+        refs.menu.showPopover();
+      } else if (!expanded && refs.menu.matches(':popover-open')) {
+        refs.menu.hidePopover();
+      }
+    }
   }
 
   function closeDropdown(dropdown) {
@@ -504,8 +514,15 @@
     opened.forEach(place);
   });
 
-  window.addEventListener('scroll', function () {
-    opened.forEach(place);
+  window.addEventListener('scroll', function (event) {
+    opened.slice().forEach(function (dropdown) {
+      // A table scroll can move the trigger outside its visible cell area.
+      if (event.target.nodeType === 1 && event.target.contains(dropdown)) {
+        closeDropdown(dropdown);
+      } else {
+        place(dropdown);
+      }
+    });
   }, true);
 
   if (document.readyState === 'loading') {
@@ -990,6 +1007,13 @@
     return !overlay.contains(document.activeElement);
   };
 
+  var overlayFocusableElements = function overlayFocusableElements(overlay) {
+    return Array.prototype.filter.call(overlay.querySelectorAll(FOCUSABLE_SELECTOR), function (element) {
+      return element.tabIndex >= 0 && !element.matches(':disabled') && !element.closest('[inert], [hidden], [aria-hidden="true"]') &&
+        element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden';
+    });
+  };
+
   var focusOverlay = function focusOverlay(overlay) {
     if (!overlay) {
       return;
@@ -1000,11 +1024,14 @@
       return;
     }
 
-    var focusable = overlay.querySelector(FOCUSABLE_SELECTOR);
+    var focusable = overlayFocusableElements(overlay)[0];
     if (focusable && focusElement(focusable)) {
       return;
     }
 
+    if (!overlay.hasAttribute('tabindex')) {
+      overlay.setAttribute('tabindex', '-1');
+    }
     focusElement(overlay);
   };
 
@@ -1094,6 +1121,9 @@
     cancelHideFinalize(overlay);
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden', 'false');
+    if (overlay.matches('[role=dialog], [role=alertdialog]')) {
+      overlay.setAttribute('aria-modal', 'true');
+    }
     overlay.classList.remove(HIDDEN_CLASS);
     overlay.classList.remove(DISABLED_CLASS);
 
@@ -1148,6 +1178,7 @@
 
     overlay.setAttribute('inert', '');
     overlay.setAttribute('aria-hidden', 'true');
+    overlay.removeAttribute('aria-modal');
     overlay.classList.add(FADE_CLASS);
     overlay.classList.add(DISABLED_CLASS);
     overlay.classList.remove(ACTIVE_CLASS);
@@ -1243,6 +1274,9 @@
   document.querySelectorAll('.overlay.' + ACTIVE_CLASS + ', .overlay.' + OPEN_CLASS).forEach(function (overlay) {
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden', 'false');
+    if (overlay.matches('[role=dialog], [role=alertdialog]')) {
+      overlay.setAttribute('aria-modal', 'true');
+    }
     overlay.classList.remove(HIDDEN_CLASS);
     overlay.classList.remove(DISABLED_CLASS);
     overlay.classList.remove(FADE_CLASS);
@@ -1270,17 +1304,29 @@
   });
 
   document.addEventListener('keydown', function (event) {
-    if (event.key !== 'Escape') {
+    var topOverlay = overlayStack[overlayStack.length - 1];
+    if (event.key === 'Tab' && topOverlay) {
+      var focusable = overlayFocusableElements(topOverlay);
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      var active = document.activeElement;
+      if (!first || !topOverlay.contains(active) || active === topOverlay ||
+          (event.shiftKey && active === first) || (!event.shiftKey && active === last)) {
+        event.preventDefault();
+        if (first) {
+          focusElement(event.shiftKey ? last : first);
+        } else {
+          focusOverlay(topOverlay);
+        }
+      }
       return;
     }
-
-    for (var i = overlayStack.length - 1; i >= 0; i -= 1) {
-      var overlay = overlayStack[i];
-      hideOverlay(overlay, { skipStatic: true });
-      if (!overlay.dataset.overlayStatic) {
-        break;
-      }
+    if (event.key !== 'Escape' || !topOverlay) {
+      return;
     }
+    event.preventDefault();
+    // Escape belongs to the top dialog, including a static dialog.
+    hideOverlay(topOverlay, { skipStatic: true });
   });
 })();
 

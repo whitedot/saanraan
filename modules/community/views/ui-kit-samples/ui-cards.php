@@ -1,13 +1,13 @@
 <div class="ui-kit-sample-section" data-ui-kit-sample="ui-cards">
 <div class="container-fluid">
-                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-xl-2 ui-kit-gap-base">
+                    <div class="ui-kit-grid ui-kit-grid-1 ui-kit-gap-base">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title"><?php echo sr_e(sr_t('ui.text.4ade38d6')); ?></h4>
                             </div>
 
                             <div class="card-body">
-                                <div class="ui-kit-grid ui-kit-grid-1 ui-kit-grid-md-2 ui-kit-grid-xl-4 ui-kit-gap-base ui-kit-space-after-base">
+                                <div class="ui-kit-grid ui-kit-card-grid ui-kit-gap-base ui-kit-space-after-base">
                         <!-- 기본 카드 -->
                         <div class="card">
                             <div class="card-body">

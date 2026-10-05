@@ -682,24 +682,6 @@
     margin-top: 10px;
 }
 
-.content-comment-action-group > .btn,
-.content-comment-action-group > form > .btn {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    font-size: var(--type-meta-size);
-    line-height: var(--type-meta-line-height);
-    min-height: 0;
-    padding: 0;
-}
-
-.content-comment-action-group > .btn:is(:hover, :active),
-.content-comment-action-group > form > .btn:is(:hover, :active) {
-    background: transparent;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-}
-
 @media (max-width: 767px) {
     .content-comment-action-group-trailing {
         margin-left: 0;

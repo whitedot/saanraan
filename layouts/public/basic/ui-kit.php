@@ -1,6 +1,7 @@
 <?php
 
 $uiKitSamples = [
+    'ui-compositions' => 'Compositions & States',
     'typography' => 'Typography',
     'ui-buttons' => 'Buttons',
     'ui-cards' => 'Cards',

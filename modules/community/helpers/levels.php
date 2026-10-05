@@ -560,10 +560,17 @@ function sr_community_public_layout_context(array $settings, array $context = []
     $context['module_label'] = '커뮤니티';
     $context['module_menu_label'] = '커뮤니티 메뉴';
     $context['business_info_visible'] = !array_key_exists('business_info_visible', $settings) || !empty($settings['business_info_visible']);
-    $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'reset.css');
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'common.css');
-    $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'module.css');
+    $screenStylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
+    $stylesheets = [
+        sr_public_layout_module_theme_asset_url('community', $themeKey, 'reset.css'),
+        sr_public_layout_module_theme_asset_url('community', $themeKey, 'common.css'),
+        sr_public_layout_module_theme_asset_url('community', $themeKey, 'module.css'),
+    ];
+    foreach ($screenStylesheets as $screenStylesheet) {
+        if (is_string($screenStylesheet) && $screenStylesheet !== '') {
+            $stylesheets[] = $screenStylesheet;
+        }
+    }
     $themeStylesheet = sr_module_view_theme_stylesheet_url('community', $themeKey);
     if ($themeStylesheet !== '') {
         $stylesheets[] = $themeStylesheet;

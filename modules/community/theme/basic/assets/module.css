@@ -1374,26 +1374,6 @@
     padding-inline: var(--community-action-button-padding-inline, 0.45rem);
 }
 
-.community-comment-actions .community-action-group > .btn,
-.community-comment-actions .community-action-group > form > .btn,
-.community-comment-actions .community-action-group > .dropdown > .btn {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    font-size: var(--type-meta-size);
-    line-height: var(--type-meta-line-height);
-    min-height: 0;
-    padding: 0;
-}
-
-.community-comment-actions .community-action-group > .btn:is(:hover, :active),
-.community-comment-actions .community-action-group > form > .btn:is(:hover, :active),
-.community-comment-actions .community-action-group > .dropdown > .btn:is(:hover, :active) {
-    background: transparent;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-}
-
 .community-comment-management-dropdown {
     align-items: center;
     align-self: flex-start;

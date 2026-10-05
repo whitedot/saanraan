@@ -1181,8 +1181,8 @@ input:focus-visible + [class*=btn-choice-],
     :is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):hover { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
     :is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):hover { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
     .btn-solid-danger:hover { background-color: var(--color-danger-hover); border-color: var(--color-danger-hover); color: var(--color-white); }
-    .btn-solid-warning:hover { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-white); }
-    :is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):hover { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color: var(--color-white); }
+    .btn-solid-warning:hover { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-slate-950); }
+    :is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):hover { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color:var(--color-white); }
     .btn-solid-dark:hover { background-color: color-mix(in oklab, var(--color-dark) 72%, #000); border-color: color-mix(in oklab, var(--color-dark) 72%, #000); color: var(--color-white); }
     .btn-solid-light:hover { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); color: var(--color-default-950); }
     :is(.btn-outline-default, .btn-outline-light):hover { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); border-color: var(--color-default-300); color: var(--color-default-950); }
@@ -1212,8 +1212,8 @@ input:focus-visible + [class*=btn-choice-],
 :is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):active { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
 :is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):active { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
 .btn-solid-danger:active { background-color: var(--color-danger-hover); border-color: var(--color-danger-hover); color: var(--color-white); }
-.btn-solid-warning:active { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-white); }
-:is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):active { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color: var(--color-white); }
+.btn-solid-warning:active { background-color: var(--color-warning-hover); border-color: var(--color-warning-hover); color: var(--color-slate-950); }
+:is(.btn-solid-info, .btn-solid-info-strong, .btn-solid-info-muted):active { background-color: var(--color-info-hover); border-color: var(--color-info-hover); color:var(--color-white); }
 .btn-solid-dark:active { background-color: color-mix(in oklab, var(--color-dark) 72%, #000); border-color: color-mix(in oklab, var(--color-dark) 72%, #000); color: var(--color-white); }
 .btn-solid-light:active { background-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); border-color: color-mix(in oklab, var(--color-default-500) 24%, var(--color-card)); color: var(--color-default-950); }
 :is(.btn-outline-default, .btn-outline-light):active { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); border-color: var(--color-default-300); color: var(--color-default-950); }
@@ -1234,3 +1234,15 @@ input:focus-visible + [class*=btn-choice-],
 .btn-ghost-warning:active { background-color: color-mix(in oklab, var(--color-warning) 12%, transparent); }
 .btn-ghost-info:active { background-color: color-mix(in oklab, var(--color-info) 12%, transparent); }
 .btn-ghost-dark:active { background-color: color-mix(in oklab, var(--color-dark) 26%, transparent); color: var(--color-default-950); }
+
+/* Examples respond to their own available width, including foreign shells. */
+.ui-kit-card-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+
+.ui-kit-compositions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 2rem; align-items: start; }
+.ui-kit-compositions > * { min-width: 0; }
+.ui-kit-editorial-example { padding-block: 1.5rem; }
+.ui-kit-editorial-example h3 { font-size: 1.625rem; line-height: 1.4; margin-block: 1rem; }
+.ui-kit-editorial-example p { color: var(--sr-muted, var(--color-default-600)); margin-block: 1rem; }
+.ui-kit-list-example { list-style: none; padding: 0; margin: 0; }
+.ui-kit-list-example li { display: flex; align-items: baseline; gap: 1rem; justify-content: space-between; padding-block: 1rem; border-bottom: 1px solid var(--sr-border, var(--color-default-300)); }
+.ui-kit-list-example a { color: var(--sr-text, var(--color-default-900)); }

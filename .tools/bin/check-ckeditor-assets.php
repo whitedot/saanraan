@@ -731,17 +731,22 @@ foreach ([
 }
 
 foreach ([
-    'modules/content/theme/basic/assets/module.css' => ['.content-comment-action-group > .btn', '.content-comment-action-group > form > .btn', '.content-comment-permalink:focus-visible', '--content-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.content-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
+    'modules/content/theme/basic/assets/module.css' => ['.content-comment-permalink:focus-visible', '--content-comments-padding-inline: clamp(20px, 2.5vw, 28px)', '.content-comment-editor-dialog :is(.ck-editor__top, .ck-editor__main, .ck-sticky-panel, .ck-sticky-panel__content, .ck-toolbar, .ck-toolbar__items)', 'height: clamp(10rem, 30vh, 15rem)'],
 ] as $commentStylesheet => $commentUiMarkers) {
     sr_ckeditor_assets_require_markers($commentStylesheet, $commentUiMarkers);
 }
+
+foreach (['content', 'community'] as $commentModule) {
+    sr_ckeditor_assets_require_markers('modules/' . $commentModule . '/theme/basic/assets/common.css', ['.btn.btn-text {', '.btn.btn-text:is(:hover, :active)']);
+}
+sr_ckeditor_assets_require_markers('modules/content/views/content.php', ['btn btn-text btn-ghost-default', 'btn btn-text btn-ghost-danger']);
+sr_ckeditor_assets_require_markers('modules/community/skins/basic/view.php', ['btn btn-text btn-ghost-default', 'btn btn-text btn-ghost-danger']);
 
 sr_ckeditor_assets_forbid_markers('modules/content/theme/basic/assets/module.css', [
     '.content-comments form {',
     '.content-comment-actions .btn {',
 ]);
 sr_ckeditor_assets_require_markers('modules/community/theme/basic/assets/module.css', [
-    '.community-comment-actions .community-action-group > .btn',
     '.community-screen .community-comment-secret-toggle',
 ]);
 sr_ckeditor_assets_forbid_markers('modules/community/theme/basic/assets/module.css', [

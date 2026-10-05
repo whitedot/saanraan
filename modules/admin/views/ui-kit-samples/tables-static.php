@@ -42,7 +42,7 @@ $uiKitTableRows = [
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="filtering-field-fill" for="admin_ui_filtering_plain_keyword">
+                    <label class="filtering-field filtering-field-fill" for="admin_ui_filtering_plain_keyword">
                         <span class="form-label">검색어</span>
                         <input id="admin_ui_filtering_plain_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
                     </label>
@@ -66,7 +66,7 @@ $uiKitTableRows = [
                             <option value="">전체</option>
                         </select>
                     </label>
-                    <label class="filtering-field-fill" for="admin_ui_filtering_card_keyword">
+                    <label class="filtering-field filtering-field-fill" for="admin_ui_filtering_card_keyword">
                         <span class="form-label">검색어</span>
                         <input id="admin_ui_filtering_card_keyword" type="text" class="form-input" name="q" placeholder="제목, 주소 이름">
                     </label>
@@ -173,7 +173,15 @@ $uiKitTableRows = [
                                     <strong><?php echo sr_e($uiKitTableRow['email']); ?></strong>
                                     <span class="table-meta"><?php echo sr_e($uiKitTableRow['hash']); ?></span>
                                 </td>
-                                <td class="table-nowrap"><?php echo sr_e($uiKitTableRow['name']); ?></td>
+                                <td class="table-nowrap">
+                                    <div class="dropdown">
+                                        <button type="button" class="dropdown-toggle btn btn-text btn-ghost-default" aria-haspopup="menu" aria-expanded="false"><?php echo sr_e($uiKitTableRow['name']); ?></button>
+                                        <div class="dropdown-menu" role="menu" aria-label="회원 메뉴 예시">
+                                            <a class="dropdown-item" role="menuitem" href="#ui-kit-member-profile-images">프로필 이미지 예시</a>
+                                            <a class="dropdown-item" role="menuitem" href="#ui-kit-tables-static">회원 목록 예시</a>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="table-nowrap"><span class="badge-status <?php echo sr_e($uiKitTableRow['status_class']); ?>"><?php echo sr_e($uiKitTableRow['status']); ?></span></td>
                                 <td class="table-nowrap"><?php echo sr_e($uiKitTableRow['email_verified_at']); ?></td>
                                 <td class="table-nowrap"><?php echo sr_e($uiKitTableRow['last_login_at']); ?></td>
