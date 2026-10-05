@@ -497,6 +497,16 @@ function sr_community_home_latest_post_sections_from_board_posts(array $boards, 
     return array_merge(array_values($groupSections), $ungroupedSections);
 }
 
+function sr_community_home_visible_post_excerpt(array $post, bool $enabled, int $length): string
+{
+    if (!$enabled || empty($post['home_excerpt_allowed']) || !empty($post['is_secret'])) {
+        return '';
+    }
+
+    // Home snapshots contain at most 160 characters; board lists keep their own limit.
+    return sr_community_body_excerpt((string) ($post['home_excerpt'] ?? ''), 'plain', max(1, min(160, $length)));
+}
+
 function sr_community_home_latest_post_sections(PDO $pdo, array $boards, array $settings, array $homeExcerptAllowedByBoardId, int $postsPerBoard = 5): array
 {
     $postsPerBoard = max(1, min(10, $postsPerBoard));
@@ -519,6 +529,12 @@ function sr_community_home_latest_post_sections(PDO $pdo, array $boards, array $
             $postsPerBoard,
             'latest'
         );
+        $excerptEnabled = sr_community_board_list_excerpt_enabled($pdo, $board);
+        $excerptLength = sr_community_board_list_excerpt_length($pdo, $board);
+        foreach ($postsByBoardId[$boardId] as &$homePost) {
+            $homePost['home_list_excerpt'] = sr_community_home_visible_post_excerpt($homePost, $excerptEnabled, $excerptLength);
+        }
+        unset($homePost);
     }
 
     return sr_community_home_latest_post_sections_from_board_posts($boards, $postsByBoardId);

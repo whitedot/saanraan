@@ -74,6 +74,7 @@ $pdo->exec(
         sender_account_id INTEGER NOT NULL,
         recipient_account_id INTEGER NOT NULL,
         status TEXT NOT NULL,
+        body_text TEXT NOT NULL DEFAULT \'preview fixture\',
         read_at TEXT NULL,
         sender_deleted_at TEXT NULL,
         recipient_deleted_at TEXT NULL,
@@ -99,6 +100,9 @@ if (sr_message_box_count($pdo, 1, 'sent') !== 45 || sr_message_box_count($pdo, 1
 $sentFinalPage = sr_message_box($pdo, 1, 'sent', 20, 40);
 if (count($sentFinalPage) !== 5 || (int) ($sentFinalPage[0]['id'] ?? 0) !== 5 || (int) ($sentFinalPage[4]['id'] ?? 0) !== 1) {
     $errors[] = 'sent message pagination must expose the final partial page';
+}
+if (($sentFinalPage[0]['body_text'] ?? '') !== 'preview fixture') {
+    $errors[] = 'message list must include the authorized message preview';
 }
 $inboxSecondPage = sr_message_box($pdo, 1, 'inbox', 20, 20);
 if (count($inboxSecondPage) !== 20 || (int) ($inboxSecondPage[0]['id'] ?? 0) !== 70 || (int) ($inboxSecondPage[19]['id'] ?? 0) !== 51) {

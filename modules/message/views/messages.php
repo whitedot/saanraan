@@ -29,45 +29,27 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, [
         <?php if ($messages === []) { ?>
             <p>표시할 쪽지가 없습니다.</p>
         <?php } else { ?>
-            <div class="table-wrapper">
-            <table class="table table-list">
-                <thead>
-                    <tr>
-                        <th><?php echo sr_e($box === 'sent' ? '수신자' : '발신자'); ?></th>
-                        <th>상태</th>
-                        <th>작성일</th>
-                        <th>보기</th>
-                        <th>삭제</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($messages as $message) { ?>
-                        <tr>
-                            <td>
-                                <?php echo sr_e(sr_message_account_label(
-                                    is_string($message['other_display_name'] ?? null) ? $message['other_display_name'] : null,
-                                    $box === 'sent' ? (int) $message['recipient_account_id'] : (int) $message['sender_account_id'],
-                                    $canViewMemberIdentifiers,
-                                    $config,
-                                    is_string($message['other_account_status'] ?? null) ? $message['other_account_status'] : null
-                                )); ?>
-                            </td>
-                            <td><?php echo sr_e($box === 'sent' ? ((string) ($message['read_at'] ?? '') === '' ? '읽지 않음' : '읽음') : ((string) ($message['read_at'] ?? '') === '' ? '새 쪽지' : '읽음')); ?></td>
-                            <td><?php echo sr_message_time_html((string) $message['created_at']); ?></td>
-                            <td><a class="btn btn-sm btn-outline-default" href="<?php echo sr_e(sr_url('/message?id=' . (string) $message['id'])); ?>">보기</a></td>
-                            <td>
-                                <form method="post" action="<?php echo sr_e(sr_url('/message/delete')); ?>">
-                                    <?php echo sr_csrf_field(); ?>
-                                    <input type="hidden" name="message_id" value="<?php echo sr_e((string) $message['id']); ?>">
-                                    <input type="hidden" name="return_page" value="<?php echo sr_e((string) $messagePage); ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
-            </div>
+            <ul class="ui-reading-list">
+                <?php foreach ($messages as $message) { ?>
+                    <li>
+                        <a href="<?php echo sr_e(sr_url('/message?id=' . (string) $message['id'])); ?>">
+                            <strong><?php echo sr_e(sr_message_account_label($message['other_display_name'] ?? null, $box === 'sent' ? (int) $message['recipient_account_id'] : (int) $message['sender_account_id'], $canViewMemberIdentifiers, $config, $message['other_account_status'] ?? null)); ?></strong>
+                            <?php if ((string) ($message['read_at'] ?? '') === '') { ?><span class="badge badge-soft-primary"><?php echo $box === 'sent' ? '읽지 않음' : '새 쪽지'; ?></span><?php } ?>
+                            <p><?php echo sr_e((function_exists('mb_substr') ? mb_substr(trim((string) ($message['body_text'] ?? '')), 0, 140, 'UTF-8') : substr(trim((string) ($message['body_text'] ?? '')), 0, 140))); ?></p>
+                            <small><?php echo sr_message_time_html((string) $message['created_at']); ?></small>
+                        </a>
+                        <details>
+                            <summary class="btn btn-icon btn-ghost-light" aria-label="쪽지 메뉴"><?php echo sr_material_icon_html('more_horiz'); ?></summary>
+                            <div><form method="post" action="<?php echo sr_e(sr_url('/message/delete')); ?>">
+                                <?php echo sr_csrf_field(); ?>
+                                <input type="hidden" name="message_id" value="<?php echo sr_e((string) $message['id']); ?>">
+                                <input type="hidden" name="return_page" value="<?php echo sr_e((string) $messagePage); ?>">
+                                <button type="submit" class="dropdown-item">삭제</button>
+                            </form></div>
+                        </details>
+                    </li>
+                <?php } ?>
+            </ul>
         <?php } ?>
         <?php echo sr_public_pagination_html($messagePagination, $messagePaginationBasePath, '쪽지 목록 페이지', 'page', 'message-list'); ?>
         </div>

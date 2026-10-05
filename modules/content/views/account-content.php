@@ -12,9 +12,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
-]));
+], $pdo));
 ?>
-<main class="ui-page">
+<main class="ui-page content-authoring-page">
     <div class="content-screen-frame">
         <div class="content-screen-main">
     <h1 class="type-page-title"><?php echo sr_e($pageTitle); ?></h1>
@@ -24,12 +24,12 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         <p>제출 가능한 콘텐츠 그룹이 없습니다.</p>
         <p><a class="btn btn-outline-primary" href="<?php echo sr_e(sr_url('/account/content/author-application')); ?>">콘텐츠 등록자 신청</a></p>
     <?php } else { ?>
-        <section class="card">
+        <section class="card content-authoring-panel">
             <div class="card-header">
                 <h2 class="card-title">콘텐츠 작성</h2>
             </div>
             <div class="card-body">
-                <form method="post" action="<?php echo sr_e(sr_url($contentSubmissionFormPath)); ?>" class="ui-card-body-stack">
+                <form method="post" action="<?php echo sr_e(sr_url($contentSubmissionFormPath)); ?>" class="ui-card-body-stack content-authoring-form">
                     <?php echo sr_csrf_field(); ?>
                     <input type="hidden" name="submission_id" value="<?php echo sr_e((string) (int) ($formSubmission['id'] ?? 0)); ?>">
                     <p><label class="ui-field" for="account_content_group"><span>콘텐츠 그룹</span>

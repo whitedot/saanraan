@@ -84,7 +84,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         ['module_key' => 'content', 'point_key' => 'content.view', 'slot_key' => 'after_content'],
         ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
-]));
+], $pdo));
 ?>
 <main class="content-page content-page-basic content-page-view">
     <div class="content-screen-frame">
@@ -104,7 +104,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     <?php } ?>
 
     <article class="content-article">
-        <div class="content-reading-panel">
+        <div class="card content-reading-panel">
         <header class="content-header">
             <h1><?php echo sr_e((string) $page['title']); ?></h1>
             <?php if ((string) $page['summary'] !== '') { ?>
@@ -119,7 +119,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                     <span><?php echo sr_content_time_html($contentDateText); ?></span>
                 <?php } ?>
             </div>
-            <?php if ((string) ($contentEditUrl ?? '') !== '') { ?>
+            <?php if ((string) ($contentEditUrl ?? '') !== '' && empty($pageAccess['allowed'])) { ?>
                 <div class="content-view-actions">
                     <div class="content-view-action-group content-view-action-group-trailing">
                         <?php include SR_ROOT . '/modules/content/views/content-edit-link.php'; ?>
@@ -337,18 +337,20 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         </div>
     </article>
         <?php if (!empty($pageAccess['allowed'])) { ?>
-            <section id="content-comments" class="content-comments-panel">
+            <section id="content-comments" class="card content-comments-panel">
                 <div class="content-comments-panel-header">
                     <h2>댓글 <span class="content-comments-count"><?php echo sr_e(number_format((int) ($contentCommentPage['total'] ?? 0))); ?></span></h2>
                 </div>
                 <?php echo sr_public_feedback_toasts('content', (string) ($contentCommentNotice ?? ''), is_array($contentCommentErrors ?? null) ? $contentCommentErrors : []); ?>
                 <?php if (is_array($contentComments ?? null) && $contentComments !== []) { ?>
                     <ul class="content-comment-list">
-                        <?php foreach ($contentComments as $contentComment) { ?>
+                        <?php $contentCommentRows = array_values($contentComments); ?>
+                        <?php foreach ($contentCommentRows as $contentCommentIndex => $contentComment) { ?>
                             <?php
                             $contentCommentDepth = min(3, max(1, (int) ($contentComment['depth'] ?? 1)));
+                            $contentCommentNextDepth = (int) ($contentCommentRows[$contentCommentIndex + 1]['depth'] ?? 1);
                             ?>
-                            <li id="content-comment-<?php echo sr_e((string) (int) ($contentComment['id'] ?? 0)); ?>" class="content-comment-item content-comment-depth-<?php echo sr_e((string) $contentCommentDepth); ?>">
+                            <li id="content-comment-<?php echo sr_e((string) (int) ($contentComment['id'] ?? 0)); ?>" class="content-comment-item content-comment-depth-<?php echo sr_e((string) $contentCommentDepth); ?>" data-next-depth="<?php echo sr_e((string) $contentCommentNextDepth); ?>">
                                 <?php
                                 $contentCommentCanViewBody = sr_content_account_can_view_comment_body($contentComment, $page, is_array($account ?? null) ? $account : null, $pdo);
                                 $contentCommentCanEdit = is_array($account ?? null) && sr_content_account_can_edit_comment($contentComment, $account);

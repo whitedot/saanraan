@@ -466,3 +466,9 @@
         transform: translateY(0);
     }
 }
+
+.member-skin-basic-page > .card > .card-header > h1 { font-size: 26px; font-weight: 650; letter-spacing: -.04em; line-height: 1.35; }
+.member-skin-basic-page-narrow { padding-block: 48px 64px; }
+.member-skin-basic-page-narrow .card-body { padding-top: 12px; }
+.member-skin-basic-page-narrow .member-skin-basic-link-row { gap: 18px; }
+@media(max-width:640px) { .member-skin-basic-page-narrow { padding-top: 28px; } }

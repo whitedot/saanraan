@@ -174,7 +174,6 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_member_skin_layout_
                     <?php } ?>
                 </div>
                 <div class="member-skin-basic-account-hero-copy">
-                    <p class="type-caption member-skin-basic-muted">MY PAGE</p>
                     <h1 id="member-account-page-title" class="card-title"><?php echo sr_e($memberAccountPublicName !== '' ? $memberAccountPublicName . '님' : $pageTitle); ?></h1>
                     <p class="member-skin-basic-muted"><?php echo sr_e((string) $account['email']); ?></p>
                     <div class="member-skin-basic-account-badges">

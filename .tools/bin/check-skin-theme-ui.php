@@ -1170,7 +1170,7 @@ sr_skin_theme_check_contains([
     'class="ui-page message-screen"',
     'class="form-input',
     'class="form-textarea',
-    'class="table table-list"',
+    'class="ui-reading-list"',
 ], 'Public message screens should use UI kit components');
 sr_skin_theme_check_contains([
     'modules/identity_verification/views/provider-form.php',

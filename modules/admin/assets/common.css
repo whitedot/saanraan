@@ -518,7 +518,7 @@ input[type=file].form-input:disabled::file-selector-button{cursor:not-allowed}
 @media (hover:hover){.btn-gradient-smooth:hover{filter:saturate(1.16) brightness(1.05);animation-duration:1.9s}}
 @media (prefers-reduced-motion:reduce){.btn-gradient-smooth{animation:none}.btn-gradient-smooth:hover{background-position:100% 50%}}
 .dropdown-toggle .dropdown-icon,.dropdown-toggle .dropdown-caret{font-size:1em;opacity:.9;transition:transform var(--default-transition-duration) var(--default-transition-timing-function),opacity var(--default-transition-duration) var(--default-transition-timing-function)}
-.sr-required-label{margin-left:.25rem;color:var(--color-success);font-size:.75em;line-height:1;font-weight:var(--font-weight-semibold);white-space:nowrap}
+.sr-required-label{margin-left:.25rem;color:var(--sr-muted-strong,var(--color-default-600));font-size:.75em;line-height:1;font-weight:var(--font-weight-semibold);white-space:nowrap}
 .dropdown.dropdown-open>.dropdown-toggle .dropdown-icon[data-ui-arrow=down],.dropdown.open>.dropdown-toggle .dropdown-icon[data-ui-arrow=down]{transform:rotate(180deg)}
 .tab-trigger-underline,.tab-trigger-underline-justified,.tab-trigger-line-primary,.tab-trigger-line-danger,.tab-trigger-line-success,.tab-trigger-pill-primary,.tab-trigger-pill-secondary{gap:calc(var(--spacing) * 2);transition:background-color var(--default-transition-duration) var(--default-transition-timing-function),border-color var(--default-transition-duration) var(--default-transition-timing-function),color var(--default-transition-duration) var(--default-transition-timing-function),box-shadow var(--default-transition-duration) var(--default-transition-timing-function)}
 .tab-trigger-underline:focus-visible,.tab-trigger-underline-justified:focus-visible,.tab-trigger-line-primary:focus-visible,.tab-trigger-line-danger:focus-visible,.tab-trigger-line-success:focus-visible,.tab-trigger-pill-primary:focus-visible,.tab-trigger-pill-secondary:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in oklab,var(--color-primary) 16%,transparent)}
@@ -722,3 +722,18 @@ html:not(.sr-material-icons-ready) :is(.sr-icon,.material-symbols-outlined)[data
 .btn[aria-busy=true] { cursor: progress; }
 
 .badge-status:is(.is-success, .is-warning, .is-danger, .is-info):where([data-theme=dark], [data-theme=dark] *, [data-color-scheme=dark], [data-color-scheme=dark] *) { color: color-mix(in oklab, var(--badge-status-color, var(--sr-text)) 86%, var(--color-white)); }
+
+/* Public compositions: disclosure, empty state and reading rows. */
+.ui-disclosure { border-block: 1px solid var(--sr-border); padding-block: 16px; }
+.ui-disclosure > summary { cursor: pointer; color: var(--sr-text); font-size: var(--type-small-size); font-weight: 600; }
+.ui-disclosure > summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 5px; }
+.ui-disclosure > :not(summary) { margin-top: 20px; }
+.ui-empty-state { padding: 48px 0; display: grid; justify-items: start; gap: 12px; }
+.ui-empty-state > * { margin: 0; }
+.ui-empty-state > p { color: var(--sr-muted); max-width: 40rem; }
+.ui-reading-list { list-style: none; padding: 0; margin: 0; }
+.ui-reading-list > li { border-bottom: 1px solid var(--sr-border); padding-block: 22px; display: flex; align-items: center; gap: 20px; }
+.ui-reading-list a { color: var(--sr-text); text-decoration: none; min-width: 0; flex: 1; }
+.ui-reading-list a:hover { color: var(--color-primary); }
+.ui-reading-list p { margin: 7px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.ui-reading-list small { color: var(--sr-muted); }

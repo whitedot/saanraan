@@ -45,6 +45,8 @@ $layoutSearchKeywordValue = sr_get_string_without_truncation('q', 100);
 $layoutSearchKeyword = is_string($layoutSearchKeywordValue) ? trim(preg_replace('/\s+/u', ' ', $layoutSearchKeywordValue) ?? '') : '';
 $layoutFaviconHtml = '';
 $layoutPrimaryNavigationHtml = '';
+$layoutModuleNavigationHtml = (string) ($layoutContext['module_navigation_html'] ?? '');
+$layoutSearchPath = rtrim($layoutModuleHomeUrl, '/') . '/search';
 $layoutBeforeLayoutHtml = '';
 $layoutModuleBeforeLayoutHtml = '';
 $layoutModuleBeforeFooterHtml = '';
@@ -219,6 +221,7 @@ if ($layoutPdo instanceof PDO && str_contains($layoutRenderedAssetMarkup, 'data-
     <?php echo sr_pwa_head_tags($layoutPdo, $layoutSite); ?>
     <script<?php echo sr_csp_nonce_attribute(); ?>>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" crossorigin>
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body class="<?php echo sr_e(trim('content-layout-body ' . $layoutBodyClass)); ?>">
@@ -238,11 +241,17 @@ if ($layoutPdo instanceof PDO && str_contains($layoutRenderedAssetMarkup, 'data-
                     <span class="content-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
                 <?php } ?>
             </a>
-            <a class="content-layout-module-name" href="<?php echo sr_e($layoutModuleHomeUrl); ?>"><?php echo sr_e($layoutModuleLabel); ?></a>
+            <nav class="content-layout-services" aria-label="서비스 이동">
+                    <?php foreach (['content' => '콘텐츠', 'community' => '커뮤니티'] as $serviceKey => $serviceLabel) { ?>
+                        <?php if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, $serviceKey)) { ?>
+                            <a href="<?php echo sr_e(sr_url('/' . $serviceKey)); ?>"<?php echo (string) ($layoutContext['consumer_domain'] ?? '') === $serviceKey ? ' aria-current="page"' : ''; ?>><?php echo sr_e($serviceLabel); ?></a>
+                        <?php } ?>
+                    <?php } ?>
+                </nav>
             </div>
-            <form class="content-layout-search" method="get" action="<?php echo sr_e(sr_url('/content/search')); ?>" role="search" data-content-layout-search-form data-content-layout-search-min-length="2" data-content-layout-search-alert="<?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?>">
-                <label for="content_layout_search_q"><?php echo sr_e('콘텐츠 검색'); ?></label>
-                <input id="content_layout_search_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($layoutSearchKeyword); ?>" placeholder="<?php echo sr_e('검색'); ?>" autocomplete="off" data-content-layout-search-input>
+            <form class="content-layout-search" method="get" action="<?php echo sr_e($layoutSearchPath); ?>" role="search" data-content-layout-search-form data-content-layout-search-min-length="2" data-content-layout-search-alert="<?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?>">
+                <label for="content_layout_search_q"><?php echo sr_e($layoutModuleLabel . ' 검색'); ?></label>
+                <input id="content_layout_search_q" type="search" name="q" maxlength="100" value="<?php echo sr_e($layoutSearchKeyword); ?>" placeholder="<?php echo sr_e($layoutModuleLabel . '에서 검색'); ?>" autocomplete="off" data-content-layout-search-input>
                 <button type="submit" aria-label="<?php echo sr_e('검색'); ?>">
                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>search</span>
                 </button>
@@ -379,8 +388,18 @@ if ($layoutPdo instanceof PDO && str_contains($layoutRenderedAssetMarkup, 'data-
         </div>
     </header>
     <nav class="content-layout-nav" aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>" data-content-scroll-nav>
-        <?php echo $layoutPrimaryNavigationHtml; ?>
+        <div class="content-layout-primary"><?php echo $layoutModuleNavigationHtml !== '' ? $layoutModuleNavigationHtml : $layoutPrimaryNavigationHtml; ?></div>
+        <button class="content-layout-directory-button" type="button" aria-label="전체 메뉴" popovertarget="content_layout_directory"><span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon>menu</span><span>전체 메뉴</span></button>
     </nav>
+    <div class="content-layout-directory" id="content_layout_directory" popover="auto">
+        <header><h2>전체 메뉴</h2><button class="btn btn-sm" type="button" popovertarget="content_layout_directory" popovertargetaction="hide" aria-label="전체 메뉴 닫기">닫기</button></header>
+        <?php if ($layoutModuleNavigationHtml !== '') { ?>
+            <section aria-label="<?php echo sr_e($layoutModuleMenuLabel); ?>"><?php echo $layoutModuleNavigationHtml; ?></section>
+        <?php } ?>
+        <?php if ($layoutPrimaryNavigationHtml !== '' && $layoutPrimaryNavigationHtml !== $layoutModuleNavigationHtml) { ?>
+        <section class="content-layout-site-directory" aria-label="사이트 메뉴"><?php echo $layoutPrimaryNavigationHtml; ?></section>
+        <?php } ?>
+    </div>
     <div class="content-layout-main">
         <?php echo $layoutContent; ?>
     </div>
@@ -392,8 +411,11 @@ if ($layoutPdo instanceof PDO && str_contains($layoutRenderedAssetMarkup, 'data-
                     <?php echo $layoutFooterMobileBrandLogoHtml; ?>
                     <?php echo $layoutFooterBrandLogoHtml; ?>
                 </a>
+            <?php } else { ?>
+                <a class="content-layout-footer-wordmark" href="<?php echo sr_e($layoutBrandLinkUrl); ?>"><?php echo sr_e($layoutSiteName); ?></a>
             <?php } ?>
             <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
+            <a class="content-layout-kit-link" href="<?php echo sr_e(rtrim($layoutModuleHomeUrl, '/') . '/ui-kit'); ?>">UI kit</a>
             <div class="content-theme-dropdown dropdown" data-dropdown-placement="top-end">
                 <button class="content-theme-toggle dropdown-toggle" type="button" aria-label="<?php echo sr_e('화면 모드 설정'); ?>" data-sr-color-scheme-toggle>
                     <span class="material-symbols-outlined" aria-hidden="true" data-sr-material-icon data-sr-color-scheme-current-icon><?php echo sr_e((string) ($layoutColorSchemeIcons[$layoutColorScheme] ?? 'light_mode')); ?></span>

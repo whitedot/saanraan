@@ -98,6 +98,11 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'logo_manager') &
 if ($layoutPdo instanceof PDO && $layoutPrimaryMenuKey !== '') {
     $layoutPrimaryNavigationHtml = sr_render_output_slot($layoutPdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => $layoutPrimaryMenuKey]);
 }
+$layoutSiteNavigationHtml = $layoutPrimaryNavigationHtml;
+$layoutConsumerNavigationHtml = (string) ($layoutContext['module_navigation_html'] ?? '');
+if ($layoutConsumerNavigationHtml !== '') {
+    $layoutPrimaryNavigationHtml = $layoutConsumerNavigationHtml;
+}
 $layoutPrivacyCookieConsentHtml = '';
 if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'privacy') && is_file(SR_ROOT . '/modules/privacy/helpers.php')) {
     require_once SR_ROOT . '/modules/privacy/helpers.php';
@@ -207,6 +212,7 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'popup_layer') &&
     <?php echo sr_pwa_head_tags($layoutPdo, $layoutSite); ?>
     <script<?php echo sr_csp_nonce_attribute(); ?>>(function(){try{var s=localStorage.getItem("sr_public_color_scheme");if(s==="light"||s==="dark"||s==="system"){document.documentElement.setAttribute("data-color-scheme",s);}}catch(e){}})();</script>
     <?php echo sr_stylesheet_tag($layoutStylesheets, $layoutPdo, ['style_profile' => $layoutStyleProfile]); ?>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css">
     <?php echo sr_icon_bootstrap_script(); ?>
 </head>
 <body class="<?php echo sr_e(trim('public-layout-body ' . $layoutBodyClass)); ?>">
@@ -223,8 +229,16 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'popup_layer') &&
                 <span class="public-layout-brand-text"><?php echo sr_e($layoutSiteName); ?></span>
             <?php } ?>
         </a>
-        <nav class="public-layout-nav" aria-label="<?php echo sr_e('공개 메뉴'); ?>">
+        <nav class="public-layout-nav<?php echo $layoutConsumerNavigationHtml !== '' ? ' public-layout-consumer-nav' : ''; ?>" aria-label="<?php echo sr_e('공개 메뉴'); ?>">
             <?php echo $layoutPrimaryNavigationHtml; ?>
+            <?php if ($layoutConsumerNavigationHtml !== '') { ?>
+                <button type="button" class="btn btn-ghost-light" popovertarget="public_layout_directory">전체 메뉴</button>
+                <div id="public_layout_directory" class="public-layout-directory" popover>
+                    <header><h2>전체 메뉴</h2><button type="button" class="btn btn-ghost-light" popovertarget="public_layout_directory" popovertargetaction="hide">닫기</button></header>
+                    <?php echo $layoutConsumerNavigationHtml; ?>
+                    <?php echo $layoutSiteNavigationHtml; ?>
+                </div>
+            <?php } ?>
         </nav>
         <div class="public-layout-actions">
             <?php if ($layoutNotificationEnabled) { ?>
@@ -359,6 +373,9 @@ if ($layoutPdo instanceof PDO && sr_module_enabled($layoutPdo, 'popup_layer') &&
                     <?php echo $layoutFooterMobileBrandLogoHtml; ?>
                     <?php echo $layoutFooterBrandLogoHtml; ?>
                 </a>
+            <?php } ?>
+            <?php if ($layoutFooterBrandLogoHtml === '' && $layoutFooterMobileBrandLogoHtml === '') { ?>
+                <a class="public-layout-footer-brand-link public-layout-footer-wordmark" href="<?php echo sr_e($layoutBrandLinkUrl); ?>"><?php echo sr_e($layoutSiteName); ?></a>
             <?php } ?>
             <p>&copy; <?php echo sr_e($layoutSiteName); ?></p>
             <div class="public-theme-dropdown dropdown" data-dropdown-placement="top-end">

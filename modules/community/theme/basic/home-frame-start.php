@@ -42,6 +42,6 @@ $communityFrameModifier = isset($communityFrameModifier) && is_string($community
 $communityMainClass = 'community-home-main community-frame-main community-frame-' . $communityFrameModifier;
 $communityHomeLayoutClass = 'community-home-layout' . ($communityFrameSummaryEnabled ? '' : ' community-home-layout-main-only');
 ?>
-<main class="community-screen">
+<main class="community-screen<?php echo !empty($communityHomeEditorial) ? ' community-home-editorial' : ''; ?>">
     <div class="<?php echo sr_e($communityHomeLayoutClass); ?>">
         <section class="<?php echo sr_e($communityMainClass); ?>" aria-label="<?php echo sr_e($communityMainLabel); ?>">

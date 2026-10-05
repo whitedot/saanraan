@@ -45,7 +45,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
         ['module_key' => 'content', 'point_key' => 'content.home', 'slot_key' => 'screen'],
         ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
-]));
+], $pdo));
 ?>
 
 <?php echo sr_render_output_slot($pdo, [
@@ -54,10 +54,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     'slot_key' => 'screen',
 ]); ?>
 
-<main class="content-home content-home-screen">
+<main class="content-home content-home-screen content-home-editorial">
     <div class="<?php echo sr_e($contentHomeLayoutClass); ?>">
         <section class="content-home-main" aria-label="최근 콘텐츠">
-            <h1 class="sr-only"><?php echo sr_e($contentHomeTitle); ?></h1>
+            <header class="content-home-intro">
+                <h1>콘텐츠</h1>
+                <p>새로 공개된 글과 오래 읽고 싶은 기록.</p>
+            </header>
             <?php if ($contentHomeSections === []) { ?>
                 <section class="card content-home-empty" aria-labelledby="content_home_empty_title">
                     <div class="card-body">
@@ -74,8 +77,10 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                         $contentHomeSectionGroupTitle = trim((string) ($contentHomeSection['group_title'] ?? ''));
                         $contentHomeSectionContents = is_array($contentHomeSection['contents'] ?? null) ? $contentHomeSection['contents'] : [];
                         $contentHomeSectionTitleId = 'content_home_section_' . (string) (int) $contentHomeSectionIndex;
+                        $contentHomeSectionSize = count($contentHomeSectionContents) > 1 ? 'full' : 'compact';
+                        $contentHomeTreatment = $contentHomeSectionGrouped ? 'standard' : 'recent';
                         ?>
-                        <section class="content-home-section<?php echo $contentHomeSectionGrouped ? ' content-home-section-grouped' : ' content-home-section-ungrouped'; ?>" aria-labelledby="<?php echo sr_e($contentHomeSectionTitleId); ?>">
+                        <section class="content-home-section<?php echo $contentHomeSectionGrouped ? ' content-home-section-grouped' : ' content-home-section-ungrouped'; ?>" data-treatment="<?php echo sr_e($contentHomeTreatment); ?>" data-composition="<?php echo sr_e($contentHomeSectionSize); ?>" aria-labelledby="<?php echo sr_e($contentHomeSectionTitleId); ?>">
                             <header class="content-home-section-header">
                                 <h2 id="<?php echo sr_e($contentHomeSectionTitleId); ?>" class="content-home-section-title">
                                     <?php if ($contentHomeSectionGrouped && sr_content_group_key_is_valid($contentHomeSectionGroupKey)) { ?>
@@ -87,7 +92,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                     <?php } ?>
                                 </h2>
                                 <?php if ($contentHomeSectionGrouped && sr_content_group_key_is_valid($contentHomeSectionGroupKey)) { ?>
-                                    <a class="content-home-section-more" href="<?php echo sr_e(sr_url(sr_content_group_path($contentHomeSectionGroupKey))); ?>">더 보기</a>
+                                    <a class="content-home-section-more" href="<?php echo sr_e(sr_url(sr_content_group_path($contentHomeSectionGroupKey))); ?>">전체 보기 <span aria-hidden="true">↗</span></a>
                                 <?php } ?>
                             </header>
 
@@ -106,7 +111,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                                         'image_class' => 'content-list-author-profile-image',
                                         'menu_options' => ['return_to' => (string) ($_SERVER['REQUEST_URI'] ?? '/content')],
                                     ]); ?>
-                                    <article class="content-home-latest-item card">
+                                    <article class="content-home-latest-item card<?php echo $contentHomeTreatment === 'recent' ? ' card-soft-primary' : ' card-editorial'; ?>">
                                         <a<?php echo sr_content_entry_link_attributes($contentHomeAccess, 'content-home-latest-media', (string) ($contentHomeItem['title'] ?? $contentHomeSlug)); ?>>
                                             <?php echo sr_content_cover_image_html($contentHomeItem, 'content-home-latest-image card-img-top', (string) ($contentHomeItem['title'] ?? '')); ?>
                                         </a>

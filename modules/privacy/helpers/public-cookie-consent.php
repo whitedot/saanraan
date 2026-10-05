@@ -190,7 +190,7 @@ function sr_privacy_cookie_safe_return_path(string $path): string
         || !is_string($requestPath)
         || $requestPath === ''
         || preg_match('/%(?:2f|5c)/i', $requestPath) === 1
-        || in_array($requestPath, ['/login', '/login/mfa', '/logout'], true)
+        || $requestPath === '/logout'
     ) {
         return '/';
     }

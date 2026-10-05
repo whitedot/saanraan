@@ -635,6 +635,15 @@ sr_check_community_feed_cache_contract_contains('docs/records/milestone-32-commu
     'response-ms-warm',
 ]);
 
+$previewPost = ['home_excerpt_allowed' => true, 'is_secret' => 0, 'home_excerpt' => 'Cached public preview text'];
+sr_check_community_feed_cache_contract_assert(sr_community_home_visible_post_excerpt($previewPost, false, 120) === '', 'Disabled list excerpts must hide cached previews.');
+sr_check_community_feed_cache_contract_assert(sr_community_home_visible_post_excerpt($previewPost, true, 120) === 'Cached public preview text', 'Enabled list excerpts must render public previews.');
+sr_check_community_feed_cache_contract_assert(sr_community_home_visible_post_excerpt(array_merge($previewPost, ['is_secret' => 1]), true, 120) === '', 'Secret posts must never render home excerpts.');
+sr_check_community_feed_cache_contract_assert(sr_community_home_visible_post_excerpt(array_merge($previewPost, ['home_excerpt_allowed' => false]), true, 120) === '', 'Paid-read restrictions must suppress home excerpts.');
+sr_check_community_feed_cache_contract_assert(sr_community_home_visible_post_excerpt($previewPost, true, 6) === sr_community_body_excerpt($previewPost['home_excerpt'], 'plain', 6), 'Home excerpts must respect shorter configured lengths.');
+sr_check_community_feed_cache_contract_contains('modules/community/helpers/presentation.php', ['sr_community_board_list_excerpt_enabled($pdo, $board)', 'sr_community_board_list_excerpt_length($pdo, $board)', "['home_list_excerpt']"]);
+sr_check_community_feed_cache_contract_contains('modules/community/theme/basic/home.php', ["['home_list_excerpt']"]);
+
 if ($errors !== []) {
     fwrite(STDERR, "community feed cache contract checks failed:\n");
     foreach ($errors as $error) {

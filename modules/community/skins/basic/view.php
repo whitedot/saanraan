@@ -77,7 +77,7 @@ $communityLayoutContext = sr_community_public_layout_context($communityLayoutSet
         ['module_key' => 'community', 'point_key' => 'community.post.view', 'slot_key' => 'after_comments'],
         ['module_key' => 'community', 'point_key' => 'community.sidebar.summary', 'slot_key' => 'after_latest_comments'],
     ],
-]);
+], $pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;
 $communityFrameModifier = 'view';
@@ -109,7 +109,7 @@ unset($_SESSION['sr_member_follow_feedback']);
             <?php echo sr_popup_layer_render_public_layer($pdo, (int) ($post['popup_layer_view_id'] ?? 0)); ?>
         <?php } ?>
 
-        <article class="community-post-view">
+        <article class="card community-post-view">
             <header class="community-post-view-header">
             <div class="community-post-heading">
                 <p class="community-post-view-board">
@@ -154,6 +154,9 @@ unset($_SESSION['sr_member_follow_feedback']);
                             <?php echo sr_e(number_format($communityPostReactionCount)); ?>
                         </span>
                     <?php } ?>
+                    <?php if (!empty($canViewPostBody) && empty($paidReadConfirmationRequired) && empty($paidReadBlocked)) { ?>
+                        <span class="community-post-meta-item"><a href="#comments"><?php echo sr_e('댓글 ' . number_format($communityPostCommentCount)); ?></a></span>
+                    <?php } ?>
                     <?php if (!empty($categoryEnabled) && (string) ($post['category_title'] ?? '') !== '') { ?>
                         <span class="community-post-meta-item">
                             <span class="community-post-meta-label"><?php echo sr_e('카테고리'); ?></span>
@@ -166,6 +169,7 @@ unset($_SESSION['sr_member_follow_feedback']);
                     <?php } ?>
                 </div>
             </div>
+            <?php if (empty($canViewPostBody) || !empty($paidReadConfirmationRequired) || !empty($paidReadBlocked)) { ?>
             <div class="community-post-view-actions">
                 <div class="community-action-group community-action-group-leading">
                 <a class="btn btn-outline-default" href="<?php echo sr_e($communityPostBoardUrl); ?>"><?php echo sr_e(sr_t('community::ui.list.f07b3200')); ?></a>
@@ -294,6 +298,7 @@ unset($_SESSION['sr_member_follow_feedback']);
             <?php } ?>
                 </div>
             </div>
+            <?php } ?>
             </header>
 
             <?php echo sr_public_feedback_toasts('community', implode(' ', array_filter(array_map('strval', $postNotices))) . ($reportNotice !== '' ? ($postNotices !== [] ? ' ' : '') . $reportNotice : ''), $reportErrors); ?>
@@ -511,7 +516,7 @@ unset($_SESSION['sr_member_follow_feedback']);
         <?php } ?>
         <?php } ?>
         <?php if (!empty($canViewPostBody) && empty($paidReadConfirmationRequired) && empty($paidReadBlocked)) { ?>
-        <section id="comments" class="community-comments-panel">
+        <section id="comments" class="card community-comments-panel">
             <?php echo sr_render_output_slot($pdo, [
                 'module_key' => 'community',
                 'point_key' => 'community.post.view',
@@ -528,11 +533,13 @@ unset($_SESSION['sr_member_follow_feedback']);
                 <p class="community-comments-empty"><?php echo sr_e(sr_t('community::ui.text.ff4a5d06')); ?></p>
             <?php } else { ?>
                 <ul class="community-comment-list">
-                    <?php foreach ($comments as $comment) { ?>
+                    <?php $communityCommentRows = array_values($comments); ?>
+                        <?php foreach ($communityCommentRows as $communityCommentIndex => $comment) { ?>
                         <?php
                             $communityCommentDepth = min(3, max(1, (int) ($comment['depth'] ?? 1)));
+                            $communityCommentNextDepth = (int) ($communityCommentRows[$communityCommentIndex + 1]['depth'] ?? 1);
                             ?>
-                            <li id="community-comment-<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>" class="community-comment-item community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>">
+                            <li id="community-comment-<?php echo sr_e((string) (int) ($comment['id'] ?? 0)); ?>" class="community-comment-item community-comment-depth-<?php echo sr_e((string) $communityCommentDepth); ?>" data-next-depth="<?php echo sr_e((string) $communityCommentNextDepth); ?>">
                             <?php
                             $communityCommentCanViewBody = sr_community_account_can_view_comment_body($comment, $post, is_array($account ?? null) ? $account : null, $pdo, $communityCommentPermissionContext ?? []);
                             $communityCommentCanEdit = is_array($account) && sr_community_account_can_edit_comment($comment, $account);

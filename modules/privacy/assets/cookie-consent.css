@@ -2,7 +2,7 @@
 .sr-cookie-consent-text{display:grid;gap:.25rem;min-width:0}
 .sr-cookie-consent-text strong{font-size: var(--type-small-size);line-height:1.3}
 .sr-cookie-consent-text p{margin:0;color:var(--sr-muted,var(--color-default-600));font-size:var(--type-small-size);line-height:1.5}
-.sr-cookie-consent-actions{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:flex-end}
+.sr-cookie-consent-actions{display:flex;flex-wrap:nowrap;gap:.5rem;justify-content:flex-end;flex-shrink:0}
 .sr-cookie-consent-actions form{display:grid;gap:.5rem;margin:0}
 .sr-cookie-consent-items{display:grid;gap:.375rem;min-width:min(20rem,100%)}
 .sr-cookie-consent-item{display:flex;gap:.5rem;align-items:flex-start;font-size: var(--type-small-size);line-height:1.4}
@@ -10,4 +10,4 @@
 .sr-cookie-consent-item-required{color:var(--sr-muted-strong,var(--color-default-700,#374151))}
 .sr-cookie-consent-item-required input{cursor:not-allowed}
 .sr-cookie-consent-item span{display:grid;gap:.125rem}
-@media (max-width:640px){.sr-cookie-consent{left:1rem;right:1rem;display:grid}.sr-cookie-consent-actions{justify-content:stretch}.sr-cookie-consent-actions form,.sr-cookie-consent-actions .btn{width:100%}}
+@media (max-width:640px){.sr-cookie-consent{left:1rem;right:1rem;display:grid;gap:.75rem;padding:.875rem}.sr-cookie-consent-text p{font-size:.75rem}.sr-cookie-consent-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}.sr-cookie-consent-actions form,.sr-cookie-consent-actions .btn{width:100%;min-width:0}}

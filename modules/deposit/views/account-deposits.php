@@ -25,7 +25,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
             <p>대기 중 환불 신청액: <?php echo sr_e($depositAmountLabel((int) $pendingRefundAmount)); ?></p>
             <p>환불 신청 가능액: <?php echo sr_e($depositAmountLabel((int) $availableRefundAmount)); ?></p>
         </div></section>
-        <section id="deposit-refund-request" class="card"><div class="card-body ui-card-body-stack">
+        <details class="ui-disclosure"<?php echo !empty($errors) ? ' open' : ''; ?>><summary>환불 신청</summary>
+<section id="deposit-refund-request" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">환불 신청</h2>
             <?php if (!empty($depositIdentityRequired)) { ?>
                 <div class="alert <?php echo !empty($depositIdentitySatisfied) ? 'alert-success' : 'alert-warning'; ?>">
@@ -81,6 +82,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </form>
             <?php } ?>
         </div></section>
+        </details>
         <section id="deposit-refund-history" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">환불 신청 내역</h2>
             <?php if ($refundRequests === []) { ?>

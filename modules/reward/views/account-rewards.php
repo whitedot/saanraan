@@ -25,7 +25,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
             <p>대기 중 출금 신청액: <?php echo sr_e($rewardAmountLabel((int) $pendingWithdrawalAmount)); ?></p>
             <p>출금 신청 가능액: <?php echo sr_e($rewardAmountLabel((int) $availableWithdrawalAmount)); ?></p>
         </div></section>
-        <section id="reward-withdrawal-request" class="card"><div class="card-body ui-card-body-stack">
+        <details class="ui-disclosure"<?php echo !empty($errors) ? ' open' : ''; ?>><summary>출금 신청</summary>
+<section id="reward-withdrawal-request" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">출금 신청</h2>
             <?php if (!empty($rewardIdentityRequired)) { ?>
                 <div class="alert <?php echo !empty($rewardIdentitySatisfied) ? 'alert-success' : 'alert-warning'; ?>">
@@ -81,6 +82,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </form>
             <?php } ?>
         </div></section>
+        </details>
         <section id="reward-withdrawal-history" class="card"><div class="card-body ui-card-body-stack">
             <h2 class="card-title">출금 신청 내역</h2>
             <?php if ($withdrawalRequests === []) { ?>

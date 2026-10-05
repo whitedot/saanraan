@@ -450,6 +450,22 @@ function sr_community_layout_menu_html(PDO $pdo, string $menuKey, string $slotKe
         return '';
     }
 
+    $navigationBoards = [];
+    foreach (sr_community_enabled_boards($pdo) as $navigationBoard) {
+        if ((string) ($navigationBoard['effective_read_policy'] ?? $navigationBoard['read_policy'] ?? '') === 'public') {
+            $navigationBoards[] = $navigationBoard;
+        }
+    }
+    $navigationUrls = array_column($links, 'url');
+    $navigationGroups = array_column($links, 'group_key');
+    foreach ($navigationBoards as $navigationBoard) {
+        $navigationKey = (string) ($navigationBoard['board_key'] ?? '');
+        $navigationGroup = (string) ($navigationBoard['board_group_key'] ?? '');
+        $navigationUrl = '/community/board?key=' . rawurlencode($navigationKey);
+        if (sr_community_board_key_is_valid($navigationKey) && !in_array($navigationGroup, $navigationGroups, true) && !in_array($navigationUrl, $navigationUrls, true)) {
+            $links[] = ['label' => (string) ($navigationBoard['title'] ?? $navigationKey), 'url' => $navigationUrl];
+        }
+    }
     $currentPath = '/' . trim(sr_request_path(), '/');
     $currentPath = $currentPath === '/' ? '/' : rtrim($currentPath, '/');
     $currentQuery = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
@@ -537,14 +553,27 @@ function sr_community_layout_menu_html(PDO $pdo, string $menuKey, string $slotKe
             $linkGroupKey !== ''
             && $linkGroupKey === $currentGroupKey
         ) ? ' aria-current="page"' : '';
-        $html .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($url)) . '"' . $currentAttribute . '>' . sr_e($label) . '</a></li>';
+        $children = array_values(array_filter($navigationBoards, static fn (array $board): bool => $linkGroupKey !== '' && (string) ($board['board_group_key'] ?? '') === $linkGroupKey));
+        $html .= '<li class="sr-site-menu-item' . ($children !== [] ? ' sr-site-menu-item-has-children' : '') . '"><a class="sr-site-menu-link" href="' . sr_e(sr_url($url)) . '"' . $currentAttribute . '>' . sr_e($label) . '</a>';
+        if ($children !== []) {
+            $html .= '<ul class="sr-site-menu-list sr-site-menu-list-depth-2"><li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url($url)) . '">그룹 전체 보기</a></li>';
+            foreach ($children as $child) {
+                $childKey = (string) ($child['board_key'] ?? '');
+                if (!sr_community_board_key_is_valid($childKey)) {
+                    continue;
+                }
+                $html .= '<li class="sr-site-menu-item"><a class="sr-site-menu-link" href="' . sr_e(sr_url('/community/board?key=' . rawurlencode($childKey))) . '"' . ($childKey === $currentBoardKey ? ' aria-current="page"' : '') . '>' . sr_e((string) ($child['title'] ?? $childKey)) . '</a></li>';
+            }
+            $html .= '</ul>';
+        }
+        $html .= '</li>';
     }
     $html .= '</ul></div>';
 
     return $html;
 }
 
-function sr_community_public_layout_context(array $settings, array $context = []): array
+function sr_community_public_layout_context(array $settings, array $context = [], ?PDO $pdo = null): array
 {
     $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
     if ($layoutKey !== '') {
@@ -555,6 +584,11 @@ function sr_community_public_layout_context(array $settings, array $context = []
         $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'community';
+    $primaryMenuKey = sr_community_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'));
+    $context['module_navigation_html'] = '';
+    if ($pdo instanceof PDO && $primaryMenuKey === 'sr_community_board_groups') {
+        $context['module_navigation_html'] = sr_community_layout_menu_html($pdo, $primaryMenuKey, 'primary');
+    }
     $context['style_profile'] = 'module';
     $context['module_home_url'] = sr_url('/community');
     $context['module_label'] = '커뮤니티';
@@ -593,9 +627,9 @@ function sr_community_public_layout_context(array $settings, array $context = []
     return $context;
 }
 
-function sr_community_ui_kit_layout_context(array $settings, array $context = []): array
+function sr_community_ui_kit_layout_context(array $settings, array $context = [], ?PDO $pdo = null): array
 {
-    $context = sr_community_public_layout_context($settings, $context);
+    $context = sr_community_public_layout_context($settings, $context, $pdo);
     $themeKey = sr_community_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('community', $themeKey, 'common.css');

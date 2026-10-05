@@ -91,6 +91,21 @@ foreach ([
     $assert($lineCount <= 4, $adapterFunction . ' must remain a thin module-boundary adapter.');
 }
 
+// A configured site menu (including explicitly disabled) must not query or
+// replace itself with the module's automatic group navigation.
+$menuFixturePdo = new PDO('sqlite::memory:');
+foreach (['content', 'community'] as $consumer) {
+    $contextFunction = 'sr_' . $consumer . '_public_layout_context';
+    foreach (['header', 'custom_navigation', ''] as $menuKey) {
+        $context = $contextFunction(['layout_primary_menu_key' => $menuKey], [
+            'layout_key' => $consumer === 'content' ? 'community.basic' : 'content.basic',
+        ], $menuFixturePdo);
+        $assert(($context['site_menus']['primary'] ?? null) === $menuKey, $consumer . ' must preserve the selected site menu key.');
+        $assert(($context['module_navigation_html'] ?? null) === '', $consumer . ' must not override a site menu with automatic group links.');
+        $assert(($context['layout_key'] ?? '') === ($consumer === 'content' ? 'community.basic' : 'content.basic'), 'Cross-module layout selection must preserve the consumer menu.');
+    }
+}
+
 if ($errors !== []) {
     fwrite(STDERR, "layout extra-menu checks failed:\n- " . implode("\n- ", $errors) . "\n");
     exit(1);

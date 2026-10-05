@@ -638,7 +638,7 @@ function sr_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50, 
     $limit = max(1, min(100, $limit));
     $offset = max(0, $offset);
     if ($box === 'sent') {
-        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
+        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.body_text, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        recipient.display_name AS other_display_name,
                        recipient.status AS other_account_status
                 FROM sr_messages m
@@ -648,7 +648,7 @@ function sr_message_box(PDO $pdo, int $accountId, string $box, int $limit = 50, 
                 ORDER BY m.id DESC
                 LIMIT :limit_value OFFSET :offset_value';
     } else {
-        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
+        $sql = 'SELECT m.id, m.sender_account_id, m.recipient_account_id, m.body_text, m.status, m.read_at, m.sender_deleted_at, m.recipient_deleted_at, m.created_at, m.updated_at,
                        sender.display_name AS other_display_name,
                        sender.status AS other_account_status
                 FROM sr_messages m

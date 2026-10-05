@@ -11,7 +11,7 @@ $seo = [
     'robots' => 'noindex, follow',
 ];
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings));
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [], $pdo));
 ?>
     <main class="community-screen community-series-detail-screen">
         <nav class="community-series-detail-path" aria-label="<?php echo sr_e('시리즈 위치'); ?>">

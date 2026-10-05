@@ -45,7 +45,7 @@ $contentGroupLayoutContext = [
 if (isset($pageGroupLayoutKey) && is_string($pageGroupLayoutKey) && $pageGroupLayoutKey !== '') {
     $contentGroupLayoutContext['layout_key'] = $pageGroupLayoutKey;
 }
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, $contentGroupLayoutContext));
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layout_context($contentLayoutSettings, $contentGroupLayoutContext, $pdo));
 ?>
 
 <main class="content-group content-home-screen">
@@ -85,10 +85,13 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
                             ],
                         ]);
                         ?>
-                        <article class="content-home-latest-item card">
+                        <?php $groupContentCoverHtml = sr_content_cover_image_html($groupContent, 'content-home-latest-image card-img-top', (string) ($groupContent['title'] ?? '')); ?>
+                        <article class="content-home-latest-item card<?php echo $groupContentCoverHtml === '' ? ' content-group-text-item' : ''; ?>">
+                            <?php if ($groupContentCoverHtml !== '') { ?>
                             <a<?php echo sr_content_entry_link_attributes($groupContentAccess, 'content-home-latest-media', (string) ($groupContent['title'] ?? $groupContentSlug)); ?>>
-                                <?php echo sr_content_cover_image_html($groupContent, 'content-home-latest-image card-img-top', (string) ($groupContent['title'] ?? '')); ?>
+                                <?php echo $groupContentCoverHtml; ?>
                             </a>
+                            <?php } ?>
                             <div class="content-home-latest-copy card-body">
                                 <div class="content-home-latest-meta">
                                     <span class="content-list-author">

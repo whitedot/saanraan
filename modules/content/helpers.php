@@ -399,7 +399,7 @@ function sr_content_default_layout_key(PDO $pdo, ?array $site = null): string
     return sr_content_fallback_layout_key($pdo, $site);
 }
 
-function sr_content_public_layout_context(array $settings, array $context = []): array
+function sr_content_public_layout_context(array $settings, array $context = [], ?PDO $pdo = null): array
 {
     $layoutKey = sr_public_layout_normalize_key((string) ($settings['layout_key'] ?? ''));
     if ($layoutKey !== '') {
@@ -410,6 +410,11 @@ function sr_content_public_layout_context(array $settings, array $context = []):
         $context['theme_key'] = $themeKey;
     }
     $context['consumer_domain'] = 'content';
+    $primaryMenuKey = sr_content_clean_layout_menu_key((string) ($settings['layout_primary_menu_key'] ?? 'header'));
+    $context['module_navigation_html'] = '';
+    if ($pdo instanceof PDO && $primaryMenuKey === 'sr_content_groups') {
+        $context['module_navigation_html'] = sr_content_layout_menu_html($pdo, $primaryMenuKey, 'primary');
+    }
     $context['style_profile'] = 'module';
     $context['module_home_url'] = sr_url('/content');
     $context['module_label'] = '콘텐츠';
@@ -483,9 +488,9 @@ function sr_content_public_view_file(PDO $pdo, array $settings, string $viewFile
     return SR_ROOT . '/modules/content/views/' . $viewFile;
 }
 
-function sr_content_ui_kit_layout_context(array $settings, array $context = []): array
+function sr_content_ui_kit_layout_context(array $settings, array $context = [], ?PDO $pdo = null): array
 {
-    $context = sr_content_public_layout_context($settings, $context);
+    $context = sr_content_public_layout_context($settings, $context, $pdo);
     $themeKey = sr_content_theme_key((string) ($settings['theme_key'] ?? ''));
     $stylesheets = is_array($context['stylesheets'] ?? null) ? $context['stylesheets'] : [];
     $stylesheets[] = sr_public_layout_module_theme_asset_url('content', $themeKey, 'common.css');

@@ -183,7 +183,8 @@ sr_check_content_search_contains($root . '/modules/content/actions/search.php', 
 ]);
 sr_check_content_search_not_contains($root . '/modules/content/actions/search.php', ['min($page, 50)']);
 sr_check_content_search_contains($root . '/modules/content/theme/basic/layout.php', [
-    "sr_url('/content/search')",
+    "rtrim(\$layoutModuleHomeUrl, '/') . '/search'",
+    'sr_e($layoutSearchPath)',
     'data-content-layout-search-form',
     'data-content-scroll-nav',
 ]);

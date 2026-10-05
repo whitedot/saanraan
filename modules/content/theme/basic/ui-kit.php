@@ -28,7 +28,7 @@ $contentLayoutSettings = isset($contentLayoutSettings) && is_array($contentLayou
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_ui_kit_layout_context($contentLayoutSettings, [
     'include_installed_layout_options' => true,
-]));
+], $pdo));
 ?>
 
     <main class="content-ui-kit" data-theme-ui-kit-view="content.basic">

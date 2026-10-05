@@ -28,7 +28,7 @@ $communityLayoutSettings = isset($communityLayoutSettings) && is_array($communit
 
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_ui_kit_layout_context($communityLayoutSettings, [
     'include_installed_layout_options' => true,
-]));
+], $pdo));
 ?>
 
     <main class="community-ui-kit" data-theme-ui-kit-view="community.basic">

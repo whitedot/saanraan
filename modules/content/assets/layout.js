@@ -125,3 +125,14 @@
 
   init();
 })();
+
+// Parent links open their child board menu on touch; child links still navigate.
+document.addEventListener('click', function (event) {
+  if (!window.matchMedia('(max-width: 767px), (pointer: coarse)').matches) return;
+  var link = event.target instanceof Element ? event.target.closest('.content-layout-primary .sr-site-menu-item-has-children > a') : null;
+  if (!link) return;
+  event.preventDefault();
+  var item = link.parentElement;
+  item.classList.add('is-site-menu-open');
+  link.setAttribute('aria-expanded', 'true');
+}, true);

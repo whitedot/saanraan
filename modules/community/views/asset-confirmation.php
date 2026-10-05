@@ -22,7 +22,7 @@ if (!$assetConfirmationStandaloneLayout) {
 }
 
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings));
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [], $pdo));
 ?>
 <main class="community-screen">
     <article>

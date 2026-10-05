@@ -12,7 +12,7 @@ $seo = [
 $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings : sr_community_settings($pdo);
 $communityLayoutContext = sr_community_public_layout_context($communityLayoutSettings, [
     'layout_key' => (string) ($communityLayoutKey ?? ''),
-]);
+], $pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $myTitle;
 $communityFrameModifier = 'account';

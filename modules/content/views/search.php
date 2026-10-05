@@ -17,9 +17,9 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     'output_slots' => [
         ['module_key' => 'content', 'point_key' => 'content.sidebar.summary', 'slot_key' => 'after_summary'],
     ],
-]));
+], $pdo));
 ?>
-<main class="content-search-screen">
+<main class="content-search-screen content-focused-screen">
     <div class="content-screen-frame">
         <div class="content-screen-main">
     <h1><?php echo sr_e('콘텐츠 검색'); ?></h1>
@@ -37,7 +37,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_content_public_layo
     <?php } elseif ($searchKeywordTooShort) { ?>
         <p class="content-search-empty"><?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?></p>
     <?php } elseif ($items === []) { ?>
-        <p class="content-search-summary"><?php echo sr_e('검색 결과가 없습니다.'); ?></p>
+        <section class="ui-empty-state"><h2 class="type-section-title">검색 결과가 없습니다.</h2><p>다른 검색어를 입력하거나 전체 콘텐츠를 둘러보세요.</p><a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/content')); ?>">콘텐츠 둘러보기</a></section>
     <?php } else { ?>
         <p class="content-search-summary"><?php echo sr_e('검색 결과'); ?></p>
         <ol class="content-search-results">

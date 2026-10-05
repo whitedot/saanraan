@@ -24,7 +24,10 @@ $assert(
         && sr_privacy_cookie_safe_return_path('//example.test') === '/'
         && sr_privacy_cookie_safe_return_path('/safe/%2f/escape') === '/'
         && sr_privacy_cookie_safe_return_path('/safe/../escape') === '/'
-        && sr_privacy_cookie_safe_return_path('/login') === '/',
+        && sr_privacy_cookie_safe_return_path('/login') === '/login'
+        && sr_privacy_cookie_safe_return_path('/login?next=%2Faccount') === '/login?next=%2Faccount'
+        && sr_privacy_cookie_safe_return_path('/login/mfa') === '/login/mfa'
+        && sr_privacy_cookie_safe_return_path('/logout') === '/',
     'privacy cookie contract must own safe return-path validation without member helpers.'
 );
 

@@ -2,7 +2,7 @@
 
 $pageTitle = '내 시리즈';
 $seo = ['title' => $pageTitle, 'canonical' => '/community/series', 'robots' => 'noindex, nofollow'];
-sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($settings ?? []));
+sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($settings ?? [], [], $pdo));
 ?>
 <main class="community-screen">
     <h1><?php echo sr_e($pageTitle); ?></h1>

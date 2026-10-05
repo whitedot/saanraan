@@ -13,4 +13,10 @@
             <span class="public-home-tagline-character" aria-hidden="true">?</span>
         </p>
     </div>
+    <?php if (($homePdo ?? null) instanceof PDO) { ?>
+        <div class="public-home-explore">
+            <p>관심 있는 이야기부터 시작해 보세요.</p>
+            <nav aria-label="사이트 둘러보기"><?php echo sr_render_output_slot($homePdo, ['module_key' => 'core', 'point_key' => 'site.header', 'slot_key' => 'primary_navigation', 'menu_key' => 'header']); ?></nav>
+        </div>
+    <?php } ?>
 </section>

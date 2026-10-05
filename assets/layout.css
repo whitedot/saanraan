@@ -3,8 +3,9 @@
  * Owns the default public layout shell only.
  */
 .public-layout-body {
-    --public-layout-brand-font-size: var(--text-lg, 1.125rem);
-    --public-layout-brand-font-weight: 800;
+    --font-body: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
+    --public-layout-brand-font-size: 31px;
+    --public-layout-brand-font-weight: 750;
     --public-layout-module-font-size: var(--type-meta-size, 0.75rem);
     --public-layout-module-font-weight: 800;
     --public-layout-nav-font-size: var(--type-small-size, 0.875rem);
@@ -21,10 +22,12 @@
     align-items: center;
     background: transparent;
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr);
-    height: 60px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 32px;
+    min-height: 100px;
+    height: auto;
     margin: 0;
-    padding: 0 max(calc((100vw - 1360px) / 2), clamp(16px, 2.5vw, 48px));
+    padding: 22px max(calc((100vw - 1280px) / 2), 32px);
     position: sticky;
     top: 0;
     transform: translateY(0);
@@ -79,7 +82,7 @@
     font-family: var(--font-body);
     font-size: var(--public-layout-brand-font-size);
     font-weight: var(--public-layout-brand-font-weight);
-    letter-spacing: 0;
+    letter-spacing: -.055em;
     line-height: 1;
     min-width: 0;
     overflow: hidden;
@@ -90,9 +93,9 @@
 .public-layout-nav {
     align-items: center;
     display: flex;
-    gap: 42px;
-    justify-content: center;
-    justify-self: center;
+    gap: 26px;
+    justify-content: flex-start;
+    justify-self: start;
     min-width: 0;
     white-space: nowrap;
 }
@@ -844,4 +847,25 @@
     .public-layout-member-dropdown {
         right: -6px;
     }
+}
+
+@media(max-width:767px) {
+ .public-layout-header { padding: 20px; gap: 20px; }
+ .public-layout-brand-text { font-size: 27px; }
+}
+
+.public-layout-body { --font-secondary: var(--font-body); }
+.public-layout-footer-wordmark { font-size: 27px; font-weight: 750; letter-spacing: -.055em; }
+.public-layout-footer-row { border-top: 1px solid var(--sr-border); padding-top: 30px; gap: 24px; }
+.public-layout-footer-row > p { margin-right: auto; }
+.public-layout-directory { inset: 0; margin: auto; width: min(900px,calc(100vw - 40px)); max-height: calc(100dvh - 80px); overflow: auto; padding: 28px; background: var(--sr-surface); color: var(--sr-text); border: 1px solid var(--sr-border); border-radius: 16px; }
+.public-layout-directory::backdrop { background: #0e18294d; }
+.public-layout-directory > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.public-layout-directory .sr-site-menu-list-depth-1 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.public-layout-directory .sr-site-menu-list-depth-2 { display: block; position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border: 0; margin-top: 10px; }
+.public-layout-consumer-nav > .sr-site-menu > .sr-site-menu-list-depth-1 > li:nth-child(n+5) { display: none; }
+@media(max-width:767px) {
+ .public-layout-footer-row { flex-wrap: wrap; gap: 16px; }
+ .public-layout-directory .sr-site-menu-list-depth-1 { grid-template-columns: minmax(0,1fr); }
+ .public-layout-consumer-nav > .sr-site-menu > .sr-site-menu-list-depth-1 > li:nth-child(n+3) { display: none; }
 }

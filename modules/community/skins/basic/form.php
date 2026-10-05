@@ -61,7 +61,7 @@ $communityLayoutContext = sr_community_public_layout_context($communityLayoutSet
         ['module_key' => 'community', 'point_key' => 'community.post.form', 'slot_key' => 'after_form'],
         ['module_key' => 'community', 'point_key' => 'community.sidebar.summary', 'slot_key' => 'after_latest_comments'],
     ],
-]);
+], $pdo);
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, $communityLayoutContext);
 $communityMainLabel = $pageTitle;
 $communityFrameModifier = 'form';
@@ -174,6 +174,7 @@ $communityFrameModifier = 'form';
                 </div>
             <?php } ?>
             <?php if (!$isGuestAuthorForm && !empty($seriesEnabled)) { ?>
+            <details class="ui-disclosure"><summary>시리즈 설정</summary>
             <fieldset>
                 <legend><?php echo sr_e('시리즈'); ?></legend>
                 <p>
@@ -227,6 +228,7 @@ $communityFrameModifier = 'form';
                     </label>
                 </p>
             </fieldset>
+            </details>
             <?php } ?>
             <?php if ($imageUploadEnabled) { ?>
                 <p>
@@ -252,7 +254,9 @@ $communityFrameModifier = 'form';
             <?php if (!isset($postIdField) && function_exists('sr_antispam_challenge_render')) { ?>
                 <?php echo sr_antispam_challenge_render($pdo, 'community.post.guest', 'community_post_' . (string) (int) $board['id'], $antispamPostContext); ?>
             <?php } ?>
-            <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($submitLabel); ?></button>
+            <div class="ui-actions community-post-form-actions">
+                <button type="submit" class="btn btn-solid-primary"><?php echo sr_e($submitLabel); ?></button>
+            </div>
         </form>
 
         <?php echo sr_render_output_slot($pdo, [

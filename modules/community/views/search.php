@@ -14,7 +14,7 @@ $communityLayoutSettings = isset($settings) && is_array($settings) ? $settings :
 sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_layout_context($communityLayoutSettings, [
     'consumer_target' => 'community.search',
     'layout_key' => (string) ($communityLayoutKey ?? ''),
-]));
+], $pdo));
 ?>
     <main class="community-screen community-search-screen">
         <h1><?php echo sr_e('커뮤니티 검색'); ?></h1>
@@ -32,7 +32,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, sr_community_public_la
         <?php } elseif ($searchKeywordTooShort) { ?>
             <p class="community-search-empty"><?php echo sr_e('검색어는 2글자 이상 입력해 주세요.'); ?></p>
         <?php } elseif ($posts === []) { ?>
-            <p class="community-search-summary"><?php echo sr_e('검색 결과가 없습니다.'); ?></p>
+            <section class="ui-empty-state"><h2 class="type-section-title">검색 결과가 없습니다.</h2><p>다른 검색어를 입력하거나 전체 커뮤니티를 둘러보세요.</p><a class="btn btn-outline-default" href="<?php echo sr_e(sr_url('/community')); ?>">커뮤니티 둘러보기</a></section>
         <?php } else { ?>
             <p class="community-search-summary"><?php echo sr_e('검색 결과'); ?></p>
             <ol class="community-search-results">

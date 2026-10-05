@@ -42,7 +42,8 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                 </div>
             </section>
 
-            <section id="asset-exchange-request" class="card">
+            <details class="ui-disclosure"<?php echo !empty($errors) ? ' open' : ''; ?>><summary>환전 신청</summary>
+<section id="asset-exchange-request" class="card">
                 <div class="card-header">
                     <h2 class="card-title">환전 신청</h2>
                 </div>
@@ -116,6 +117,7 @@ sr_public_layout_begin($pdo ?? null, $site ?? null, $seo, []);
                     <?php } ?>
                 </div>
             </section>
+        </details>
 
             <section id="asset-exchange-history" class="card">
                 <div class="card-header">

@@ -49,3 +49,6 @@
         <p class="ui-field-help">정적 구성 예시입니다. 실제 페이지 URL과 권한은 소유 모듈에서 계산하고 기존 pagination helper에 전달합니다.</p>
     </div>
 </div>
+
+<details class="ui-disclosure"><summary>보조 정보는 필요할 때 펼쳐 보기</summary><p>다른 분류와 설정은 주 작업을 방해하지 않는 위치에 둡니다.</p></details>
+<section class="ui-empty-state"><h3 class="type-section-title">아직 등록된 항목이 없습니다.</h3><p>이미지가 없는 항목은 빈 사진 틀 대신 제목과 요약으로 구성합니다.</p></section>

@@ -234,3 +234,8 @@
         display: none;
     }
 }
+
+.public-home-explore { position: absolute; bottom: 8%; left: 20px; right: 20px; z-index: 1; display: grid; justify-items: center; gap: 12px; }
+.public-home-explore > p { color: var(--sr-muted); font-size: 14px; margin: 0; }
+.public-home-explore .sr-site-menu-list-depth-1 { justify-content: center; flex-wrap: wrap; gap: 20px; }
+.public-home-explore .sr-site-menu a { color: var(--sr-text); font-size: 14px; }
