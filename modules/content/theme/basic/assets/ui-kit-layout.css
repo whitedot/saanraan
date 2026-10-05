@@ -1171,8 +1171,6 @@ input:focus-visible + [class*=btn-choice-],
 
 /* Public button interactive state guarantee. */
 @media (hover: hover) {
-    .btn-primary:hover,
-    .btn-solid-primary:hover { background-color: var(--color-primary-hover); border-color: var(--color-primary-hover); color: var(--color-white); }
     :is(.btn-light, .btn-surface, .btn-surface-default, .btn-surface-default-soft, .btn-subtle-light):hover { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); color: var(--color-default-950); }
     :is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):hover { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
     :is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):hover { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
@@ -1200,8 +1198,6 @@ input:focus-visible + [class*=btn-choice-],
     .btn-ghost-info:hover { background-color: color-mix(in oklab, var(--color-info) 12%, transparent); }
     .btn-ghost-dark:hover { background-color: color-mix(in oklab, var(--color-dark) 26%, transparent); color: var(--color-default-950); }
 }
-.btn-primary:active,
-.btn-solid-primary:active { background-color: var(--color-primary-hover); border-color: var(--color-primary-hover); color: var(--color-white); }
 :is(.btn-light, .btn-surface, .btn-surface-default, .btn-surface-default-soft, .btn-subtle-light):active { background-color: color-mix(in oklab, var(--color-default-500) 18%, var(--color-card)); color: var(--color-default-950); }
 :is(.btn-solid-secondary, .btn-solid-secondary-muted, .btn-solid-secondary-contrast):active { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); color: var(--color-white); }
 :is(.btn-solid-success, .btn-solid-success-strong, .btn-solid-success-contrast):active { background-color: var(--color-success-hover); border-color: var(--color-success-hover); color: var(--color-slate-950); }
