@@ -1301,7 +1301,7 @@ function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy)
             $forward = $policiesBySlot[sr_asset_exchange_policy_slot_key($firstAssetKey, $secondAssetKey)] ?? null;
             $back = $policiesBySlot[sr_asset_exchange_policy_slot_key($secondAssetKey, $firstAssetKey)] ?? null;
             if (is_array($forward) && is_array($back) && sr_asset_exchange_policy_cycle_increases_value_sequence([$forward, $back])) {
-                throw new InvalidArgumentException('무수수료 양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 비율, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
+                throw new InvalidArgumentException('양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 순환 비율은 1 이하여야 하며, 소수 비율의 올림·반올림에는 최소 1 이상의 수수료가 필요합니다.');
             }
 
             foreach (sr_asset_exchange_canonical_asset_keys() as $thirdAssetKey) {
@@ -1318,7 +1318,7 @@ function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy)
                     && is_array($third)
                     && sr_asset_exchange_policy_cycle_increases_value_sequence([$first, $second, $third])
                 ) {
-                    throw new InvalidArgumentException('무수수료 3자 순환 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 비율, 소수 처리 방식 또는 수수료 정책을 조정하세요.');
+                    throw new InvalidArgumentException('3자 순환 환전에서 반복 환전 시 가치가 증가할 수 있습니다. 순환 비율은 1 이하여야 하며, 소수 비율의 올림·반올림에는 최소 1 이상의 수수료가 필요합니다.');
                 }
             }
         }
@@ -1336,35 +1336,49 @@ function sr_asset_exchange_policy_cycle_increases_value_sequence(array $policies
         return false;
     }
 
-    $ratioNumerator = 1;
-    $ratioDenominator = 1;
-    foreach ($policies as $policy) {
-        if ((string) ($policy['fee_trigger'] ?? 'none') !== 'none') {
-            return false;
+    // A fee must not bypass the exchange-rate safety invariant. Cancel across
+    // the entire cycle so equivalent large ratios do not overflow the check.
+    $numerators = array_map(static fn(array $policy): int => max(1, (int) ($policy['rate_numerator'] ?? 1)), $policies);
+    $denominators = array_map(static fn(array $policy): int => max(1, (int) ($policy['rate_denominator'] ?? 1)), $policies);
+    foreach ($numerators as &$numerator) {
+        foreach ($denominators as &$denominator) {
+            $gcd = sr_asset_exchange_gcd($numerator, $denominator);
+            $numerator = intdiv($numerator, $gcd);
+            $denominator = intdiv($denominator, $gcd);
         }
-
-        $ratioNumerator *= max(1, (int) ($policy['rate_numerator'] ?? 1));
-        $ratioDenominator *= max(1, (int) ($policy['rate_denominator'] ?? 1));
+        unset($denominator);
     }
-
-    if ($ratioNumerator > $ratioDenominator) {
+    unset($numerator);
+    $products = [];
+    foreach ([$numerators, $denominators] as $factors) {
+        $product = 1;
+        foreach ($factors as $factor) {
+            if ($product > intdiv(PHP_INT_MAX, $factor)) {
+                throw new InvalidArgumentException('순환 환전 비율을 검증할 수 있는 정수 범위를 초과합니다. 환산 기준을 줄이세요.');
+            }
+            $product *= $factor;
+        }
+        $products[] = $product;
+    }
+    if ($products[0] > $products[1]) {
         return true;
     }
 
-    for ($amount = 1; $amount <= 1000; $amount++) {
-        $converted = $amount;
-        foreach ($policies as $policy) {
-            $converted = sr_asset_exchange_apply_ratio(
-                $converted,
-                max(1, (int) ($policy['rate_numerator'] ?? 1)),
-                max(1, (int) ($policy['rate_denominator'] ?? 1)),
-                (string) ($policy['rounding_mode'] ?? 'floor')
-            );
-            if ($converted <= 0) {
-                break;
-            }
+    // Each leg must pay no more than its exact ratio. Integer ratios and floor
+    // satisfy this directly; other rounding needs a guaranteed deduction >= 1.
+    // This proof covers every permitted amount, rather than a sample of 1..1000.
+    foreach ($policies as $policy) {
+        $numerator = max(1, (int) ($policy['rate_numerator'] ?? 1));
+        $denominator = max(1, (int) ($policy['rate_denominator'] ?? 1));
+        if (($policy['rounding_mode'] ?? 'floor') === 'floor' || $numerator % $denominator === 0) {
+            continue;
         }
-        if ($converted > $amount) {
+        $minimum = max(1, (int) ($policy['min_amount'] ?? 1));
+        $gross = sr_asset_exchange_apply_ratio($minimum, $numerator, $denominator, (string) $policy['rounding_mode']);
+        $minimumFee = ($policy['fee_trigger'] ?? 'none') === 'always'
+            ? sr_asset_exchange_fee_amount($policy, $minimum, $gross)
+            : 0;
+        if ($minimumFee < 1) {
             return true;
         }
     }
@@ -1483,6 +1497,7 @@ function sr_asset_exchange_execute_once(PDO $pdo, array $policy, int $accountId,
         throw new RuntimeException('환전 대상 포인트/금액 항목이 활성 상태가 아닙니다.');
     }
 
+    sr_asset_exchange_validate_policy_cycle_safety($pdo, $policy);
     $quote = sr_asset_exchange_quote($pdo, $policy, $accountId, $amount);
     $groupId = sr_asset_exchange_group_id();
     $now = sr_now();
@@ -1785,32 +1800,49 @@ function sr_asset_exchange_apply_ratio(int $amount, int $numerator, int $denomin
         return 0;
     }
 
+    // Cancel factors before multiplication; never calculate money through floats.
+    $gcd = sr_asset_exchange_gcd($amount, $denominator);
+    $amount = intdiv($amount, $gcd);
+    $denominator = intdiv($denominator, $gcd);
+    $gcd = sr_asset_exchange_gcd($numerator, $denominator);
+    $numerator = intdiv($numerator, $gcd);
+    $denominator = intdiv($denominator, $gcd);
+    if ($amount > intdiv(PHP_INT_MAX, $numerator)) {
+        throw new InvalidArgumentException('환전 계산이 지원하는 정수 범위를 초과합니다. 금액 또는 환산 기준을 줄이세요.');
+    }
     $product = $amount * $numerator;
-    if ($roundingMode === 'ceil') {
-        return intdiv($product + $denominator - 1, $denominator);
+    $quotient = intdiv($product, $denominator);
+    $remainder = $product % $denominator;
+    if ($roundingMode === 'ceil' && $remainder > 0) {
+        return $quotient + 1;
     }
-    if ($roundingMode === 'round') {
-        return intdiv(($product * 2) + $denominator, $denominator * 2);
+    if ($roundingMode === 'round' && $remainder >= intdiv($denominator, 2) + ($denominator % 2)) {
+        return $quotient + 1;
     }
+    return $quotient;
+}
 
-    return intdiv($product, $denominator);
+function sr_asset_exchange_gcd(int $left, int $right): int
+{
+    while ($right > 0) {
+        $remainder = $left % $right;
+        $left = $right;
+        $right = $remainder;
+    }
+    return $left;
 }
 
 function sr_asset_exchange_minimum_request_amount_for_positive_deposit(int $numerator, int $denominator, string $roundingMode): int
 {
     $numerator = max(1, $numerator);
     $denominator = max(1, $denominator);
-
     if ($roundingMode === 'ceil') {
         return 1;
     }
-
-    if ($roundingMode === 'round') {
-        $minimumProduct = intdiv($denominator + 1, 2);
-        return max(1, intdiv($minimumProduct + $numerator - 1, $numerator));
-    }
-
-    return max(1, intdiv($denominator + $numerator - 1, $numerator));
+    $minimumProduct = $roundingMode === 'round'
+        ? intdiv($denominator, 2) + ($denominator % 2)
+        : $denominator;
+    return intdiv($minimumProduct - 1, $numerator) + 1;
 }
 
 function sr_asset_exchange_fee_applies(PDO $pdo, array $policy, int $accountId): bool
@@ -1829,12 +1861,16 @@ function sr_asset_exchange_fee_amount(array $policy, int $fromAmount, int $toAmo
     $rateNumerator = (int) ($policy['fee_rate_numerator'] ?? 0);
     $rateDenominator = 100;
     if ($rateNumerator > 0) {
-        $fee += sr_asset_exchange_apply_ratio(
+        $rateFee = sr_asset_exchange_apply_ratio(
             $basis,
             $rateNumerator,
             $rateDenominator,
             (string) ($policy['rounding_mode'] ?? 'floor')
         );
+        if ($fee > PHP_INT_MAX - $rateFee) {
+            throw new InvalidArgumentException('환전 수수료가 지원하는 정수 범위를 초과합니다.');
+        }
+        $fee += $rateFee;
     }
     if (isset($policy['fee_min_amount']) && $policy['fee_min_amount'] !== null) {
         $fee = max($fee, (int) $policy['fee_min_amount']);
@@ -1923,7 +1959,7 @@ function sr_asset_exchange_positive_int(mixed $value, string $message): int
 
 function sr_asset_exchange_nullable_int(mixed $value, string $message): ?int
 {
-    if ($value === null || trim((string) $value) === '') {
+    if ($value === null || (is_string($value) && trim($value) === '')) {
         return null;
     }
 
@@ -1937,7 +1973,7 @@ function sr_asset_exchange_nullable_int(mixed $value, string $message): ?int
 
 function sr_asset_exchange_optional_int(mixed $value, int $default, string $message): int
 {
-    if ($value === null || trim((string) $value) === '') {
+    if ($value === null || (is_string($value) && trim($value) === '')) {
         return $default;
     }
 
@@ -1956,22 +1992,35 @@ function sr_asset_exchange_optional_non_negative_int(mixed $value, int $default,
 
 function sr_asset_exchange_required_int(mixed $value, string $message): int
 {
-    $string = trim((string) $value);
-    if (preg_match('/\A-?\d+\z/', $string) !== 1) {
+    $parsed = sr_asset_exchange_parse_int($value);
+    if ($parsed === null) {
         throw new InvalidArgumentException($message);
     }
+    return $parsed;
+}
 
-    return (int) $string;
+function sr_asset_exchange_parse_int(mixed $value): ?int
+{
+    if (!is_string($value) && !is_int($value)) {
+        return null;
+    }
+    $string = trim((string) $value);
+    if (preg_match('/\A-?[0-9]+\z/', $string) !== 1) {
+        return null;
+    }
+    $negative = str_starts_with($string, '-');
+    $digits = ltrim($negative ? substr($string, 1) : $string, '0');
+    $digits = $digits === '' ? '0' : $digits;
+    $limit = $negative ? substr((string) PHP_INT_MIN, 1) : (string) PHP_INT_MAX;
+    if (strlen($digits) > strlen($limit) || (strlen($digits) === strlen($limit) && strcmp($digits, $limit) > 0)) {
+        return null;
+    }
+    return (int) (($negative ? '-' : '') . $digits);
 }
 
 function sr_asset_exchange_int_string(mixed $value): int
 {
-    $string = trim((string) $value);
-    if (preg_match('/\A-?\d+\z/', $string) !== 1) {
-        return 0;
-    }
-
-    return (int) $string;
+    return sr_asset_exchange_parse_int($value) ?? 0;
 }
 
 function sr_asset_exchange_clean_text(string $value, int $maxLength): string

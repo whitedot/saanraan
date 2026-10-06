@@ -1098,9 +1098,77 @@ function sr_asset_exchange_runtime_noncanonical_guard_case(): void
     }
 }
 
+function sr_asset_exchange_runtime_integer_boundaries_case(): void
+{
+    foreach (['floor' => 4611686018427387903, 'ceil' => 4611686018427387904, 'round' => 4611686018427387904] as $mode => $expected) {
+        sr_asset_exchange_runtime_assert(sr_asset_exchange_apply_ratio(PHP_INT_MAX, 1, 2, $mode) === $expected, 'Boundary rounding must remain exact: ' . $mode);
+        sr_asset_exchange_runtime_assert(sr_asset_exchange_apply_ratio(PHP_INT_MAX, PHP_INT_MAX, PHP_INT_MAX, $mode) === PHP_INT_MAX, 'Equivalent large ratios must cancel before multiplication.');
+    }
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_minimum_request_amount_for_positive_deposit(1, PHP_INT_MAX, 'round') === 4611686018427387904, 'Minimum rounded amount must not overflow.');
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_minimum_request_amount_for_positive_deposit(PHP_INT_MAX, PHP_INT_MAX, 'floor') === 1, 'Minimum floor amount must not overflow.');
+    foreach (['9223372036854775808', '-9223372036854775809', str_repeat('9', 80), [], 1.5, true, '1e3'] as $invalid) {
+        sr_asset_exchange_runtime_assert(sr_asset_exchange_int_string($invalid) === 0, 'Invalid monetary input must not be coerced to a different amount.');
+        try {
+            sr_asset_exchange_required_int($invalid, 'invalid amount');
+            sr_asset_exchange_runtime_error('Required monetary input must reject invalid or overflowing values.');
+        } catch (InvalidArgumentException $exception) {
+        }
+    }
+    foreach ([(string) PHP_INT_MAX => PHP_INT_MAX, (string) PHP_INT_MIN => PHP_INT_MIN, '00012' => 12, '-00012' => -12] as $input => $expected) {
+        sr_asset_exchange_runtime_assert(sr_asset_exchange_required_int($input, 'invalid') === $expected, 'Representable integers must remain unchanged.');
+    }
+    try {
+        sr_asset_exchange_apply_ratio(PHP_INT_MAX, 2, 1, 'floor');
+        sr_asset_exchange_runtime_error('Unrepresentable conversion must fail with a validation error.');
+    } catch (InvalidArgumentException $exception) {
+    }
+    try {
+        sr_asset_exchange_fee_amount(['fee_fixed_amount' => PHP_INT_MAX, 'fee_rate_numerator' => 100], 1, 1);
+        sr_asset_exchange_runtime_error('Fee addition must not overflow.');
+    } catch (InvalidArgumentException $exception) {
+    }
+}
+
+function sr_asset_exchange_runtime_fee_cycle_case(): void
+{
+    $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+    sr_asset_exchange_runtime_schema($pdo);
+    sr_asset_exchange_runtime_seed($pdo, 123, 500);
+    $base = array_replace(sr_asset_exchange_runtime_policy(), ['id' => 0, 'fee_type' => 'fixed', 'fee_fixed_amount' => 1, 'fee_rate_numerator' => 0, 'rate_numerator' => 2]);
+    $forward = array_replace($base, ['from_module_key' => 'reward', 'to_module_key' => 'deposit']);
+    $back = array_replace($base, ['from_module_key' => 'deposit', 'to_module_key' => 'reward']);
+    $forwardId = sr_asset_exchange_save_policy($pdo, $forward);
+    try {
+        sr_asset_exchange_save_policy($pdo, $back);
+        sr_asset_exchange_runtime_error('Fee-bearing value-increasing cycle must be rejected at save.');
+    } catch (InvalidArgumentException $exception) {
+        sr_asset_exchange_runtime_assert(str_contains($exception->getMessage(), '가치가 증가'), 'Cycle rejection must explain the policy problem.');
+    }
+    // Simulate a policy saved before the validation fix, without issuing money.
+    $pdo->exec("INSERT INTO sr_asset_exchange_policies (from_module_key,to_module_key,status,rate_numerator,rate_denominator,min_amount,rounding_mode,fee_trigger,fee_basis,fee_fixed_amount,created_at,updated_at) VALUES ('deposit','reward','enabled',2,1,1,'floor','always','to_amount',1,'2026-01-01','2026-01-01')");
+    try {
+        sr_asset_exchange_execute($pdo, sr_asset_exchange_policy($pdo, $forwardId), 123, 100, 123);
+        sr_asset_exchange_runtime_error('Previously stored unsafe cycle must be rejected at execution.');
+    } catch (InvalidArgumentException $exception) {
+        sr_asset_exchange_runtime_assert(sr_asset_exchange_runtime_balance($pdo, 'sr_reward_balances', 123) === 500, 'Rejected cycle must not debit the account.');
+        sr_asset_exchange_runtime_assert(sr_asset_exchange_runtime_count($pdo, 'sr_asset_exchange_logs') === 0, 'Rejected cycle must not produce a completed log.');
+    }
+    $safe = ['rate_numerator' => 1, 'rate_denominator' => 2, 'rounding_mode' => 'ceil', 'fee_trigger' => 'always', 'fee_fixed_amount' => 1, 'min_amount' => 4];
+    $return = ['rate_numerator' => 2, 'rate_denominator' => 1, 'rounding_mode' => 'floor'];
+    sr_asset_exchange_runtime_assert(!sr_asset_exchange_policy_cycle_increases_value_sequence([$safe, $return]), 'A guaranteed fee may absorb rounding without increasing the ratio.');
+    $safe['fee_max_amount'] = 0;
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_policy_cycle_increases_value_sequence([$safe, $return]), 'A zero fee cap must not bypass rounding protection.');
+    $legs = array_fill(0, 3, ['rate_numerator' => 2, 'rate_denominator' => 1, 'rounding_mode' => 'floor', 'fee_trigger' => 'always', 'fee_fixed_amount' => 1]);
+    sr_asset_exchange_runtime_assert(sr_asset_exchange_policy_cycle_increases_value_sequence($legs), 'Three-way fee-bearing cycles must be checked.');
+    $large = ['rate_numerator' => PHP_INT_MAX, 'rate_denominator' => PHP_INT_MAX, 'rounding_mode' => 'floor'];
+    sr_asset_exchange_runtime_assert(!sr_asset_exchange_policy_cycle_increases_value_sequence([$large, $large, $large]), 'Large equivalent cycles must use exact cancellation.');
+}
+
 if (!extension_loaded('pdo_sqlite')) {
     sr_asset_exchange_runtime_error('pdo_sqlite extension is required for asset exchange runtime checks.');
 } else {
+    sr_asset_exchange_runtime_integer_boundaries_case();
+    sr_asset_exchange_runtime_fee_cycle_case();
     sr_asset_exchange_runtime_success_case();
     sr_asset_exchange_runtime_rollback_case();
     sr_asset_exchange_runtime_failure_log_case();

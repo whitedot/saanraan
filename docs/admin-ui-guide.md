@@ -456,3 +456,11 @@ CSV 내보내기처럼 현재 필터 조건에 붙는 보조 작업은 검색 su
 프로젝트 기본 아이콘셋은 Google Material Symbols Outlined다. 아이콘 폰트는 외부 Google Fonts stylesheet를 호출하지 않고 public/admin 런타임 CSS의 번들 `@font-face` 선언으로 제공한다. 공용 helper는 `sr_icon()`이며 기존 `sr_material_icon_html()`은 호환 래퍼로 유지한다. `.sr-icon[data-sr-material-icon]`은 `sr_icon_bootstrap_script()`가 폰트 준비 완료 class를 붙이기 전까지 투명하게 유지하므로, `home`, `settings` 같은 Material ligature 글자가 로딩 중 잠깐 보이지 않는다. 관리자 메뉴 허용 심볼 이름은 `settings`, `admin-mode`, `users`, `user`, `content`, `stats`, `home`, `folder`, `image`, `layers`, `search`, `menu-list`, `bell`, `shield`, `coins`, `point`, `database`, `savings`, `payments`, `wallet`, `gift`, `ticket`, `message-circle`, `service`, `quiz`, `poll`, `emoji_emotions`, `integration_instructions`다. `/admin/settings`의 관리자 화면 섹션에서 아이콘 키별 표시 방식을 `Material` 또는 `이미지`로 선택할 수 있고, 기본 키 외 사용자 키를 추가할 수 있다. 기본 키는 제거할 수 없고 초기화만 가능하며, 추가한 키만 제거할 수 있다. Material 방식은 키가 가리킬 Material Symbols 이름을 저장하고, 이미지 방식은 JPG, PNG, GIF, WebP 파일을 storage에 업로드한 뒤 관리자 전용 `/admin/icon-image` 엔드포인트로 렌더링한다. 이 엔드포인트는 관리자 설정 조회 권한을 확인하고, S3 저장소에서는 공개 URL 대신 짧은 signed URL만 발급한다. 아이콘 설정 저장이 실패하면 해당 요청에서 새로 업로드한 아이콘 이미지는 삭제하고, 저장 성공 후 더 이상 참조하지 않는 이전 아이콘 이미지는 정리한다. 이미지 삭제가 실패하면 관리자 오류와 서버 오류 로그로 확인할 수 있게 한다.
 
 모듈 메뉴에 허용되는 기본 심볼 이름은 `settings`, `admin-mode`, `users`, `user`, `content`, `stats`, `home`, `folder`, `image`, `layers`, `search`, `menu-list`, `bell`, `shield`, `coins`, `wallet`, `gift`, `message-circle`, `service`, `quiz`, `poll`, `emoji_emotions`, `integration_instructions`이다. 툴바 전용 심볼은 같은 helper 계약에 있더라도 `module_menu`가 꺼져 있으면 모듈 선언에서 사용할 수 없다. 운영자가 `/admin/settings`에서 추가한 공용 아이콘 키는 모듈 선언 기본값이 아니라 `/admin/menu`의 운영자 오버라이드 선택지로 사용한다.
+
+## 환전 정책의 순환·정수 검증
+
+활성 정책은 수수료 유무와 관계없이 2자·3자 순환 경로의 기준 비율 곱이 1 이하여야 한다. 수수료로 비율 증가분을 상쇄하는 설정도 허용하지 않는다. 소수 비율의 올림·반올림은 해당 방향의 최소 환전량에서 실제 수수료가 1 이상이어야 한다. 수수료 최소·최대값을 모두 적용해 판단하며, 정수배 비율과 버림은 추가 보정 없이 허용한다.
+
+이는 일부 금액의 샘플 검사 대신 모든 허용 금액에서 증가하지 않음을 검증하는 보수적인 기준이다. 오류가 나면 방향별 비율을 맞추고 버림을 선택하거나 필요한 최소 수수료를 설정한다. 기존 저장 정책도 실행 시 다시 검사하며, 기준에 맞지 않으면 잔액 변경 전에 거부한다. 기존 거래 정정은 계속 가능하다. 운영자는 기존 활성 정책을 다시 검토해야 하며, 저장된 비율·수수료를 코드가 임의로 변경하지 않는다.
+
+금액·비율·수수료는 PHP 부호 있는 정수 범위 안에서 입력한다. 초과 입력은 최댓값으로 잘라 저장하지 않는다. 계산은 정수 약분과 몫·나머지를 사용하고, 약분 후에도 중간 곱셈이나 수수료 합계가 지원 범위를 넘으면 검증 오류로 거부한다. 실제 DB 동시 처리와 기존 잔액 대사는 별도 설치 환경 검사 대상이다.

@@ -264,9 +264,9 @@ if (
     || strpos($helper, 'function sr_asset_exchange_validate_policy_cycle_safety(PDO $pdo, array $policy): void') === false
     || strpos($helper, 'sr_asset_exchange_policy_cycle_increases_value_sequence([$forward, $back])') === false
     || strpos($helper, 'sr_asset_exchange_policy_cycle_increases_value_sequence([$first, $second, $third])') === false
-    || strpos($helper, '무수수료 양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다') === false
+    || strpos($helper, '양방향 환전에서 반복 환전 시 가치가 증가할 수 있습니다') === false
 ) {
-    $errors[] = 'Asset exchange policy save must reject fee-free bidirectional and three-way cycles that can increase value.';
+    $errors[] = 'Asset exchange policy save must reject unsafe bidirectional and three-way cycles even with fees that can increase value.';
 }
 
 if (
