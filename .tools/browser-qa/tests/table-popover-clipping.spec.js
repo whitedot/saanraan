@@ -56,6 +56,14 @@ for (const [base, samples] of kits) {
     }
     await page.locator('.member-profile-menu summary').click();
     await expect(page.locator('.member-profile-menu-dropdown')).toBeVisible();
+    // A delayed focus-scroll notification must not dismiss a newly placed menu.
+    await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
+    await expect(page.locator('.member-profile-menu-dropdown')).toBeVisible();
+    await expect(page.locator('.member-profile-menu-dropdown')).toHaveJSProperty('popover', 'manual');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.member-profile-menu summary')).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.member-profile-menu-dropdown')).toBeVisible();
     await page.locator('.table-wrapper').evaluate(e => { e.scrollTop += 30; });
     await expect(page.locator('.member-profile-menu')).not.toHaveAttribute('open', '');
     await page.locator('.member-profile-menu summary').click();

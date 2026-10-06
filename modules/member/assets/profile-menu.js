@@ -1,11 +1,14 @@
 (function () {
   'use strict';
 
+  var menuAnchors = new WeakMap();
+
   function closeMemberProfileMenu(menu, restoreFocus) {
     var panel = menu.querySelector('.member-profile-menu-dropdown');
     if (panel && typeof panel.hidePopover === 'function' && panel.matches(':popover-open')) {
       panel.hidePopover();
     }
+    menuAnchors.delete(menu);
     menu.removeAttribute('open');
     if (restoreFocus) {
       var summary = menu.querySelector('summary');
@@ -39,6 +42,7 @@
     panel.style.maxHeight = Math.max(0, window.innerHeight - gap * 2) + 'px';
     panel.style.overflow = 'auto';
     var anchor = summary.getBoundingClientRect();
+    menuAnchors.set(menu, { left: anchor.left, top: anchor.top });
     var rect = panel.getBoundingClientRect();
     var top = anchor.bottom + 6;
     if (top + rect.height > window.innerHeight - gap && anchor.top - rect.height - 6 >= gap) {
@@ -82,7 +86,17 @@
   window.addEventListener('scroll', function (event) {
     var target = event.target;
     if (target && target.closest && target.closest('.member-profile-menu-dropdown')) return;
-    closeMemberProfileMenus(null);
+    document.querySelectorAll('.member-profile-menu[open]').forEach(function (menu) {
+      var previous = menuAnchors.get(menu);
+      var summary = menu.querySelector('summary');
+      // Focus can queue a scroll event before the asynchronous details toggle.
+      // Only movement since placement invalidates the panel's anchor.
+      if (!previous || !summary) return;
+      var current = summary.getBoundingClientRect();
+      if (current.left !== previous.left || current.top !== previous.top) {
+        closeMemberProfileMenu(menu, false);
+      }
+    });
   }, true);
   window.addEventListener('resize', function () {
     document.querySelectorAll('.member-profile-menu[open]').forEach(placeMemberProfileMenu);
