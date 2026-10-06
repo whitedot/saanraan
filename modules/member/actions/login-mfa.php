@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
+
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+}
+
 if (sr_module_enabled($pdo, 'identity_verification') && is_file(SR_ROOT . '/modules/identity_verification/helpers.php')) {
     require_once SR_ROOT . '/modules/identity_verification/helpers.php';
 }
@@ -94,7 +99,6 @@ if ($errors === [] && in_array('email', $availableProviderKeys, true)) {
 }
 
 if (sr_request_method() === 'POST') {
-    sr_require_csrf();
 
     $code = sr_post_string_without_truncation('code', 80);
     $normalizedCode = is_string($code) ? sr_member_mfa_normalize_code($code) : '';

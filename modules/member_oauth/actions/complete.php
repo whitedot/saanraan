@@ -5,6 +5,11 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/member_oauth/helpers.php';
 
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+}
+
+
 $stateToken = sr_request_method() === 'POST'
     ? (sr_post_string_without_truncation('state', 255) ?? '')
     : (sr_get_string_without_truncation('state', 255) ?? '');
@@ -24,7 +29,6 @@ $values = [
 $registrationConsentValues = [];
 
 if (sr_request_method() === 'POST') {
-    sr_require_csrf();
     $values['email'] = sr_post_string_without_truncation('email', 255) ?? '';
     $values['display_name'] = sr_member_normalize_display_name(sr_post_string('display_name', 120));
     $password = sr_post_string_without_truncation('password', 255) ?? '';

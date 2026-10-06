@@ -5,6 +5,11 @@ declare(strict_types=1);
 require_once SR_ROOT . '/modules/member/helpers.php';
 require_once SR_ROOT . '/modules/admin/helpers.php';
 require_once SR_ROOT . '/modules/community/helpers.php';
+
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+}
+
 if (sr_module_enabled($pdo, 'banner') && is_file(SR_ROOT . '/modules/banner/public-banner.php')) {
     require_once SR_ROOT . '/modules/banner/public-banner.php';
 }
@@ -111,7 +116,6 @@ if ($postFormFlash !== []
 }
 
 if ($isPostRequest) {
-    sr_require_csrf();
 
     $values = sr_community_post_input_values($pdo, $board, $settings);
     if (!$categoryEnabled) {

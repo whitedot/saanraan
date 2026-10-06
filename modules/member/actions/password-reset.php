@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 require_once SR_ROOT . '/modules/member/helpers.php';
 
+if (sr_request_method() === 'POST') {
+    sr_require_csrf();
+}
+
+
 $errors = [];
 $notice = '';
 $method = sr_request_method();
@@ -42,7 +47,6 @@ if ($reset === null) {
 }
 
 if ($method === 'POST') {
-    sr_require_csrf();
 
     $reset = $tokenHash !== '' ? sr_member_find_password_reset_by_hash($pdo, $tokenHash) : null;
     if ($reset === null) {

@@ -26,6 +26,34 @@ $basePath = $basePath !== '/' ? rtrim($basePath, '/') : '';
 
 $checks = [
     [
+        'label' => 'MFA missing challenge POST csrf guard',
+        'method' => 'POST',
+        'path' => '/login/mfa',
+        'allowed_statuses' => [400],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'password reset missing session POST csrf guard',
+        'method' => 'POST',
+        'path' => '/password/reset/confirm',
+        'allowed_statuses' => [400],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'OAuth completion missing state POST csrf guard',
+        'method' => 'POST',
+        'path' => '/oauth/complete',
+        'allowed_statuses' => [400, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
+        'label' => 'community write missing board POST csrf guard',
+        'method' => 'POST',
+        'path' => '/community/write',
+        'allowed_statuses' => [400, 404],
+        'must_not_contain' => ['Fatal error', 'Stack trace'],
+    ],
+    [
         'label' => 'home or install entry',
         'path' => '/',
         'allowed_statuses' => [200, 302],
@@ -469,7 +497,7 @@ $checks = [
             '.public-layout-header',
             '.public-layout-main',
             '.public-layout-footer',
-            'grid-template-columns: minmax(180px, 1fr) auto minmax(90px, 1fr)',
+            '.public-layout-nav .sr-site-menu',
         ],
     ],
     [
