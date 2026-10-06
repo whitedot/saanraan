@@ -1456,6 +1456,23 @@ window.AdminShell = {
             });
         };
 
+        const positionSidebarFlyout = item => {
+            if (!body.classList.contains('admin-sidebar-condensed')) return;
+            const panel = item.querySelector('.admin-nav-panel');
+            const trigger = item.querySelector('.admin-nav-trigger');
+            if (!panel || !trigger) return;
+            const anchor = trigger.getBoundingClientRect();
+            const height = panel.getBoundingClientRect().height;
+            const top = Math.max(8, Math.min(anchor.top, window.innerHeight - height - 8));
+            panel.style.setProperty('--admin-flyout-top', `${top}px`);
+            panel.style.setProperty('--admin-flyout-left', `${anchor.right}px`);
+        };
+
+        const positionVisibleSidebarFlyouts = () => {
+            if (!navRoot) return;
+            navRoot.querySelectorAll('.admin-nav-item:hover, .admin-nav-item:focus-within').forEach(positionSidebarFlyout);
+        };
+
         const syncDesktopSidebarState = () => {
             if (!gnb || !container || !desktopToggle) {
                 return;
@@ -1464,6 +1481,7 @@ window.AdminShell = {
             const collapsed = gnb.classList.contains('gnb_small');
             const desktopCollapsed = !isMobileViewport() && collapsed;
             body.classList.toggle('admin-sidebar-condensed', desktopCollapsed);
+            positionVisibleSidebarFlyouts();
             container.classList.toggle('container-small', desktopCollapsed);
             desktopToggle.classList.toggle('btn_gnb_open', desktopCollapsed);
             desktopToggle.setAttribute('aria-pressed', desktopCollapsed ? 'true' : 'false');
@@ -1757,6 +1775,7 @@ window.AdminShell = {
 
         if (menuScroll) {
             menuScroll.addEventListener('scroll', () => {
+                positionVisibleSidebarFlyouts();
                 updateMenuScrollbar();
                 showMenuScrollbar();
                 hideMenuScrollbar(420);
@@ -1884,6 +1903,10 @@ window.AdminShell = {
 
         if (navRoot) {
             const navItems = Array.prototype.slice.call(navRoot.querySelectorAll('.admin-nav-item'));
+            navItems.forEach(item => {
+                item.addEventListener('mouseenter', () => positionSidebarFlyout(item));
+                item.addEventListener('focusin', () => positionSidebarFlyout(item));
+            });
             const navToggleItems = navItems.filter(item => item.querySelector('.admin-nav-panel'));
             navToggleItems.forEach(item => {
                 setNavItemState(item, item.classList.contains('is-open'));
