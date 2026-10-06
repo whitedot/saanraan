@@ -433,7 +433,7 @@ if ($preflight !== '') {
         '/^purifier-cache-writable: yes$/m',
         '/^dependency-record: present$/m',
         '/^ckeditor-assets: present$/m',
-        '/^ckeditor-version: 48\.3\.0$/m',
+        '/^ckeditor-version: 48\.5\.1$/m',
         '/^ckeditor-license-files: present$/m',
         '/^release-package-files: \d+$/m',
         '/^release-package-manifest-sha256: [a-f0-9]{64}$/m',

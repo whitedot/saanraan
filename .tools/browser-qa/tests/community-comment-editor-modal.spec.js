@@ -6,7 +6,6 @@ const root = path.resolve(__dirname, '../../..');
 test('community comment editor modal stays bounded with long content in light and dark modes', async ({ page }) => {
   await page.setViewportSize({ width: 560, height: 789 });
   const longSource = Array.from({ length: 40 }, (_, index) => `긴 원문 ${index + 1} 줄과verylongtokenwithoutspaces${index}`).join('\n');
-  const toolbarButtons = Array.from({ length: 16 }, (_, index) => `<button type="button" class="ck ck-button"><span class="ck ck-button__label">도구 ${index + 1}</span></button>`).join('');
 
   await page.setContent(`<!doctype html>
     <html lang="ko" data-color-scheme="light">
@@ -22,10 +21,7 @@ test('community comment editor modal stays bounded with long content in light an
                 <p class="community-comment-reply-source" tabindex="0" aria-label="답글 대상 댓글"></p>
                 <p class="community-comment-editor-field">
                   <label><span>답글 (필수)</span>
-                    <span class="ck ck-editor sr-ckeditor">
-                      <span class="ck ck-editor__top"><span class="ck ck-sticky-panel"><span class="ck ck-sticky-panel__content"><span class="ck ck-toolbar"><span class="ck ck-toolbar__items">${toolbarButtons}</span></span></span></span></span>
-                      <span class="ck ck-editor__main"><span class="ck ck-content ck-editor__editable ck-editor__editable_inline" contenteditable="true">${'긴 수정 본문 '.repeat(500)}</span></span>
-                    </span>
+                    <textarea id="comment_body" name="body_text" class="form-textarea" data-sr-editor="ckeditor"></textarea>
                   </label>
                 </p>
               </div>
@@ -42,6 +38,27 @@ test('community comment editor modal stays bounded with long content in light an
   await page.addStyleTag({ path: path.join(root, 'modules/ckeditor/vendor/ckeditor5/ckeditor5.css') });
   await page.addStyleTag({ path: path.join(root, 'modules/ckeditor/assets/saanraan-ckeditor.css') });
   await page.addStyleTag({ path: path.join(root, 'modules/community/theme/basic/assets/module.css') });
+  // Initialize the bundled editor instead of approximating its block DOM with spans.
+  await page.evaluate(() => {
+    const config = document.createElement('script');
+    config.type = 'application/json';
+    config.id = 'sr-ckeditor-config';
+    config.textContent = JSON.stringify({
+      assetMode: 'self_hosted', licenseKey: 'GPL',
+      selfHostedScriptUrl: '/modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js',
+      toolbar: ['undo', 'redo', '|', 'insertImage', 'link', 'insertTable', '|', 'heading', 'fontSize', '|',
+        'bold', 'italic', 'underline', 'strikethrough', '|', 'fontColor', 'fontBackgroundColor',
+        'removeFormat', '|', 'alignment', 'horizontalLine', 'blockQuote', '|',
+        'bulletedList', 'numberedList', 'outdent', 'indent'],
+    });
+    document.head.appendChild(config);
+  });
+  await page.addScriptTag({ path: path.join(root, 'modules/ckeditor/vendor/ckeditor5/ckeditor5.umd.js') });
+  await page.addScriptTag({ path: path.join(root, 'modules/ckeditor/assets/saanraan-ckeditor.js') });
+  await page.evaluate(() => window.srCkeditorEnhance());
+  await expect(page.locator('#comment_body')).toHaveAttribute('data-sr-editor-ready', '1');
+  await page.evaluate(() => window.srCkeditorInstances.comment_body.setData('<p>' + '긴 수정 본문 '.repeat(500) + '</p>'));
+
 
   const snapshot = async () => page.evaluate(() => {
     const content = document.querySelector('.community-comment-editor-dialog > .modal-content');

@@ -49,7 +49,7 @@ include SR_ROOT . '/modules/admin/views/layout-header.php';
             <?php echo sr_admin_form_label_help_html('ckeditor_admin_cdn_version', 'CDN 버전', $ckeditorHelp['asset_mode']['id'], $ckeditorHelpOpenLabel, true); ?>
             <div class="form-field">
                 <input id="ckeditor_admin_cdn_version" type="text" name="cdn_version" class="form-control" maxlength="20" pattern="[0-9]+(\\.[0-9]+){1,2}" value="<?php echo sr_e((string) $settings['cdn_version']); ?>" required>
-                <p class="form-help">CDN 방식을 선택했을 때 불러올 CKEditor 버전입니다. 예: 48.3.0</p>
+                <p class="form-help">CDN 방식을 선택했을 때 불러올 CKEditor 버전입니다. 예: 48.5.1</p>
             </div>
         </div>
 

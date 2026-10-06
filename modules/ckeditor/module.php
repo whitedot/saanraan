@@ -30,7 +30,7 @@ return [
     ],
     'settings' => [
         'asset_mode' => 'self_hosted',
-        'cdn_version' => '48.3.0',
+        'cdn_version' => '48.5.1',
         'license_key' => 'GPL',
         'toolbar_preset' => 'standard',
     ],

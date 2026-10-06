@@ -4,7 +4,7 @@ CKEditor 플러그인은 선택된 textarea에 CKEditor 5를 붙인다. 콘텐�
 
 ## 에셋 설치
 
-기본 설정은 직접 호스팅이다. 저장소에는 CKEditor 5 `48.3.0` 브라우저 배포 파일을 `modules/ckeditor/vendor/ckeditor5/` 아래 포함한다. CKEditor 5 v44 이상은 `licenseKey` 설정이 필요하며, 직접 호스팅은 GPL 조건 준수 또는 self-hosting 라이선스가 필요하다. 산란 루트의 MIT 라이선스는 이 제3자 배포 파일의 GPL 또는 상용 라이선스 조건을 대체하지 않는다.
+기본 설정은 직접 호스팅이다. 저장소에는 CKEditor 5 `48.5.1` 브라우저 배포 파일을 `modules/ckeditor/vendor/ckeditor5/` 아래 포함한다. CKEditor 5 v44 이상은 `licenseKey` 설정이 필요하며, 직접 호스팅은 GPL 조건 준수 또는 self-hosting 라이선스가 필요하다. 산란 루트의 MIT 라이선스는 이 제3자 배포 파일의 GPL 또는 상용 라이선스 조건을 대체하지 않는다.
 
 직접 호스팅에서 사용하는 파일 경로는 다음과 같다.
 
@@ -34,3 +34,7 @@ CKEditor 초기화가 성공한 경우에만 form에 `body_format=html`이 추�
 글자 크기, 글자색, 배경색, 정렬, 들여쓰기, 이미지 캡션, 표 출력은 공통 rich text sanitizer가 허용하는 제한된 값과 구조만 저장된다. 에디터 설정을 넓힐 때는 `docs/rich-text-sanitizer-policy.md`, 공개 본문 스타일, sanitizer fixture를 함께 갱신해야 한다.
 
 콘텐츠, 커뮤니티, 팝업레이어 모듈은 각자 필요한 textarea에서 본문 이미지 upload endpoint를 `data-sr-editor-upload-*` 속성으로 넘긴다. CKEditor 플러그인은 adapter 연결만 담당하고, 업로드 권한, CSRF, 저장소 key, 파일 상태, 프록시 접근 정책은 화면 소유 모듈이 소유한다. 관리자 공통 에디터 설정은 upload endpoint를 자동으로 붙이지 않으며, 설정형 rich textarea가 필요하면 해당 설정을 소유한 모듈이 안정적인 subject key와 삭제 정책을 먼저 정의해야 한다.
+
+## 보안 갱신 기준
+
+번들 48.5.1은 CKEditor 엔진 보안 공지 [GHSA-rh54-vffm-5fvp](https://github.com/ckeditor/ckeditor5/security/advisories/GHSA-rh54-vffm-5fvp)와 [GHSA-v6mg-96c6-gmpq](https://github.com/ckeditor/ckeditor5/security/advisories/GHSA-v6mg-96c6-gmpq)의 수정 버전이다. CDN 모드를 사용하는 기존 설치는 저장된 CDN 버전을 별도로 확인해 48.5.1 이상의 수정 버전으로 갱신해야 한다. 기본값 변경만으로 기존 저장 설정이 바뀌지는 않는다.

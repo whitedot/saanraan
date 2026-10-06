@@ -9,16 +9,16 @@ Included files:
 - `COPYING.GPL`
 - `LICENSE.md`
 
-Version: `48.3.0`
+Version: `48.5.1`
 
 Source package:
 
-- `ckeditor5@48.3.0` from the npm registry
+- `ckeditor5@48.5.1` from the npm registry
 - Browser files copied from `dist/browser/`
-- npm shasum: `27917726a0d0d3a61ac861fc1976a6552ea9d095`
-- npm integrity: `sha512-5Mh78/q04TdifexBPZjGZ4rfGPCNvgDh+Yehle60HlCx3PqQSwPUoI75SxE+5LCGSLOi3AN3F0HoT9Z3ZUXUfQ==`
-- `ckeditor5.umd.js` SHA-256 after removing the source map comment: `78602c5703f6d0b44fb4bc986f9678dd48f379bddd1ecc426d8d137a6edde11a`
-- `ckeditor5.css` SHA-256 after removing the source map comment: `d97db4edafdbc05737639cc5a81bd789d06df813adb1f0fd97a775e9f9691677`
+- npm shasum: `bcf9ac9885ee9e8480fb9b98e63cef91d6c778aa`
+- npm integrity: `sha512-wDTXP81t1piuXtdd2+WOYdtzli2pGmMH3TrQCeh4igNrwPJaguzgofATwgW8fBqAqyeKlZSdvUdSgpBS3TjLuA==`
+- `ckeditor5.umd.js` SHA-256 after removing the source map comment: `b76a583e1fa53174bd473b2deb9c5f3951b89d2c9cc3d59e974c81f7c96622a5`
+- `ckeditor5.css` SHA-256 after removing the source map comment: `7f2b24fa0760fffe7e5a9a9552d5f27e3b0bf54de16dc48d6fe9239fd53ed4dd`
 
 The JavaScript and CSS files do not include source map comments in this repository, so browser devtools do not request external map URLs. The files are provided by CKSource. See CKEditor licensing terms before deploying with a non-GPL license key:
 

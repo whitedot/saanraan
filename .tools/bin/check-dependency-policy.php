@@ -96,7 +96,7 @@ if (!is_file($ckeditorVendorReadme)) {
     sr_dependency_policy_error('CKEditor vendor README is missing.');
 }
 
-foreach (['CKEditor 5', '48.3.0', 'GPL-2.0-or-later', 'HTML Purifier', 'LGPL-2.1-or-later', 'github-markdown-css', 'MIT'] as $marker) {
+foreach (['CKEditor 5', '48.5.1', 'GPL-2.0-or-later', 'HTML Purifier', 'LGPL-2.1-or-later', 'github-markdown-css', 'MIT'] as $marker) {
     if (is_string($thirdPartyNotices) && !str_contains($thirdPartyNotices, $marker)) {
         sr_dependency_policy_error('Third-party notices document is missing marker: ' . $marker);
     }

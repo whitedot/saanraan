@@ -4,7 +4,7 @@
 
 | 구성요소 | 포함 버전 | 저장소 경로 | 라이선스 | 상세 기록 |
 | --- | --- | --- | --- | --- |
-| CKEditor 5 | 48.3.0 | `modules/ckeditor/vendor/ckeditor5/` | GPL-2.0-or-later 또는 CKSource 상용 라이선스 | `modules/ckeditor/README.md`, `modules/ckeditor/vendor/ckeditor5/README.md`, `COPYING.GPL`, `LICENSE.md` |
+| CKEditor 5 | 48.5.1 | `modules/ckeditor/vendor/ckeditor5/` | GPL-2.0-or-later 또는 CKSource 상용 라이선스 | `modules/ckeditor/README.md`, `modules/ckeditor/vendor/ckeditor5/README.md`, `COPYING.GPL`, `LICENSE.md` |
 | HTML Purifier | 4.19.0 | `modules/htmlpurifier/vendor/ezyang/htmlpurifier/` | LGPL-2.1-or-later | `modules/htmlpurifier/DEPENDENCY.md`, `modules/htmlpurifier/vendor/ezyang/htmlpurifier/LICENSE` |
 | github-markdown-css 기반 스타일시트 | 5.9.0 기준 | `modules/markdown_editor/assets/github-markdown.css` | MIT | `modules/markdown_editor/DEPENDENCY.md`, `modules/markdown_editor/LICENSE.github-markdown-css` |
 

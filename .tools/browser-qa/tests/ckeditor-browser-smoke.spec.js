@@ -110,7 +110,8 @@ test.describe('CKEditor browser smoke', () => {
       });
       return {
         hasFindAndReplace: editor.plugins.has('FindAndReplace'),
-        hasSelectAll: editor.plugins.has('SelectAll'),
+        // Essentials retains the select-all command for keyboard editing.
+        selectionUtilitiesInToolbar: editor.config.get('toolbar.items').filter(item => ['selectAll', 'findAndReplace'].includes(item)),
         hasImageInsertViaUrl: editor.plugins.has('ImageInsertViaUrl'),
         shouldNotGroupWhenFull: editor.config.get('toolbar.shouldNotGroupWhenFull'),
         groupedDropdownCount: toolbar.querySelectorAll('.ck-toolbar__grouped-dropdown').length,
@@ -122,7 +123,7 @@ test.describe('CKEditor browser smoke', () => {
 
     expect(toolbarState).toEqual({
       hasFindAndReplace: false,
-      hasSelectAll: false,
+      selectionUtilitiesInToolbar: [],
       hasImageInsertViaUrl: true,
       shouldNotGroupWhenFull: true,
       groupedDropdownCount: 0,
