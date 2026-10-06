@@ -28,8 +28,8 @@ for (const base of ['assets', 'modules/admin/assets', 'modules/content/theme/bas
         await expect(page.locator('.card-img-top')).toHaveCSS('border-top-left-radius', '19px');
         await expect(page.locator('.table-card')).toHaveCSS('overflow', 'hidden');
         await expect(page.locator('.card-inverse .card-title')).toHaveCSS('color', 'rgb(255, 255, 255)');
-        // Card rounding must not change the general UI kit radius token.
-        await expect(page.locator('#outside-button')).toHaveCSS('border-radius', '4px');
+        // Public actions use 8px corners; the independent admin kit keeps 4px.
+        await expect(page.locator('#outside-button')).toHaveCSS('border-radius', base === 'modules/admin/assets' ? '4px' : '8px');
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       }
     }

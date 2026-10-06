@@ -26,7 +26,8 @@ for (const [name, className, commonStylesheet, stylesheet] of fixtures) {
         --sr-border: #ccd4e0;
         --sr-surface: #ffffff;
         --color-default-700: #172033;
-        --color-primary: #172033;
+        --color-default-900: #172033;
+        --color-primary: #315efb;
         --color-white: #ffffff;
       }
       :root[data-color-scheme="dark"] {
@@ -34,7 +35,8 @@ for (const [name, className, commonStylesheet, stylesheet] of fixtures) {
         --sr-border: #475569;
         --sr-surface: #111827;
         --color-default-700: #e5ecf5;
-        --color-primary: #e5ecf5;
+        --color-default-900: #e5ecf5;
+        --color-primary: #8ab4ff;
         --color-white: #111827;
       }
     ` });
@@ -342,8 +344,8 @@ const panelFixtures = [
     name: 'community basic',
     commonStylesheet: 'modules/community/theme/basic/assets/common.css',
     stylesheet: 'modules/community/theme/basic/assets/module.css',
-    wrapperOpen: '<main class="community-screen">',
-    wrapperClose: '</main>',
+    wrapperOpen: '<main class="community-screen"><div class="community-frame community-frame-view">',
+    wrapperClose: '</div></main>',
     panel: 'community-comments-panel',
     header: 'community-comments-panel-header',
     count: 'community-comments-count',
@@ -359,7 +361,7 @@ const panelFixtures = [
     name: 'content basic',
     commonStylesheet: 'modules/content/theme/basic/assets/common.css',
     stylesheet: 'modules/content/theme/basic/assets/module.css',
-    wrapperOpen: '<main class="content-page">',
+    wrapperOpen: '<main class="content-page content-page-view">',
     wrapperClose: '</main>',
     panel: 'content-comments-panel',
     header: 'content-comments-panel-header',
@@ -404,7 +406,7 @@ for (const fixture of panelFixtures) {
         }
       </style></head>
       <body>${fixture.wrapperOpen}
-        <section class="${fixture.panel}">
+        <section class="card ${fixture.panel}">
           <div class="${fixture.header}"><h2 data-comment-title>댓글 <span class="${fixture.count}">2</span></h2></div>
           <ul${listClass}>
             <li class="${fixture.item}"><div class="${fixture.author}" data-comment-author><img class="member-profile-image member-profile-image-size-medium ${fixture.avatar}" data-comment-avatar alt="" width="32" height="32"><span class="member-profile-image member-profile-image-size-medium member-profile-image-fallback member-default-avatar member-avatar-color-8 ${fixture.avatar}" data-comment-avatar-fallback aria-hidden="true">작</span><span>작성자</span></div><div>첫 댓글</div></li>
@@ -436,7 +438,7 @@ for (const fixture of panelFixtures) {
         panelRadius: panel.borderTopLeftRadius,
         panelGap: panel.gap,
         panelPaddingBottom: panel.paddingBottom,
-        headerDivider: header.borderBottomColor,
+        headerDividerWidth: header.borderBottomWidth,
         titleMarginBottom: title.marginBottom,
         itemDivider: second.borderTopColor,
         itemPaddingTop: second.paddingTop,
@@ -475,12 +477,12 @@ for (const fixture of panelFixtures) {
       const styles = await computed();
       computedByScheme[scheme] = styles;
       expect(styles.panelBackground).toBe(scheme === 'dark' ? 'rgb(17, 24, 39)' : 'rgb(255, 255, 255)');
-      expect(styles.panelBorder).toBe(scheme === 'dark' ? 'rgb(71, 85, 105)' : 'rgb(204, 212, 224)');
-      expect(styles.panelRadius).toBe('12px');
-      expect(styles.panelGap).toBe('18px');
-      expect(styles.panelPaddingBottom).toBe('22px');
+      expect(styles.panelBorder).toBe(scheme === 'dark' ? 'rgb(52, 65, 84)' : 'rgb(227, 232, 239)');
+      expect(styles.panelRadius).toBe('16px');
+      expect(styles.panelGap).toBe('12px');
+      expect(styles.panelPaddingBottom).toBe('24px');
       expect(styles.titleMarginBottom).toBe('0px');
-      expect(styles.itemPaddingTop).toBe('18px');
+      expect(styles.itemPaddingTop).toBe('20px');
       expect(styles.authorDisplay).toBe('flex');
       expect(styles.authorAlign).toBe('center');
       expect(styles.authorGap).toBe('8px');
@@ -498,13 +500,13 @@ for (const fixture of panelFixtures) {
       expect(styles.avatarFallbackAlign).toBe('center');
       expect(styles.avatarFallbackJustify).toBe('center');
       expect(styles.avatarFallbackFontWeight).toBe('700');
-      expect(styles.formPaddingTop).toBe('20px');
+      expect(styles.formPaddingTop).toBe('24px');
       expect(styles.formCopyColor).toBe(scheme === 'dark' ? 'rgb(229, 236, 245)' : 'rgb(23, 32, 51)');
       expect(styles.formCopyMarginBottom).toBe('0px');
       expect(styles.unavailableColor).toBe(scheme === 'dark' ? 'rgb(174, 184, 199)' : 'rgb(104, 115, 134)');
       expect(styles.unavailableMargin).toBe('0px');
       expect(styles.unavailablePaddingBlock).toEqual(['10px', '10px']);
-      expect(styles.headerDivider).toBe(styles.itemDivider);
+      expect(styles.headerDividerWidth).toBe('0px');
       expect(styles.formDivider).toBe(styles.itemDivider);
     }
     expect(computedByScheme.dark.avatarBorder).not.toBe(computedByScheme.light.avatarBorder);
@@ -564,7 +566,7 @@ for (const fixture of panelFixtures) {
         }
       </style></head>
       <body>${fixture.wrapperOpen}
-        <section class="${fixture.panel}" data-comment-panel>
+        <section class="card ${fixture.panel}" data-comment-panel>
           <div class="${fixture.header}" data-comment-header><h2>댓글 <span class="${fixture.count}">0</span></h2></div>
           <p class="${fixture.empty}" data-comment-empty>댓글이 없습니다.</p>
           <p class="${fixture.unavailable}" data-comment-unavailable>로그인하면 댓글을 작성할 수 있습니다.</p>
@@ -609,16 +611,16 @@ for (const fixture of panelFixtures) {
         };
       });
       expect(state.panelBackground).toBe(scheme === 'dark' ? 'rgb(17, 24, 39)' : 'rgb(255, 255, 255)');
-      expect(state.panelBorder).toBe(scheme === 'dark' ? 'rgb(71, 85, 105)' : 'rgb(204, 212, 224)');
-      expect(state.panelGap).toBe('18px');
+      expect(state.panelBorder).toBe(scheme === 'dark' ? 'rgb(52, 65, 84)' : 'rgb(227, 232, 239)');
+      expect(state.panelGap).toBe('12px');
       expect(state.emptyColor).toBe(scheme === 'dark' ? 'rgb(174, 184, 199)' : 'rgb(104, 115, 134)');
       expect(state.emptyMargin).toBe('0px');
       expect(state.emptyPaddingBlock).toEqual(['10px', '10px']);
       expect(state.unavailableColor).toBe(state.emptyColor);
       expect(state.unavailableMargin).toBe('0px');
       expect(state.unavailablePaddingBlock).toEqual(['10px', '10px']);
-      expect(state.headerToEmptyGap).toBe(18);
-      expect(state.emptyToUnavailableGap).toBe(18);
+      expect(state.headerToEmptyGap).toBe(12);
+      expect(state.emptyToUnavailableGap).toBe(12);
       expect(state.emptyText).toBe('댓글이 없습니다.');
       expect(state.unavailableText).toBe('로그인하면 댓글을 작성할 수 있습니다.');
     }

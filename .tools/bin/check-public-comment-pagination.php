@@ -310,7 +310,14 @@ foreach ([
 foreach (['modules/content/theme/basic/content.php', 'modules/content/views/content.php'] as $contentCommentViewPath) {
     $contents = $readViewSource($contentCommentViewPath);
     $articleClosePosition = is_string($contents) ? strpos($contents, '</article>') : false;
-    $commentPanelPosition = is_string($contents) ? strpos($contents, 'id="content-comments" class="content-comments-panel"') : false;
+    $commentPanelMatch = [];
+    $hasCommentPanel = is_string($contents) && preg_match(
+        '/<section\b(?=[^>]*\bid="content-comments")(?=[^>]*\bclass="[^"]*\bcontent-comments-panel\b[^"]*")[^>]*>/',
+        $contents,
+        $commentPanelMatch,
+        PREG_OFFSET_CAPTURE
+    ) === 1;
+    $commentPanelPosition = $hasCommentPanel ? $commentPanelMatch[0][1] : false;
     $assert(
         $articleClosePosition !== false
             && $commentPanelPosition !== false
