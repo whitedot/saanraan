@@ -52,7 +52,7 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 | `th`, `td` | `colspan`, `rowspan` | 표 셀과 셀 병합 |
 | `hr` | 없음 | 문단 구분선 |
 
-허용되지 않은 태그는 태그 자체를 제거하고 가능한 경우 내부 텍스트만 남긴다. `script`, `style`, `iframe`, `object`, `embed`, `form`, `meta`는 자식 내용까지 제거한다.
+허용되지 않은 태그는 태그 자체를 제거하고 가능한 경우 내부 텍스트만 남긴다. `script`, `style`, `iframe`, `object`, `form`은 자식 내용까지 제거한다. `embed`와 `meta`는 요소 자체를 제거한다. HTML의 빈 요소인 `meta` 뒤에 오는 일반 본문은 메타데이터의 자식이 아니므로 보존한다.
 
 ## 속성 검증
 
@@ -60,6 +60,7 @@ HTML Purifier adapter는 내부 canonicalizer를 대체하지 않는다. 공통 
 
 - `href`: 안전한 내부 상대 URL 또는 `http://`, `https://` URL만 허용한다.
 - `src`: 안전한 내부 상대 URL 또는 `https://` URL만 허용한다. 외부 `http://` 이미지와 data URL 이미지는 허용하지 않는다.
+- `img`: 검증을 통과한 `src`가 없으면 `alt`나 크기 속성이 남아 있어도 이미지 요소 전체를 제거한다.
 - `width`, `height`: 1부터 9999까지의 양의 정수 문자열만 허용한다.
 - `alt`: 최대 160자로 자른다.
 - `figure.class`: `image` 또는 `table`만 허용한다. class가 남지 않는 `figure`는 wrapper를 제거하고 내부의 안전한 내용만 남긴다.

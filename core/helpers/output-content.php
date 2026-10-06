@@ -373,6 +373,7 @@ function sr_sanitize_rich_text_html_node(DOMNode $node): string
 function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName, array $allowedAttributes): string
 {
     $attributes = '';
+    $hasSafeSource = false;
     foreach ($allowedAttributes as $attributeName) {
         if (!$node->hasAttribute($attributeName)) {
             continue;
@@ -410,7 +411,14 @@ function sr_sanitize_rich_text_html_attributes(DOMElement $node, string $tagName
             continue;
         }
 
+        if ($attributeName === 'src') {
+            $hasSafeSource = true;
+        }
         $attributes .= ' ' . $attributeName . '="' . sr_e($value) . '"';
+    }
+
+    if ($tagName === 'img' && !$hasSafeSource) {
+        return '';
     }
 
     if ($tagName === 'a' && $attributes !== '') {

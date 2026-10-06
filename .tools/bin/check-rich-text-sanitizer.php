@@ -166,7 +166,7 @@ function sr_sanitizer_check_namespace_url_payload_case(callable $sanitize, strin
         . '<object data="https://example.com/x"></object>'
         . '<embed src="https://example.com/x">'
         . '<meta http-equiv="refresh" content="0;url=javascript:alert(1)">'
-        . '<meta name="description">hidden meta text</meta>'
+        . '<meta name="description" content="blocked metadata">'
         . '<p><a href="JaVaScRiPt:alert(1)">mixed</a></p>'
         . '<p><a href="java&#x0A;script:alert(1)">encoded</a></p>'
         . '<p><img src="JaVaScRiPt:alert(1)" alt="bad"></p>'
@@ -185,13 +185,24 @@ function sr_sanitizer_check_namespace_url_payload_case(callable $sanitize, strin
         'xlink:href',
         'srcdoc',
         'http-equiv',
-        'hidden meta text',
+        'blocked metadata',
         'javascript:',
         'java&#',
         'alert(1)',
         'data=',
         '<img',
     ], $label . ' namespace and encoded URL payload');
+
+    $images = $sanitize('<p><img alt="missing" width="20"><img src="javascript:alert(1)" alt="bad">'
+        . '<img src="http://example.com/insecure.png" alt="insecure">'
+        . '<img src="/safe.png" alt="safe" width="20"></p>');
+    sr_sanitizer_check_not_contains($images, ['alt="missing"', 'alt="bad"', 'alt="insecure"'], $label . ' images require a safe source');
+    sr_sanitizer_check_contains($images, ['<img src="/safe.png" alt="safe" width="20">'], $label . ' safe image retained');
+
+    // meta is a void element: following paragraph text is not metadata content.
+    $adjacentText = $sanitize('<meta name="description" content="blocked metadata"><p>Visible adjacent text</p>');
+    sr_sanitizer_check_not_contains($adjacentText, ['<meta', 'blocked metadata'], $label . ' metadata removed');
+    sr_sanitizer_check_contains($adjacentText, ['<p>Visible adjacent text</p>'], $label . ' adjacent body text retained');
 }
 
 function sr_sanitizer_check_body_text_helper_case(): void
